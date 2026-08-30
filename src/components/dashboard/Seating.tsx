@@ -70,10 +70,13 @@ export default function Seating() {
 
   const endDrag = (id: string) => (_e: unknown, info: { point: { x: number; y: number } }) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const table = db.tables.find((t) => t.id === id);
+    if (!canvas || !table) return;
+    // wide tables need wider margins so they never hang off the floor edge
+    const mx = table.shape === "head" ? 17 : table.shape === "rect" ? 15 : table.shape === "sweetheart" ? 7 : 9;
     const rect = canvas.getBoundingClientRect();
-    const x = Math.min(94, Math.max(6, ((info.point.x - rect.left) / rect.width) * 100));
-    const y = Math.min(92, Math.max(8, ((info.point.y - rect.top) / rect.height) * 100));
+    const x = Math.min(100 - mx, Math.max(mx, ((info.point.x - rect.left) / rect.width) * 100));
+    const y = Math.min(92, Math.max(9, ((info.point.y - rect.top) / rect.height) * 100));
     setDb((d) => ({ ...d, tables: d.tables.map((t) => (t.id === id ? { ...t, x, y } : t)) }));
   };
 

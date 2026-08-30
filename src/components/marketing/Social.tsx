@@ -68,7 +68,7 @@ export function Pricing() {
                       const excluded = f.startsWith("No ");
                       return (
                         <li key={f} className={`flex items-start gap-2.5 text-[0.9rem] ${excluded ? (featured ? "text-cream/35 line-through" : "text-ink-mute/70 line-through") : featured ? "text-cream/85" : "text-ink-2"}`}>
-                          <span className={`mt-0.5 flex h-4.5 w-4.5 h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full ${excluded ? "bg-transparent border border-current opacity-50" : featured ? "bg-gold text-ink" : "bg-sage-soft text-sage-deep"}`}>
+                          <span className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full ${excluded ? "bg-transparent border border-current opacity-50" : featured ? "bg-gold text-ink" : "bg-sage-soft text-sage-deep"}`}>
                             {excluded ? <X size={10} strokeWidth={3} /> : <Check size={10} strokeWidth={3.4} />}
                           </span>
                           {f}

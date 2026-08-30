@@ -216,7 +216,7 @@ export default function Guests() {
                     </div>
                   </td>
                   <td className="px-3 py-3">
-                    <button onClick={() => cycleRsvp(g)} title="Click to change RSVP" className="cursor-pointer transition hover:scale-105">
+                    <button onClick={() => cycleRsvp(g)} title="Click to change RSVP" aria-label={`Change RSVP for ${g.name} — currently ${g.rsvp}; activates the next state`} className="cursor-pointer transition hover:scale-105">
                       <Pill tone={g.rsvp}>{g.rsvp === "confirmed" ? "✓ confirmed" : g.rsvp}</Pill>
                     </button>
                   </td>

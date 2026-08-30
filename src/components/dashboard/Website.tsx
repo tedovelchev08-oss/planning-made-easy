@@ -4,7 +4,7 @@ import { Check, Copy, Globe, Heart, Lock, MapPin, Monitor, Music2, Smartphone, S
 import { SITE_SECTIONS, fmtDate, fmtDateShort } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
-import { Field, Modal, Pill, btn, inputCls } from "../ui";
+import { Field, Modal, Pill, SafeImg, btn, inputCls } from "../ui";
 
 const SITE_TEMPLATES = {
   serene: { label: "Serene", bg: "#FFF8F0", ink: "#332B31", accent: "#D4AF37", serif: true },
@@ -205,7 +205,7 @@ export default function Website() {
             <div className="max-h-[600px] overflow-y-auto" style={{ background: w.bg, color: w.ink, fontFamily }}>
               {on("hero") && (
                 <div className="relative flex min-h-[300px] flex-col items-center justify-center overflow-hidden px-6 py-16 text-center">
-                  <img src={w.heroPhoto} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  <SafeImg src={w.heroPhoto} alt="" className="absolute inset-0 h-full w-full object-cover" />
                   <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgb(30 26 29 / 0.62), rgb(30 26 29 / 0.18))" }} />
                   <SectionFade>
                     <p className="relative text-[0.6rem] font-extrabold uppercase tracking-[0.4em]" style={{ color: w.accent === "#D4AF37" ? "#F3E7C3" : w.accent }}>We're getting married</p>
@@ -223,8 +223,7 @@ export default function Website() {
                       <h3 className="mt-2 text-2xl" style={{ fontWeight: w.serif ? 600 : 800 }}>A slow yes</h3>
                       <p className="mt-3 text-[0.85rem] leading-relaxed opacity-75">It started with a borrowed umbrella and became a shared calendar, a small apartment with tall windows, and one very certain question asked at exactly the wrong, perfect moment.</p>
                     </div>
-                    <img src={IMAGES.hands} alt="Our hands, our rings" className="h-52 w-full rounded-[1.4rem] object-cover shadow-card" loading="lazy" />
-                  </div>
+                      <SafeImg src={IMAGES.hands} alt="Our hands, our rings" className="h-52 w-full rounded-[1.4rem] object-cover shadow-card" />                  </div>
                 </SectionFade>
               )}
 
@@ -266,7 +265,7 @@ export default function Website() {
                 <SectionFade>
                   <div className="px-8 pb-12 sm:px-12">
                     <div className="overflow-hidden rounded-[1.4rem] shadow-card">
-                      <img src={IMAGES.venue} alt={db.wedding.venue} className="h-56 w-full object-cover" loading="lazy" />
+                      <SafeImg src={IMAGES.venue} alt={db.wedding.venue} className="h-56 w-full object-cover" />
                       <div className="flex items-center justify-between gap-3 border-t px-6 py-4" style={{ borderColor: `${w.accent}33` }}>
                         <div>
                           <p className="text-[0.95rem] font-extrabold">{db.wedding.venue}</p>
@@ -310,7 +309,7 @@ export default function Website() {
                 <SectionFade>
                   <div className="grid grid-cols-3 gap-1.5 px-8 pb-12 sm:px-12">
                     {[IMAGES.couple, IMAGES.hands, IMAGES.venue].map((src, i) => (
-                      <img key={src} src={src} alt={`Gallery ${i + 1}`} className={`w-full object-cover ${i === 0 ? "col-span-2 h-40" : "h-40"}`} loading="lazy" />
+                      <SafeImg key={src} src={src} alt={`Gallery ${i + 1}`} className={`w-full object-cover ${i === 0 ? "col-span-2 h-40" : "h-40"}`} />
                     ))}
                   </div>
                 </SectionFade>

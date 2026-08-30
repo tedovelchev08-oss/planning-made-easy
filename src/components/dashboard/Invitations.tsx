@@ -4,7 +4,7 @@ import { Check, Crown, Heart, Lock, Mail, Monitor, Music, Play, Smartphone, Spar
 import { MEALS, TEMPLATE_CATS, Template, fmtDate, seedTemplates } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
-import { Field, Modal, Pill, Reveal, btn, inputCls } from "../ui";
+import { Field, Modal, Pill, Reveal, SafeImg, btn, inputCls } from "../ui";
 
 /* ------------------------------ palette & font presets ------------------------------ */
 
@@ -126,7 +126,7 @@ function InviteArt({
         {template.photo && cfg.photo ? (
           wrap(
             <div className="mb-7 h-44 w-full max-w-[300px] overflow-hidden rounded-t-[999px] shadow-lg sm:h-56">
-              <img src={cfg.photo} alt="Invitation photograph" className="h-full w-full object-cover" />
+              <SafeImg src={cfg.photo} alt="Invitation photograph" className="h-full w-full object-cover" />
             </div>,
             0.05,
           )
@@ -296,7 +296,7 @@ function LivePreview({ onClose }: { onClose: () => void }) {
                   key={src} className="relative h-56 overflow-hidden sm:h-72"
                   initial={reduced ? false : { opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 1, delay: i * 0.25 }}
                 >
-                  <img src={src} alt={`Maya and Theo, photo ${i + 1}`} className="h-full w-full object-cover transition-transform duration-[3s] hover:scale-105" />
+                  <SafeImg src={src} alt={`Maya and Theo, photo ${i + 1}`} className="h-full w-full object-cover transition-transform duration-[3s] hover:scale-105" />
                 </motion.div>
               ))}
             </div>

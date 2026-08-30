@@ -20,7 +20,6 @@ export default function Timeline() {
   const [drafts, setDrafts] = useState<Record<string, { title: string; assignee: Assignee }>>({});
 
   const byPhase = (p: PhaseId) => db.tasks.filter((t) => t.phase === p);
-  const isOpen = (p: PhaseId) => !!open[p] || byPhase(p).some((t) => !t.done) && open[p] !== false && Object.keys(open).length === 0 ? true : !!open[p];
 
   const togglePhase = (p: PhaseId) => setOpen((o) => ({ ...o, [p]: !(o[p] ?? defaultOpen(p)) }));
   const defaultOpen = (p: PhaseId) => ["p1", "fw", "wd"].includes(p);
@@ -123,7 +122,7 @@ export default function Timeline() {
                             >
                               <span className="cursor-grab text-ink-mute/50 transition group-hover:text-ink-mute active:cursor-grabbing" aria-hidden="true"><GripVertical size={15} /></span>
                               <button onClick={() => toggleTask(t.id)} aria-pressed={t.done} aria-label={`Mark "${t.title}" ${t.done ? "incomplete" : "complete"}`} className="cursor-pointer">
-                                <span className={`flex h-5.5 w-5.5 h-[22px] w-[22px] items-center justify-center rounded-full border-2 transition-all duration-300 ${t.done ? "border-sage-deep bg-sage-deep" : "border-ink/25 bg-white hover:border-gold"}`}>
+                                <span className={`flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 transition-all duration-300 ${t.done ? "border-sage-deep bg-sage-deep" : "border-ink/25 bg-white hover:border-gold"}`}>
                                   {t.done && (
                                     <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFF8F0" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                                       <path d="M4.5 12.5l5 5 10-11" className="check-draw" />

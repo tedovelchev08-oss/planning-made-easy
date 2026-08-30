@@ -114,7 +114,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 export default function Shell() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const location = useLocation();
-  const { db } = useApp();
+  const { db, user } = useApp();
   const stats = useStats();
   const current = MODULES.find((m) => (m.path === "" ? location.pathname === "/planner" || location.pathname === "/planner/" : location.pathname.startsWith(`/planner/${m.path}`)));
 
@@ -147,7 +147,9 @@ export default function Shell() {
             <div className="ml-auto flex items-center gap-2.5">
               <Pill tone="gold" className="hidden sm:inline-flex">{stats.days} days to go</Pill>
               <Pill tone="pending" className="hidden md:inline-flex">{db.wedding.venue}</Pill>
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink font-display text-[0.8rem] italic text-cream" aria-label="Maya and Theo">M&T</span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink font-display text-[0.8rem] italic text-cream" aria-label={user ? user.name : "Maya and Theo"}>
+                {user ? user.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() : "M&T"}
+              </span>
             </div>
           </div>
         </header>

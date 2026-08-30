@@ -83,6 +83,8 @@ export function Pill({ tone, children, className = "" }: { tone: string; childre
 export function Modal({
   open, onClose, children, wide = false, label,
 }: { open: boolean; onClose: () => void; children: React.ReactNode; wide?: boolean; label: string }) {
+  const dlgRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -91,6 +93,14 @@ export function Modal({
     document.body.style.overflow = "hidden";
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
   }, [open, onClose]);
+
+  // move focus into the dialog on open, restore it to the trigger on close
+  useEffect(() => {
+    if (!open) return;
+    const trigger = document.activeElement as HTMLElement | null;
+    const t = window.setTimeout(() => dlgRef.current?.focus(), 40);
+    return () => { window.clearTimeout(t); trigger?.focus?.(); };
+  }, [open]);
 
   return createPortal(
     <AnimatePresence>
@@ -101,6 +111,7 @@ export function Modal({
         >
           <button aria-label="Close dialog" className="absolute inset-0 bg-ink/45 backdrop-blur-[3px] cursor-default" onClick={onClose} />
           <motion.div
+            ref={dlgRef} tabIndex={-1}
             role="dialog" aria-modal="true" aria-label={label}
             initial={{ y: 46, opacity: 0, scale: 0.98 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -233,6 +244,23 @@ export function CheckoutModal() {
     }
   }, [checkout]);
 
+  const rankOf = (p: Plan) => TIERS.findIndex((t) => t.id === p);
+  const startPayment = () => {
+    if (!tier) return;
+    // entitlements only ever move upward — never downgrade or re-sell the same plan
+    if (rankOf(tier.id) <= rankOf(db.plan)) {
+      const owned = TIERS[rankOf(db.plan)];
+      toast(
+        db.plan === tier.id ? "You already own this plan" : "You already have more",
+        `${owned.name} covers everything here — no need to buy twice.`,
+        "info",
+      );
+      closeCheckout();
+      return;
+    }
+    setStep("processing");
+  };
+
   useEffect(() => {
     if (step !== "processing") return;
     const t = setTimeout(() => setStep("done"), 1500);
@@ -273,7 +301,7 @@ export function CheckoutModal() {
 
           {step === "review" && (
             <div className="mt-6 space-y-3">
-              <button className={`${btn.ink} w-full`} onClick={() => setStep("processing")}>
+              <button className={`${btn.ink} w-full`} onClick={startPayment}>
                 <Lock size={14} /> Pay {fmtMoney(tier.price)} securely
               </button>
               <p className="text-center text-[0.7rem] text-ink-mute">Demo checkout — no real charge. Webhook → entitlement → workspace unlock.</p>
@@ -311,11 +339,6 @@ export function AuthModal() {
   const [email, setEmail] = useState("maya@luma.love");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const firstRender = useRef(true);
-
-  useEffect(() => {
-    if (authOpen && firstRender.current) firstRender.current = false;
-  }, [authOpen]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -460,6 +483,27 @@ export function FeatureIcon({ name, className = "" }: { name: string; className?
     default:
       return null;
   }
+}
+
+/* ------------------------------ resilient image ------------------------------ */
+
+/** <img> that degrades to a quiet branded placeholder if the asset fails to load. */
+export function SafeImg({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <div
+        role="img" aria-label={alt}
+        className={`flex items-center justify-center bg-gradient-to-br from-blush-soft via-cream to-lav-soft ${className}`}
+      >
+        <svg width="30" height="30" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <path d="M24 38S10 29 6.5 21.5C4.2 16.4 7.8 11 13.2 11c3.5 0 6.4 2.1 10.8 6.1 4.4-4 7.3-6.1 10.8-6.1 5.4 0 9 5.4 6.7 10.5C38 29 24 38 24 38z" stroke="#D4AF37" strokeWidth="1.6" />
+          <path d="M14 25c3 4 7 7 10 8.6M34 25c-3 4-7 7-10 8.6" stroke="#EE8FA1" strokeWidth="1.2" strokeLinecap="round" />
+        </svg>
+      </div>
+    );
+  }
+  return <img src={src} alt={alt} className={className} loading="lazy" onError={() => setFailed(true)} />;
 }
 
 /* ------------------------------ misc ------------------------------ */
