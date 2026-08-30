@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Check, Globe, Heart, Music, Play, Sparkles, StopCircle } from "lucide-react";
+import { Check, Heart, Music, Play, Sparkles, StopCircle } from "lucide-react";
 import { Guest, MEALS, RsvpSource, fmtDate, seedTemplates } from "../lib/data";
 import { inviteLink, useApp, usePrefersReducedMotion } from "../lib/store";
 import { playChime, useChimeLoop } from "../lib/sound";
 import { InviteArt } from "../components/dashboard/Invitations";
+import { SiteBody } from "../components/dashboard/Website";
 import { DesignFrame, Logo, SafeImg } from "../components/ui";
 
 function useCountdown(target: number) {
@@ -47,6 +48,7 @@ export default function GuestInvite() {
   const hasUpload = musicCfg.track === "upload" && !!musicCfg.uploadData;
   const { playing, start, stop } = useChimeLoop(musicCfg.track === "upload" ? "serene" : musicCfg.track);
   const audioRef = React.useRef<HTMLAudioElement>(null);
+  const rsvpRef = React.useRef<HTMLElement | null>(null);
   const [uploadPlaying, setUploadPlaying] = useState(false);
 
   const toggleMusic = () => {
@@ -162,39 +164,13 @@ export default function GuestInvite() {
           </div>
         </motion.div>
 
-        {/* bridge to the couple's wedding website */}
-        {db.website.published && (
-          <motion.div
-            initial={reduced ? false : { opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25, duration: 0.7 }}
-            className="mt-6"
-          >
-            <Link
-              to="/site"
-              className="group flex items-center gap-4 rounded-[1.4rem] border px-5 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift"
-              style={{ borderColor: `${colors.accent}55`, background: "rgb(255 255 255 / 0.62)", backdropFilter: "blur(12px)" }}
-            >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ background: `${colors.accent}22`, color: colors.accent }}>
-                <Globe size={17} />
-              </span>
-              <span className="min-w-0 flex-1 text-left">
-                <span className="block text-[0.85rem] font-extrabold text-ink">All the details live on our wedding website</span>
-                <span className="block truncate text-[0.72rem] font-semibold text-ink-mute">
-                  story, schedule, venue, travel & registry — {db.website.domain}
-                </span>
-              </span>
-              <ArrowRight size={15} className="shrink-0 text-ink-mute transition-transform duration-300 group-hover:translate-x-1 group-hover:text-ink" />
-            </Link>
-          </motion.div>
-        )}
-
         {/* RSVP */}
         <motion.section
+          ref={rsvpRef}
           initial={reduced ? false : { opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.8 }}
-          className="mt-8 rounded-[1.6rem] p-7 text-center sm:p-9"
+          className="mt-8 scroll-mt-6 rounded-[1.6rem] p-7 text-center sm:p-9"
           style={{ border: `1px solid ${colors.accent}44`, background: `${colors.accent}0D` }}
           aria-label="RSVP"
         >
@@ -279,6 +255,27 @@ export default function GuestInvite() {
             )}
           </AnimatePresence>
         </motion.section>
+
+        {/* the rest of the story — the wedding website, living on this same page */}
+        {db.website.published && (
+          <motion.section
+            initial={reduced ? false : { opacity: 0, y: 36 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-12 overflow-hidden rounded-[1.6rem] shadow-lift"
+            style={{ border: `1px solid ${colors.accent}44` }}
+            aria-label="Wedding details"
+          >
+            <SiteBody
+              w={{ ...db.website, sections: { ...db.website.sections, hero: false, rsvp: false } }}
+              db={db}
+              anim={luxe && db.website.animations && !reduced}
+              footer={false}
+              onRsvp={() => rsvpRef.current?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" })}
+            />
+          </motion.section>
+        )}
 
         <p className="mt-8 flex items-center justify-center gap-2 text-center text-[0.66rem] font-bold uppercase tracking-[0.3em] opacity-45">
           <Sparkles size={11} /> Made with Luma · {link.replace("https://", "")}

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { HashRouter, Route, Routes, useLocation } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppProvider } from "./lib/store";
 import Home from "./pages/Home";
 import GuestInvite from "./pages/GuestInvite";
@@ -11,9 +11,7 @@ import Timeline from "./components/dashboard/Timeline";
 import Vendors from "./components/dashboard/Vendors";
 import Seating from "./components/dashboard/Seating";
 import Registry from "./components/dashboard/Registry";
-import Invitations from "./components/dashboard/Invitations";
-import Website from "./components/dashboard/Website";
-import GuestSite from "./pages/GuestSite";
+import PageHub from "./components/dashboard/PageHub";
 import { AuthModal, CheckoutModal, ToastHost } from "./components/ui";
 
 function ScrollToTop() {
@@ -53,7 +51,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/invite" element={<GuestInvite />} />
-          <Route path="/site" element={<GuestSite />} />
+          <Route path="/site" element={<Navigate to="/invite" replace />} />
           <Route path="/planner" element={<Shell />}>
             <Route index element={<Overview />} />
             <Route path="guests" element={<Guests />} />
@@ -62,8 +60,7 @@ export default function App() {
             <Route path="vendors" element={<Vendors />} />
             <Route path="seating" element={<Seating />} />
             <Route path="registry" element={<Registry />} />
-            <Route path="invitations" element={<Invitations />} />
-            <Route path="website" element={<Website />} />
+            <Route path="page" element={<PageHub />} />
             <Route path="*" element={<Overview />} />
           </Route>
         </Routes>

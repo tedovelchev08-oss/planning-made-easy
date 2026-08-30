@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Armchair, CalendarDays, Gift, Globe, LayoutDashboard, LogOut, Mail, Menu,
+  Armchair, CalendarDays, Gift, Globe, LayoutDashboard, LogOut, Menu,
   Sparkles, Store, Users, Wallet, X, Clock3, Crown,
 } from "lucide-react";
 import { Logo, Drawer, Pill } from "../ui";
@@ -17,8 +17,7 @@ const MODULES = [
   { path: "vendors", label: "Vendors", icon: Store },
   { path: "seating", label: "Seating", icon: Armchair },
   { path: "registry", label: "Registry", icon: Gift },
-  { path: "invitations", label: "Invitations", icon: Mail },
-  { path: "website", label: "Wedding Website", icon: Globe },
+  { path: "page", label: "Wedding Page", icon: Globe },
 ];
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {

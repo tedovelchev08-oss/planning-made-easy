@@ -419,8 +419,6 @@ export default function Invitations() {
         </div>
       )}
 
-      <ShareCard />
-
       <div className="grid gap-6 xl:grid-cols-[1fr_330px]">
         {/* preview */}
         <div className="space-y-4">
@@ -671,8 +669,6 @@ export default function Invitations() {
         </div>
       </section>
 
-      <RsvpTracker />
-
       {/* send modal */}
       <Modal open={sending} onClose={() => sendStep !== "sending" && setSending(false)} label="Send invitations">
         <div className="p-7 sm:p-8">
@@ -715,7 +711,7 @@ export default function Invitations() {
 
 /* ------------------------------ share link card ------------------------------ */
 
-function ShareCard() {
+export function ShareCard() {
   const { db, toast } = useApp();
   const [copied, setCopied] = useState(false);
   const link = inviteLink(db.wedding.names);
@@ -750,19 +746,20 @@ function ShareCard() {
   ];
 
   return (
-    <section aria-label="Share your invitation" className="relative overflow-hidden rounded-[1.8rem] bg-ink p-6 text-cream shadow-lift sm:p-8">
+    <section aria-label="Share your wedding page" className="relative overflow-hidden rounded-[1.8rem] bg-ink p-6 text-cream shadow-lift sm:p-8">
       <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-blush/25 blur-3xl" aria-hidden="true" />
       <div className="pointer-events-none absolute -bottom-24 left-1/4 h-56 w-56 rounded-full bg-lav/20 blur-3xl" aria-hidden="true" />
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center">
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.22em] text-gold">
-            <Share2 size={12} /> Share the invitation
+            <Share2 size={12} /> Share the wedding page
           </p>
           <h2 className="mt-2 font-display text-2xl leading-snug sm:text-[1.7rem]">
-            Not just email — <em className="text-blush">send it anywhere.</em>
+            One link. <em className="text-blush">Everything.</em>
           </h2>
           <p className="mt-2 max-w-md text-[0.85rem] font-semibold leading-relaxed text-cream/60">
-            One link carries your invitation and collects RSVPs. Drop it in WhatsApp, an Instagram DM, a family group chat — every answer lands in your tracker below.
+            Guests land on your page — the invitation, your story, the schedule, the registry — and RSVP right there.
+            Drop the link in WhatsApp, an Instagram DM, a family group chat; every answer lands in the RSVPs tab.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {channels.map((c) => (
@@ -809,7 +806,7 @@ const SOURCE_META: Record<string, { icon: typeof Link2; label: string; cls: stri
   email: { icon: Mail, label: "Email", cls: "bg-ink/6 text-ink-2" },
 };
 
-function RsvpTracker() {
+export function RsvpTracker() {
   const { db, patch, toast } = useApp();
   const [reminding, setReminding] = useState(false);
   const log = [...db.rsvpLog].sort((a, b) => b.at - a.at);

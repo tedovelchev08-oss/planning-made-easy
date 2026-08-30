@@ -33,11 +33,12 @@ const PHOTOS = [
 /* public guest-facing page at #/site.                                */
 /* ------------------------------------------------------------------ */
 
-export function SiteBody({ w, db, anim, onRsvp }: {
+export function SiteBody({ w, db, anim, onRsvp, footer = true }: {
   w: Db["website"];
   db: Db;
   anim: boolean;
   onRsvp: () => void;
+  footer?: boolean;
 }) {
   const on = (id: string) => !!w.sections[id];
   const fontFamily = w.serif ? "'Playfair Display', Georgia, serif" : "'Nunito Sans', sans-serif";
@@ -190,9 +191,11 @@ export function SiteBody({ w, db, anim, onRsvp }: {
         </SectionFade>
       )}
 
-      <p className="border-t px-6 py-5 text-center text-[0.6rem] tracking-[0.3em] opacity-45" style={{ borderColor: `${w.accent}33` }}>
-        MADE WITH LUMA
-      </p>
+      {footer && (
+        <p className="border-t px-6 py-5 text-center text-[0.6rem] tracking-[0.3em] opacity-45" style={{ borderColor: `${w.accent}33` }}>
+          MADE WITH LUMA
+        </p>
+      )}
     </div>
   );
 }
