@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA insurance — the app uses hash routing, so this rarely fires,
+# but any deep path still resolves to the app shell.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
