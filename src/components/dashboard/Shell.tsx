@@ -152,7 +152,13 @@ export default function Shell() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-6xl px-4 py-7 sm:px-8 pb-28 lg:pb-12">
+        <main
+          className={
+            location.pathname.startsWith("/planner/seating")
+              ? "mx-auto max-w-none px-3 py-4 pb-24 sm:px-5 lg:pb-5"
+              : "mx-auto max-w-6xl px-4 py-7 sm:px-8 pb-28 lg:pb-12"
+          }
+        >
           <Outlet />
         </main>
       </div>

@@ -110,10 +110,10 @@ export default function Seating() {
   }, [db.guests, pickerQ]);
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[300px_1fr]">
+    <div className="grid gap-4 lg:h-[calc(100dvh-118px)] lg:min-h-[620px] lg:grid-cols-[300px_1fr]">
       {/* left rail */}
-      <div className="space-y-4">
-        <div className="rounded-[1.6rem] border border-white/70 bg-white/60 p-5 backdrop-blur-md">
+      <div className="space-y-4 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:space-y-0 lg:gap-4">
+        <div className="rounded-[1.6rem] border border-white/70 bg-white/60 p-5 backdrop-blur-md lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
           <div className="flex items-baseline justify-between">
             <h2 className="font-display text-lg text-ink">Unassigned</h2>
             <Pill tone="pending">{unassigned.length}</Pill>
@@ -122,7 +122,7 @@ export default function Seating() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-mute" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a guest…" className={`${inputCls} !py-2 pl-9 text-[0.85rem]`} aria-label="Search unassigned guests" />
           </div>
-          <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1 lg:max-h-[330px] lg:flex-col lg:flex-nowrap lg:overflow-x-visible lg:overflow-y-auto lg:pb-0 lg:pr-1">
+          <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1 lg:min-h-0 lg:flex-1 lg:flex-col lg:flex-nowrap lg:overflow-x-visible lg:overflow-y-auto lg:pb-0 lg:pr-1">
             {unassigned.length === 0 && (
               <p className="w-full shrink-0 rounded-xl border border-dashed border-ink/15 px-4 py-5 text-center text-[0.8rem] font-semibold text-ink-mute">
                 {db.guests.some((g) => g.rsvp === "confirmed" && !g.table) ? "No matches — try another name." : "Everyone confirmed has a seat. Lovely."}
@@ -143,7 +143,7 @@ export default function Seating() {
           </div>
         </div>
 
-        <div className="rounded-[1.6rem] border border-white/70 bg-white/60 p-5 backdrop-blur-md">
+        <div className="rounded-[1.6rem] border border-white/70 bg-white/60 p-5 backdrop-blur-md lg:shrink-0">
           <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-ink-mute">Add a table</h3>
           <div className="mt-3 grid grid-cols-2 gap-2">
             {SHAPES.map((s) => (
@@ -159,10 +159,10 @@ export default function Seating() {
       </div>
 
       {/* canvas */}
-      <div className="overflow-x-auto overscroll-x-contain rounded-[1.8rem]">
+      <div className="overflow-x-auto overscroll-x-contain rounded-[1.8rem] lg:h-full lg:min-h-0">
       <div
         ref={canvasRef}
-        className="dotted-canvas relative h-[560px] min-w-[1080px] rounded-[1.8rem] border border-white/70 bg-[#FDF6EA]/70 shadow-inner sm:h-[640px] xl:h-[700px]"
+        className="dotted-canvas relative h-[560px] min-w-[1080px] rounded-[1.8rem] border border-white/70 bg-[#FDF6EA]/70 shadow-inner sm:h-[640px] lg:h-full"
         aria-label="Seating floor — scroll horizontally on smaller screens"
       >
         <div className="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-ink/90 px-4 py-1.5 text-[0.7rem] font-bold text-cream">
