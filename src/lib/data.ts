@@ -362,6 +362,58 @@ export const seedTables: SeatTable[] = [
   { id: "t9", name: "Table 9", shape: "round", capacity: 8, x: 79, y: 84 },
 ];
 
+/* ------------------------------------------------------------------ */
+/* Custom invitation designs, RSVP activity & music                    */
+/* ------------------------------------------------------------------ */
+
+export interface CustomTemplate {
+  id: string;
+  name: string;
+  dataUrl: string;
+  addedAt: number;
+}
+
+export type RsvpSource = "link" | "whatsapp" | "instagram" | "messenger" | "email";
+
+export interface RsvpEntry {
+  id: string;
+  name: string;
+  answer: "yes" | "no";
+  meal: string | null;
+  note: string;
+  at: number;
+  source: RsvpSource;
+  synced?: boolean;
+}
+
+export const seedRsvpLog: RsvpEntry[] = [
+  { id: "rv1", name: "Priya Nair", answer: "yes", meal: "Garden Risotto", note: "Can't wait! Bringing my plus-one Arjun.", at: Date.now() - 2 * 3600000, source: "link", synced: true },
+  { id: "rv2", name: "Jonah Weiss", answer: "no", meal: null, note: "Heartbroken to miss it — in Lisbon for work. Drinks on me when you're back!", at: Date.now() - 26 * 3600000, source: "whatsapp", synced: true },
+  { id: "rv3", name: "Amara Osei", answer: "yes", meal: "Sea Bass", note: "YES. Do you need help with the seating chart?", at: Date.now() - 49 * 3600000, source: "instagram" },
+  { id: "rv4", name: "The Hartley Family", answer: "yes", meal: "Herb Chicken", note: "All four of us will be there. The kids are practicing their dance moves.", at: Date.now() - 4 * 86400000, source: "email", synced: true },
+];
+
+export interface MusicTrack { id: "serene" | "golden" | "dance"; name: string; notes: number[]; tempo: number; mood: string }
+
+export const MUSIC_TRACKS: MusicTrack[] = [
+  { id: "serene", name: "Serene", notes: [523.25, 659.25, 783.99, 659.25, 523.25, 392.0, 440.0, 523.25], tempo: 920, mood: "soft & airy" },
+  { id: "golden", name: "Golden Hour", notes: [392.0, 493.88, 587.33, 493.88, 392.0, 329.63, 349.23, 392.0], tempo: 760, mood: "warm & unhurried" },
+  { id: "dance", name: "First Dance", notes: [440.0, 554.37, 659.25, 554.37, 659.25, 349.23, 392.0, 440.0], tempo: 620, mood: "a little brighter" },
+];
+
+export const slugify = (s: string) =>
+  s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "our-wedding";
+
+export const timeAgo = (ts: number) => {
+  const m = Math.max(1, Math.round((Date.now() - ts) / 60000));
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.round(h / 24);
+  return d === 1 ? "yesterday" : `${d}d ago`;
+};
+
 /* ------------------------------ registry ---------------------------- */
 
 export const seedRegistry: RegistryItem[] = [

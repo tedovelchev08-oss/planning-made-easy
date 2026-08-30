@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Crown, Heart, Lock, Mail, Monitor, Music, Play, Smartphone, Sparkles, StopCircle, Tablet, X } from "lucide-react";
-import { MEALS, TEMPLATE_CATS, Template, fmtDate, seedTemplates } from "../../lib/data";
+import {
+  Activity, Check, Copy, Crown, Heart, Instagram, Link2, Lock, Mail, MessageCircle, Monitor,
+  Music, Play, Send, Share2, Smartphone, Sparkles, StopCircle, Tablet, Trash2, UploadCloud, X,
+} from "lucide-react";
+import { Guest, MEALS, MUSIC_TRACKS, TEMPLATE_CATS, Template, fmtDate, seedTemplates, timeAgo } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
-import { useApp, usePrefersReducedMotion } from "../../lib/store";
+import { inviteLink, useApp, usePrefersReducedMotion } from "../../lib/store";
+import { playChime, useChimeLoop } from "../../lib/sound";
 import { Field, Modal, Pill, Reveal, SafeImg, btn, inputCls } from "../ui";
 
 /* ------------------------------ palette & font presets ------------------------------ */
@@ -25,52 +29,6 @@ const PHOTO_CHOICES = [
   { label: "The rings", src: IMAGES.hands },
 ];
 
-/* ------------------------------ gentle web-audio music ------------------------------ */
-
-function useChimeLoop() {
-  const ctxRef = useRef<AudioContext | null>(null);
-  const timerRef = useRef<number | null>(null);
-  const [playing, setPlaying] = useState(false);
-
-  const stop = () => {
-    if (timerRef.current) window.clearInterval(timerRef.current);
-    timerRef.current = null;
-    ctxRef.current?.close().catch(() => {});
-    ctxRef.current = null;
-    setPlaying(false);
-  };
-
-  const start = () => {
-    if (playing) return;
-    const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const ctx = new AC();
-    ctxRef.current = ctx;
-    const notes = [523.25, 659.25, 783.99, 659.25, 523.25, 392.0, 440.0, 523.25];
-    let step = 0;
-    const pluck = () => {
-      if (ctx.state === "closed") return;
-      const t = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = notes[step % notes.length];
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.09, t + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + 1.7);
-      step++;
-    };
-    pluck();
-    timerRef.current = window.setInterval(pluck, 900);
-    setPlaying(true);
-  };
-
-  useEffect(() => () => stop(), []);
-  return { playing, start, stop };
-}
-
 /* ------------------------------ invite artwork ------------------------------ */
 
 function resolveColors(t: Template, cfgColors: { bg: string; ink: string; accent: string } | null) {
@@ -87,7 +45,7 @@ function Flourish({ accent, className, rotate = 0 }: { accent: string; className
   );
 }
 
-function InviteArt({
+export function InviteArt({
   template, colors, serif, cfg, animated, dateIso, rsvpSlot, compact = false,
 }: {
   template: Template;
@@ -199,7 +157,21 @@ function LivePreview({ onClose }: { onClose: () => void }) {
   const [attending, setAttending] = useState<"yes" | "no" | null>(null);
   const [meal, setMeal] = useState(MEALS[0]);
   const [countdown, setCountdown] = useState({ d: 0, h: 0, m: 0, s: 0 });
-  const { playing, start, stop } = useChimeLoop();
+  const activeCustom = db.customTemplates.find((c) => c.id === db.invitation.templateId) ?? null;
+  const musicCfg = db.invitation.music;
+  const hasUpload = musicCfg.track === "upload" && !!musicCfg.uploadData;
+  const { playing, start, stop } = useChimeLoop(musicCfg.track === "upload" ? "serene" : musicCfg.track);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [uploadPlaying, setUploadPlaying] = useState(false);
+
+  const toggleMusic = () => {
+    if (hasUpload && audioRef.current) {
+      if (uploadPlaying) { audioRef.current.pause(); setUploadPlaying(false); }
+      else { audioRef.current.currentTime = 0; void audioRef.current.play().catch(() => {}); setUploadPlaying(true); }
+      return;
+    }
+    if (playing) stop(); else start();
+  };
 
   const target = useMemo(() => new Date(db.wedding.date).getTime(), [db.wedding.date]);
   useEffect(() => {
@@ -244,10 +216,12 @@ function LivePreview({ onClose }: { onClose: () => void }) {
           ))}
         </div>
         <button
-          onClick={() => (playing ? stop() : start())}
-          className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[0.72rem] font-bold transition cursor-pointer ${playing ? "bg-blush text-ink" : "bg-cream/10 text-cream hover:bg-cream/20"}`}
+          onClick={toggleMusic}
+          aria-label={playing || uploadPlaying ? "Stop music" : "Play music"}
+          className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[0.72rem] font-bold transition cursor-pointer ${playing || uploadPlaying ? "bg-blush text-ink" : "bg-cream/10 text-cream hover:bg-cream/20"}`}
         >
-          {playing ? <StopCircle size={13} /> : <Play size={13} />} {playing ? "Music on" : "Play music"}
+          {playing || uploadPlaying ? <StopCircle size={13} /> : <Play size={13} />}
+          {playing || uploadPlaying ? "Music on" : hasUpload ? `Play “${musicCfg.uploadName}”` : "Play music"}
         </button>
         <button onClick={onClose} aria-label="Close live preview" className="ml-2 rounded-full bg-cream/10 p-2 text-cream transition hover:bg-cream/25 cursor-pointer">
           <X size={15} />
@@ -258,6 +232,9 @@ function LivePreview({ onClose }: { onClose: () => void }) {
         <div className={`${width} transition-all duration-500 overflow-hidden rounded-[1.4rem] shadow-glass`}>
           <div style={{ background: colors.bg, color: colors.ink, fontFamily }}>
             {/* hero reveal */}
+            {activeCustom ? (
+              <CustomHero custom={activeCustom} colors={colors} countdown={countdown} reduced={reduced} />
+            ) : (
             <div className="relative flex min-h-[420px] flex-col items-center justify-center overflow-hidden px-8 py-20 text-center">
               {animated && !reduced && (
                 <div className="pointer-events-none absolute inset-0" aria-hidden="true">
@@ -288,6 +265,7 @@ function LivePreview({ onClose }: { onClose: () => void }) {
                 ))}
               </motion.div>
             </div>
+            )}
 
             {/* slideshow */}
             <div className="grid gap-1 sm:grid-cols-2">
@@ -363,6 +341,7 @@ function LivePreview({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       </div>
+      {hasUpload && <audio ref={audioRef} src={musicCfg.uploadData ?? undefined} loop onEnded={() => setUploadPlaying(false)} className="hidden" />}
     </motion.div>
   );
 }
@@ -376,9 +355,11 @@ export default function Invitations() {
   const [live, setLive] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendStep, setSendStep] = useState<"compose" | "sending" | "done">("compose");
+  const [importOpen, setImportOpen] = useState(false);
   const reduced = usePrefersReducedMotion();
 
   const cfg = db.invitation;
+  const activeCustom = db.customTemplates.find((c) => c.id === cfg.templateId) ?? null;
   const template = seedTemplates.find((t) => t.id === cfg.templateId) ?? seedTemplates[0];
   const colors = resolveColors(template, cfg.colors);
   const serif = cfg.fontSerif ?? template.serif;
@@ -436,11 +417,16 @@ export default function Invitations() {
         </div>
       )}
 
+      <ShareCard />
+
       <div className="grid gap-6 xl:grid-cols-[1fr_330px]">
         {/* preview */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-2xl text-ink">{template.name} <span className="text-base italic text-ink-mute">· {template.cat}</span></h2>
+            <h2 className="font-display text-2xl text-ink">
+              {activeCustom ? activeCustom.name : template.name}{" "}
+              <span className="text-base italic text-ink-mute">· {activeCustom ? "your design" : template.cat}</span>
+            </h2>
             <div className="flex rounded-full border border-ink/12 bg-white/70 p-1">
               {([["desktop", Monitor], ["tablet", Tablet], ["mobile", Smartphone]] as const).map(([d, Icon]) => (
                 <button key={d} onClick={() => setDevice(d)} aria-label={`${d} preview`} className={`rounded-full p-2 transition cursor-pointer ${device === d ? "bg-ink text-cream" : "text-ink-mute hover:text-ink"}`}>
@@ -458,13 +444,23 @@ export default function Invitations() {
                 {animated && <Pill tone="gold" className="ml-auto"><Sparkles size={10} /> animated</Pill>}
               </div>
               <div className="max-h-[560px] overflow-y-auto">
-                <InviteArt key={template.id + device} template={template} colors={colors} serif={serif} cfg={cfg} animated={animated && !reduced} dateIso={db.wedding.date} />
+                {activeCustom ? (
+                  <div>
+                    <img src={activeCustom.dataUrl} alt={`${activeCustom.name} — your invitation design`} className="w-full" />
+                    <div className="border-t border-ink/8 bg-white px-5 py-3.5 text-[0.76rem] font-semibold text-ink-2">
+                      Your artwork <em className="font-display italic text-ink">is</em> the invitation — wording above stays off-card, and RSVP, meals and notes still collect on the guest page.
+                    </div>
+                  </div>
+                ) : (
+                  <InviteArt key={template.id + device} template={template} colors={colors} serif={serif} cfg={cfg} animated={animated && !reduced} dateIso={db.wedding.date} />
+                )}
               </div>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-3">
             <button onClick={() => setLive(true)} className={`${btn.ink} !py-3`}><Play size={14} /> Live preview</button>
+            <a href="#/invite" target="_blank" rel="noreferrer" className={`${btn.outline} !py-3`}><Link2 size={14} /> Guest page</a>
             <button onClick={() => { setSending(true); setSendStep("compose"); }} className={`${btn.blush} !py-3`}><Mail size={14} /> Send to {confirmedCount} guests</button>
           </div>
         </div>
@@ -512,6 +508,8 @@ export default function Invitations() {
             </div>
           </section>
 
+          <LuxeStudio cfg={cfg} setCfg={setCfg} unlocked={luxeUnlocked} />
+
           {template.photo && (
             <section className="rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md">
               <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">Photo</h3>
@@ -537,8 +535,46 @@ export default function Invitations() {
               {c}
             </button>
           ))}
-          <Pill tone="gold" className="ml-auto">{seedTemplates.length} designs</Pill>
+          <Pill tone="gold">{seedTemplates.length + db.customTemplates.length} designs</Pill>
+          <button onClick={() => setImportOpen(true)} className={`${btn.outline} ml-auto !px-4 !py-2 text-[0.78rem]`}>
+            <UploadCloud size={14} /> Import my designs
+          </button>
         </div>
+
+        {db.customTemplates.length > 0 && (
+          <div className="mt-5">
+            <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
+              <Heart size={11} fill="#D4AF37" className="text-gold" /> My designs · {db.customTemplates.length}
+            </p>
+            <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto pb-1">
+              {db.customTemplates.map((c) => {
+                const active = c.id === cfg.templateId;
+                return (
+                  <div key={c.id} className={`group relative w-36 shrink-0 overflow-hidden rounded-[1.1rem] border-2 transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${active ? "border-gold shadow-card" : "border-transparent"}`}>
+                    <button onClick={() => { setCfg({ templateId: c.id, colors: null, fontSerif: null }); playChime("place"); toast(`Design — ${c.name}`, "Now previewing your artwork."); }} aria-pressed={active} className="block w-full cursor-pointer">
+                      <img src={c.dataUrl} alt={c.name} className="aspect-[4/5] w-full object-cover" />
+                      <span className="flex items-center justify-between bg-white/95 px-2.5 py-1.5">
+                        <span className="truncate text-[0.68rem] font-extrabold text-ink">{c.name}</span>
+                        {active && <Check size={11} strokeWidth={3.5} className="shrink-0 text-gold-deep" />}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        const remaining = db.customTemplates.filter((x) => x.id !== c.id);
+                        patch({ customTemplates: remaining, invitation: cfg.templateId === c.id ? { ...cfg, templateId: seedTemplates[0].id } : cfg });
+                        toast(`${c.name} removed`, undefined, "info");
+                      }}
+                      aria-label={`Delete design ${c.name}`}
+                      className="absolute right-1.5 top-1.5 rounded-full bg-ink/80 p-1.5 text-cream opacity-0 transition group-hover:opacity-100 focus:opacity-100 hover:bg-blush-deep cursor-pointer"
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {templates.map((t) => {
@@ -576,6 +612,8 @@ export default function Invitations() {
         </div>
       </section>
 
+      <RsvpTracker />
+
       {/* send modal */}
       <Modal open={sending} onClose={() => sendStep !== "sending" && setSending(false)} label="Send invitations">
         <div className="p-7 sm:p-8">
@@ -610,7 +648,454 @@ export default function Invitations() {
         </div>
       </Modal>
 
+      <ImportDesignsModal open={importOpen} onClose={() => setImportOpen(false)} />
       <AnimatePresence>{live && <LivePreview onClose={() => setLive(false)} />}</AnimatePresence>
+    </div>
+  );
+}
+
+/* ------------------------------ share link card ------------------------------ */
+
+function ShareCard() {
+  const { db, toast } = useApp();
+  const [copied, setCopied] = useState(false);
+  const link = inviteLink(db.wedding.names);
+  const dateStr = fmtDate(db.wedding.date, { month: "long", day: "numeric", year: "numeric" });
+  const message = `${db.wedding.names} are getting married — ${dateStr} at ${db.wedding.venue}. RSVP in one tap: ${link}`;
+  const enc = encodeURIComponent(message);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      playChime("place");
+      toast("Link copied", "Paste it anywhere — WhatsApp, Instagram, a group chat…");
+      setTimeout(() => setCopied(false), 2200);
+    } catch {
+      toast("Copy this link", link, "info");
+    }
+  };
+
+  const nativeShare = async () => {
+    if (!navigator.share) { copy(); return; }
+    try { await navigator.share({ title: `${db.wedding.names} — you're invited`, text: message, url: link }); }
+    catch { /* dismissed */ }
+  };
+
+  const channels = [
+    { label: "WhatsApp", icon: MessageCircle, href: `https://wa.me/?text=${enc}`, tint: "hover:border-[#25D366]/70 hover:text-[#128C4A]" },
+    { label: "Instagram", icon: Instagram, href: "https://www.instagram.com/", copyFirst: true, tint: "hover:border-blush-deep/70 hover:text-blush-deep" },
+    { label: "Messenger", icon: Send, href: `https://www.facebook.com/dialog/send?link=${encodeURIComponent(link)}&app_id=140586622674265&redirect_uri=${encodeURIComponent(link)}`, tint: "hover:border-lav-deep/70 hover:text-lav-deep" },
+    { label: "Text", icon: MessageCircle, href: `sms:?&body=${enc}`, tint: "hover:border-sage-deep/70 hover:text-sage-deep" },
+    { label: "Email", icon: Mail, href: `mailto:?subject=${encodeURIComponent(`${db.wedding.names} — you're invited ♥`)}&body=${enc}`, tint: "hover:border-gold-deep/70 hover:text-gold-deep" },
+  ];
+
+  return (
+    <section aria-label="Share your invitation" className="relative overflow-hidden rounded-[1.8rem] bg-ink p-6 text-cream shadow-lift sm:p-8">
+      <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-blush/25 blur-3xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute -bottom-24 left-1/4 h-56 w-56 rounded-full bg-lav/20 blur-3xl" aria-hidden="true" />
+      <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center">
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.22em] text-gold">
+            <Share2 size={12} /> Share the invitation
+          </p>
+          <h2 className="mt-2 font-display text-2xl leading-snug sm:text-[1.7rem]">
+            Not just email — <em className="text-blush">send it anywhere.</em>
+          </h2>
+          <p className="mt-2 max-w-md text-[0.85rem] font-semibold leading-relaxed text-cream/60">
+            One link carries your invitation and collects RSVPs. Drop it in WhatsApp, an Instagram DM, a family group chat — every answer lands in your tracker below.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {channels.map((c) => (
+              <a
+                key={c.label}
+                href={c.href}
+                target={c.href.startsWith("http") ? "_blank" : undefined}
+                rel="noreferrer"
+                onClick={() => { if (c.copyFirst) copy(); }}
+                className={`inline-flex items-center gap-1.5 rounded-full border border-cream/20 px-3.5 py-2 text-[0.74rem] font-bold text-cream/85 transition-all duration-300 hover:bg-cream/10 ${c.tint}`}
+              >
+                <c.icon size={13} /> {c.label}
+              </a>
+            ))}
+          </div>
+        </div>
+        <div className="w-full lg:w-[380px]">
+          <div className="flex items-center gap-2 rounded-2xl border border-cream/20 bg-cream/10 p-2 pl-4 backdrop-blur">
+            <Link2 size={14} className="shrink-0 text-gold" />
+            <span className="min-w-0 flex-1 truncate font-mono text-[0.78rem] text-cream/90" title={link}>{link.replace("https://", "")}</span>
+            <button
+              onClick={copy}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-4 py-2.5 text-[0.78rem] font-extrabold transition-all duration-300 active:scale-95 cursor-pointer ${copied ? "bg-sage text-ink" : "bg-gold text-ink hover:brightness-110"}`}
+            >
+              {copied ? <Check size={13} strokeWidth={3.4} /> : <Copy size={13} />} {copied ? "Copied" : "Copy"}
+            </button>
+          </div>
+          <button onClick={nativeShare} className="mt-2.5 w-full rounded-2xl border border-cream/20 py-2.5 text-[0.78rem] font-bold text-cream/80 transition hover:bg-cream/10 cursor-pointer">
+            Or use your phone's share sheet
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------ RSVP tracker ------------------------------ */
+
+const SOURCE_META: Record<string, { icon: typeof Link2; label: string; cls: string }> = {
+  link: { icon: Link2, label: "Link", cls: "bg-gold-soft text-gold-deep" },
+  whatsapp: { icon: MessageCircle, label: "WhatsApp", cls: "bg-sage-soft text-sage-deep" },
+  instagram: { icon: Instagram, label: "Instagram", cls: "bg-blush-soft text-blush-deep" },
+  messenger: { icon: Send, label: "Messenger", cls: "bg-lav-soft text-lav-deep" },
+  email: { icon: Mail, label: "Email", cls: "bg-ink/6 text-ink-2" },
+};
+
+function RsvpTracker() {
+  const { db, patch, toast } = useApp();
+  const [reminding, setReminding] = useState(false);
+  const log = [...db.rsvpLog].sort((a, b) => b.at - a.at);
+  const confirmed = db.guests.filter((g) => g.rsvp === "confirmed").length;
+  const declined = db.guests.filter((g) => g.rsvp === "declined").length;
+  const waiting = db.guests.filter((g) => g.rsvp === "pending").length;
+  const unsynced = log.filter((e) => !e.synced && db.guests.some((g) => g.name.toLowerCase() === e.name.toLowerCase()));
+
+  const apply = (entryId: string) => {
+    const entry = db.rsvpLog.find((e) => e.id === entryId);
+    if (!entry) return;
+    patch({
+      guests: db.guests.map((g) =>
+        g.name.toLowerCase() === entry.name.toLowerCase()
+          ? { ...g, rsvp: (entry.answer === "yes" ? "confirmed" : "declined") as Guest["rsvp"], meal: entry.meal ?? g.meal, notes: entry.note ? `${g.notes ? g.notes + " · " : ""}RSVP note: ${entry.note}` : g.notes }
+          : g,
+      ),
+      rsvpLog: db.rsvpLog.map((e) => (e.id === entryId ? { ...e, synced: true } : e)),
+    });
+    playChime("done");
+    toast(`${entry.name} synced`, "Their answer now counts in your guest list.");
+  };
+
+  const syncAll = () => {
+    let applied = 0;
+    const guests = db.guests.map((g) => {
+      const entry = db.rsvpLog.find((e) => !e.synced && e.name.toLowerCase() === g.name.toLowerCase());
+      if (!entry) return g;
+      applied++;
+      return { ...g, rsvp: (entry.answer === "yes" ? "confirmed" : "declined") as Guest["rsvp"], meal: entry.meal ?? g.meal };
+    });
+    patch({ guests, rsvpLog: db.rsvpLog.map((e) => (db.guests.some((g) => g.name.toLowerCase() === e.name.toLowerCase()) ? { ...e, synced: true } : e)) });
+    playChime("sparkle");
+    toast("All RSVPs synced", `${applied} answers merged into the guest list.`);
+  };
+
+  const remind = () => {
+    setReminding(true);
+    setTimeout(() => {
+      setReminding(false);
+      toast("Reminders on their way", `${waiting} pending guests will get a gentle nudge via Resend and SMS.`);
+    }, 1100);
+  };
+
+  return (
+    <section aria-label="RSVP tracker" className="rounded-[1.8rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md sm:p-8">
+      <div className="flex flex-wrap items-center gap-4">
+        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blush-soft text-blush-deep"><Activity size={19} /></span>
+        <div className="min-w-0 flex-1">
+          <h2 className="font-display text-2xl text-ink">Who's coming?</h2>
+          <p className="text-[0.8rem] font-semibold text-ink-mute">Every answer from your link, messages and emails — as it happens.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={remind} disabled={reminding || waiting === 0} className="rounded-full border border-ink/15 px-4 py-2 text-[0.76rem] font-bold text-ink-2 transition hover:border-blush-deep hover:text-blush-deep disabled:opacity-40 cursor-pointer">
+            {reminding ? "Sending…" : `Remind ${waiting} pending`}
+          </button>
+          {unsynced.length > 0 && (
+            <button onClick={syncAll} className="rounded-full bg-ink px-4 py-2 text-[0.76rem] font-bold text-cream transition hover:bg-ink/85 cursor-pointer">
+              Sync {unsynced.length} to guest list
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-5 grid grid-cols-3 gap-3">
+        {[
+          { label: "Joyfully yes", value: confirmed, cls: "text-sage-deep", bar: "bg-sage" },
+          { label: "Still deciding", value: waiting, cls: "text-blush-deep", bar: "bg-blush" },
+          { label: "With love, no", value: declined, cls: "text-ink-mute", bar: "bg-ink/30" },
+        ].map((s) => (
+          <div key={s.label} className="rounded-2xl border border-ink/8 bg-white/70 p-4">
+            <p className={`font-display text-3xl ${s.cls}`}>{s.value}</p>
+            <p className="mt-0.5 text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-ink-mute">{s.label}</p>
+            <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-ink/8">
+              <motion.div initial={{ width: 0 }} animate={{ width: `${(s.value / Math.max(1, db.guests.length)) * 100}%` }} transition={{ duration: 1 }} className={`h-full rounded-full ${s.bar}`} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {log.length === 0 ? (
+        <p className="mt-5 rounded-2xl border border-dashed border-ink/15 px-5 py-8 text-center text-[0.88rem] font-semibold text-ink-mute">
+          No RSVPs yet — share your link above and the answers will start rolling in here.
+        </p>
+      ) : (
+        <ul className="mt-5 divide-y divide-ink/6">
+          {log.map((e) => {
+            const meta = SOURCE_META[e.source] ?? SOURCE_META.link;
+            const Icon = meta.icon;
+            const match = db.guests.some((g) => g.name.toLowerCase() === e.name.toLowerCase());
+            return (
+              <li key={e.id} className="flex flex-wrap items-center gap-3 py-3.5 sm:flex-nowrap">
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[0.62rem] font-extrabold ${e.answer === "yes" ? "bg-sage-soft text-sage-deep" : "bg-blush-soft text-blush-deep"}`}>
+                  {e.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="flex flex-wrap items-center gap-2 text-[0.9rem] font-bold text-ink">
+                    {e.name}
+                    <Pill tone={e.answer === "yes" ? "confirmed" : "declined"}>{e.answer === "yes" ? "attending" : "can't make it"}</Pill>
+                    {e.meal && <span className="text-[0.68rem] font-bold text-ink-mute">· {e.meal}</span>}
+                  </p>
+                  {e.note && <p className="mt-0.5 truncate text-[0.78rem] italic text-ink-2">“{e.note}”</p>}
+                </div>
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.64rem] font-extrabold ${meta.cls}`}><Icon size={11} /> {meta.label}</span>
+                <span className="text-[0.7rem] font-bold text-ink-mute">{timeAgo(e.at)}</span>
+                {e.synced ? (
+                  <span className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold text-sage-deep"><Check size={12} strokeWidth={3} /> synced</span>
+                ) : match ? (
+                  <button onClick={() => apply(e.id)} className="rounded-full bg-gold px-3 py-1.5 text-[0.68rem] font-extrabold text-ink transition hover:brightness-105 cursor-pointer">Sync →</button>
+                ) : (
+                  <span className="text-[0.66rem] font-bold text-ink-mute/70" title="No guest with this exact name — add them to the guest list to sync.">new guest</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/* ------------------------------ luxe studio ------------------------------ */
+
+function LuxeStudio({ cfg, setCfg, unlocked }: {
+  cfg: ReturnType<typeof useApp>["db"]["invitation"];
+  setCfg: (p: Partial<ReturnType<typeof useApp>["db"]["invitation"]>) => void;
+  unlocked: boolean;
+}) {
+  const { toast, openCheckout, patch, db } = useApp();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const motion = cfg.motion;
+  const music = cfg.music;
+
+  const uploadTrack = async (file: File) => {
+    if (!file.type.startsWith("audio/")) { toast("That's not audio", "MP3, WAV or M4A work best.", "warn"); return; }
+    if (file.size > 2.5 * 1024 * 1024) { toast("A touch too big", "Keep tracks under 2.5 MB so invitations load instantly.", "warn"); return; }
+    const dataUrl = await new Promise<string>((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(String(r.result));
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    }).catch(() => null);
+    if (!dataUrl) return;
+    setCfg({ music: { track: "upload", uploadName: file.name.replace(/\.[^.]+$/, ""), uploadData: dataUrl } });
+    playChime("sparkle");
+    toast("Your song is in", `“${file.name.replace(/\.[^.]+$/, "")}” will play on the invitation.`);
+  };
+
+  const body = (
+    <>
+      <div>
+        <p className="text-[0.72rem] font-extrabold text-ink-2">Petals & motion</p>
+        <div className="mt-2 flex rounded-full bg-ink/5 p-1 text-[0.74rem] font-bold">
+          {(["off", "gentle", "lush"] as const).map((p) => (
+            <button key={p} disabled={!unlocked} onClick={() => { setCfg({ motion: { ...motion, petals: p } }); if (p !== "off") playChime("place"); }}
+              className={`flex-1 rounded-full py-2 capitalize transition disabled:cursor-not-allowed ${motion.petals === p ? "bg-white text-ink shadow-sm" : "text-ink-mute hover:text-ink"}`}>
+              {p}
+            </button>
+          ))}
+        </div>
+        <div className="mt-2.5 grid grid-cols-2 gap-2">
+          {([[ "shimmer", "Shimmering gold"], ["type", "Animated type"]] as const).map(([key, label]) => (
+            <button key={key} disabled={!unlocked} onClick={() => setCfg({ motion: { ...motion, [key]: !motion[key] } })} aria-pressed={motion[key]}
+              className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-[0.74rem] font-bold transition disabled:cursor-not-allowed ${motion[key] ? "border-gold/50 bg-gold-soft/50 text-ink" : "border-ink/12 text-ink-mute"}`}>
+              {label}
+              <span className={`h-2 w-2 rounded-full ${motion[key] ? "bg-gold" : "bg-ink/20"}`} />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5">
+        <p className="text-[0.72rem] font-extrabold text-ink-2">Background music</p>
+        <div className="mt-2 space-y-2">
+          {MUSIC_TRACKS.map((t) => (
+            <button key={t.id} disabled={!unlocked} onClick={() => { setCfg({ music: { ...music, track: t.id } }); playChime("place"); }}
+              className={`flex w-full items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left transition disabled:cursor-not-allowed ${music.track === t.id ? "border-gold/60 bg-gold-soft/50" : "border-ink/12 hover:border-ink/30"}`}>
+              <span className={`flex h-8 w-8 items-center justify-center rounded-full ${music.track === t.id ? "bg-gold text-ink" : "bg-ink/6 text-ink-mute"}`}><Music size={13} /></span>
+              <span className="flex-1">
+                <span className="block text-[0.8rem] font-extrabold text-ink">{t.name}</span>
+                <span className="text-[0.66rem] font-semibold text-ink-mute">{t.mood}</span>
+              </span>
+              {music.track === t.id && <Check size={13} strokeWidth={3.4} className="text-gold-deep" />}
+            </button>
+          ))}
+          <button disabled={!unlocked} onClick={() => fileRef.current?.click()}
+            className={`flex w-full items-center gap-3 rounded-xl border border-dashed px-3.5 py-2.5 text-left transition disabled:cursor-not-allowed ${music.track === "upload" ? "border-gold/60 bg-gold-soft/50" : "border-ink/20 hover:border-gold/60"}`}>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blush-soft text-blush-deep"><UploadCloud size={13} /></span>
+            <span className="flex-1">
+              <span className="block text-[0.8rem] font-extrabold text-ink">{music.track === "upload" && music.uploadName ? `“${music.uploadName}”` : "Upload your song"}</span>
+              <span className="text-[0.66rem] font-semibold text-ink-mute">your first dance track, under 2.5 MB</span>
+            </span>
+          </button>
+          <input ref={fileRef} type="file" accept="audio/*" className="hidden" aria-label="Upload music track"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadTrack(f); e.target.value = ""; }} />
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <section className={`relative overflow-hidden rounded-[1.6rem] border p-6 backdrop-blur-md ${unlocked ? "border-gold/40 bg-gradient-to-br from-gold-soft/40 to-white/60" : "border-white/70 bg-white/60"}`}>
+      <div className="flex items-center justify-between">
+        <h3 className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
+          <Crown size={12} /> Luxe studio
+        </h3>
+        {unlocked ? <Pill tone="gold">unlocked</Pill> : <Pill tone="pending"><Lock size={9} /> Luxe</Pill>}
+      </div>
+      <div className={`mt-4 ${unlocked ? "" : "pointer-events-none opacity-55"}`}>{body}</div>
+      {!unlocked && (
+        <div className="mt-4 rounded-2xl bg-ink p-4 text-cream">
+          <p className="text-[0.8rem] font-bold leading-snug">Motion, petals and music are the Luxe difference — animated invitations guests actually gasp at.</p>
+          <button onClick={() => openCheckout("luxe")} className="mt-3 w-full rounded-full bg-gold py-2.5 text-[0.8rem] font-extrabold text-ink transition hover:brightness-110 cursor-pointer">
+            Unlock with Premium Luxe · $199
+          </button>
+        </div>
+      )}
+      {unlocked && (
+        <p className="mt-4 text-[0.68rem] font-semibold text-ink-mute">Heard in Live preview and on your guest page{db.plan === "luxe" ? "" : ""}.</p>
+      )}
+    </section>
+  );
+}
+
+/* ------------------------------ import designs ------------------------------ */
+
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const max = 1400;
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const c = canvas.getContext("2d");
+      if (!c) { URL.revokeObjectURL(url); reject(new Error("no canvas")); return; }
+      c.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("bad image")); };
+    img.src = url;
+  });
+}
+
+function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { db, patch, toast } = useApp();
+  const [dragOver, setDragOver] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const importFiles = async (files: FileList | File[]) => {
+    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (!list.length) { toast("Images only", "PNG or JPG exports from Canva, Figma, Photoshop…", "warn"); return; }
+    setBusy(true);
+    let used = db.customTemplates.reduce((s, c) => s + c.dataUrl.length, 0);
+    const added: typeof db.customTemplates = [];
+    for (const f of list) {
+      if (used > 4 * 1024 * 1024) { toast("Storage is getting full", "Browser storage caps imports around 4 MB — remove an old design to add more.", "warn"); break; }
+      try {
+        const dataUrl = await compressImage(f);
+        used += dataUrl.length;
+        added.push({
+          id: `ct-${Date.now()}-${added.length}`,
+          name: f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").replace(/\b\w/g, (ch: string) => ch.toUpperCase()) || "My design",
+          dataUrl,
+          addedAt: Date.now(),
+        });
+      } catch { toast(`Couldn't read ${f.name}`, undefined, "warn"); }
+    }
+    if (added.length) {
+      patch({ customTemplates: [...added, ...db.customTemplates] });
+      playChime("sparkle");
+      toast(added.length === 1 ? `“${added[0].name}” imported` : `${added.length} designs imported`, "Find them in “My designs” above the gallery.");
+    }
+    setBusy(false);
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} label="Import your designs">
+      <div className="p-7 sm:p-8">
+        <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">Your artwork, in Luma</p>
+        <h2 className="mt-2 font-display text-[1.7rem] text-ink">Import your own designs</h2>
+        <p className="mt-2 text-[0.85rem] leading-relaxed text-ink-2">
+          Made invitations in Canva, Figma or Photoshop? Drop the exports here — each becomes a selectable template. RSVPs, meals and notes still collect on the guest page beneath your art.
+        </p>
+
+        <button
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => { e.preventDefault(); setDragOver(false); void importFiles(e.dataTransfer.files); }}
+          className={`mt-5 flex w-full cursor-pointer flex-col items-center gap-3 rounded-[1.4rem] border-2 border-dashed px-6 py-10 text-center transition-all duration-300 ${dragOver ? "border-gold bg-gold-soft/50 scale-[1.01]" : "border-ink/20 bg-white/60 hover:border-gold/60 hover:bg-gold-soft/25"}`}
+        >
+          <span className={`flex h-14 w-14 items-center justify-center rounded-full transition ${dragOver ? "bg-gold text-ink" : "bg-blush-soft text-blush-deep"}`}>
+            <UploadCloud size={22} />
+          </span>
+          <span className="text-[0.95rem] font-extrabold text-ink">{busy ? "Compressing & importing…" : dragOver ? "Let go — they're in good hands" : "Drag designs here, or tap to browse"}</span>
+          <span className="text-[0.72rem] font-semibold text-ink-mute">PNG · JPG · a few MB each · stored privately on this device</span>
+        </button>
+        <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" aria-label="Choose design files"
+          onChange={(e) => { if (e.target.files?.length) void importFiles(e.target.files); e.target.value = ""; }} />
+
+        {db.customTemplates.length > 0 && (
+          <p className="mt-4 text-center text-[0.76rem] font-bold text-ink-2">
+            {db.customTemplates.length} design{db.customTemplates.length > 1 ? "s" : ""} imported — manage them in “My designs”.
+          </p>
+        )}
+
+        <div className="mt-6 flex justify-end">
+          <button onClick={onClose} className={btn.ink}>Done</button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+/* ------------------------------ custom hero (live preview) ------------------------------ */
+
+function CustomHero({ custom, colors, countdown, reduced }: {
+  custom: { name: string; dataUrl: string };
+  colors: { bg: string; ink: string; accent: string };
+  countdown: { d: number; h: number; m: number; s: number };
+  reduced: boolean;
+}) {
+  return (
+    <div>
+      <motion.div initial={reduced ? false : { opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}>
+        <img src={custom.dataUrl} alt={`${custom.name} — invitation design`} className="w-full" />
+      </motion.div>
+      <div className="flex justify-center px-8 py-10" style={{ background: colors.bg, color: colors.ink }}>
+        <motion.div
+          initial={reduced ? false : { opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.8 }}
+          className="flex gap-3 sm:gap-5" aria-label="Countdown to the wedding"
+        >
+          {[["days", countdown.d], ["hrs", countdown.h], ["min", countdown.m], ["sec", countdown.s]].map(([label, v]) => (
+            <div key={label as string} className="w-16 rounded-2xl border px-2 py-3 text-center sm:w-20" style={{ borderColor: `${colors.accent}55`, background: `${colors.accent}0F` }}>
+              <p className="font-display text-2xl tabular-nums sm:text-3xl">{String(v).padStart(2, "0")}</p>
+              <p className="text-[0.58rem] font-extrabold uppercase tracking-[0.2em] opacity-60">{label}</p>
+            </div>
+          ))}
+        </motion.div>
+      </div>
     </div>
   );
 }

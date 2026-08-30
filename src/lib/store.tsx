@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
-  BudgetCategory, Guest, Plan, RegistryItem, SeatTable, Task, Vendor, Wedding,
-  seedBudget, seedGuests, seedRegistry, seedTables, seedTasks, seedVendors, seedWedding,
+  BudgetCategory, CustomTemplate, Guest, Plan, RegistryItem, RsvpEntry, SeatTable, Task, Vendor, Wedding,
+  seedBudget, seedGuests, seedRegistry, seedRsvpLog, seedTables, seedTasks, seedVendors, seedWedding, slugify,
 } from "./data";
 
 /* ------------------------------------------------------------------ */
@@ -18,6 +18,8 @@ export interface InvitationConfig {
   photo: string | null;
   colors: { bg: string; ink: string; accent: string } | null;
   fontSerif: boolean | null;
+  motion: { petals: "off" | "gentle" | "lush"; shimmer: boolean; type: boolean };
+  music: { track: "serene" | "golden" | "dance" | "upload"; uploadName: string | null; uploadData: string | null };
 }
 
 export interface WebsiteConfig {
@@ -44,6 +46,8 @@ export interface Db {
   plan: Plan;
   invitation: InvitationConfig;
   website: WebsiteConfig;
+  customTemplates: CustomTemplate[];
+  rsvpLog: RsvpEntry[];
 }
 
 export interface Toast {
@@ -93,6 +97,8 @@ const seedDb: Db = {
     photo: null,
     colors: null,
     fontSerif: null,
+    motion: { petals: "gentle", shimmer: true, type: true },
+    music: { track: "serene", uploadName: null, uploadData: null },
   },
   website: {
     template: "serene",
@@ -106,7 +112,12 @@ const seedDb: Db = {
     domain: "maya-theo.luma.love",
     published: true,
   },
+  customTemplates: [],
+  rsvpLog: seedRsvpLog,
 };
+
+/** Public share link for the couple's invitation page. */
+export const inviteLink = (names: string) => `https://luma.love/i/${slugify(names)}`;
 
 const KEY = "luma.db.v2";
 const AUTH_KEY = "luma.auth.v1";
@@ -116,7 +127,16 @@ function loadDb(): Db {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Db;
-      if (parsed && parsed.wedding && Array.isArray(parsed.guests)) return parsed;
+      if (parsed && parsed.wedding && Array.isArray(parsed.guests)) {
+        // merge over seeds so older saved databases gain newly-added fields
+        return {
+          ...seedDb, ...parsed,
+          invitation: { ...seedDb.invitation, ...parsed.invitation },
+          website: { ...seedDb.website, ...parsed.website },
+          customTemplates: parsed.customTemplates ?? [],
+          rsvpLog: parsed.rsvpLog ?? seedDb.rsvpLog,
+        };
+      }
     }
   } catch { /* fall through to seed */ }
   return seedDb;

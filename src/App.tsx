@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { HashRouter, Route, Routes, useLocation } from "react-router-dom";
 import { AppProvider } from "./lib/store";
 import Home from "./pages/Home";
+import GuestInvite from "./pages/GuestInvite";
 import Shell from "./components/dashboard/Shell";
 import Overview from "./components/dashboard/Overview";
 import Guests from "./components/dashboard/Guests";
@@ -50,6 +51,7 @@ export default function App() {
         <div className="grain-overlay" aria-hidden="true" />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/invite" element={<GuestInvite />} />
           <Route path="/planner" element={<Shell />}>
             <Route index element={<Overview />} />
             <Route path="guests" element={<Guests />} />
