@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
-import { Check, Loader2, Lock, Sparkles, X } from "lucide-react";
+import { Check, Heart, Loader2, Lock, Sparkles, X } from "lucide-react";
 import { TIERS, Plan, fmtMoney } from "../lib/data";
-import { useApp } from "../lib/store";
+import { useApp, usePrefersReducedMotion, useStats } from "../lib/store";
 
 /* ------------------------------ logo ------------------------------ */
 
@@ -333,8 +333,75 @@ export function CheckoutModal() {
 
 /* ------------------------------ auth modal ------------------------------ */
 
+/** word that keeps turning in the auth headline */
+function RotatingWord() {
+  const reduced = usePrefersReducedMotion();
+  const words = ["feeling.", "calm.", "story.", "yes."];
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (reduced) return;
+    const id = window.setInterval(() => setI((v) => (v + 1) % words.length), 2400);
+    return () => window.clearInterval(id);
+  }, [reduced]);
+  return (
+    <span className="relative inline-flex overflow-hidden align-baseline">
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={words[i]}
+          initial={{ y: "110%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "-110%", opacity: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="italic text-blush"
+        >
+          {words[i]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
+/** input whose little heart lights up while you type */
+function LovelyInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  const [focus, setFocus] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        {...props}
+        onFocus={(e) => { setFocus(true); props.onFocus?.(e); }}
+        onBlur={(e) => { setFocus(false); props.onBlur?.(e); }}
+        className={`${inputCls} pr-10`}
+      />
+      <motion.span
+        animate={focus ? { scale: [1, 1.4, 1] } : {}}
+        transition={{ duration: 0.5 }}
+        className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2"
+        aria-hidden="true"
+      >
+        <Heart size={15} className={focus ? "text-gold" : "text-ink-mute/35"} fill={focus ? "#D4AF37" : "none"} />
+      </motion.span>
+    </div>
+  );
+}
+
+function strengthOf(p: string) {
+  let s = 0;
+  if (p.length >= 8) s++;
+  if (/[A-Z]/.test(p) && /[a-z]/.test(p)) s++;
+  if (/\d/.test(p)) s++;
+  if (/[^A-Za-z0-9]/.test(p)) s++;
+  return s;
+}
+const STRENGTH = [
+  { label: "Too short", bar: "bg-ink/15" },
+  { label: "Gentle", bar: "bg-blush" },
+  { label: "Getting there", bar: "bg-lav" },
+  { label: "Strong", bar: "bg-sage" },
+  { label: "Unbreakable", bar: "bg-gold" },
+];
+
 export function AuthModal() {
-  const { authOpen, setAuthOpen, signIn, toast } = useApp();
+  const { authOpen, setAuthOpen, signIn, toast, db } = useApp();
+  const stats = useStats();
+  const reduced = usePrefersReducedMotion();
   const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
   const [email, setEmail] = useState("maya@luma.love");
   const [password, setPassword] = useState("");
@@ -358,62 +425,138 @@ export function AuthModal() {
     }, 900);
   };
 
+  const strength = strengthOf(password);
+  const stagger = (i: number) => ({
+    initial: reduced ? false : { opacity: 0, y: 14 },
+    animate: { opacity: 1, y: 0 },
+    transition: { delay: 0.08 + i * 0.07, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
+  });
+
   return (
-    <Modal open={authOpen} onClose={() => setAuthOpen(false)} label="Sign in">
-      <div className="p-7 sm:p-9">
-        <p className="text-[0.72rem] font-bold uppercase tracking-[0.2em] text-gold-deep">Luma account</p>
-        <h2 className="mt-2 font-display text-3xl text-ink">
-          {mode === "login" ? "Welcome back" : mode === "signup" ? "Begin the feeling" : "Reset your password"}
-        </h2>
-
-        <div className="mt-5 flex gap-1 rounded-full bg-ink/5 p-1 text-sm font-semibold" role="tablist" aria-label="Authentication mode">
-          {(["login", "signup"] as const).map((m) => (
-            <button key={m} role="tab" aria-selected={mode === m} onClick={() => setMode(m)}
-              className={`flex-1 rounded-full py-2 capitalize transition cursor-pointer ${mode === m ? "bg-white text-ink shadow-sm" : "text-ink-mute hover:text-ink"}`}>
-              {m === "login" ? "Sign in" : "Sign up"}
-            </button>
+    <Modal open={authOpen} onClose={() => setAuthOpen(false)} label="Sign in" wide>
+      <div className="grid sm:grid-cols-[1.02fr_1fr]">
+        {/* living ink panel */}
+        <aside className="relative hidden overflow-hidden bg-ink p-9 text-cream sm:flex sm:flex-col sm:justify-between">
+          <div className="pointer-events-none absolute -left-16 -top-20 h-64 w-64 rounded-full bg-blush/20 blur-3xl" aria-hidden="true" />
+          <div className="pointer-events-none absolute -bottom-24 -right-10 h-72 w-72 rounded-full bg-lav/20 blur-3xl" aria-hidden="true" />
+          {[16, 44, 70, 88].map((left, i) => (
+            <span key={left} className="inv-petal" style={{ left: `${left}%`, animationDuration: `${10 + i * 2.4}s`, animationDelay: `${i * 1.9}s` }} aria-hidden="true" />
           ))}
+
+          <div className="relative flex items-center justify-between">
+            <Logo dark />
+            <span className="rounded-full border border-gold/40 px-3 py-1.5 text-[0.6rem] font-extrabold uppercase tracking-[0.2em] text-gold">Planner access</span>
+          </div>
+
+          <div className="relative py-10">
+            <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.3em] text-cream/40">The Luma planner</p>
+            <h2 className="mt-4 font-display text-[2.7rem] leading-[1.05] tracking-tight">
+              Plan the<br /><RotatingWord />
+            </h2>
+            <p className="mt-5 max-w-xs text-[0.9rem] leading-relaxed text-cream/60">
+              One calm workspace for guests, budget, timeline, seating and the big day itself — from the first guest to the final dance.
+            </p>
+          </div>
+
+          <div className="relative space-y-4">
+            <div className="flex items-center gap-3 rounded-2xl border border-cream/12 bg-cream/6 px-4 py-3.5 backdrop-blur-sm">
+              <Heart size={16} className="text-blush" fill="#FFB5C2" />
+              <div>
+                <p className="font-display text-lg leading-none">{stats.days} days</p>
+                <p className="mt-1 text-[0.66rem] font-bold uppercase tracking-[0.16em] text-cream/45">until {db.wedding.names} say “I do”</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-[0.72rem] font-semibold text-cream/45">
+              <Stars /> Loved by 4,200+ couples
+            </div>
+          </div>
+        </aside>
+
+        {/* form */}
+        <div className="p-7 sm:p-9">
+          <div className="sm:hidden"><Logo /></div>
+
+          <motion.h2 {...stagger(0)} key={mode} className="mt-4 font-display text-[1.9rem] leading-tight text-ink sm:mt-0 sm:text-[2.1rem]">
+            {mode === "login" && <>Welcome <em className="text-blush-deep">back.</em></>}
+            {mode === "signup" && <>Begin the <em className="text-blush-deep">feeling.</em></>}
+            {mode === "reset" && <>Take a <em className="text-lav-deep">breath.</em></>}
+          </motion.h2>
+          <motion.p {...stagger(1)} className="mt-1.5 text-[0.86rem] font-semibold text-ink-2">
+            {mode === "login" && "Your plan is right where you left it."}
+            {mode === "signup" && "Two minutes now, two hundred calmer hours later."}
+            {mode === "reset" && "We'll send a link — passwords are the least romantic part anyway."}
+          </motion.p>
+
+          <motion.div {...stagger(2)} className="mt-5 flex gap-1 rounded-full bg-ink/5 p-1 text-sm font-semibold" role="tablist" aria-label="Authentication mode">
+            {(["login", "signup"] as const).map((m) => (
+              <button key={m} role="tab" aria-selected={mode === m} onClick={() => setMode(m)}
+                className={`relative flex-1 overflow-hidden rounded-full py-2 capitalize transition cursor-pointer ${mode === m ? "text-cream" : "text-ink-mute hover:text-ink"}`}>
+                {mode === m && !reduced && (
+                  <motion.span layoutId="auth-tab" className="absolute inset-0 rounded-full bg-ink" transition={{ type: "spring", stiffness: 400, damping: 34 }} />
+                )}
+                {mode === m && reduced && <span className="absolute inset-0 rounded-full bg-ink" />}
+                <span className="relative">{m === "login" ? "Sign in" : "Sign up"}</span>
+              </button>
+            ))}
+          </motion.div>
+
+          <form onSubmit={submit} className="mt-6 space-y-4">
+            <motion.div {...stagger(3)}>
+              <Field label="Email">
+                <LovelyInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" />
+              </Field>
+            </motion.div>
+            {mode !== "reset" && (
+              <motion.div {...stagger(4)}>
+                <Field label="Password">
+                  <LovelyInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" autoComplete={mode === "signup" ? "new-password" : "current-password"} />
+                </Field>
+                {mode === "signup" && password.length > 0 && (
+                  <div className="mt-2">
+                    <div className="flex gap-1.5">
+                      {[0, 1, 2, 3].map((seg) => (
+                        <span key={seg} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${seg < strength ? STRENGTH[strength].bar : "bg-ink/10"}`} />
+                      ))}
+                    </div>
+                    <p className="mt-1.5 text-[0.68rem] font-bold text-ink-mute">{STRENGTH[strength].label}</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+            {mode === "login" && (
+              <motion.button {...stagger(4)} type="button" onClick={() => setMode("reset")} className="text-xs font-semibold text-ink-mute underline-offset-2 hover:text-gold-deep hover:underline cursor-pointer">
+                Forgot password?
+              </motion.button>
+            )}
+            <motion.div {...stagger(5)}>
+              <button type="submit" disabled={busy} className={`btn3d ${mode === "signup" ? "btn3d-gold" : "btn3d-ink"} w-full rounded-2xl py-4 text-[0.95rem] font-extrabold disabled:pointer-events-none disabled:opacity-60 cursor-pointer`}>
+                {busy ? <Loader2 size={17} className="mx-auto animate-spin" /> : mode === "reset" ? "Send reset link" : mode === "signup" ? "Create our planner →" : "Step back in →"}
+              </button>
+            </motion.div>
+          </form>
+
+          <motion.div {...stagger(6)} className="my-5 flex items-center gap-3 text-[0.66rem] font-bold uppercase tracking-[0.18em] text-ink-mute">
+            <span className="h-px flex-1 bg-ink/10" /> or <span className="h-px flex-1 bg-ink/10" />
+          </motion.div>
+
+          <motion.button
+            {...stagger(7)}
+            onClick={() => { signIn({ name: "Maya Chen", email: "maya@gmail.com" }); toast("Signed in with Google", "maya@gmail.com"); setAuthOpen(false); }}
+            className="btn3d btn3d-light flex w-full items-center justify-center gap-2.5 rounded-2xl py-3.5 text-[0.9rem] font-bold cursor-pointer"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.5-.3-2.3H12v4.5h6.5c-.1 1.1-.8 2.7-2.4 3.8l3.7 2.9c2.3-2.1 3.7-5.1 3.7-8.9z" />
+              <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.8-2.9c-1 .7-2.4 1.2-4.2 1.2-3.2 0-5.9-2.1-6.9-5l-3.9 3C3.2 21.3 7.3 24 12 24z" />
+              <path fill="#FBBC05" d="M5.1 14.4c-.3-.8-.4-1.6-.4-2.4s.2-1.6.4-2.4l-4-3C.4 8.2 0 10 0 12s.4 3.8 1.2 5.4l3.9-3z" />
+              <path fill="#EA4335" d="M12 4.7c2.3 0 3.8 1 4.7 1.8l3.4-3.3C18 1.2 15.2 0 12 0 7.3 0 3.2 2.7 1.2 6.6l4 3c1-2.9 3.6-4.9 6.8-4.9z" />
+            </svg>
+            Continue with Google
+          </motion.button>
+
+          <motion.p {...stagger(8)} className="mt-5 flex items-center justify-center gap-1.5 text-center text-[0.7rem] text-ink-mute">
+            <Sparkles size={12} className="text-gold" /> Sessions persist on this device · Supabase-ready architecture
+          </motion.p>
         </div>
-
-        <form onSubmit={submit} className="mt-6 space-y-4">
-          <Field label="Email">
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} placeholder="you@example.com" autoComplete="email" />
-          </Field>
-          {mode !== "reset" && (
-            <Field label="Password">
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} placeholder="••••••••" autoComplete="current-password" />
-            </Field>
-          )}
-          {mode === "login" && (
-            <button type="button" onClick={() => setMode("reset")} className="text-xs font-semibold text-ink-mute underline-offset-2 hover:text-gold-deep hover:underline cursor-pointer">
-              Forgot password?
-            </button>
-          )}
-          <button type="submit" disabled={busy} className={`${btn.ink} w-full`}>
-            {busy ? <Loader2 size={16} className="animate-spin" /> : mode === "reset" ? "Send reset link" : mode === "signup" ? "Create account" : "Sign in"}
-          </button>
-        </form>
-
-        <div className="my-5 flex items-center gap-3 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-ink-mute">
-          <span className="h-px flex-1 bg-ink/10" /> or <span className="h-px flex-1 bg-ink/10" />
-        </div>
-
-        <button
-          onClick={() => { signIn({ name: "Maya Chen", email: "maya@gmail.com" }); toast("Signed in with Google", "maya@gmail.com"); setAuthOpen(false); }}
-          className={`${btn.outline} w-full`}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.5-.3-2.3H12v4.5h6.5c-.1 1.1-.8 2.7-2.4 3.8l3.7 2.9c2.3-2.1 3.7-5.1 3.7-8.9z" />
-            <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.8-2.9c-1 .7-2.4 1.2-4.2 1.2-3.2 0-5.9-2.1-6.9-5l-3.9 3C3.2 21.3 7.3 24 12 24z" />
-            <path fill="#FBBC05" d="M5.1 14.4c-.3-.8-.4-1.6-.4-2.4s.2-1.6.4-2.4l-4-3C.4 8.2 0 10 0 12s.4 3.8 1.2 5.4l3.9-3z" />
-            <path fill="#EA4335" d="M12 4.7c2.3 0 3.8 1 4.7 1.8l3.4-3.3C18 1.2 15.2 0 12 0 7.3 0 3.2 2.7 1.2 6.6l4 3c1-2.9 3.6-4.9 6.8-4.9z" />
-          </svg>
-          Continue with Google
-        </button>
-
-        <p className="mt-5 flex items-center justify-center gap-1.5 text-center text-[0.7rem] text-ink-mute">
-          <Sparkles size={12} className="text-gold" /> Sessions persist on this device · Supabase-ready architecture
-        </p>
       </div>
     </Modal>
   );

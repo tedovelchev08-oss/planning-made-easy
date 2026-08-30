@@ -217,9 +217,17 @@ export const seedBudget: BudgetCategory[] = [
 
 /* ------------------------------ tasks ------------------------------ */
 
-const task = (title: string, phase: PhaseId, done: boolean, assignee: Assignee, week = false): Task => ({
+/** ISO date n days from today (or an explicit ISO string) */
+const dueIn = (n: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+};
+
+const task = (title: string, phase: PhaseId, done: boolean, assignee: Assignee, week = false, due?: number | string): Task => ({
   id: `t-${title.replace(/[^a-z0-9]/gi, "").slice(0, 18)}-${phase}`,
   title, phase, done, assignee, week,
+  ...(due !== undefined ? { due: typeof due === "string" ? due : dueIn(due) } : {}),
 });
 
 export const seedTasks: Task[] = [
@@ -228,13 +236,13 @@ export const seedTasks: Task[] = [
   task("Agree on a budget ceiling", "p12", true, "B"),
   task("Draft the first guest list", "p12", true, "B"),
   task("Choose the ceremony vibe", "p12", true, "A"),
-  task("Tour three venues", "p12", true, "B"),
-  task("Book The Glasshouse", "p12", true, "B"),
-  task("Hire a photographer", "p12", true, "T"),
+  task("Tour three venues", "p12", true, "B", false, -250),
+  task("Book The Glasshouse", "p12", true, "B", false, -238),
+  task("Hire a photographer", "p12", true, "T", false, -225),
   task("Start the inspiration board", "p12", true, "A"),
   // 9 months — 8/8
-  task("Book caterer tasting", "p9", true, "B"),
-  task("Reserve the quartet", "p9", true, "T"),
+  task("Book caterer tasting", "p9", true, "B", false, -180),
+  task("Reserve the quartet", "p9", true, "T", false, -170),
   task("Interview two florists", "p9", true, "A"),
   task("Order save-the-dates", "p9", true, "A"),
   task("Begin dress appointments", "p9", true, "A"),
@@ -242,44 +250,44 @@ export const seedTasks: Task[] = [
   task("Create the wedding registry", "p9", true, "B"),
   task("Set up the Luma workspace", "p9", true, "B"),
   // 6 months — 9/9
-  task("Send save-the-dates", "p6", true, "B"),
+  task("Send save-the-dates", "p6", true, "B", false, -120),
   task("Finalize catering menu draft", "p6", true, "B"),
   task("Book hair & makeup trial", "p6", true, "A"),
   task("Choose the wedding party outfits", "p6", true, "B"),
   task("Order bridesmaid bouquets plan", "p6", true, "A"),
   task("Draft the ceremony reading list", "p6", true, "B"),
   task("Book rehearsal dinner spot", "p6", true, "T"),
-  task("Arrange guest hotel blocks", "p6", true, "T"),
+  task("Arrange guest hotel blocks", "p6", true, "T", false, -105),
   task("Start the seating sketch", "p6", true, "B"),
   // 3 months — 9/9
-  task("Send invitations", "p3", true, "B"),
-  task("Final menu tasting", "p3", true, "B"),
+  task("Send invitations", "p3", true, "B", false, -60),
+  task("Final menu tasting", "p3", true, "B", false, -21),
   task("Approve floral moodboard", "p3", true, "A"),
   task("Book the late-night snack cart", "p3", true, "T"),
   task("Choose ceremony music", "p3", true, "B"),
-  task("Order wedding bands", "p3", true, "B"),
+  task("Order wedding bands", "p3", true, "B", false, -45),
   task("Plan the morning-after brunch", "p3", true, "A"),
   task("Confirm transportation quotes", "p3", true, "T"),
   task("Publish the wedding website", "p3", true, "B"),
   // 1 month — 4/8
-  task("Chase remaining RSVPs", "p1", true, "B"),
-  task("Final dress fitting", "p1", true, "A"),
-  task("Write the vows", "p1", true, "B"),
+  task("Chase remaining RSVPs", "p1", true, "B", false, -10),
+  task("Final dress fitting", "p1", true, "A", false, -6),
+  task("Write the vows", "p1", true, "B", false, 18),
   task("Confirm vendor arrival times", "p1", true, "T"),
-  task("Confirm final menu", "p1", false, "T", true),
-  task("Send RSVP reminder", "p1", false, "A", true),
-  task("Approve floral proposal", "p1", false, "B", true),
-  task("Choose first dance", "p1", false, "B", true),
+  task("Confirm final menu", "p1", false, "T", true, 6),
+  task("Send RSVP reminder", "p1", false, "A", true, 3),
+  task("Approve floral proposal", "p1", false, "B", true, 9),
+  task("Choose first dance", "p1", false, "B", true, 12),
   // final week — 1/5
-  task("Pack the emergency kit", "fw", true, "A"),
-  task("Hand off seating chart to venue", "fw", false, "B"),
-  task("Final payment to caterer", "fw", false, "T"),
-  task("Steam everything twice", "fw", false, "A"),
-  task("Write thank-you notes plan", "fw", false, "B"),
+  task("Pack the emergency kit", "fw", true, "A", false, 283),
+  task("Hand off seating chart to venue", "fw", false, "B", false, 286),
+  task("Final payment to caterer", "fw", false, "T", false, 287),
+  task("Steam everything twice", "fw", false, "A", false, 289),
+  task("Write thank-you notes plan", "fw", false, "B", false, 290),
   // wedding day — 0/3
-  task("Sunrise coffee, no phones", "wd", false, "B"),
-  task("Rings to the best man", "wd", false, "T"),
-  task("First look at 4pm", "wd", false, "B"),
+  task("Sunrise coffee, no phones", "wd", false, "B", false, seedWedding.date),
+  task("Rings to the best man", "wd", false, "T", false, seedWedding.date),
+  task("First look at 4pm", "wd", false, "B", false, seedWedding.date),
 ];
 // 50 tasks · 39 done → 78%
 

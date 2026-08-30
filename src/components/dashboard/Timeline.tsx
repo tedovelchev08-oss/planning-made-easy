@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion, Reorder } from "framer-motion";
 import { CalendarDays, ChevronDown, GripVertical, Plus, Trash2 } from "lucide-react";
-import { Assignee, PHASES, PhaseId, Task } from "../../lib/data";
+import { Assignee, PHASES, PhaseId, Task, fmtDateShort } from "../../lib/data";
 import { useApp, useStats } from "../../lib/store";
 import { playChime } from "../../lib/sound";
 import { Reveal } from "../ui";
@@ -132,6 +132,11 @@ export default function Timeline() {
                               </button>
                               <span className={`flex-1 text-[0.92rem] font-bold transition ${t.done ? "text-ink-mute line-through decoration-sage-deep/50" : "text-ink"}`}>{t.title}</span>
                               {t.week && <span className="hidden rounded-full bg-gold-soft px-2 py-0.5 text-[0.6rem] font-extrabold text-gold-deep sm:block">THIS WEEK</span>}
+                              {t.due && (
+                                <span className="hidden items-center gap-1 rounded-full bg-ink/5 px-2 py-0.5 text-[0.6rem] font-extrabold text-ink-mute md:flex" title={`Due ${t.due}`}>
+                                  <CalendarDays size={9} /> {fmtDateShort(t.due)}
+                                </span>
+                              )}
                               <span className={`rounded-full px-2.5 py-1 text-[0.62rem] font-extrabold ${c.cls}`}>{c.label}</span>
                               <button onClick={() => removeTask(t.id)} aria-label={`Delete task ${t.title}`} className="rounded-full p-1.5 text-ink-mute opacity-0 transition hover:bg-blush-soft hover:text-blush-deep group-hover:opacity-100 focus:opacity-100 cursor-pointer">
                                 <Trash2 size={13} />

@@ -7,6 +7,7 @@ import { greeting, useApp, useCountUp, usePrefersReducedMotion, useStats } from 
 import { playChime } from "../../lib/sound";
 import { fmtDate, fmtMoney, timeAgo } from "../../lib/data";
 import { Reveal } from "../ui";
+import CalendarCard from "./CalendarCard";
 
 const chapterOf = (days: number): [string, string] =>
   days > 330 ? ["I", "The dreaming chapter"]
@@ -60,7 +61,6 @@ export default function Overview() {
     [db.rsvpLog],
   );
   const nextVendor = db.vendors.find((v) => v.status === "Proposal");
-  const topBudget = [...db.budget].sort((a, b) => b.committed / Math.max(1, b.budget) - a.committed / Math.max(1, a.budget)).slice(0, 3);
 
   const toggleWeek = (id: string) => {
     const t = db.tasks.find((x) => x.id === id);
@@ -206,6 +206,10 @@ export default function Overview() {
 
         {/* side column */}
         <div className="space-y-5">
+          <Reveal delay={0.05}>
+            <CalendarCard />
+          </Reveal>
+
           {nextVendor && (
             <Reveal delay={0.08}>
               <section className="rounded-[1.8rem] border border-blush/40 bg-blush-soft/50 p-6 backdrop-blur-md" aria-label="Next decision">
@@ -230,28 +234,6 @@ export default function Overview() {
               </section>
             </Reveal>
           )}
-
-          <Reveal delay={0.14}>
-            <section className="rounded-[1.8rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md" aria-label="Budget pulse">
-              <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg text-ink">Budget pulse</h3>
-                <Link to="/planner/budget" className="text-[0.74rem] font-bold text-gold-deep transition hover:underline">Open →</Link>
-              </div>
-              <ul className="mt-4 space-y-3.5">
-                {topBudget.map((c) => (
-                  <li key={c.id}>
-                    <div className="flex justify-between text-[0.76rem] font-bold">
-                      <span className="text-ink-2">{c.name}</span>
-                      <span className="text-ink-mute">{Math.round((c.committed / Math.max(1, c.budget)) * 100)}%</span>
-                    </div>
-                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-ink/8">
-                      <motion.div initial={{ width: 0 }} whileInView={{ width: `${Math.min(100, (c.committed / Math.max(1, c.budget)) * 100)}%` }} viewport={{ once: true }} transition={{ duration: 1.1 }} className="h-full rounded-full" style={{ background: c.color }} />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </Reveal>
 
           <Reveal delay={0.2}>
             <section className="rounded-[1.8rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md" aria-label="Recent activity">

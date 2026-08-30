@@ -129,12 +129,17 @@ function loadDb(): Db {
       const parsed = JSON.parse(raw) as Db;
       if (parsed && parsed.wedding && Array.isArray(parsed.guests)) {
         // merge over seeds so older saved databases gain newly-added fields
+        // backfill task due-dates from the seed plan so saved installs light up the calendar
+        const dueById = new Map(seedTasks.filter((t) => t.due).map((t) => [t.id, t.due as string]));
         return {
           ...seedDb, ...parsed,
           invitation: { ...seedDb.invitation, ...parsed.invitation },
           website: { ...seedDb.website, ...parsed.website },
           customTemplates: parsed.customTemplates ?? [],
           rsvpLog: parsed.rsvpLog ?? seedDb.rsvpLog,
+          tasks: Array.isArray(parsed.tasks)
+            ? parsed.tasks.map((t) => (t.due ? t : dueById.has(t.id) ? { ...t, due: dueById.get(t.id) } : t))
+            : seedDb.tasks,
         };
       }
     }
