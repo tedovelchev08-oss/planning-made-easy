@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { ArrowRight, Check, Flower2, Heart, MapPin, Sparkles } from "lucide-react";
 import { greeting, useApp, useCountUp, usePrefersReducedMotion, useStats } from "../../lib/store";
+import { playChime } from "../../lib/sound";
 import { fmtDate, fmtMoney } from "../../lib/data";
 import { Reveal } from "../ui";
 
@@ -54,9 +55,11 @@ export default function Overview() {
     const t = db.tasks.find((x) => x.id === id);
     const tasks = db.tasks.map((x) => (x.id === id ? { ...x, done: !x.done } : x));
     patch({ tasks });
+    playChime(t && !t.done ? "done" : "undo");
     if (t && !t.done) {
       const all = weekTasks.every((w) => (w.id === id ? true : w.done));
       if (all) {
+        playChime("sparkle");
         toast("This week, handled", "Every focus task is done. Go be engaged.");
         if (!reduced) confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 }, colors: ["#FFB5C2", "#D4AF37", "#A8C5A0", "#C9B8E8", "#FFF8F0"] });
       }

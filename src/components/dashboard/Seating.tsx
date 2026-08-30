@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Armchair, Leaf, Plus, Search, Settings2, Trash2, Wheat } from "lucide-react";
 import { Guest, SeatTable, TableShape, initials } from "../../lib/data";
 import { useApp } from "../../lib/store";
+import { playChime } from "../../lib/sound";
 import { Field, Modal, Pill, btn, inputCls, selectCls } from "../ui";
 
 const SHAPES: { id: TableShape; label: string }[] = [
@@ -42,6 +43,7 @@ export default function Seating() {
       guests: d.guests.map((g) => (g.id === guestId ? { ...g, table: tableId, seat } : g)),
     }));
     const g = db.guests.find((x) => x.id === guestId);
+    playChime("place");
     toast(`${g?.name} → ${t.name}`, seat !== undefined ? `Seat ${seat + 1}` : undefined);
   };
 
@@ -78,27 +80,27 @@ export default function Seating() {
   const seatPositions = (t: SeatTable, size: { w: number; h: number }) => {
     const pts: { x: number; y: number }[] = [];
     if (t.shape === "round") {
-      const r = size.w / 2 + 13;
+      const r = size.w / 2 + 16;
       for (let i = 0; i < t.capacity; i++) {
         const a = (i / t.capacity) * Math.PI * 2 - Math.PI / 2;
         pts.push({ x: size.w / 2 + Math.cos(a) * r - 14, y: size.h / 2 + Math.sin(a) * r - 14 });
       }
     } else if (t.shape === "rect" || t.shape === "head") {
       const top = Math.ceil(t.capacity / 2);
-      for (let i = 0; i < top; i++) pts.push({ x: ((i + 0.5) / top) * size.w - 14, y: -20 });
-      for (let i = 0; i < t.capacity - top; i++) pts.push({ x: ((i + 0.5) / (t.capacity - top)) * size.w - 14, y: size.h - 8 });
+      for (let i = 0; i < top; i++) pts.push({ x: ((i + 0.5) / top) * size.w - 14, y: -22 });
+      for (let i = 0; i < t.capacity - top; i++) pts.push({ x: ((i + 0.5) / (t.capacity - top)) * size.w - 14, y: size.h - 6 });
     } else {
-      pts.push({ x: size.w / 2 - 34, y: size.h / 2 - 14 });
-      pts.push({ x: size.w / 2 + 6, y: size.h / 2 - 14 });
+      pts.push({ x: size.w / 2 - 42, y: size.h / 2 - 14 });
+      pts.push({ x: size.w / 2 + 14, y: size.h / 2 - 14 });
     }
     return pts;
   };
 
   const tableSize = (t: SeatTable) => {
-    if (t.shape === "round") { const s = t.capacity > 8 ? 168 : 148; return { w: s, h: s }; }
-    if (t.shape === "head") return { w: Math.max(240, t.capacity * 38), h: 62 };
-    if (t.shape === "rect") return { w: Math.max(220, Math.ceil(t.capacity / 2) * 62), h: 66 };
-    return { w: 120, h: 66 };
+    if (t.shape === "round") { const s = t.capacity > 8 ? 184 : 156; return { w: s, h: s }; }
+    if (t.shape === "head") return { w: Math.max(268, t.capacity * 42), h: 68 };
+    if (t.shape === "rect") return { w: Math.max(248, Math.ceil(t.capacity / 2) * 64), h: 68 };
+    return { w: 136, h: 70 };
   };
 
   const pickerTable = seatPicker ? db.tables.find((t) => t.id === seatPicker.tableId) : null;
@@ -120,9 +122,9 @@ export default function Seating() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-mute" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a guest…" className={`${inputCls} !py-2 pl-9 text-[0.85rem]`} aria-label="Search unassigned guests" />
           </div>
-          <div className="mt-3 flex max-h-[330px] flex-wrap gap-2 overflow-y-auto pr-1 lg:flex-col lg:flex-nowrap">
+          <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1 lg:max-h-[330px] lg:flex-col lg:flex-nowrap lg:overflow-x-visible lg:overflow-y-auto lg:pb-0 lg:pr-1">
             {unassigned.length === 0 && (
-              <p className="rounded-xl border border-dashed border-ink/15 px-4 py-5 text-center text-[0.8rem] font-semibold text-ink-mute">
+              <p className="w-full shrink-0 rounded-xl border border-dashed border-ink/15 px-4 py-5 text-center text-[0.8rem] font-semibold text-ink-mute">
                 {db.guests.some((g) => g.rsvp === "confirmed" && !g.table) ? "No matches — try another name." : "Everyone confirmed has a seat. Lovely."}
               </p>
             )}
@@ -130,7 +132,7 @@ export default function Seating() {
               <div
                 key={g.id} draggable
                 onDragStart={(e) => e.dataTransfer.setData("text/plain", g.id)}
-                className="flex cursor-grab items-center gap-2.5 rounded-2xl border border-ink/10 bg-white/85 px-3 py-2 transition hover:border-gold/60 hover:shadow-card active:cursor-grabbing"
+                className="flex shrink-0 cursor-grab items-center gap-2.5 rounded-2xl border border-ink/10 bg-white/85 px-3 py-2 transition hover:border-gold/60 hover:shadow-card active:cursor-grabbing"
                 title={g.dietary ? `Dietary: ${g.dietary}` : undefined}
               >
                 <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[0.58rem] font-extrabold ${g.party === "A" ? "bg-blush-soft text-blush-deep" : "bg-sage-soft text-sage-deep"}`}>{initials(g.name)}</span>
@@ -157,10 +159,11 @@ export default function Seating() {
       </div>
 
       {/* canvas */}
+      <div className="overflow-x-auto overscroll-x-contain rounded-[1.8rem]">
       <div
         ref={canvasRef}
-        className="dotted-canvas relative h-[600px] overflow-hidden rounded-[1.8rem] border border-white/70 bg-[#FDF6EA]/70 shadow-inner"
-        aria-label="Seating floor"
+        className="dotted-canvas relative h-[560px] min-w-[1080px] rounded-[1.8rem] border border-white/70 bg-[#FDF6EA]/70 shadow-inner sm:h-[640px] xl:h-[700px]"
+        aria-label="Seating floor — scroll horizontally on smaller screens"
       >
         <div className="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-ink/90 px-4 py-1.5 text-[0.7rem] font-bold text-cream">
           {seated.length} seated · {db.tables.length} tables
@@ -229,6 +232,7 @@ export default function Seating() {
           <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-sage" /> {db.wedding.partnerB}'s side</span>
           <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-gold" /> dietary note</span>
         </div>
+      </div>
       </div>
 
       {/* seat picker modal */}

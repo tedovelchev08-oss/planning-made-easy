@@ -50,21 +50,21 @@ export default function Budget() {
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
               <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold">The whole picture</p>
-              <p className="mt-2 font-display text-[2.8rem] leading-none sm:text-[3.4rem]">{fmtMoney(shownTotal)}</p>
+              <p className="mt-2 font-display text-[2.2rem] leading-none sm:text-[3.4rem]">{fmtMoney(shownTotal)}</p>
               <p className="mt-2 text-[0.85rem] font-semibold text-cream/60">total budget · one number, zero dread</p>
             </div>
-            <div className="grid grid-cols-3 gap-6 sm:gap-10">
+            <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:gap-10">
               <div>
                 <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.16em] text-blush">Committed</p>
-                <p className="mt-1.5 font-display text-2xl">{fmtMoney(shownCommitted)}</p>
+                <p className="mt-1.5 font-display text-base sm:text-2xl">{fmtMoney(shownCommitted)}</p>
               </div>
               <div>
                 <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.16em] text-gold">Paid</p>
-                <p className="mt-1.5 font-display text-2xl">{fmtMoney(shownPaid)}</p>
+                <p className="mt-1.5 font-display text-base sm:text-2xl">{fmtMoney(shownPaid)}</p>
               </div>
               <div>
                 <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.16em] text-sage">Remaining</p>
-                <p className="mt-1.5 font-display text-2xl">{fmtMoney(shownRemaining)}</p>
+                <p className="mt-1.5 font-display text-base sm:text-2xl">{fmtMoney(shownRemaining)}</p>
               </div>
             </div>
           </div>

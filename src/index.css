@@ -44,6 +44,16 @@ body {
   color: var(--color-ink);
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+button, a, summary, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
 :focus-visible {
   outline: 2px solid var(--color-gold);
   outline-offset: 3px;

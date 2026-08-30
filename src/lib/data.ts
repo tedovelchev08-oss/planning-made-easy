@@ -349,17 +349,17 @@ export const seedVendors: Vendor[] = [
 /* ------------------------------ seating ---------------------------- */
 
 export const seedTables: SeatTable[] = [
-  { id: "sweet", name: "Sweetheart", shape: "sweetheart", capacity: 2, x: 50, y: 10 },
-  { id: "head", name: "Head Table", shape: "head", capacity: 8, x: 50, y: 30 },
-  { id: "t1", name: "Table 1", shape: "round", capacity: 8, x: 16, y: 26 },
-  { id: "t2", name: "Table 2", shape: "round", capacity: 8, x: 84, y: 24 },
-  { id: "t3", name: "Table 3", shape: "round", capacity: 8, x: 14, y: 56 },
-  { id: "t4", name: "Table 4", shape: "round", capacity: 8, x: 36, y: 60 },
-  { id: "t5", name: "Table 5", shape: "round", capacity: 8, x: 62, y: 58 },
-  { id: "t6", name: "Table 6", shape: "round", capacity: 10, x: 86, y: 54 },
-  { id: "t7", name: "Table 7", shape: "round", capacity: 8, x: 24, y: 86 },
-  { id: "t8", name: "Table 8", shape: "round", capacity: 8, x: 50, y: 88 },
-  { id: "t9", name: "Table 9", shape: "round", capacity: 8, x: 76, y: 86 },
+  { id: "sweet", name: "Sweetheart", shape: "sweetheart", capacity: 2, x: 50, y: 7 },
+  { id: "head", name: "Head Table", shape: "head", capacity: 8, x: 50, y: 25 },
+  { id: "t1", name: "Table 1", shape: "round", capacity: 8, x: 12, y: 48 },
+  { id: "t2", name: "Table 2", shape: "round", capacity: 8, x: 31, y: 52 },
+  { id: "t3", name: "Table 3", shape: "round", capacity: 8, x: 50, y: 48 },
+  { id: "t4", name: "Table 4", shape: "round", capacity: 8, x: 69, y: 52 },
+  { id: "t5", name: "Table 5", shape: "round", capacity: 8, x: 87, y: 48 },
+  { id: "t6", name: "Table 6", shape: "round", capacity: 10, x: 21, y: 80 },
+  { id: "t7", name: "Table 7", shape: "round", capacity: 8, x: 41, y: 84 },
+  { id: "t8", name: "Table 8", shape: "round", capacity: 8, x: 60, y: 80 },
+  { id: "t9", name: "Table 9", shape: "round", capacity: 8, x: 79, y: 84 },
 ];
 
 /* ------------------------------ registry ---------------------------- */

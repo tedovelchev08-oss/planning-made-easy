@@ -158,7 +158,11 @@ export default function Shell() {
       </div>
 
       {/* mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/60 bg-cream/90 backdrop-blur-xl lg:hidden" aria-label="Quick modules">
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/60 bg-cream/90 backdrop-blur-xl lg:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        aria-label="Quick modules"
+      >
         <div className="flex items-center justify-around px-2 py-2">
           {MODULES.slice(0, 4).map((m) => (
             <NavLink

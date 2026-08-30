@@ -150,8 +150,8 @@ export default function Hero() {
           <HeroScene
             lite={!isDesktop}
             reduced={reduced}
-            offsetX={isDesktop ? 3.05 : 0}
-            offsetY={isDesktop ? 0.1 : -1.1}
+            offsetX={isDesktop ? 2.7 : 0}
+            offsetY={isDesktop ? 0.09 : -0.98}
           />
         </Suspense>
       </div>

@@ -50,8 +50,8 @@ function GlassSlab() {
   });
   return (
     <group ref={ref}>
-      <RoundedBox args={[3.5, 4.5, 0.12]} radius={0.2} smoothness={4} position={[0, 0, -0.16]}>
-        <meshStandardMaterial color="#E7C873" metalness={0.95} roughness={0.32} />
+      <RoundedBox args={[3.56, 4.56, 0.1]} radius={0.22} smoothness={4} position={[0, 0, -0.12]}>
+        <meshStandardMaterial color="#F3DFA6" emissive="#6b5518" emissiveIntensity={0.28} metalness={0.92} roughness={0.2} />
       </RoundedBox>
       <RoundedBox args={[3.36, 4.36, 0.3]} radius={0.18} smoothness={5}>
         <meshPhysicalMaterial
@@ -478,7 +478,7 @@ function Scene({ offsetX, offsetY }: { offsetX: number; offsetY: number }) {
         <F p={[-5.4, 0.1, 0.7]} amp={0.2} speed={0.9} spin={0.2} phase={1.1}>
           <HeartGem />
         </F>
-        <F p={[2.9, -2.7, 0.9]} amp={0.18} speed={0.8} spin={-0.16} phase={2}>
+        <F p={[2.9, -2.7, 0.75]} amp={0.18} speed={0.8} spin={-0.16} phase={2}>
           <HeartGem color="#E8B7C4" />
         </F>
         <F p={[0.9, 3, -0.5]} amp={0.15} speed={0.75} spin={0.14} phase={3.4}>
@@ -490,9 +490,10 @@ function Scene({ offsetX, offsetY }: { offsetX: number; offsetY: number }) {
         <Sparkles count={lite ? 18 : 36} scale={[12, 6.5, 4]} position={[0, 0, 0.5]} size={1.5} speed={0.3} opacity={0.45} color="#FFC9D2" />
       </Parallax>
 
-      {/* glass slab (anchored to overlay card) */}
+      {/* glass slab (anchored to overlay card) — kept in front of the mid
+          layer so floating objects slide behind it, never through it */}
       <Parallax factor={0.42}>
-        <group position={[offsetX, offsetY, 0]}>
+        <group position={[offsetX, offsetY, 1.25]}>
           <GlassSlab />
         </group>
       </Parallax>

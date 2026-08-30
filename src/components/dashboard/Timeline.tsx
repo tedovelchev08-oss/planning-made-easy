@@ -3,6 +3,7 @@ import { AnimatePresence, motion, Reorder } from "framer-motion";
 import { CalendarDays, ChevronDown, GripVertical, Plus, Trash2 } from "lucide-react";
 import { Assignee, PHASES, PhaseId, Task } from "../../lib/data";
 import { useApp, useStats } from "../../lib/store";
+import { playChime } from "../../lib/sound";
 import { Reveal } from "../ui";
 
 const chip = (a: Assignee, names: { A: string; B: string }) =>
@@ -25,6 +26,8 @@ export default function Timeline() {
   const defaultOpen = (p: PhaseId) => ["p1", "fw", "wd"].includes(p);
 
   const toggleTask = (id: string) => {
+    const was = db.tasks.find((x) => x.id === id);
+    playChime(was && !was.done ? "done" : "undo");
     setDb((d) => {
       const t = d.tasks.find((x) => x.id === id);
       if (t && !t.done) {
