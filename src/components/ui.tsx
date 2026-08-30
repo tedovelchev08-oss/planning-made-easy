@@ -224,9 +224,13 @@ export function CheckoutModal() {
   const { checkout, closeCheckout, patch, toast, db } = useApp();
   const [step, setStep] = useState<"review" | "processing" | "done">("review");
   const tier = TIERS.find((t) => t.id === checkout);
+  const completedFor = useRef<Plan | null>(null);
 
   useEffect(() => {
-    if (checkout) setStep("review");
+    if (checkout) {
+      setStep("review");
+      completedFor.current = null;
+    }
   }, [checkout]);
 
   useEffect(() => {
@@ -237,6 +241,9 @@ export function CheckoutModal() {
 
   useEffect(() => {
     if (step !== "done" || !tier) return;
+    // Fire exactly once per purchase — guard against re-runs from identity churn.
+    if (completedFor.current === tier.id) return;
+    completedFor.current = tier.id;
     patch({ plan: tier.id });
     toast(`Welcome to ${tier.name}`, "Your entitlement is active across the whole workspace.");
     const t = setTimeout(closeCheckout, 1600);

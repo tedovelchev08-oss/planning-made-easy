@@ -161,12 +161,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     window.setTimeout(() => dismissToast(id), 4600);
   }, [dismissToast]);
 
+  const signIn = useCallback((u: User) => setUser(u), []);
+  const signOut = useCallback(() => setUser(null), []);
+  const openCheckout = useCallback((p: Plan) => setCheckout(p), []);
+  const closeCheckout = useCallback(() => setCheckout(null), []);
+
   const value = useMemo<AppCtx>(() => ({
     db, setDb, patch, toast, toasts, dismissToast,
-    user, signIn: setUser, signOut: () => setUser(null),
+    user, signIn, signOut,
     authOpen, setAuthOpen,
-    checkout, openCheckout: setCheckout, closeCheckout: () => setCheckout(null),
-  }), [db, patch, toast, toasts, dismissToast, user, authOpen, checkout]);
+    checkout, openCheckout, closeCheckout,
+  }), [db, patch, toast, toasts, dismissToast, user, signIn, signOut, authOpen, checkout, openCheckout, closeCheckout]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
