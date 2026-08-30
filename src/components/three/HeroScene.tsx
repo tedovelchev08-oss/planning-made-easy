@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useMemo, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import React, { createContext, useContext, useLayoutEffect, useMemo, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, RoundedBox, Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -24,6 +24,21 @@ function F({
       {children}
     </group>
   );
+}
+
+/**
+ * Scales the whole installation to the viewport. On narrow/portrait screens the
+ * camera pulls back so nothing dominates or crops — objects become ambient
+ * accents instead of one oversized block filling the phone.
+ */
+function CameraRig({ z }: { z: number }) {
+  const { camera } = useThree();
+  useLayoutEffect(() => {
+    const cam = camera as THREE.PerspectiveCamera;
+    cam.position.z = z;
+    cam.updateProjectionMatrix();
+  }, [camera, z]);
+  return null;
 }
 
 /* ------------------------------ materials ------------------------------ */
@@ -406,6 +421,7 @@ function Scene({ offsetX, offsetY }: { offsetX: number; offsetY: number }) {
   const { lite } = useContext(SceneCtx);
   return (
     <>
+      <CameraRig z={lite ? 16.5 : 11} />
       <ambientLight intensity={0.85} color="#FFF6EA" />
       <directionalLight position={[5, 7, 6]} intensity={1.6} color="#FFFFFF" />
       <pointLight position={[-7, 2, 4]} intensity={20} color="#FFB5C2" distance={26} />
@@ -490,13 +506,17 @@ function Scene({ offsetX, offsetY }: { offsetX: number; offsetY: number }) {
         <Sparkles count={lite ? 18 : 36} scale={[12, 6.5, 4]} position={[0, 0, 0.5]} size={1.5} speed={0.3} opacity={0.45} color="#FFC9D2" />
       </Parallax>
 
-      {/* glass slab (anchored to overlay card) — kept in front of the mid
-          layer so floating objects slide behind it, never through it */}
-      <Parallax factor={0.42}>
-        <group position={[offsetX, offsetY, 1.25]}>
-          <GlassSlab />
-        </group>
-      </Parallax>
+      {/* glass slab (anchored to overlay card) — kept in front of the mid layer
+          so floating objects slide behind it, never through it. On phones the
+          full-size slab is dropped (it reads as one brown block); the HTML
+          planner card carries the glass material there instead. */}
+      {!lite && (
+        <Parallax factor={0.42}>
+          <group position={[offsetX, offsetY, 1.25]}>
+            <GlassSlab />
+          </group>
+        </Parallax>
+      )}
 
       {/* foreground */}
       <Parallax factor={1}>

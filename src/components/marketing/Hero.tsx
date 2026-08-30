@@ -158,7 +158,17 @@ export default function Hero() {
 
       <CursorGlow />
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-7xl flex-col px-5 pt-32 sm:px-8 lg:min-h-[104vh] lg:flex-row lg:items-center lg:gap-10 lg:pt-24">
+      {/* mobile readability wash over the ambient scene */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 z-[5] h-[78svh] lg:hidden"
+        style={{
+          background:
+            "radial-gradient(120% 85% at 50% 0%, rgba(255,248,240,0.94) 0%, rgba(255,248,240,0.62) 46%, rgba(255,248,240,0) 78%)",
+        }}
+      />
+
+      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-7xl flex-col px-5 pt-28 sm:px-8 lg:min-h-[104vh] lg:flex-row lg:items-center lg:gap-10 lg:pt-24">
         {/* copy */}
         <div className="max-w-xl lg:w-[46%]">
           <motion.p
