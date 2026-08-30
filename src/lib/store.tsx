@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   BudgetCategory, CustomTemplate, Guest, Plan, RegistryItem, RsvpEntry, SeatTable, Task, Vendor, Wedding,
   seedBudget, seedGuests, seedRegistry, seedRsvpLog, seedTables, seedTasks, seedVendors, seedWedding, slugify,
@@ -157,10 +157,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(loadUser);
   const [authOpen, setAuthOpen] = useState(false);
   const [checkout, setCheckout] = useState<Plan | null>(null);
-
-  useEffect(() => {
-    try { localStorage.setItem(KEY, JSON.stringify(db)); } catch { /* storage full */ }
-  }, [db]);
+  const quotaWarned = useRef(false);
 
   useEffect(() => {
     try {
@@ -185,6 +182,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(() => setUser(null), []);
   const openCheckout = useCallback((p: Plan) => setCheckout(p), []);
   const closeCheckout = useCallback(() => setCheckout(null), []);
+
+  // persist — large HTML invitation bundles can exceed browser storage;
+  // warn once and keep the app running instead of failing silently forever
+  useEffect(() => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(db));
+    } catch {
+      if (!quotaWarned.current) {
+        quotaWarned.current = true;
+        toast("Storage is full", "Some large HTML designs may not survive a refresh here. Remove an older design to free space.", "warn");
+      }
+    }
+  }, [db, toast]);
 
   const value = useMemo<AppCtx>(() => ({
     db, setDb, patch, toast, toasts, dismissToast,

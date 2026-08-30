@@ -369,7 +369,10 @@ export const seedTables: SeatTable[] = [
 export interface CustomTemplate {
   id: string;
   name: string;
-  dataUrl: string;
+  /** PNG/JPG artwork import */
+  dataUrl?: string | null;
+  /** full self-contained HTML invitation (inline CSS/JS) — rendered live */
+  html?: string | null;
   addedAt: number;
 }
 

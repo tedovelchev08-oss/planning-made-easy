@@ -8,7 +8,8 @@ import { Guest, MEALS, MUSIC_TRACKS, TEMPLATE_CATS, Template, fmtDate, seedTempl
 import { IMAGES } from "../../lib/images";
 import { inviteLink, useApp, usePrefersReducedMotion } from "../../lib/store";
 import { playChime, useChimeLoop } from "../../lib/sound";
-import { Field, Modal, Pill, Reveal, SafeImg, btn, inputCls } from "../ui";
+import { DesignFrame, Field, Modal, Pill, Reveal, SafeImg, btn, inputCls } from "../ui";
+import type { CustomTemplate } from "../../lib/data";
 
 /* ------------------------------ palette & font presets ------------------------------ */
 
@@ -360,6 +361,7 @@ export default function Invitations() {
 
   const cfg = db.invitation;
   const activeCustom = db.customTemplates.find((c) => c.id === cfg.templateId) ?? null;
+  const isHtmlDesign = !!activeCustom?.html;
   const template = seedTemplates.find((t) => t.id === cfg.templateId) ?? seedTemplates[0];
   const colors = resolveColors(template, cfg.colors);
   const serif = cfg.fontSerif ?? template.serif;
@@ -445,12 +447,21 @@ export default function Invitations() {
               </div>
               <div className="max-h-[560px] overflow-y-auto">
                 {activeCustom ? (
-                  <div>
-                    <img src={activeCustom.dataUrl} alt={`${activeCustom.name} — your invitation design`} className="w-full" />
-                    <div className="border-t border-ink/8 bg-white px-5 py-3.5 text-[0.76rem] font-semibold text-ink-2">
-                      A Luxe original — your artwork <em className="font-display italic text-ink">is</em> the invitation. Wording stays off-card; RSVP, meals and notes still collect on the guest page beneath it.
+                  activeCustom.html ? (
+                    <div>
+                      <DesignFrame html={activeCustom.html} title={`${activeCustom.name} — live invitation`} className="h-[540px] bg-white" />
+                      <div className="border-t border-ink/8 bg-white px-5 py-3.5 text-[0.76rem] font-semibold text-ink-2">
+                        A <em className="font-display italic text-ink">live</em> Luxe original — fully interactive above. RSVP, meals and notes still collect on the guest page beneath it.
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div>
+                      <img src={activeCustom.dataUrl ?? ""} alt={`${activeCustom.name} — your invitation design`} className="w-full" />
+                      <div className="border-t border-ink/8 bg-white px-5 py-3.5 text-[0.76rem] font-semibold text-ink-2">
+                        A Luxe original — your artwork <em className="font-display italic text-ink">is</em> the invitation. Wording stays off-card; RSVP, meals and notes still collect on the guest page beneath it.
+                      </div>
+                    </div>
+                  )
                 ) : (
                   <InviteArt key={template.id + device} template={template} colors={colors} serif={serif} cfg={cfg} animated={animated && !reduced} dateIso={db.wedding.date} />
                 )}
@@ -467,6 +478,18 @@ export default function Invitations() {
 
         {/* controls */}
         <div className="space-y-5">
+          {isHtmlDesign ? (
+            <section className="rounded-[1.6rem] border border-gold/40 bg-gold-soft/40 p-6 backdrop-blur-md">
+              <h3 className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
+                <Sparkles size={12} /> Live HTML design
+              </h3>
+              <p className="mt-3 text-[0.85rem] leading-relaxed text-ink-2">
+                This original brings its own look, wording and interactions — nothing to restyle here.
+                RSVP collection, meals, notes, music and motion below still wrap around it on the guest page.
+              </p>
+            </section>
+          ) : (
+          <>
           <section className="rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md">
             <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">Wording</h3>
             <div className="mt-4 space-y-3">
@@ -492,6 +515,8 @@ export default function Invitations() {
               <button onClick={() => setCfg({ fontSerif: false })} className={`flex-1 rounded-full py-2 transition cursor-pointer ${!serif ? "bg-white shadow-sm text-ink" : "text-ink-mute"}`}>Modern sans</button>
             </div>
           </section>
+          </>
+          )}
 
           <section className="rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md">
             <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">RSVP options</h3>
@@ -570,7 +595,16 @@ export default function Invitations() {
                       className="block w-full cursor-pointer"
                     >
                       <span className="relative block">
-                        <img src={c.dataUrl} alt={c.name} className={`aspect-[4/5] w-full object-cover transition duration-500 ${locked ? "opacity-80 saturate-[0.55]" : ""}`} />
+                        {c.html ? (
+                          <div className={`aspect-[4/5] w-full transition duration-500 ${locked ? "opacity-80 saturate-[0.55]" : ""}`}>
+                            <DesignFrame html={c.html} title={`${c.name} preview`} interactive={false} thumbWidth={144} thumbHeight={180} />
+                          </div>
+                        ) : (
+                          <img src={c.dataUrl ?? ""} alt={c.name} className={`aspect-[4/5] w-full object-cover transition duration-500 ${locked ? "opacity-80 saturate-[0.55]" : ""}`} />
+                        )}
+                        {c.html && !locked && (
+                          <span className="absolute left-1.5 top-1.5 rounded-full bg-ink/85 px-2 py-0.5 text-[0.52rem] font-extrabold uppercase tracking-[0.14em] text-gold shadow-card">Live HTML</span>
+                        )}
                         {locked && (
                           <span className="absolute inset-0 flex items-center justify-center bg-ink/25">
                             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cream/90 text-gold-deep shadow-card"><Lock size={13} /></span>
@@ -1030,29 +1064,42 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
   const inputRef = useRef<HTMLInputElement>(null);
 
   const importFiles = async (files: FileList | File[]) => {
-    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
-    if (!list.length) { toast("Images only", "PNG or JPG exports from Canva, Figma, Photoshop…", "warn"); return; }
+    const list = Array.from(files).filter((f) => f.type.startsWith("image/") || /\.html?$/i.test(f.name) || f.type.includes("html"));
+    if (!list.length) { toast("HTML or images only", "Complete .html invitations, or PNG/JPG exports from Canva, Figma, Photoshop…", "warn"); return; }
     setBusy(true);
-    let used = db.customTemplates.reduce((s, c) => s + c.dataUrl.length, 0);
+    let used = db.customTemplates.reduce((s, c) => s + (c.dataUrl?.length ?? c.html?.length ?? 0), 0);
     const added: typeof db.customTemplates = [];
+    let skipped = 0;
     for (const f of list) {
-      if (used > 4 * 1024 * 1024) { toast("Storage is getting full", "Browser storage caps imports around 4 MB — remove an old design to add more.", "warn"); break; }
+      if (used > 4 * 1024 * 1024) { toast("Storage is getting full", "Browser storage caps the collection around 4 MB — remove an old design to add more.", "warn"); break; }
+      const pretty = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").replace(/\b\w/g, (ch: string) => ch.toUpperCase()) || "My design";
+      const isHtml = /\.html?$/i.test(f.name) || f.type.includes("html");
       try {
-        const dataUrl = await compressImage(f);
-        used += dataUrl.length;
-        added.push({
-          id: `ct-${Date.now()}-${added.length}`,
-          name: f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").replace(/\b\w/g, (ch: string) => ch.toUpperCase()) || "My design",
-          dataUrl,
-          addedAt: Date.now(),
-        });
+        if (isHtml) {
+          const text = await f.text();
+          if (!/<[\s\S]*>/i.test(text)) { skipped++; continue; }
+          const title = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim();
+          used += text.length;
+          added.push({ id: `ct-${Date.now()}-${added.length}`, name: (title || pretty).slice(0, 42), dataUrl: null, html: text, addedAt: Date.now() });
+        } else {
+          const dataUrl = await compressImage(f);
+          used += dataUrl.length;
+          added.push({ id: `ct-${Date.now()}-${added.length}`, name: pretty, dataUrl, html: null, addedAt: Date.now() });
+        }
       } catch { toast(`Couldn't read ${f.name}`, undefined, "warn"); }
     }
     if (added.length) {
       patch({ customTemplates: [...added, ...db.customTemplates] });
       playChime("sparkle");
-      toast(added.length === 1 ? `“${added[0].name}” joined the Luxe collection` : `${added.length} designs joined the Luxe collection`, "Crown-gated in the gallery — couples on Luxe unlock them.");
+      const liveCount = added.filter((a) => a.html).length;
+      toast(
+        added.length === 1 ? `“${added[0].name}” joined the Luxe collection` : `${added.length} designs joined the Luxe collection`,
+        liveCount
+          ? `${liveCount} live HTML invitation${liveCount > 1 ? "s" : ""} — interactive everywhere, crown-gated until Luxe.`
+          : "Crown-gated in the gallery — couples on Luxe unlock them.",
+      );
     }
+    if (skipped) toast(`${skipped} file${skipped > 1 ? "s" : ""} skipped`, "Didn't look like a valid HTML document.", "warn");
     setBusy(false);
   };
 
@@ -1064,9 +1111,10 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
         </p>
         <h2 className="mt-2 font-display text-[1.7rem] text-ink">Bundle your designs with Premium Luxe</h2>
         <p className="mt-2 text-[0.85rem] leading-relaxed text-ink-2">
-          Add your own invitation artwork to the <strong className="text-ink">Luxe collection</strong> — the premium
-          originals couples unlock with the $199 tier. They appear in the gallery crown-gated: free to preview,
-          locked until Luxe. RSVPs, meals and notes still collect on the guest page beneath each design.
+          Add your own invitations to the <strong className="text-ink">Luxe collection</strong> — the premium originals
+          couples unlock with the $199 tier. Drop in <strong className="text-ink">complete HTML invitations</strong> (they
+          run live and interactive, exactly as you built them) or flat PNG/JPG artwork. Everything appears crown-gated:
+          free to preview, locked until Luxe. RSVPs, meals and notes still collect on the guest page beneath each design.
         </p>
 
         <button
@@ -1079,10 +1127,10 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
           <span className={`flex h-14 w-14 items-center justify-center rounded-full transition ${dragOver ? "bg-gold text-ink" : "bg-blush-soft text-blush-deep"}`}>
             <UploadCloud size={22} />
           </span>
-          <span className="text-[0.95rem] font-extrabold text-ink">{busy ? "Compressing & importing…" : dragOver ? "Let go — they're in good hands" : "Drag designs here, or tap to browse"}</span>
-          <span className="text-[0.72rem] font-semibold text-ink-mute">PNG · JPG · a few MB each · stored privately on this device</span>
+          <span className="text-[0.95rem] font-extrabold text-ink">{busy ? "Reading & bundling…" : dragOver ? "Let go — they're in good hands" : "Drag invitations here, or tap to browse"}</span>
+          <span className="text-[0.72rem] font-semibold text-ink-mute">HTML · PNG · JPG — self-contained HTML runs live (inline CSS/JS; CDN fonts & linked images fine)</span>
         </button>
-        <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" aria-label="Choose design files"
+        <input ref={inputRef} type="file" accept=".html,.htm,image/*" multiple className="hidden" aria-label="Choose invitation files"
           onChange={(e) => { if (e.target.files?.length) void importFiles(e.target.files); e.target.value = ""; }} />
 
         {db.customTemplates.length > 0 && (
@@ -1102,15 +1150,38 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
 /* ------------------------------ custom hero (live preview) ------------------------------ */
 
 function CustomHero({ custom, colors, countdown, reduced }: {
-  custom: { name: string; dataUrl: string };
+  custom: CustomTemplate;
   colors: { bg: string; ink: string; accent: string };
   countdown: { d: number; h: number; m: number; s: number };
   reduced: boolean;
 }) {
+  if (custom.html) {
+    return (
+      <div>
+        <motion.div initial={reduced ? false : { opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}>
+          <DesignFrame html={custom.html} title={`${custom.name} — live invitation`} className="h-[58vh] min-h-[420px] bg-white" />
+        </motion.div>
+        <div className="flex items-center justify-center gap-2 px-8 py-3 text-center" style={{ background: colors.bg, color: colors.ink }}>
+          <Sparkles size={12} style={{ color: colors.accent }} />
+          <p className="text-[0.72rem] font-bold tracking-wide opacity-75">A live, interactive invitation — explore it above</p>
+        </div>
+        <div className="flex justify-center px-8 py-8" style={{ background: colors.bg, color: colors.ink }}>
+          <motion.div initial={reduced ? false : { opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.8 }} className="flex gap-3 sm:gap-5" aria-label="Countdown to the wedding">
+            {[["days", countdown.d], ["hrs", countdown.h], ["min", countdown.m], ["sec", countdown.s]].map(([label, v]) => (
+              <div key={label as string} className="w-16 rounded-2xl border px-2 py-3 text-center sm:w-20" style={{ borderColor: `${colors.accent}55`, background: `${colors.accent}0F` }}>
+                <p className="font-display text-2xl tabular-nums sm:text-3xl">{String(v).padStart(2, "0")}</p>
+                <p className="text-[0.58rem] font-extrabold uppercase tracking-[0.2em] opacity-60">{label}</p>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div>
       <motion.div initial={reduced ? false : { opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}>
-        <img src={custom.dataUrl} alt={`${custom.name} — invitation design`} className="w-full" />
+        <img src={custom.dataUrl ?? ""} alt={`${custom.name} — invitation design`} className="w-full" />
       </motion.div>
       <div className="flex justify-center px-8 py-10" style={{ background: colors.bg, color: colors.ink }}>
         <motion.div

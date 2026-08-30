@@ -485,6 +485,50 @@ export function FeatureIcon({ name, className = "" }: { name: string; className?
   }
 }
 
+/* ------------------------------ live design frame ------------------------------ */
+
+/**
+ * Renders a self-contained HTML invitation inside a sandboxed iframe.
+ * In thumbnail mode it's downscaled and non-interactive (live gallery previews);
+ * otherwise it's a fully explorable, working invitation.
+ */
+export function DesignFrame({
+  html, title, className = "", interactive = true, thumbWidth = 144, thumbHeight = 180,
+}: {
+  html: string;
+  title: string;
+  className?: string;
+  interactive?: boolean;
+  thumbWidth?: number;
+  thumbHeight?: number;
+}) {
+  if (interactive) {
+    return (
+      <iframe
+        title={title}
+        srcDoc={html}
+        sandbox="allow-scripts allow-forms allow-popups"
+        loading="lazy"
+        className={`w-full border-0 ${className}`}
+      />
+    );
+  }
+  const scale = thumbWidth / 800;
+  return (
+    <div className="pointer-events-none relative overflow-hidden" style={{ width: "100%", height: thumbHeight }} aria-hidden="true">
+      <iframe
+        title={title}
+        srcDoc={html}
+        sandbox="allow-scripts"
+        loading="lazy"
+        tabIndex={-1}
+        className="absolute left-0 top-0 origin-top-left border-0"
+        style={{ width: 800, height: Math.round(thumbHeight / scale), transform: `scale(${scale})` }}
+      />
+    </div>
+  );
+}
+
 /* ------------------------------ resilient image ------------------------------ */
 
 /** <img> that degrades to a quiet branded placeholder if the asset fails to load. */

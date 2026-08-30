@@ -6,7 +6,7 @@ import { Guest, MEALS, RsvpSource, fmtDate, seedTemplates } from "../lib/data";
 import { inviteLink, useApp, usePrefersReducedMotion } from "../lib/store";
 import { playChime, useChimeLoop } from "../lib/sound";
 import { InviteArt } from "../components/dashboard/Invitations";
-import { Logo, SafeImg } from "../components/ui";
+import { DesignFrame, Logo, SafeImg } from "../components/ui";
 
 function useCountdown(target: number) {
   const [c, setC] = useState({ d: 0, h: 0, m: 0, s: 0 });
@@ -126,13 +126,24 @@ export default function GuestInvite() {
           style={{ border: `1px solid ${colors.accent}44` }}
         >
           {custom ? (
-            <div>
-              <SafeImg src={custom.dataUrl} alt={`${custom.name} — wedding invitation`} className="w-full" />
-              <div className="px-7 py-8 text-center sm:px-10">
-                <p className="font-display text-xl italic" style={{ color: colors.accent }}>{fmtDate(db.wedding.date, { month: "long", day: "numeric", year: "numeric" })}</p>
-                <p className="mt-1.5 text-[0.88rem] font-semibold opacity-80">{cfg.venueLine}</p>
+            custom.html ? (
+              <div>
+                <DesignFrame html={custom.html} title={`${custom.name} — the invitation`} className="h-[74vh] min-h-[500px] bg-white" />
+                <div className="px-7 py-5 text-center sm:px-10">
+                  <p className="text-[0.78rem] font-bold tracking-wide opacity-75">
+                    A live invitation — explore it above, then answer below when you're ready.
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                <SafeImg src={custom.dataUrl ?? ""} alt={`${custom.name} — wedding invitation`} className="w-full" />
+                <div className="px-7 py-8 text-center sm:px-10">
+                  <p className="font-display text-xl italic" style={{ color: colors.accent }}>{fmtDate(db.wedding.date, { month: "long", day: "numeric", year: "numeric" })}</p>
+                  <p className="mt-1.5 text-[0.88rem] font-semibold opacity-80">{cfg.venueLine}</p>
+                </div>
+              </div>
+            )
           ) : (
             <InviteArt template={template} colors={colors} serif={serif} cfg={cfg} animated={luxe && !reduced} dateIso={db.wedding.date} />
           )}
