@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Heart, Music, Play, Sparkles, StopCircle } from "lucide-react";
+import { ArrowRight, Check, Globe, Heart, Music, Play, Sparkles, StopCircle } from "lucide-react";
 import { Guest, MEALS, RsvpSource, fmtDate, seedTemplates } from "../lib/data";
 import { inviteLink, useApp, usePrefersReducedMotion } from "../lib/store";
 import { playChime, useChimeLoop } from "../lib/sound";
@@ -161,6 +161,33 @@ export default function GuestInvite() {
             </div>
           </div>
         </motion.div>
+
+        {/* bridge to the couple's wedding website */}
+        {db.website.published && (
+          <motion.div
+            initial={reduced ? false : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25, duration: 0.7 }}
+            className="mt-6"
+          >
+            <Link
+              to="/site"
+              className="group flex items-center gap-4 rounded-[1.4rem] border px-5 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift"
+              style={{ borderColor: `${colors.accent}55`, background: "rgb(255 255 255 / 0.62)", backdropFilter: "blur(12px)" }}
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ background: `${colors.accent}22`, color: colors.accent }}>
+                <Globe size={17} />
+              </span>
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block text-[0.85rem] font-extrabold text-ink">All the details live on our wedding website</span>
+                <span className="block truncate text-[0.72rem] font-semibold text-ink-mute">
+                  story, schedule, venue, travel & registry — {db.website.domain}
+                </span>
+              </span>
+              <ArrowRight size={15} className="shrink-0 text-ink-mute transition-transform duration-300 group-hover:translate-x-1 group-hover:text-ink" />
+            </Link>
+          </motion.div>
+        )}
 
         {/* RSVP */}
         <motion.section

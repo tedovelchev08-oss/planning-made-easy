@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Check, Copy, Globe, Heart, Lock, MapPin, Monitor, Music2, Smartphone, Sparkles, Tablet } from "lucide-react";
+import { Check, Copy, ExternalLink, Globe, Heart, Lock, MapPin, Monitor, Music2, Smartphone, Sparkles, Tablet } from "lucide-react";
 import { SITE_SECTIONS, fmtDate, fmtDateShort } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
+import type { Db } from "../../lib/store";
 import { Field, Modal, Pill, SafeImg, btn, inputCls } from "../ui";
 
 const SITE_TEMPLATES = {
@@ -25,6 +27,179 @@ const PHOTOS = [
   { label: "The venue", src: IMAGES.venue },
   { label: "The rings", src: IMAGES.hands },
 ];
+
+/* ------------------------------------------------------------------ */
+/* The published site itself — shared by the planner preview and the  */
+/* public guest-facing page at #/site.                                */
+/* ------------------------------------------------------------------ */
+
+export function SiteBody({ w, db, anim, onRsvp }: {
+  w: Db["website"];
+  db: Db;
+  anim: boolean;
+  onRsvp: () => void;
+}) {
+  const on = (id: string) => !!w.sections[id];
+  const fontFamily = w.serif ? "'Playfair Display', Georgia, serif" : "'Nunito Sans', sans-serif";
+
+  const SectionFade = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) =>
+    anim ? (
+      <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}>
+        {children}
+      </motion.div>
+    ) : (
+      <>{children}</>
+    );
+
+  return (
+    <div style={{ background: w.bg, color: w.ink, fontFamily }}>
+      {on("hero") && (
+        <div className="relative flex min-h-[300px] flex-col items-center justify-center overflow-hidden px-6 py-16 text-center">
+          <SafeImg src={w.heroPhoto} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgb(30 26 29 / 0.62), rgb(30 26 29 / 0.18))" }} />
+          <SectionFade>
+            <p className="relative text-[0.6rem] font-extrabold uppercase tracking-[0.4em]" style={{ color: w.accent === "#D4AF37" ? "#F3E7C3" : w.accent }}>We're getting married</p>
+            <h2 className="relative mt-3 text-4xl text-[#FFF8F0] sm:text-5xl" style={{ fontWeight: w.serif ? 600 : 800 }}>{db.wedding.names}</h2>
+            <p className="relative mt-3 text-[0.9rem] font-semibold text-[#FFF8F0]/85">{fmtDate(db.wedding.date, { month: "long", day: "numeric", year: "numeric" })} · {db.wedding.location}</p>
+          </SectionFade>
+        </div>
+      )}
+
+      {on("story") && (
+        <SectionFade>
+          <div className="grid items-center gap-6 px-8 py-12 sm:grid-cols-2 sm:px-12">
+            <div>
+              <p className="text-[0.6rem] font-extrabold uppercase tracking-[0.35em]" style={{ color: w.accent }}>Our story</p>
+              <h3 className="mt-2 text-2xl" style={{ fontWeight: w.serif ? 600 : 800 }}>A slow yes</h3>
+              <p className="mt-3 text-[0.85rem] leading-relaxed opacity-75">It started with a borrowed umbrella and became a shared calendar, a small apartment with tall windows, and one very certain question asked at exactly the wrong, perfect moment.</p>
+            </div>
+            <SafeImg src={IMAGES.hands} alt="Our hands, our rings" className="h-52 w-full rounded-[1.4rem] object-cover shadow-card" />
+          </div>
+        </SectionFade>
+      )}
+
+      {on("details") && (
+        <SectionFade>
+          <div className="px-8 pb-12 sm:px-12">
+            <div className="grid gap-4 rounded-[1.4rem] border p-7 sm:grid-cols-3" style={{ borderColor: `${w.accent}44`, background: `${w.accent}0D` }}>
+              {[["When", fmtDateShort(db.wedding.date)], ["Ceremony", "4:00 in the afternoon"], ["Where", `${db.wedding.venue}`]].map(([k, v]) => (
+                <div key={k}>
+                  <p className="text-[0.6rem] font-extrabold uppercase tracking-[0.3em]" style={{ color: w.accent }}>{k}</p>
+                  <p className="mt-1.5 text-[0.92rem] font-bold">{v}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </SectionFade>
+      )}
+
+      {on("schedule") && (
+        <SectionFade>
+          <div className="px-8 pb-12 sm:px-12">
+            <p className="text-center text-[0.6rem] font-extrabold uppercase tracking-[0.35em]" style={{ color: w.accent }}>The order of joy</p>
+            <div className="mx-auto mt-5 max-w-md space-y-0">
+              {[["4:00", "Ceremony"], ["5:00", "Cocktails on the terrace"], ["7:00", "Dinner under glass"], ["9:00", "First dance"], ["11:30", "Midnight snacks"]].map(([t, label], i, arr) => (
+                <div key={t} className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: w.accent }} />
+                    {i < arr.length - 1 && <span className="w-px flex-1" style={{ background: `${w.accent}55` }} />}
+                  </div>
+                  <p className="pb-5 text-[0.88rem] font-bold"><span className="mr-2 tabular-nums opacity-60">{t}</span>{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </SectionFade>
+      )}
+
+      {on("venue") && (
+        <SectionFade>
+          <div className="px-8 pb-12 sm:px-12">
+            <div className="overflow-hidden rounded-[1.4rem] shadow-card">
+              <SafeImg src={IMAGES.venue} alt={db.wedding.venue} className="h-56 w-full object-cover" />
+              <div className="flex items-center justify-between gap-3 border-t px-6 py-4" style={{ borderColor: `${w.accent}33` }}>
+                <div>
+                  <p className="text-[0.95rem] font-extrabold">{db.wedding.venue}</p>
+                  <p className="flex items-center gap-1 text-[0.74rem] font-semibold opacity-65"><MapPin size={11} /> {db.wedding.location}</p>
+                </div>
+                <Heart size={16} style={{ color: w.accent }} fill={`${w.accent}33`} />
+              </div>
+            </div>
+          </div>
+        </SectionFade>
+      )}
+
+      {on("travel") && (
+        <SectionFade>
+          <div className="grid gap-4 px-8 pb-12 sm:grid-cols-2 sm:px-12">
+            {[["Stay", "The Hudson Collective — room block “M&T”, two blocks from the venue."], ["Get there", "Subway to 34th–Hudson Yards; coaches leave both hotels at 3:15."]].map(([k, v]) => (
+              <div key={k} className="rounded-[1.2rem] border p-5" style={{ borderColor: `${w.accent}44` }}>
+                <p className="text-[0.6rem] font-extrabold uppercase tracking-[0.3em]" style={{ color: w.accent }}>{k}</p>
+                <p className="mt-2 text-[0.84rem] leading-relaxed opacity-80">{v}</p>
+              </div>
+            ))}
+          </div>
+        </SectionFade>
+      )}
+
+      {on("registry") && (
+        <SectionFade>
+          <div className="px-8 pb-12 sm:px-12">
+            <p className="text-center text-[0.6rem] font-extrabold uppercase tracking-[0.35em]" style={{ color: w.accent }}>With gratitude</p>
+            <div className="mx-auto mt-4 flex max-w-lg flex-wrap justify-center gap-2">
+              {db.registry.slice(0, 4).map((r) => (
+                <span key={r.id} className="rounded-full border px-3.5 py-1.5 text-[0.74rem] font-bold" style={{ borderColor: `${w.accent}55` }}>{r.name}</span>
+              ))}
+              <span className="rounded-full px-3.5 py-1.5 text-[0.74rem] font-extrabold text-[#FFF8F0]" style={{ background: w.ink }}>Honeymoon fund ♥</span>
+            </div>
+          </div>
+        </SectionFade>
+      )}
+
+      {on("gallery") && (
+        <SectionFade>
+          <div className="grid grid-cols-3 gap-1.5 px-8 pb-12 sm:px-12">
+            {[IMAGES.couple, IMAGES.hands, IMAGES.venue].map((src, i) => (
+              <SafeImg key={src} src={src} alt={`Gallery ${i + 1}`} className={`w-full object-cover ${i === 0 ? "col-span-2 h-40" : "h-40"}`} />
+            ))}
+          </div>
+        </SectionFade>
+      )}
+
+      {on("rsvp") && (
+        <SectionFade>
+          <div className="px-8 pb-14 text-center sm:px-12">
+            <h3 className="text-2xl" style={{ fontWeight: w.serif ? 600 : 800 }}>Will you join us?</h3>
+            <p className="mx-auto mt-2 max-w-sm text-[0.85rem] opacity-70">Your RSVP lands straight in our Luma planner — meals, plus-ones and all.</p>
+            <button onClick={onRsvp} className="mt-5 rounded-full px-7 py-3 text-[0.85rem] font-bold text-[#FFF8F0] transition hover:opacity-90 cursor-pointer" style={{ background: w.ink }}>
+              RSVP now
+            </button>
+          </div>
+        </SectionFade>
+      )}
+
+      {on("music") && (
+        <SectionFade>
+          <div className="mx-8 mb-12 flex items-center gap-3 rounded-[1.2rem] border px-5 py-4 sm:mx-12" style={{ borderColor: `${w.accent}44`, background: `${w.accent}0D` }}>
+            <Music2 size={18} style={{ color: w.accent }} />
+            <div>
+              <p className="text-[0.82rem] font-extrabold">The first dance</p>
+              <p className="text-[0.7rem] font-semibold opacity-65">“La Vie en Rose” — until the quartet takes over.</p>
+            </div>
+          </div>
+        </SectionFade>
+      )}
+
+      <p className="border-t px-6 py-5 text-center text-[0.6rem] tracking-[0.3em] opacity-45" style={{ borderColor: `${w.accent}33` }}>
+        MADE WITH LUMA
+      </p>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Planner module — the builder around SiteBody.                       */
+/* ------------------------------------------------------------------ */
 
 export default function Website() {
   const { db, patch, toast, openCheckout } = useApp();
@@ -61,15 +236,6 @@ export default function Website() {
 
   const on = (id: string) => !!w.sections[id];
   const anim = isLuxe && w.animations && !reduced;
-
-  const SectionFade = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) =>
-    anim ? (
-      <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}>
-        {children}
-      </motion.div>
-    ) : (
-      <>{children}</>
-    );
 
   if (db.plan === "essential") {
     return (
@@ -187,9 +353,14 @@ export default function Website() {
               ))}
             </div>
             {w.published && (
-              <button onClick={copyLink} className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white/70 px-4 py-2 text-[0.78rem] font-bold text-ink transition hover:border-gold/60 cursor-pointer">
-                {copied ? <Check size={13} className="text-sage-deep" /> : <Copy size={13} />} {w.domain}
-              </button>
+              <>
+                <button onClick={copyLink} className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white/70 px-4 py-2 text-[0.78rem] font-bold text-ink transition hover:border-gold/60 cursor-pointer">
+                  {copied ? <Check size={13} className="text-sage-deep" /> : <Copy size={13} />} {w.domain}
+                </button>
+                <Link to="/site" className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white/70 px-4 py-2 text-[0.78rem] font-bold text-ink transition hover:border-gold/60">
+                  <ExternalLink size={12} /> Visit live site
+                </Link>
+              </>
             )}
             <button onClick={() => setPublishing(true)} className={`${btn.ink} !py-2.5`}>{w.published ? "Republish" : "Publish"}</button>
           </div>
@@ -202,146 +373,8 @@ export default function Website() {
               <span className="ml-3 flex-1 truncate rounded-full bg-ink/5 px-2.5 py-0.5 text-[0.62rem] font-bold text-ink-mute">https://{isLuxe ? w.domain : "maya-theo.luma.love"}</span>
             </div>
 
-            <div className="max-h-[600px] overflow-y-auto" style={{ background: w.bg, color: w.ink, fontFamily }}>
-              {on("hero") && (
-                <div className="relative flex min-h-[300px] flex-col items-center justify-center overflow-hidden px-6 py-16 text-center">
-                  <SafeImg src={w.heroPhoto} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                  <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgb(30 26 29 / 0.62), rgb(30 26 29 / 0.18))" }} />
-                  <SectionFade>
-                    <p className="relative text-[0.6rem] font-extrabold uppercase tracking-[0.4em]" style={{ color: w.accent === "#D4AF37" ? "#F3E7C3" : w.accent }}>We're getting married</p>
-                    <h2 className="relative mt-3 text-4xl text-[#FFF8F0] sm:text-5xl" style={{ fontWeight: w.serif ? 600 : 800 }}>{db.wedding.names}</h2>
-                    <p className="relative mt-3 text-[0.9rem] font-semibold text-[#FFF8F0]/85">{fmtDate(db.wedding.date, { month: "long", day: "numeric", year: "numeric" })} · {db.wedding.location}</p>
-                  </SectionFade>
-                </div>
-              )}
-
-              {on("story") && (
-                <SectionFade>
-                  <div className="grid items-center gap-6 px-8 py-12 sm:grid-cols-2 sm:px-12">
-                    <div>
-                      <p className="text-[0.6rem] font-extrabold uppercase tracking-[0.35em]" style={{ color: w.accent }}>Our story</p>
-                      <h3 className="mt-2 text-2xl" style={{ fontWeight: w.serif ? 600 : 800 }}>A slow yes</h3>
-                      <p className="mt-3 text-[0.85rem] leading-relaxed opacity-75">It started with a borrowed umbrella and became a shared calendar, a small apartment with tall windows, and one very certain question asked at exactly the wrong, perfect moment.</p>
-                    </div>
-                      <SafeImg src={IMAGES.hands} alt="Our hands, our rings" className="h-52 w-full rounded-[1.4rem] object-cover shadow-card" />                  </div>
-                </SectionFade>
-              )}
-
-              {on("details") && (
-                <SectionFade>
-                  <div className="px-8 pb-12 sm:px-12">
-                    <div className="grid gap-4 rounded-[1.4rem] border p-7 sm:grid-cols-3" style={{ borderColor: `${w.accent}44`, background: `${w.accent}0D` }}>
-                      {[["When", fmtDateShort(db.wedding.date)], ["Ceremony", "4:00 in the afternoon"], ["Where", `${db.wedding.venue}`]].map(([k, v]) => (
-                        <div key={k}>
-                          <p className="text-[0.6rem] font-extrabold uppercase tracking-[0.3em]" style={{ color: w.accent }}>{k}</p>
-                          <p className="mt-1.5 text-[0.92rem] font-bold">{v}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </SectionFade>
-              )}
-
-              {on("schedule") && (
-                <SectionFade>
-                  <div className="px-8 pb-12 sm:px-12">
-                    <p className="text-center text-[0.6rem] font-extrabold uppercase tracking-[0.35em]" style={{ color: w.accent }}>The order of joy</p>
-                    <div className="mx-auto mt-5 max-w-md space-y-0">
-                      {[["4:00", "Ceremony"], ["5:00", "Cocktails on the terrace"], ["7:00", "Dinner under glass"], ["9:00", "First dance"], ["11:30", "Midnight snacks"]].map(([t, label], i, arr) => (
-                        <div key={t} className="flex gap-4">
-                          <div className="flex flex-col items-center">
-                            <span className="h-2.5 w-2.5 rounded-full" style={{ background: w.accent }} />
-                            {i < arr.length - 1 && <span className="w-px flex-1" style={{ background: `${w.accent}55` }} />}
-                          </div>
-                          <p className="pb-5 text-[0.88rem] font-bold"><span className="mr-2 tabular-nums opacity-60">{t}</span>{label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </SectionFade>
-              )}
-
-              {on("venue") && (
-                <SectionFade>
-                  <div className="px-8 pb-12 sm:px-12">
-                    <div className="overflow-hidden rounded-[1.4rem] shadow-card">
-                      <SafeImg src={IMAGES.venue} alt={db.wedding.venue} className="h-56 w-full object-cover" />
-                      <div className="flex items-center justify-between gap-3 border-t px-6 py-4" style={{ borderColor: `${w.accent}33` }}>
-                        <div>
-                          <p className="text-[0.95rem] font-extrabold">{db.wedding.venue}</p>
-                          <p className="flex items-center gap-1 text-[0.74rem] font-semibold opacity-65"><MapPin size={11} /> {db.wedding.location}</p>
-                        </div>
-                        <Heart size={16} style={{ color: w.accent }} fill={`${w.accent}33`} />
-                      </div>
-                    </div>
-                  </div>
-                </SectionFade>
-              )}
-
-              {on("travel") && (
-                <SectionFade>
-                  <div className="grid gap-4 px-8 pb-12 sm:grid-cols-2 sm:px-12">
-                    {[["Stay", "The Hudson Collective — room block “M&T”, two blocks from the venue."], ["Get there", "Subway to 34th–Hudson Yards; coaches leave both hotels at 3:15."]].map(([k, v]) => (
-                      <div key={k} className="rounded-[1.2rem] border p-5" style={{ borderColor: `${w.accent}44` }}>
-                        <p className="text-[0.6rem] font-extrabold uppercase tracking-[0.3em]" style={{ color: w.accent }}>{k}</p>
-                        <p className="mt-2 text-[0.84rem] leading-relaxed opacity-80">{v}</p>
-                      </div>
-                    ))}
-                  </div>
-                </SectionFade>
-              )}
-
-              {on("registry") && (
-                <SectionFade>
-                  <div className="px-8 pb-12 sm:px-12">
-                    <p className="text-center text-[0.6rem] font-extrabold uppercase tracking-[0.35em]" style={{ color: w.accent }}>With gratitude</p>
-                    <div className="mx-auto mt-4 flex max-w-lg flex-wrap justify-center gap-2">
-                      {db.registry.slice(0, 4).map((r) => (
-                        <span key={r.id} className="rounded-full border px-3.5 py-1.5 text-[0.74rem] font-bold" style={{ borderColor: `${w.accent}55` }}>{r.name}</span>
-                      ))}
-                      <span className="rounded-full px-3.5 py-1.5 text-[0.74rem] font-extrabold text-[#FFF8F0]" style={{ background: w.ink }}>Honeymoon fund ♥</span>
-                    </div>
-                  </div>
-                </SectionFade>
-              )}
-
-              {on("gallery") && (
-                <SectionFade>
-                  <div className="grid grid-cols-3 gap-1.5 px-8 pb-12 sm:px-12">
-                    {[IMAGES.couple, IMAGES.hands, IMAGES.venue].map((src, i) => (
-                      <SafeImg key={src} src={src} alt={`Gallery ${i + 1}`} className={`w-full object-cover ${i === 0 ? "col-span-2 h-40" : "h-40"}`} />
-                    ))}
-                  </div>
-                </SectionFade>
-              )}
-
-              {on("rsvp") && (
-                <SectionFade>
-                  <div className="px-8 pb-14 text-center sm:px-12">
-                    <h3 className="text-2xl" style={{ fontWeight: w.serif ? 600 : 800 }}>Will you join us?</h3>
-                    <p className="mx-auto mt-2 max-w-sm text-[0.85rem] opacity-70">Your RSVP lands straight in our Luma planner — meals, plus-ones and all.</p>
-                    <button onClick={() => toast("RSVP wired", "Guest answers flow into the guest list automatically.")} className="mt-5 rounded-full px-7 py-3 text-[0.85rem] font-bold text-[#FFF8F0] transition hover:opacity-90 cursor-pointer" style={{ background: w.ink }}>
-                      RSVP now
-                    </button>
-                  </div>
-                </SectionFade>
-              )}
-
-              {on("music") && (
-                <SectionFade>
-                  <div className="mx-8 mb-12 flex items-center gap-3 rounded-[1.2rem] border px-5 py-4 sm:mx-12" style={{ borderColor: `${w.accent}44`, background: `${w.accent}0D` }}>
-                    <Music2 size={18} style={{ color: w.accent }} />
-                    <div>
-                      <p className="text-[0.82rem] font-extrabold">The first dance</p>
-                      <p className="text-[0.7rem] font-semibold opacity-65">“La Vie en Rose” — until the quartet takes over.</p>
-                    </div>
-                  </div>
-                </SectionFade>
-              )}
-
-              <p className="border-t px-6 py-5 text-center text-[0.6rem] tracking-[0.3em] opacity-45" style={{ borderColor: `${w.accent}33` }}>
-                MADE WITH LUMA
-              </p>
+            <div className="max-h-[600px] overflow-y-auto" style={{ fontFamily }}>
+              <SiteBody w={w} db={db} anim={anim} onRsvp={() => toast("RSVP wired", "Guest answers flow into the guest list automatically.")} />
             </div>
           </div>
         </div>

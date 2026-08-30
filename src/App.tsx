@@ -13,6 +13,7 @@ import Seating from "./components/dashboard/Seating";
 import Registry from "./components/dashboard/Registry";
 import Invitations from "./components/dashboard/Invitations";
 import Website from "./components/dashboard/Website";
+import GuestSite from "./pages/GuestSite";
 import { AuthModal, CheckoutModal, ToastHost } from "./components/ui";
 
 function ScrollToTop() {
@@ -52,6 +53,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/invite" element={<GuestInvite />} />
+          <Route path="/site" element={<GuestSite />} />
           <Route path="/planner" element={<Shell />}>
             <Route index element={<Overview />} />
             <Route path="guests" element={<Guests />} />
