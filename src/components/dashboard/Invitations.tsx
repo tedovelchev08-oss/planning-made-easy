@@ -448,7 +448,7 @@ export default function Invitations() {
                   <div>
                     <img src={activeCustom.dataUrl} alt={`${activeCustom.name} — your invitation design`} className="w-full" />
                     <div className="border-t border-ink/8 bg-white px-5 py-3.5 text-[0.76rem] font-semibold text-ink-2">
-                      Your artwork <em className="font-display italic text-ink">is</em> the invitation — wording above stays off-card, and RSVP, meals and notes still collect on the guest page.
+                      A Luxe original — your artwork <em className="font-display italic text-ink">is</em> the invitation. Wording stays off-card; RSVP, meals and notes still collect on the guest page beneath it.
                     </div>
                   </div>
                 ) : (
@@ -537,34 +537,59 @@ export default function Invitations() {
           ))}
           <Pill tone="gold">{seedTemplates.length + db.customTemplates.length} designs</Pill>
           <button onClick={() => setImportOpen(true)} className={`${btn.outline} ml-auto !px-4 !py-2 text-[0.78rem]`}>
-            <UploadCloud size={14} /> Import my designs
+            <UploadCloud size={14} /> Add Luxe designs
           </button>
         </div>
 
         {db.customTemplates.length > 0 && (
           <div className="mt-5">
-            <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
-              <Heart size={11} fill="#D4AF37" className="text-gold" /> My designs · {db.customTemplates.length}
-            </p>
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
+                <Crown size={12} /> Luxe collection · {db.customTemplates.length}
+              </p>
+              <p className="text-[0.68rem] font-semibold text-ink-mute">Owner-curated originals · bundled with Premium Luxe{!luxeUnlocked && " · locked on your plan"}</p>
+            </div>
             <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto pb-1">
               {db.customTemplates.map((c) => {
                 const active = c.id === cfg.templateId;
+                const locked = !luxeUnlocked;
                 return (
                   <div key={c.id} className={`group relative w-36 shrink-0 overflow-hidden rounded-[1.1rem] border-2 transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${active ? "border-gold shadow-card" : "border-transparent"}`}>
-                    <button onClick={() => { setCfg({ templateId: c.id, colors: null, fontSerif: null }); playChime("place"); toast(`Design — ${c.name}`, "Now previewing your artwork."); }} aria-pressed={active} className="block w-full cursor-pointer">
-                      <img src={c.dataUrl} alt={c.name} className="aspect-[4/5] w-full object-cover" />
+                    <button
+                      onClick={() => {
+                        if (locked) {
+                          openCheckout("luxe");
+                          toast("A Luxe original", `${c.name} unlocks with Premium Luxe.`, "info");
+                          return;
+                        }
+                        setCfg({ templateId: c.id, colors: null, fontSerif: null });
+                        playChime("place");
+                        toast(`Design — ${c.name}`, "Your original, front and center.");
+                      }}
+                      aria-pressed={active}
+                      className="block w-full cursor-pointer"
+                    >
+                      <span className="relative block">
+                        <img src={c.dataUrl} alt={c.name} className={`aspect-[4/5] w-full object-cover transition duration-500 ${locked ? "opacity-80 saturate-[0.55]" : ""}`} />
+                        {locked && (
+                          <span className="absolute inset-0 flex items-center justify-center bg-ink/25">
+                            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cream/90 text-gold-deep shadow-card"><Lock size={13} /></span>
+                          </span>
+                        )}
+                      </span>
                       <span className="flex items-center justify-between bg-white/95 px-2.5 py-1.5">
                         <span className="truncate text-[0.68rem] font-extrabold text-ink">{c.name}</span>
-                        {active && <Check size={11} strokeWidth={3.5} className="shrink-0 text-gold-deep" />}
+                        {active ? <Check size={11} strokeWidth={3.5} className="shrink-0 text-gold-deep" /> : <Crown size={11} className="shrink-0 text-gold-deep" />}
                       </span>
                     </button>
                     <button
                       onClick={() => {
                         const remaining = db.customTemplates.filter((x) => x.id !== c.id);
                         patch({ customTemplates: remaining, invitation: cfg.templateId === c.id ? { ...cfg, templateId: seedTemplates[0].id } : cfg });
-                        toast(`${c.name} removed`, undefined, "info");
+                        toast(`${c.name} removed from the Luxe bundle`, undefined, "info");
                       }}
-                      aria-label={`Delete design ${c.name}`}
+                      aria-label={`Remove ${c.name} from the Luxe collection`}
+                      title="Owner only — remove from the Luxe bundle"
                       className="absolute right-1.5 top-1.5 rounded-full bg-ink/80 p-1.5 text-cream opacity-0 transition group-hover:opacity-100 focus:opacity-100 hover:bg-blush-deep cursor-pointer"
                     >
                       <Trash2 size={11} />
@@ -1026,18 +1051,22 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
     if (added.length) {
       patch({ customTemplates: [...added, ...db.customTemplates] });
       playChime("sparkle");
-      toast(added.length === 1 ? `“${added[0].name}” imported` : `${added.length} designs imported`, "Find them in “My designs” above the gallery.");
+      toast(added.length === 1 ? `“${added[0].name}” joined the Luxe collection` : `${added.length} designs joined the Luxe collection`, "Crown-gated in the gallery — couples on Luxe unlock them.");
     }
     setBusy(false);
   };
 
   return (
-    <Modal open={open} onClose={onClose} label="Import your designs">
+    <Modal open={open} onClose={onClose} label="Add designs to the Luxe bundle">
       <div className="p-7 sm:p-8">
-        <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">Your artwork, in Luma</p>
-        <h2 className="mt-2 font-display text-[1.7rem] text-ink">Import your own designs</h2>
+        <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
+          <Crown size={13} /> Site owner · Luxe curation
+        </p>
+        <h2 className="mt-2 font-display text-[1.7rem] text-ink">Bundle your designs with Premium Luxe</h2>
         <p className="mt-2 text-[0.85rem] leading-relaxed text-ink-2">
-          Made invitations in Canva, Figma or Photoshop? Drop the exports here — each becomes a selectable template. RSVPs, meals and notes still collect on the guest page beneath your art.
+          Add your own invitation artwork to the <strong className="text-ink">Luxe collection</strong> — the premium
+          originals couples unlock with the $199 tier. They appear in the gallery crown-gated: free to preview,
+          locked until Luxe. RSVPs, meals and notes still collect on the guest page beneath each design.
         </p>
 
         <button
