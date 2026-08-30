@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Download, Mail, MessageSquare, Pencil, Plus, Search, Trash2, Upload, Users, X } from "lucide-react";
 import { Guest, MEALS, Rsvp, initials } from "../../lib/data";
@@ -38,6 +38,15 @@ export default function Guests() {
   const [msgBody, setMsgBody] = useState("");
   const [bulkTable, setBulkTable] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // receive quick actions from the ⌘K palette and the mobile dock
+  useEffect(() => {
+    const onFocus = (e: Event) => setQ(((e as CustomEvent).detail as string) ?? "");
+    const onAdd = () => { setIsNew(true); setEditing(emptyForm()); };
+    window.addEventListener("luma:guest-focus", onFocus);
+    window.addEventListener("luma:guest-add", onAdd);
+    return () => { window.removeEventListener("luma:guest-focus", onFocus); window.removeEventListener("luma:guest-add", onAdd); };
+  }, []);
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase();

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Building2, Check, FileText, Mail, Pencil, Phone, Plus, X } from "lucide-react";
 import { Vendor, VendorStatus, VENDOR_CATEGORIES, fmtMoney } from "../../lib/data";
@@ -19,6 +19,23 @@ export default function Vendors() {
   const [editing, setEditing] = useState<Vendor | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [menuFor, setMenuFor] = useState<string | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
+
+  // ⌘K palette / quick actions: flash & scroll to a vendor card
+  useEffect(() => {
+    const on = (e: Event) => {
+      const company = (e as CustomEvent).detail as string;
+      const v = db.vendors.find((x: Vendor) => x.company === company);
+      if (!v) return;
+      setFlash(v.id);
+      requestAnimationFrame(() =>
+        document.getElementById(`vendor-${v.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }),
+      );
+      window.setTimeout(() => setFlash(null), 1800);
+    };
+    window.addEventListener("luma:vendor-focus", on);
+    return () => window.removeEventListener("luma:vendor-focus", on);
+  }, [db.vendors]);
 
   const rows = useMemo(
     () => db.vendors.filter((v) => (statusFilter === "all" || v.status === statusFilter) && (catFilter === "all" || v.category === catFilter)),
@@ -79,7 +96,12 @@ export default function Vendors() {
             const paidSum = v.payments.filter((p) => p.paid).reduce((s, p) => s + p.amount, 0);
             return (
               <Reveal key={v.id} delay={(i % 3) * 0.06}>
-                <article className="group relative flex h-full flex-col rounded-[1.6rem] border border-white/70 bg-white/65 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:bg-white/90 hover:shadow-lift">
+                <article
+                  id={`vendor-${v.id}`}
+                  className={`group relative flex h-full flex-col rounded-[1.6rem] border p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:bg-white/90 hover:shadow-lift ${
+                    flash === v.id ? "border-gold bg-gold-soft/40 shadow-lift" : "border-white/70 bg-white/65"
+                  }`}
+                >
                   <div className="flex items-start justify-between gap-2">
                     <Pill tone="gold">{v.category}</Pill>
                     <div className="relative">

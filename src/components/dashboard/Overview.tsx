@@ -5,8 +5,16 @@ import confetti from "canvas-confetti";
 import { ArrowRight, Check, Flower2, Heart, MapPin, Sparkles } from "lucide-react";
 import { greeting, useApp, useCountUp, usePrefersReducedMotion, useStats } from "../../lib/store";
 import { playChime } from "../../lib/sound";
-import { fmtDate, fmtMoney } from "../../lib/data";
+import { fmtDate, fmtMoney, timeAgo } from "../../lib/data";
 import { Reveal } from "../ui";
+
+const chapterOf = (days: number): [string, string] =>
+  days > 330 ? ["I", "The dreaming chapter"]
+  : days > 240 ? ["II", "Venue & vendor season"]
+  : days > 150 ? ["III", "The details chapter"]
+  : days > 60 ? ["IV", "The calm before"]
+  : days > 14 ? ["V", "Final touches"]
+  : ["VI", "The big week"];
 
 function StatCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
@@ -47,9 +55,12 @@ export default function Overview() {
 
   const weekTasks = useMemo(() => db.tasks.filter((t) => t.week), [db.tasks]);
   const weekDone = weekTasks.filter((t) => t.done).length;
+  const weekYes = useMemo(
+    () => db.rsvpLog.filter((e) => e.answer === "yes" && Date.now() - e.at < 7 * 864e5).length,
+    [db.rsvpLog],
+  );
   const nextVendor = db.vendors.find((v) => v.status === "Proposal");
   const topBudget = [...db.budget].sort((a, b) => b.committed / Math.max(1, b.budget) - a.committed / Math.max(1, a.budget)).slice(0, 3);
-  const gifted = db.registry.filter((r) => r.purchased).length;
 
   const toggleWeek = (id: string) => {
     const t = db.tasks.find((x) => x.id === id);
@@ -72,7 +83,11 @@ export default function Overview() {
       <Reveal>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="font-display text-3xl tracking-tight text-ink sm:text-4xl">
+            <p className="flex items-center gap-3 text-[0.64rem] font-extrabold uppercase tracking-[0.28em] text-gold-deep">
+              <span className="h-px w-8 bg-gold/70" aria-hidden="true" />
+              Chapter {chapterOf(stats.days)[0]} · {chapterOf(stats.days)[1]}
+            </p>
+            <h2 className="mt-3 font-display text-3xl tracking-tight text-ink sm:text-4xl">
               {greeting()}, <em className="text-blush-deep">{db.wedding.names}.</em>
             </h2>
             <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.9rem] font-semibold text-ink-2">
@@ -121,7 +136,18 @@ export default function Overview() {
             <motion.span initial={{ width: 0 }} animate={{ width: `${(stats.confirmed / stats.total) * 100}%` }} transition={{ duration: 1.3 }} className="bg-sage" />
             <motion.span initial={{ width: 0 }} animate={{ width: `${(stats.pending / stats.total) * 100}%` }} transition={{ duration: 1.3, delay: 0.15 }} className="bg-blush" />
           </div>
-          <p className="mt-2 text-[0.72rem] font-semibold text-ink-mute">{stats.pending} pending · {stats.declined} with love, no</p>
+          <p className="mt-2 flex flex-wrap items-center gap-2 text-[0.72rem] font-semibold text-ink-mute">
+            {stats.pending} pending · {stats.declined} with love, no
+            {weekYes > 0 && (
+              <motion.span
+                initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 320, damping: 18, delay: 0.4 }}
+                className="inline-flex items-center gap-1 rounded-full bg-sage-soft px-2 py-0.5 font-extrabold text-sage-deep"
+              >
+                <Heart size={9} fill="#74996B" className="text-sage-deep" /> +{weekYes} yes this week
+              </motion.span>
+            )}
+          </p>
         </StatCard>
 
         <StatCard>
@@ -228,13 +254,31 @@ export default function Overview() {
           </Reveal>
 
           <Reveal delay={0.2}>
-            <section className="flex items-center gap-4 rounded-[1.8rem] border border-white/70 bg-gradient-to-br from-lav-soft/70 to-blush-soft/60 p-6 backdrop-blur-md">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/80 text-blush-deep shadow-sm"><Flower2 size={20} /></span>
-              <div>
-                <h3 className="font-display text-lg text-ink">Registry</h3>
-                <p className="text-[0.78rem] font-semibold text-ink-2">{gifted} of {db.registry.length} gifts promised · guests adore the honeymoon fund</p>
+            <section className="rounded-[1.8rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md" aria-label="Recent activity">
+              <div className="flex items-center justify-between">
+                <h3 className="flex items-center gap-2 font-display text-lg text-ink">
+                  Pulse
+                  <span className="h-2 w-2 rounded-full bg-sage-deep anim-pulse-soft" aria-hidden="true" />
+                </h3>
+                <Link to="/planner/page?tab=rsvp" className="text-[0.74rem] font-bold text-gold-deep transition hover:underline">RSVPs →</Link>
               </div>
-              <Check size={16} className="ml-auto text-sage-deep" />
+              <ul className="mt-4 space-y-3">
+                {db.rsvpLog.slice(0, 4).map((e) => (
+                  <li key={e.id} className="flex items-center gap-3">
+                    <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${e.answer === "yes" ? "bg-sage-soft text-sage-deep" : "bg-blush-soft text-blush-deep"}`}>
+                      {e.answer === "yes" ? <Heart size={12} fill="currentColor" /> : <Flower2 size={12} />}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-[0.82rem]">
+                      <span className="font-extrabold text-ink">{e.name}</span>{" "}
+                      <span className="font-semibold text-ink-mute">{e.answer === "yes" ? "is coming" : "can't make it"}</span>
+                    </span>
+                    <span className="shrink-0 text-[0.66rem] font-bold text-ink-mute">{timeAgo(e.at)}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 border-t border-ink/8 pt-3 text-[0.72rem] font-semibold text-ink-mute">
+                {stats.pending} still deciding · a gentle nudge works wonders
+              </p>
             </section>
           </Reveal>
         </div>

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Globe, Inbox, Mail } from "lucide-react";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
@@ -21,7 +22,22 @@ type TabId = (typeof TABS)[number]["id"];
 export default function PageHub() {
   const { db } = useApp();
   const reduced = usePrefersReducedMotion();
-  const [tab, setTab] = useState<TabId>("invitation");
+  const [params, setParams] = useSearchParams();
+  const paramTab = params.get("tab");
+  const [tab, setTab] = useState<TabId>(() =>
+    paramTab === "rsvp" || paramTab === "rsvps" ? "rsvps" : paramTab === "website" ? "website" : "invitation");
+
+  // keep the tab and the ?tab= param in sync (deep links, back/forward)
+  useEffect(() => {
+    if (paramTab === "rsvp" || paramTab === "rsvps") setTab("rsvps");
+    else if (paramTab === "website") setTab("website");
+    else if (paramTab === "invitation") setTab("invitation");
+  }, [paramTab]);
+
+  const changeTab = (t: TabId) => {
+    setTab(t);
+    setParams(t === "invitation" ? {} : { tab: t }, { replace: true });
+  };
 
   const unsynced = db.rsvpLog.filter((e) => !e.synced).length;
 
@@ -48,7 +64,7 @@ export default function PageHub() {
             return (
               <button
                 key={t.id} role="tab" aria-selected={active}
-                onClick={() => setTab(t.id)}
+                onClick={() => changeTab(t.id)}
                 className={`relative inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[0.8rem] font-extrabold transition-colors duration-300 cursor-pointer ${active ? "text-cream" : "text-ink-mute hover:text-ink"}`}
               >
                 {active && !reduced && (

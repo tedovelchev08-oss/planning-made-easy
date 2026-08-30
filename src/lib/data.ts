@@ -6,6 +6,9 @@ import { IMAGES } from "./images";
 
 export type Rsvp = "confirmed" | "pending" | "declined";
 export type Plan = "essential" | "celebration" | "luxe";
+
+export const planLabel = (p: Plan) =>
+  p === "essential" ? "Essential Planner" : p === "celebration" ? "Celebration Suite" : "Premium Luxe";
 /** A = partner one · T = partner two · B = both */
 export type Assignee = "A" | "T" | "B";
 
