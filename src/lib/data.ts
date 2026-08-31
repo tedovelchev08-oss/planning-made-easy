@@ -20,6 +20,8 @@ export interface Wedding {
   venue: string;
   location: string;
   timezone: string;
+  /** public address of the wedding page · unique per deployment */
+  slug: string;
 }
 
 export interface Guest {
@@ -34,6 +36,8 @@ export interface Guest {
   seat: number | null;
   dietary: string | null;
   notes: string;
+  /** per-guest RSVP link token · present once the guest lives in the cloud */
+  token?: string;
 }
 
 export interface BudgetCategory {
@@ -152,6 +156,7 @@ export const seedWedding: Wedding = {
   venue: "The Glasshouse",
   location: "Hudson Yards, New York",
   timezone: "America/New_York",
+  slug: "maya-theo",
 };
 
 /* ------------------------------ guests ---------------------------- */

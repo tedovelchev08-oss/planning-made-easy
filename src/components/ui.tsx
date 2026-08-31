@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
-import { Check, Heart, Loader2, Lock, Sparkles, X } from "lucide-react";
+import { Check, Heart, Loader2, Lock, Mail, Sparkles, X } from "lucide-react";
 import { TIERS, Plan, fmtMoney } from "../lib/data";
 import { useApp, usePrefersReducedMotion, useStats } from "../lib/store";
+import { authApi } from "../lib/api";
 
 /* ------------------------------ logo ------------------------------ */
 
@@ -232,7 +233,7 @@ export function ToastHost() {
 /* ------------------------------ checkout (simulated Stripe) ------------------------------ */
 
 export function CheckoutModal() {
-  const { checkout, closeCheckout, patch, toast, db } = useApp();
+  const { checkout, closeCheckout, patch, toast, db, mode } = useApp();
   const [step, setStep] = useState<"review" | "processing" | "done">("review");
   const tier = TIERS.find((t) => t.id === checkout);
   const completedFor = useRef<Plan | null>(null);
@@ -299,14 +300,31 @@ export function CheckoutModal() {
             )}
           </div>
 
-          {step === "review" && (
+          {step === "review" && (mode === "cloud" ? (
+            <div className="mt-6 rounded-2xl border border-ink/10 bg-white/70 p-5">
+              <p className="flex items-center gap-2 text-[0.88rem] font-extrabold text-ink">
+                <Lock size={14} className="text-gold-deep" /> Checkout lands with Stripe — Phase 2
+              </p>
+              <p className="mt-2 text-[0.8rem] leading-relaxed text-ink-2">
+                Entitlements are granted <strong className="text-ink">server-side by the payment webhook</strong> and
+                cannot be switched on from the UI — that's the whole point of the entitlements table. Until the
+                webhook exists, explore every tier freely in the demo.
+              </p>
+              <button
+                onClick={() => { closeCheckout(); window.location.hash = "/demo?demo=1"; window.location.reload(); }}
+                className={`${btn.outline} mt-4 w-full`}
+              >
+                Open the demo playground
+              </button>
+            </div>
+          ) : (
             <div className="mt-6 space-y-3">
               <button className={`${btn.ink} w-full`} onClick={startPayment}>
                 <Lock size={14} /> Pay {fmtMoney(tier.price)} securely
               </button>
-              <p className="text-center text-[0.7rem] text-ink-mute">Demo checkout — no real charge. Webhook → entitlement → workspace unlock.</p>
+              <p className="text-center text-[0.7rem] text-ink-mute">Demo checkout — simulated locally. Real payments arrive with the Stripe webhook.</p>
             </div>
-          )}
+          ))}
           {step === "processing" && (
             <div className="mt-8 flex flex-col items-center gap-3 py-4 text-ink-2">
               <Loader2 size={26} className="animate-spin text-gold-deep" />
@@ -399,30 +417,66 @@ const STRENGTH = [
 ];
 
 export function AuthModal() {
-  const { authOpen, setAuthOpen, signIn, toast, db } = useApp();
+  const { authOpen, setAuthOpen, toast, db, mode: appMode } = useApp();
   const stats = useStats();
   const reduced = usePrefersReducedMotion();
   const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
-  const [email, setEmail] = useState("maya@luma.love");
+  const [flow, setFlow] = useState<"form" | "check-inbox">("form");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (authOpen) { setFlow("form"); setError(null); setBusy(false); }
+  }, [authOpen]);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.includes("@")) { toast("Hmm, that email doesn't look right", undefined, "warn"); return; }
+    setError(null);
+    if (!email.includes("@")) { setError("That email needs a second look."); return; }
+    if (mode !== "reset" && password.length < 6) { setError("Passwords need at least 6 characters."); return; }
     setBusy(true);
-    setTimeout(() => {
-      setBusy(false);
+    try {
       if (mode === "reset") {
-        toast("Reset link sent", `Check ${email} for instructions.`);
+        const { error: err } = await authApi.reset(email);
+        if (err) throw new Error(err.message);
+        toast("Reset link sent", `Check ${email} — it lands in a minute or two.`);
         setAuthOpen(false);
         return;
       }
-      const name = email.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
-      signIn({ name, email });
-      toast(mode === "signup" ? "Welcome to Luma" : "Welcome back", "Your session is saved on this device.");
-      setAuthOpen(false);
-    }, 900);
+      if (mode === "signup") {
+        const { data, error: err } = await authApi.signUp(email, password);
+        if (err) throw new Error(err.message);
+        if (!data.session) { setFlow("check-inbox"); return; } // email confirmation pending
+        toast("Welcome to Luma", "Account created — let's set up your wedding.");
+        setAuthOpen(false);
+      } else {
+        const { error: err } = await authApi.signIn(email, password);
+        if (err) throw new Error(err.message);
+        toast("Welcome back", "Your plan is right where you left it.");
+        setAuthOpen(false);
+      }
+    } catch (err) {
+      setError((err as Error).message || "Something went sideways — try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const sendMagicLink = async () => {
+    setError(null);
+    if (!email.includes("@")) { setError("Enter your email above first, then we'll send the link."); return; }
+    setBusy(true);
+    try {
+      const { error: err } = await authApi.magicLink(email);
+      if (err) throw new Error(err.message);
+      setFlow("check-inbox");
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const strength = strengthOf(password);
@@ -500,6 +554,26 @@ export function AuthModal() {
             ))}
           </motion.div>
 
+          {flow === "check-inbox" ? (
+            <motion.div
+              initial={reduced ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-8 rounded-2xl border border-sage/50 bg-sage-soft/60 p-7 text-center"
+              role="status"
+            >
+              <span className="mx-auto flex h-13 w-13 h-[52px] w-[52px] items-center justify-center rounded-full bg-white text-sage-deep shadow-sm">
+                <Mail size={22} />
+              </span>
+              <h3 className="mt-4 font-display text-2xl text-ink">Check your inbox</h3>
+              <p className="mx-auto mt-2 max-w-xs text-[0.88rem] leading-relaxed text-ink-2">
+                We sent a sign-in link to <strong className="text-ink">{email}</strong>. Click it and you're in —
+                no password to remember, nothing to lose.
+              </p>
+              <button onClick={() => setFlow("form")} className="mt-5 text-[0.8rem] font-bold text-ink-mute underline-offset-2 transition hover:text-ink hover:underline cursor-pointer">
+                Use a password instead
+              </button>
+            </motion.div>
+          ) : (
           <form onSubmit={submit} className="mt-6 space-y-4">
             <motion.div {...stagger(3)}>
               <Field label="Email">
@@ -528,37 +602,147 @@ export function AuthModal() {
                 Forgot password?
               </motion.button>
             )}
+            {error && (
+              <p className="rounded-xl border border-blush-deep/40 bg-blush-soft/70 px-4 py-3 text-[0.82rem] font-bold text-blush-deep" role="alert">
+                {error}
+              </p>
+            )}
             <motion.div {...stagger(5)}>
               <button type="submit" disabled={busy} className={`btn3d ${mode === "signup" ? "btn3d-gold" : "btn3d-ink"} w-full rounded-2xl py-4 text-[0.95rem] font-extrabold disabled:pointer-events-none disabled:opacity-60 cursor-pointer`}>
                 {busy ? <Loader2 size={17} className="mx-auto animate-spin" /> : mode === "reset" ? "Send reset link" : mode === "signup" ? "Create our planner →" : "Step back in →"}
               </button>
             </motion.div>
+
+            {mode !== "reset" && (
+              <>
+                <div className="flex items-center gap-3 pt-1 text-[0.66rem] font-bold uppercase tracking-[0.18em] text-ink-mute">
+                  <span className="h-px flex-1 bg-ink/10" /> or <span className="h-px flex-1 bg-ink/10" />
+                </div>
+                <button
+                  type="button" onClick={sendMagicLink} disabled={busy}
+                  className="btn3d btn3d-light flex w-full items-center justify-center gap-2.5 rounded-2xl py-3.5 text-[0.9rem] font-bold disabled:pointer-events-none disabled:opacity-60 cursor-pointer"
+                >
+                  <Mail size={15} className="text-gold-deep" /> Email me a magic link
+                </button>
+              </>
+            )}
           </form>
-
-          <motion.div {...stagger(6)} className="my-5 flex items-center gap-3 text-[0.66rem] font-bold uppercase tracking-[0.18em] text-ink-mute">
-            <span className="h-px flex-1 bg-ink/10" /> or <span className="h-px flex-1 bg-ink/10" />
-          </motion.div>
-
-          <motion.button
-            {...stagger(7)}
-            onClick={() => { signIn({ name: "Maya Chen", email: "maya@gmail.com" }); toast("Signed in with Google", "maya@gmail.com"); setAuthOpen(false); }}
-            className="btn3d btn3d-light flex w-full items-center justify-center gap-2.5 rounded-2xl py-3.5 text-[0.9rem] font-bold cursor-pointer"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-              <path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.5-.3-2.3H12v4.5h6.5c-.1 1.1-.8 2.7-2.4 3.8l3.7 2.9c2.3-2.1 3.7-5.1 3.7-8.9z" />
-              <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.8-2.9c-1 .7-2.4 1.2-4.2 1.2-3.2 0-5.9-2.1-6.9-5l-3.9 3C3.2 21.3 7.3 24 12 24z" />
-              <path fill="#FBBC05" d="M5.1 14.4c-.3-.8-.4-1.6-.4-2.4s.2-1.6.4-2.4l-4-3C.4 8.2 0 10 0 12s.4 3.8 1.2 5.4l3.9-3z" />
-              <path fill="#EA4335" d="M12 4.7c2.3 0 3.8 1 4.7 1.8l3.4-3.3C18 1.2 15.2 0 12 0 7.3 0 3.2 2.7 1.2 6.6l4 3c1-2.9 3.6-4.9 6.8-4.9z" />
-            </svg>
-            Continue with Google
-          </motion.button>
+          )}
 
           <motion.p {...stagger(8)} className="mt-5 flex items-center justify-center gap-1.5 text-center text-[0.7rem] text-ink-mute">
-            <Sparkles size={12} className="text-gold" /> Sessions persist on this device · Supabase-ready architecture
+            <Sparkles size={12} className="text-gold" /> Real Supabase auth · email + password or magic link
           </motion.p>
+          {appMode === "cloud" && (
+            <motion.p {...stagger(9)} className="mt-3 text-center text-[0.74rem] font-semibold text-ink-2">
+              Just looking?{" "}
+              <button
+                onClick={() => { setAuthOpen(false); window.location.hash = "/demo?demo=1"; window.location.reload(); }}
+                className="font-extrabold text-blush-deep underline-offset-2 transition hover:underline cursor-pointer"
+              >
+                Explore the full demo →
+              </button>
+            </motion.p>
+          )}
         </div>
       </div>
     </Modal>
+  );
+}
+
+/* ------------------------------ first-run onboarding ------------------------------ */
+
+/** New real accounts start empty — this creates the wedding behind a calm three-field form. */
+export function OnboardingModal() {
+  const { needsOnboarding, completeOnboarding } = useApp();
+  const reduced = usePrefersReducedMotion();
+  const [names, setNames] = useState("");
+  const [date, setDate] = useState("");
+  const [venue, setVenue] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (names.trim().length < 3) { setError("Whose wedding is it? Give Luma two names."); return; }
+    if (!date) { setError("Pick a date — even a rough one. It anchors the whole plan."); return; }
+    if (!venue.trim()) { setError("A venue (or a city) gives the plan a home."); return; }
+    const parts = names.split(/\s+(&|and)\s+/i);
+    const partnerA = (parts[0] ?? names).trim();
+    const partnerB = (parts[2] ?? "").trim() || "My partner";
+    setBusy(true);
+    try {
+      await completeOnboarding({
+        partnerA,
+        partnerB,
+        names: `${partnerA} & ${partnerB}`,
+        date: new Date(`${date}T12:00:00`).toISOString(),
+        venue: venue.trim(),
+      });
+    } catch (err) {
+      setError((err as Error).message || "Could not create the wedding — try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return createPortal(
+    <AnimatePresence>
+      {needsOnboarding && (
+        <motion.div
+          className="fixed inset-0 z-[85] flex items-center justify-center p-5"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          role="dialog" aria-modal="true" aria-label="Set up your wedding"
+        >
+          <div className="absolute inset-0 bg-ink/55 backdrop-blur-sm" aria-hidden="true" />
+          <motion.div
+            initial={reduced ? false : { y: 40, opacity: 0, scale: 0.97 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 280, damping: 26 }}
+            className="relative w-full max-w-md overflow-hidden rounded-[1.8rem] bg-cream shadow-glass"
+          >
+            <div className="relative overflow-hidden bg-ink px-8 py-8 text-cream">
+              <div className="pointer-events-none absolute -left-14 -top-16 h-48 w-48 rounded-full bg-blush/25 blur-3xl" aria-hidden="true" />
+              <div className="pointer-events-none absolute -bottom-20 -right-8 h-52 w-52 rounded-full bg-lav/20 blur-3xl" aria-hidden="true" />
+              {[20, 55, 82].map((left, i) => (
+                <span key={left} className="inv-petal" style={{ left: `${left}%`, animationDuration: `${11 + i * 2}s`, animationDelay: `${i * 1.6}s` }} aria-hidden="true" />
+              ))}
+              <p className="relative text-[0.62rem] font-extrabold uppercase tracking-[0.3em] text-gold">Welcome to Luma</p>
+              <h2 className="relative mt-3 font-display text-[2rem] leading-tight">
+                Let's set the <em className="text-blush">date.</em>
+              </h2>
+              <p className="relative mt-2 text-[0.84rem] font-semibold text-cream/60">
+                Three fields. The rest of the plan grows around them.
+              </p>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4 p-8">
+              <Field label="Your two names">
+                <input className={inputCls} value={names} onChange={(e) => setNames(e.target.value)} placeholder="Maya & Theo" autoFocus />
+              </Field>
+              <Field label="Wedding date">
+                <input type="date" className={inputCls} value={date} onChange={(e) => setDate(e.target.value)} min={new Date().toISOString().slice(0, 10)} />
+              </Field>
+              <Field label="Venue or city">
+                <input className={inputCls} value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="The Glasshouse, New York" />
+              </Field>
+              {error && (
+                <p className="rounded-xl border border-blush-deep/40 bg-blush-soft/70 px-4 py-3 text-[0.82rem] font-bold text-blush-deep" role="alert">
+                  {error}
+                </p>
+              )}
+              <button type="submit" disabled={busy} className="btn3d btn3d-gold w-full rounded-2xl py-4 text-[0.95rem] font-extrabold disabled:pointer-events-none disabled:opacity-60 cursor-pointer">
+                {busy ? <Loader2 size={17} className="mx-auto animate-spin" /> : "Begin the plan →"}
+              </button>
+              <p className="text-center text-[0.68rem] font-semibold text-ink-mute">
+                You'll start on Essential — upgrade any time, one purchase, yours forever.
+              </p>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
   );
 }
 
