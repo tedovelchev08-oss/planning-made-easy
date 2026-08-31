@@ -12,6 +12,7 @@ import Vendors from "./components/dashboard/Vendors";
 import Seating from "./components/dashboard/Seating";
 import Registry from "./components/dashboard/Registry";
 import PageHub from "./components/dashboard/PageHub";
+import NotFound from "./pages/NotFound";
 import { AuthModal, CheckoutModal, ToastHost } from "./components/ui";
 
 function ScrollToTop() {
@@ -63,6 +64,7 @@ export default function App() {
             <Route path="page" element={<PageHub />} />
             <Route path="*" element={<Overview />} />
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
         <ToastHost />
         <AuthModal />

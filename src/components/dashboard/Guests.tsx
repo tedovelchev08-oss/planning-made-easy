@@ -24,7 +24,7 @@ function parseCsvLine(line: string): string[] {
 }
 
 const emptyForm = (): Guest => ({
-  id: "", name: "", party: "A", rsvp: "pending", meal: null, plusOne: null, table: null, dietary: null, notes: "",
+  id: "", name: "", party: "A", rsvp: "pending", meal: null, plusOne: null, table: null, seat: null, dietary: null, notes: "",
 });
 
 export default function Guests() {
@@ -113,15 +113,21 @@ export default function Guests() {
     const lines = text.split(/\r?\n/).filter((l) => l.trim());
     const start = lines[0]?.toLowerCase().includes("name") ? 1 : 0;
     const added: Guest[] = [];
+    // imported guests that name a table land in its lowest free seat
+    const seatCount = new Map<string, number>();
+    for (const g of db.guests) if (g.table && g.seat !== null) seatCount.set(g.table, Math.max(seatCount.get(g.table) ?? 0, g.seat + 1));
     for (const line of lines.slice(start)) {
       const [name, party, rsvp, meal, plusOne, table, dietary, notes] = parseCsvLine(line);
       if (!name) continue;
+      const tbl = table || null;
+      let seat: number | null = null;
+      if (tbl) { seat = seatCount.get(tbl) ?? 0; seatCount.set(tbl, seat + 1); }
       added.push({
         id: `g-${Date.now()}-${added.length}`,
         name,
         party: party === "B" ? "B" : party === "S" ? "S" : "A",
         rsvp: (["confirmed", "pending", "declined"] as Rsvp[]).includes(rsvp as Rsvp) ? (rsvp as Rsvp) : "pending",
-        meal: meal || null, plusOne: plusOne || null, table: table || null, dietary: dietary || null, notes: notes || "",
+        meal: meal || null, plusOne: plusOne || null, table: tbl, seat, dietary: dietary || null, notes: notes || "",
       });
     }
     if (!added.length) { toast("Nothing to import", "Check that the first column holds guest names.", "warn"); return; }

@@ -33,23 +33,31 @@ export default function Seating() {
   const assign = (guestId: string, tableId: string, seat?: number) => {
     const t = db.tables.find((x) => x.id === tableId);
     if (!t) return;
-    const at = guestsAt(tableId);
-    if (at.length >= t.capacity && !at.some((g) => g.id === guestId)) {
+    const guest = db.guests.find((x) => x.id === guestId);
+    if (!guest) return;
+    const taken = new Set(
+      db.guests.filter((g) => g.table === tableId && g.id !== guestId && g.seat !== null).map((g) => g.seat as number),
+    );
+    // explicit seat if it's free and in range, otherwise the lowest free seat (drag case)
+    let next = seat !== undefined && seat < t.capacity && !taken.has(seat) ? seat : undefined;
+    if (next === undefined) {
+      for (let i = 0; i < t.capacity; i++) if (!taken.has(i)) { next = i; break; }
+    }
+    if (next === undefined) {
       toast(`${t.name} is full`, "Expand its capacity or choose another table.", "warn");
       return;
     }
     setDb((d) => ({
       ...d,
-      guests: d.guests.map((g) => (g.id === guestId ? { ...g, table: tableId, seat } : g)),
+      guests: d.guests.map((g) => (g.id === guestId ? { ...g, table: tableId, seat: next ?? null } : g)),
     }));
-    const g = db.guests.find((x) => x.id === guestId);
     playChime("place");
-    toast(`${g?.name} → ${t.name}`, seat !== undefined ? `Seat ${seat + 1}` : undefined);
+    toast(`${guest.name} → ${t.name}`, `Seat ${next + 1}`);
   };
 
   const unassign = (guestId: string) => {
     const g = db.guests.find((x) => x.id === guestId);
-    setDb((d) => ({ ...d, guests: d.guests.map((x) => (x.id === guestId ? { ...x, table: null } : x)) }));
+    setDb((d) => ({ ...d, guests: d.guests.map((x) => (x.id === guestId ? { ...x, table: null, seat: null } : x)) }));
     toast(`${g?.name ?? "Guest"} unseated`, undefined, "info");
   };
 
@@ -203,7 +211,7 @@ export default function Seating() {
                 </div>
 
                 {seats.map((pos, i) => {
-                  const g = at[i];
+                  const g = at.find((x) => x.seat === i);
                   return (
                     <button
                       key={i}
@@ -243,9 +251,13 @@ export default function Seating() {
         {seatPicker && pickerTable && (
           <div className="p-7 sm:p-8">
             <h2 className="font-display text-2xl text-ink">Seat at {pickerTable.name}</h2>
-            <p className="mt-1 text-[0.82rem] font-semibold text-ink-mute">Seat {seatPicker.seat + 1} · {guestsAt(pickerTable.id)[seatPicker.seat] ? "currently held by " + guestsAt(pickerTable.id)[seatPicker.seat]!.name : "empty"}</p>
-            {guestsAt(pickerTable.id)[seatPicker.seat] && (
-              <button onClick={() => { unassign(guestsAt(pickerTable.id)[seatPicker.seat]!.id); setSeatPicker(null); }} className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-blush-soft px-4 py-2 text-[0.78rem] font-bold text-blush-deep transition hover:brightness-105 cursor-pointer">
+            {(() => {
+              const occupant = db.guests.find((g) => g.table === pickerTable.id && g.seat === seatPicker.seat) ?? null;
+              return (
+                <>
+                  <p className="mt-1 text-[0.82rem] font-semibold text-ink-mute">Seat {seatPicker.seat + 1} · {occupant ? "currently held by " + occupant.name : "empty"}</p>
+                  {occupant && (
+                    <button onClick={() => { unassign(occupant.id); setSeatPicker(null); }} className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-blush-soft px-4 py-2 text-[0.78rem] font-bold text-blush-deep transition hover:brightness-105 cursor-pointer">
                 <Trash2 size={12} /> Unseat current guest
               </button>
             )}
@@ -265,10 +277,13 @@ export default function Seating() {
                   {g.table === pickerTable.id && <Pill tone="confirmed">here</Pill>}
                 </button>
               ))}
-              {assignable.filter((g) => g.table === null).length === 0 && (
-                <p className="rounded-xl border border-dashed border-ink/15 px-4 py-6 text-center text-[0.82rem] font-semibold text-ink-mute">No unseated confirmed guests match.</p>
-              )}
-            </div>
+                  {assignable.filter((g) => g.table === null).length === 0 && (
+                    <p className="rounded-xl border border-dashed border-ink/15 px-4 py-6 text-center text-[0.82rem] font-semibold text-ink-mute">No unseated confirmed guests match.</p>
+                  )}
+                </div>
+                </>
+              );
+            })()}
           </div>
         )}
       </Modal>
@@ -298,7 +313,7 @@ export default function Seating() {
             <div className="mt-7 flex justify-between">
               <button
                 onClick={() => {
-                  setDb((d) => ({ ...d, tables: d.tables.filter((t) => t.id !== settings.id), guests: d.guests.map((g) => (g.table === settings.id ? { ...g, table: null } : g)) }));
+                  setDb((d) => ({ ...d, tables: d.tables.filter((t) => t.id !== settings.id), guests: d.guests.map((g) => (g.table === settings.id ? { ...g, table: null, seat: null } : g)) }));
                   toast(`${settings.name} removed`, "Its guests are back in the tray.", "info");
                   setSettings(null);
                 }}

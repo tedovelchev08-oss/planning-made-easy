@@ -1,12 +1,11 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarHeart, ChevronLeft, ChevronRight, Clock3, Heart, Inbox } from "lucide-react";
-import { PHASES, Task } from "../../lib/data";
+import { PHASES, Task, toDayKey } from "../../lib/data";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
 import { playChime } from "../../lib/sound";
 
-const isoOf = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const dayKeyOf = (d: Date) => toDayKey(d.toISOString());
 
 const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
@@ -25,7 +24,7 @@ export default function CalendarCard() {
   const { db, patch } = useApp();
   const reduced = usePrefersReducedMotion();
   const today = new Date();
-  const todayIso = isoOf(today);
+  const todayIso = dayKeyOf(today);
 
   const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState(todayIso);
@@ -33,7 +32,7 @@ export default function CalendarCard() {
   const deadlineIso = useMemo(() => {
     const d = new Date(db.wedding.date);
     d.setDate(d.getDate() - 30);
-    return isoOf(d);
+    return dayKeyOf(d);
   }, [db.wedding.date]);
 
   const byDay = useMemo(() => {
@@ -43,8 +42,8 @@ export default function CalendarCard() {
       if (!e) { e = { tasks: [], wedding: false, deadline: false }; m.set(k, e); }
       return e;
     };
-    db.tasks.forEach((t) => { if (t.due) get(t.due).tasks.push(t); });
-    get(db.wedding.date).wedding = true;
+    db.tasks.forEach((t) => { if (t.due) get(toDayKey(t.due)).tasks.push(t); });
+    get(toDayKey(db.wedding.date)).wedding = true;
     get(deadlineIso).deadline = true;
     return m;
   }, [db.tasks, db.wedding.date, deadlineIso]);
@@ -54,7 +53,7 @@ export default function CalendarCard() {
     const offset = (first.getDay() + 6) % 7; // Monday-first
     const daysIn = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
     const arr: (string | null)[] = Array.from({ length: offset }, () => null);
-    for (let d = 1; d <= daysIn; d++) arr.push(isoOf(new Date(month.getFullYear(), month.getMonth(), d)));
+    for (let d = 1; d <= daysIn; d++) arr.push(dayKeyOf(new Date(month.getFullYear(), month.getMonth(), d)));
     return arr;
   }, [month]);
 

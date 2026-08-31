@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   BudgetCategory, CustomTemplate, Guest, Plan, RegistryItem, RsvpEntry, SeatTable, Task, Vendor, Wedding,
-  seedBudget, seedGuests, seedRegistry, seedRsvpLog, seedTables, seedTasks, seedVendors, seedWedding, slugify,
+  seedBudget, seedGuests, seedRegistry, seedRsvpLog, seedTables, seedTasks, seedVendors, seedWedding, slugify, toDayKey,
 } from "./data";
 
 /* ------------------------------------------------------------------ */
@@ -131,14 +131,27 @@ function loadDb(): Db {
         // merge over seeds so older saved databases gain newly-added fields
         // backfill task due-dates from the seed plan so saved installs light up the calendar
         const dueById = new Map(seedTasks.filter((t) => t.due).map((t) => [t.id, t.due as string]));
+        // backfill seat indices (per table, in stored order) for guests saved before seats existed
+        const seatCount = new Map<string, number>();
+        const guests = (parsed.guests ?? seedDb.guests).map((g) => {
+          if (!g.table) return { ...g, seat: g.seat ?? null };
+          if (g.seat !== null && g.seat !== undefined) return g;
+          const n = seatCount.get(g.table) ?? 0;
+          seatCount.set(g.table, n + 1);
+          return { ...g, seat: n };
+        });
         return {
           ...seedDb, ...parsed,
+          guests,
           invitation: { ...seedDb.invitation, ...parsed.invitation },
           website: { ...seedDb.website, ...parsed.website },
           customTemplates: parsed.customTemplates ?? [],
           rsvpLog: parsed.rsvpLog ?? seedDb.rsvpLog,
           tasks: Array.isArray(parsed.tasks)
-            ? parsed.tasks.map((t) => (t.due ? t : dueById.has(t.id) ? { ...t, due: dueById.get(t.id) } : t))
+            ? parsed.tasks.map((t) => {
+                const due = t.due ? toDayKey(t.due) : dueById.get(t.id);
+                return due ? { ...t, due } : t;
+              })
             : seedDb.tasks,
         };
       }
