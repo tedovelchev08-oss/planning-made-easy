@@ -130,6 +130,9 @@ export const PHASES: { id: PhaseId; label: string; hint: string }[] = [
  * the wedding day). Full ISO timestamps must pass through here first.
  */
 export const toDayKey = (iso: string): string => {
+  // Already a day key? Return untouched — parsing "YYYY-MM-DD" as a Date would
+  // read it as UTC midnight and shift a day backwards west of UTC.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

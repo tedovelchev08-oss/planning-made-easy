@@ -266,7 +266,23 @@ export default function Seating() {
               {assignable.filter((g) => g.table === null || g.table === pickerTable.id).slice(0, 40).map((g) => (
                 <button
                   key={g.id}
-                  onClick={() => { assign(g.id, pickerTable.id); setSeatPicker(null); }}
+                  onClick={() => {
+                    // one atomic update: seat the chosen guest exactly here, and if the
+                    // seat was held, the previous holder goes back to the tray
+                    const seat = seatPicker.seat;
+                    const holder = db.guests.find((x) => x.table === pickerTable.id && x.seat === seat && x.id !== g.id);
+                    setDb((d) => ({
+                      ...d,
+                      guests: d.guests.map((x) => {
+                        if (holder && x.id === holder.id) return { ...x, table: null, seat: null };
+                        if (x.id === g.id) return { ...x, table: pickerTable.id, seat };
+                        return x;
+                      }),
+                    }));
+                    playChime("place");
+                    toast(`${g.name} → ${pickerTable.name}`, `Seat ${seat + 1}`);
+                    setSeatPicker(null);
+                  }}
                   className="flex w-full items-center gap-3 rounded-xl border border-ink/8 bg-white/80 px-3 py-2.5 text-left transition hover:border-gold/60 hover:shadow-sm cursor-pointer"
                 >
                   <span className={`flex h-7 w-7 items-center justify-center rounded-full text-[0.58rem] font-extrabold ${g.party === "A" ? "bg-blush-soft text-blush-deep" : "bg-sage-soft text-sage-deep"}`}>{initials(g.name)}</span>
@@ -323,7 +339,26 @@ export default function Seating() {
               </button>
               <div className="flex gap-3">
                 <button onClick={() => setSettings(null)} className={btn.ghost}>Cancel</button>
-                <button onClick={() => { setDb((d) => ({ ...d, tables: d.tables.map((t) => (t.id === settings.id ? settings : t)) })); toast("Table updated"); setSettings(null); }} className={btn.ink}>Save</button>
+                <button
+                  onClick={() => {
+                    // shrinking a table must not strand guests beyond its last seat
+                    const stranded = db.guests.filter((g) => g.table === settings.id && g.seat !== null && g.seat >= settings.capacity).length;
+                    setDb((d) => ({
+                      ...d,
+                      tables: d.tables.map((t) => (t.id === settings.id ? settings : t)),
+                      guests: d.guests.map((g) =>
+                        g.table === settings.id && g.seat !== null && g.seat >= settings.capacity
+                          ? { ...g, table: null, seat: null }
+                          : g,
+                      ),
+                    }));
+                    toast("Table updated", stranded > 0 ? `${stranded} guest${stranded > 1 ? "s" : ""} moved back to the tray.` : undefined);
+                    setSettings(null);
+                  }}
+                  className={btn.ink}
+                >
+                  Save
+                </button>
               </div>
             </div>
           </div>

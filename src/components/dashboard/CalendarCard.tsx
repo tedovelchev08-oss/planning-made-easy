@@ -116,7 +116,7 @@ export default function CalendarCard() {
               key={dayIso}
               role="gridcell"
               onClick={() => setSelected(dayIso)}
-              aria-label={`${selDate.getMonth() === new Date(`${dayIso}T12:00:00`).getMonth() ? "" : ""}${new Date(`${dayIso}T12:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric" })}${marked ? " — has plan items" : ""}`}
+              aria-label={`${new Date(`${dayIso}T12:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric" })}${marked ? " — has plan items" : ""}`}
               aria-pressed={isSel}
               className={`relative flex aspect-square flex-col items-center justify-center rounded-xl text-[0.8rem] font-bold transition-all duration-200 cursor-pointer ${
                 isSel

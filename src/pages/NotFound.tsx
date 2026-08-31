@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Compass, HeartHandshake } from "lucide-react";
@@ -7,6 +8,9 @@ import { usePrefersReducedMotion } from "../lib/store";
 /** Top-level 404 for any unrecognised hash route. */
 export default function NotFound() {
   const reduced = usePrefersReducedMotion();
+  useEffect(() => {
+    document.title = "Page not found — Luma";
+  }, []);
   return (
     <div className="relative flex min-h-[100svh] flex-col overflow-hidden">
       <span className="inv-petal" style={{ left: "16%", animationDuration: "12s" }} aria-hidden="true" />
