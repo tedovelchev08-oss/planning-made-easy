@@ -45,10 +45,24 @@ export interface BudgetCategory {
   id: string;
   name: string;
   budget: number;
-  committed: number;
-  paid: number;
+  /** commitments NOT tied to a tracked vendor (e.g. cash, informal quotes) */
+  manualCommitted: number;
+  manualPaid: number;
   color: string;
 }
+
+/** Booked vendors posting into a category drive its committed & paid figures. */
+export const catCommitted = (c: BudgetCategory, vendors: Vendor[]): number =>
+  c.manualCommitted +
+  vendors.filter((v) => v.budgetId === c.id && v.status === "Booked").reduce((s, v) => s + v.price, 0);
+
+export const catPaid = (c: BudgetCategory, vendors: Vendor[]): number =>
+  c.manualPaid +
+  vendors.filter((v) => v.budgetId === c.id && v.status === "Booked").reduce((s, v) => s + paidSum(v), 0);
+
+/** the booked vendors behind a category's commitment — for the reconciliation view */
+export const catVendors = (c: BudgetCategory, vendors: Vendor[]): Vendor[] =>
+  vendors.filter((v) => v.budgetId === c.id && v.status === "Booked");
 
 export type PhaseId = "p12" | "p9" | "p6" | "p3" | "p1" | "fw" | "wd";
 
@@ -275,18 +289,21 @@ export const seedGuests: Guest[] = buildGuests();
 /* ------------------------------ budget ---------------------------- */
 
 export const seedBudget: BudgetCategory[] = [
-  { id: "b1", name: "Venue", budget: 16000, committed: 16000, paid: 8000, color: "#D4AF37" },
-  { id: "b2", name: "Catering", budget: 12500, committed: 11200, paid: 3000, color: "#EE8FA1" },
-  { id: "b3", name: "Photography", budget: 6200, committed: 6200, paid: 3100, color: "#A78BD4" },
+  // committed/paid are derived from the booked vendors linked via budgetId
+  // (Venue→v1, Catering→v3, Photography→v2, Music→v5, Attire→v7).
+  // manualCommitted/manualPaid hold amounts with no tracked vendor.
+  { id: "b1", name: "Venue", budget: 16000, manualCommitted: 0, manualPaid: 0, color: "#D4AF37" },
+  { id: "b2", name: "Catering", budget: 12500, manualCommitted: 0, manualPaid: 0, color: "#EE8FA1" },
+  { id: "b3", name: "Photography", budget: 6200, manualCommitted: 0, manualPaid: 0, color: "#A78BD4" },
   // the florist is still a proposal — nothing committed until it's booked
-  { id: "b4", name: "Florals", budget: 4800, committed: 0, paid: 0, color: "#74996B" },
-  { id: "b5", name: "Music", budget: 3200, committed: 2800, paid: 800, color: "#FFB5C2" },
-  { id: "b6", name: "Attire", budget: 4100, committed: 3100, paid: 1500, color: "#C9B8E8" },
-  { id: "b7", name: "Stationery", budget: 1600, committed: 900, paid: 400, color: "#A8C5A0" },
-  { id: "b8", name: "Transportation", budget: 1400, committed: 0, paid: 0, color: "#5C4F55" },
-  { id: "b9", name: "Miscellaneous", budget: 2200, committed: 580, paid: 200, color: "#E98BA0" },
+  { id: "b4", name: "Florals", budget: 4800, manualCommitted: 0, manualPaid: 0, color: "#74996B" },
+  { id: "b5", name: "Music", budget: 3200, manualCommitted: 0, manualPaid: 0, color: "#FFB5C2" },
+  { id: "b6", name: "Attire", budget: 4100, manualCommitted: 0, manualPaid: 0, color: "#C9B8E8" },
+  { id: "b7", name: "Stationery", budget: 1600, manualCommitted: 900, manualPaid: 400, color: "#A8C5A0" },
+  { id: "b8", name: "Transportation", budget: 1400, manualCommitted: 0, manualPaid: 0, color: "#5C4F55" },
+  { id: "b9", name: "Miscellaneous", budget: 2200, manualCommitted: 580, manualPaid: 200, color: "#E98BA0" },
 ];
-// total 52,600 · committed 44,180 · remaining 8,420
+// committed & paid now reconcile against vendor payment schedules — see catCommitted / catPaid
 
 /* ------------------------------ tasks ------------------------------ */
 

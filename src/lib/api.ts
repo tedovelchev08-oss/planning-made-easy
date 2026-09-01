@@ -51,12 +51,12 @@ export const tableToRow = (t: SeatTable, weddingId: string, sort: number) => ({
   id: t.id, wedding_id: weddingId, name: t.name, shape: t.shape, capacity: t.capacity, x: t.x, y: t.y, sort,
 });
 
-export const rowToBudget = (r: { id: string; name: string; budget: number; committed: number; paid: number; color: string }): BudgetCategory => ({
-  id: r.id, name: r.name, budget: Number(r.budget), committed: Number(r.committed), paid: Number(r.paid), color: r.color,
+export const rowToBudget = (r: { id: string; name: string; budget: number; manual_committed: number; manual_paid: number; color: string }): BudgetCategory => ({
+  id: r.id, name: r.name, budget: Number(r.budget), manualCommitted: Number(r.manual_committed), manualPaid: Number(r.manual_paid), color: r.color,
 });
 
 export const budgetToRow = (b: BudgetCategory, weddingId: string, sort: number) => ({
-  id: b.id, wedding_id: weddingId, name: b.name, budget: b.budget, committed: b.committed, paid: b.paid, color: b.color, sort,
+  id: b.id, wedding_id: weddingId, name: b.name, budget: b.budget, manual_committed: b.manualCommitted, manual_paid: b.manualPaid, color: b.color, sort,
 });
 
 export const rowToTask = (r: { id: string; title: string; phase: Task["phase"]; done: boolean; assignee: Task["assignee"]; due: string | null; week: boolean }): Task => ({
@@ -405,6 +405,8 @@ export async function submitRsvp(p: {
   meal?: string | null;
   note?: string | null;
   source?: string;
+  plusOne?: string | null;
+  plusOneMeal?: string | null;
 }): Promise<void> {
   const { error } = await requireSb().rpc("submit_rsvp", {
     p_token: p.token,
@@ -414,6 +416,8 @@ export async function submitRsvp(p: {
     p_meal: p.meal ?? null,
     p_note: p.note ?? null,
     p_source: p.source ?? "link",
+    p_plus_one: p.plusOne ?? null,
+    p_plus_one_meal: p.plusOneMeal ?? null,
   });
   if (error) throw new Error(error.message);
 }

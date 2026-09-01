@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   BudgetCategory, CustomTemplate, Guest, Plan, RegistryItem, RsvpEntry, SeatTable, Task, Vendor, Wedding,
+  catCommitted, catPaid,
   seedBudget, seedGuests, seedRegistry, seedRsvpLog, seedTables, seedTasks, seedVendors, seedWedding, slugify,
 } from "./data";
 import { isSupabaseConfigured } from "./supabase";
@@ -521,8 +522,9 @@ export function useStats() {
   const { db } = useApp();
   return useMemo(() => {
     const totalBudget = db.budget.reduce((s, c) => s + c.budget, 0);
-    const committed = db.budget.reduce((s, c) => s + c.committed, 0);
-    const paid = db.budget.reduce((s, c) => s + c.paid, 0);
+    // committed & paid are derived from booked vendor schedules + manual amounts
+    const committed = db.budget.reduce((s, c) => s + catCommitted(c, db.vendors), 0);
+    const paid = db.budget.reduce((s, c) => s + catPaid(c, db.vendors), 0);
     const remaining = totalBudget - committed;
     const confirmed = db.guests.filter((g) => g.rsvp === "confirmed").length;
     const pending = db.guests.filter((g) => g.rsvp === "pending").length;

@@ -67,8 +67,8 @@ export interface BudgetRow {
   wedding_id: string;
   name: string;
   budget: number;
-  committed: number;
-  paid: number;
+  manual_committed: number;
+  manual_paid: number;
   color: string;
   sort: number;
 }

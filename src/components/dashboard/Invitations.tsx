@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Activity, Check, Copy, Crown, Heart, Instagram, Link2, Lock, Mail, MessageCircle, Monitor,
   Music, Play, Send, Share2, Smartphone, Sparkles, StopCircle, Tablet, Trash2, UploadCloud, X,
 } from "lucide-react";
-import { Guest, MEALS, MUSIC_TRACKS, TEMPLATE_CATS, Template, fmtDate, seedTemplates, timeAgo } from "../../lib/data";
+import { Guest, MEALS, MUSIC_TRACKS, RsvpEntry, TEMPLATE_CATS, Template, bestGuestMatch, fmtDate, seedTemplates, timeAgo } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
 import { inviteLink, useApp, usePrefersReducedMotion } from "../../lib/store";
 import { playChime, useChimeLoop } from "../../lib/sound";
@@ -849,34 +849,105 @@ export function RsvpTracker() {
   const confirmed = db.guests.filter((g) => g.rsvp === "confirmed").length;
   const declined = db.guests.filter((g) => g.rsvp === "declined").length;
   const waiting = db.guests.filter((g) => g.rsvp === "pending").length;
-  const unsynced = log.filter((e) => !e.synced && db.guests.some((g) => g.name.toLowerCase() === e.name.toLowerCase()));
 
-  const apply = (entryId: string) => {
+  /** fuzzy resolution: exact → fuzzy (≥ floor) → brand-new */
+  const matchFor = useCallback((e: RsvpEntry): { guest: Guest | null; score: number; exact: boolean } => {
+    const exact = db.guests.find((g) => g.name.toLowerCase() === e.name.toLowerCase());
+    if (exact) return { guest: exact, score: 1, exact: true };
+    const m = bestGuestMatch(e.name, db.guests.filter((g) => !g.plusOneOf));
+    if (m) return { guest: m.guest, score: m.score, exact: false };
+    return { guest: null, score: 0, exact: false };
+  }, [db.guests]);
+
+  const unsynced = log.filter((e) => !e.synced && matchFor(e).guest !== null);
+
+  /** the guest records an entry produces when synced: host update + optional linked plus-one */
+  const buildSync = useCallback((guests: Guest[], entry: RsvpEntry, host: Guest): Guest[] => {
+    const updatedHost: Guest = {
+      ...host,
+      rsvp: entry.answer === "yes" ? "confirmed" : "declined",
+      meal: entry.meal ?? host.meal,
+      notes: entry.note ? `${host.notes ? host.notes + " · " : ""}RSVP: ${entry.note}` : host.notes,
+    };
+    let out = guests.map((g) => (g.id === host.id ? updatedHost : g));
+    if (entry.answer === "yes" && entry.plusOne?.trim()) {
+      const poName = entry.plusOne.trim();
+      if (!out.some((g) => g.plusOneOf === host.id)) {
+        out = [...out, {
+          id: `g-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          name: poName, party: host.party, rsvp: "confirmed",
+          meal: entry.plusOneMeal ?? null, table: host.table, seat: null,
+          plusOneOf: host.id, dietary: null,
+          notes: `Plus-one of ${host.name.split(" ")[0]} — added from RSVP`,
+        }];
+      }
+    }
+    return out;
+  }, []);
+
+  const apply = (entryId: string, targetId?: string) => {
     const entry = db.rsvpLog.find((e) => e.id === entryId);
     if (!entry) return;
+    const host = targetId ? db.guests.find((g) => g.id === targetId) : matchFor(entry).guest;
+    if (!host) return;
     patch({
-      guests: db.guests.map((g) =>
-        g.name.toLowerCase() === entry.name.toLowerCase()
-          ? { ...g, rsvp: (entry.answer === "yes" ? "confirmed" : "declined") as Guest["rsvp"], meal: entry.meal ?? g.meal, notes: entry.note ? `${g.notes ? g.notes + " · " : ""}RSVP note: ${entry.note}` : g.notes }
-          : g,
-      ),
+      guests: buildSync(db.guests, entry, host),
       rsvpLog: db.rsvpLog.map((e) => (e.id === entryId ? { ...e, synced: true } : e)),
     });
     playChime("done");
-    toast(`${entry.name} synced`, "Their answer now counts in your guest list.");
+    const po = entry.answer === "yes" && entry.plusOne?.trim() ? ` + ${entry.plusOne.trim()}` : "";
+    toast(`${entry.name}${po} synced`, "Their answer now counts in your guest list.");
   };
 
-  const syncAll = () => {
-    let applied = 0;
-    const guests = db.guests.map((g) => {
-      const entry = db.rsvpLog.find((e) => !e.synced && e.name.toLowerCase() === g.name.toLowerCase());
-      if (!entry) return g;
-      applied++;
-      return { ...g, rsvp: (entry.answer === "yes" ? "confirmed" : "declined") as Guest["rsvp"], meal: entry.meal ?? g.meal };
+  /** genuinely unknown name → create a real guest (plus their plus-one) */
+  const addAsNewGuest = (entryId: string) => {
+    const entry = db.rsvpLog.find((e) => e.id === entryId);
+    if (!entry) return;
+    const host: Guest = {
+      id: `g-${Date.now()}`,
+      name: entry.name.trim(), party: "S",
+      rsvp: entry.answer === "yes" ? "confirmed" : "declined",
+      meal: entry.meal, table: null, seat: null, plusOneOf: null, dietary: null,
+      notes: entry.note ? `Added from RSVP · ${entry.note}` : "Added from RSVP",
+    };
+    let guests: Guest[] = [host, ...db.guests];
+    if (entry.answer === "yes" && entry.plusOne?.trim()) {
+      guests = [{
+        id: `g-${Date.now()}-po`,
+        name: entry.plusOne.trim(), party: "S", rsvp: "confirmed",
+        meal: entry.plusOneMeal ?? null, table: null, seat: null,
+        plusOneOf: host.id, dietary: null,
+        notes: `Plus-one of ${host.name.split(" ")[0]}`,
+      }, ...guests];
+    }
+    patch({
+      guests,
+      rsvpLog: db.rsvpLog.map((e) => (e.id === entryId ? { ...e, synced: true } : e)),
     });
-    patch({ guests, rsvpLog: db.rsvpLog.map((e) => (db.guests.some((g) => g.name.toLowerCase() === e.name.toLowerCase()) ? { ...e, synced: true } : e)) });
+    playChime("place");
+    toast(`${entry.name} joined the guest list`, entry.plusOne ? "Their plus-one was added too." : undefined);
+  };
+
+  /** auto-sync only confident (exact) matches; fuzzy + new wait for review */
+  const syncAll = () => {
+    let guests = db.guests;
+    let applied = 0;
+    const syncedIds: string[] = [];
+    for (const e of db.rsvpLog) {
+      if (e.synced) continue;
+      const m = matchFor(e);
+      if (!m.guest || !m.exact) continue;
+      guests = buildSync(guests, e, m.guest);
+      applied++;
+      syncedIds.push(e.id);
+    }
+    if (!applied) {
+      toast("Nothing auto-synced", "The rest need a glance — they're fuzzy matches or new guests.", "info");
+      return;
+    }
+    patch({ guests, rsvpLog: db.rsvpLog.map((e) => (syncedIds.includes(e.id) ? { ...e, synced: true } : e)) });
     playChime("sparkle");
-    toast("All RSVPs synced", `${applied} answers merged into the guest list.`);
+    toast("Confident RSVPs synced", `${applied} merged — fuzzy ones are below for a quick yes/no.`);
   };
 
   const remind = () => {
@@ -956,7 +1027,7 @@ export function RsvpTracker() {
           {log.map((e) => {
             const meta = SOURCE_META[e.source] ?? SOURCE_META.link;
             const Icon = meta.icon;
-            const match = db.guests.some((g) => g.name.toLowerCase() === e.name.toLowerCase());
+            const m = matchFor(e);
             return (
               <li key={e.id} className="flex flex-wrap items-center gap-3 py-3.5 sm:flex-nowrap">
                 <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[0.62rem] font-extrabold ${e.answer === "yes" ? "bg-sage-soft text-sage-deep" : "bg-blush-soft text-blush-deep"}`}>
@@ -967,6 +1038,9 @@ export function RsvpTracker() {
                     {e.name}
                     <Pill tone={e.answer === "yes" ? "confirmed" : "declined"}>{e.answer === "yes" ? "attending" : "can't make it"}</Pill>
                     {e.meal && <span className="text-[0.68rem] font-bold text-ink-mute">· {e.meal}</span>}
+                    {e.answer === "yes" && e.plusOne && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gold-soft px-2 py-0.5 text-[0.64rem] font-extrabold text-gold-deep">+1 {e.plusOne}</span>
+                    )}
                   </p>
                   {e.note && <p className="mt-0.5 truncate text-[0.78rem] italic text-ink-2">“{e.note}”</p>}
                 </div>
@@ -974,10 +1048,16 @@ export function RsvpTracker() {
                 <span className="text-[0.7rem] font-bold text-ink-mute">{timeAgo(e.at)}</span>
                 {e.synced ? (
                   <span className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold text-sage-deep"><Check size={12} strokeWidth={3} /> synced</span>
-                ) : match ? (
+                ) : m.guest && m.exact ? (
                   <button onClick={() => apply(e.id)} className="rounded-full bg-gold px-3 py-1.5 text-[0.68rem] font-extrabold text-ink transition hover:brightness-105 cursor-pointer">Sync →</button>
+                ) : m.guest ? (
+                  <span className="flex items-center gap-1.5" title={`Fuzzy match — ${Math.round(m.score * 100)}% similar to ${m.guest.name}`}>
+                    <span className="max-w-[110px] truncate text-[0.62rem] font-bold text-ink-mute">≈ {m.guest.name}</span>
+                    <button onClick={() => apply(e.id, m.guest!.id)} className="rounded-full bg-gold px-2.5 py-1.5 text-[0.62rem] font-extrabold text-ink transition hover:brightness-105 cursor-pointer">Yes</button>
+                    <button onClick={() => addAsNewGuest(e.id)} className="rounded-full border border-ink/20 px-2.5 py-1.5 text-[0.62rem] font-extrabold text-ink-2 transition hover:border-ink/50 cursor-pointer">New</button>
+                  </span>
                 ) : (
-                  <span className="text-[0.66rem] font-bold text-ink-mute/70" title="No guest with this exact name — add them to the guest list to sync.">new guest</span>
+                  <button onClick={() => addAsNewGuest(e.id)} className="rounded-full border border-dashed border-ink/30 px-3 py-1.5 text-[0.64rem] font-extrabold text-ink-2 transition hover:border-gold hover:text-gold-deep cursor-pointer">+ add guest</button>
                 )}
               </li>
             );
