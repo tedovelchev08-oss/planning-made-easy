@@ -92,7 +92,7 @@ const es: Dict = {
 
 const de: Dict = {
   "nav.dashboard": "Übersicht",
-  "nav.guests": "Gästelist",
+  "nav.guests": "Gästeliste",
   "nav.budget": "Budget",
   "nav.timeline": "Zeitplan",
   "nav.vendors": "Dienstleister",
@@ -119,7 +119,7 @@ const it: Dict = {
   "nav.budget": "Budget",
   "nav.timeline": "Cronoprogramma",
   "nav.vendors": "Fornitori",
-  "nav.seating": " seating",
+  "nav.seating": "Pianta dei tavoli",
   "nav.registry": "Lista nozze",
   "nav.page": "Pagina del matrimonio",
   "greeting.morning": "Buongiorno",

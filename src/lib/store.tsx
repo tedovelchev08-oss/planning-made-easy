@@ -90,7 +90,7 @@ interface AppCtx {
   weddingId: string | null;
   booting: boolean;
   needsOnboarding: boolean;
-  completeOnboarding: (input: { partnerA: string; partnerB: string; names: string; date: string; venue: string }) => Promise<void>;
+  completeOnboarding: (input: { partnerA: string; partnerB: string; names: string; date: string; venue: string; locale?: string; currency?: string }) => Promise<void>;
   invitePartner: (email: string) => Promise<void>;
 }
 
@@ -483,7 +483,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     configureFormat({ locale: db.wedding.locale, currency: db.wedding.currency, timeZone: db.wedding.timezone });
   }, [db.wedding.locale, db.wedding.currency, db.wedding.timezone]);
 
-  const completeOnboarding = useCallback(async (input: { partnerA: string; partnerB: string; names: string; date: string; venue: string }) => {
+  const completeOnboarding = useCallback(async (input: { partnerA: string; partnerB: string; names: string; date: string; venue: string; locale?: string; currency?: string }) => {
     setBooting(true);
     try {
       const { weddingId: wid, wedding } = await createWedding(input);

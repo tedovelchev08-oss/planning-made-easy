@@ -213,6 +213,7 @@ export async function fetchWorkspace(weddingId: string, userId: string): Promise
 /** Creates the wedding, the owner membership and default configs. */
 export async function createWedding(input: {
   partnerA: string; partnerB: string; names: string; date: string; venue: string;
+  locale?: string; currency?: string;
 }): Promise<{ weddingId: string; wedding: Wedding }> {
   const s = requireSb();
   const { data: userData } = await s.auth.getUser();
@@ -229,8 +230,8 @@ export async function createWedding(input: {
       owner_id: userId, slug: candidate, partner_a: input.partnerA, partner_b: input.partnerB,
       names: input.names, date: input.date, venue: input.venue, location: "",
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-      locale: (typeof navigator !== "undefined" && navigator.language) || "en-US",
-      currency: "USD", plan: "essential",
+      locale: input.locale || (typeof navigator !== "undefined" && navigator.language) || "en-US",
+      currency: input.currency || "USD", plan: "essential",
     }).select().single();
     if (res.error) {
       if (res.error.code === "23505") continue; // slug taken — try the next

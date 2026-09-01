@@ -5,6 +5,7 @@ import { Check, Heart, Loader2, Lock, Mail, Sparkles, X } from "lucide-react";
 import { TIERS, Plan, fmtMoney } from "../lib/data";
 import { useApp, usePrefersReducedMotion, useStats } from "../lib/store";
 import { authApi } from "../lib/api";
+import { I18nProvider, LOCALES, useT, type Locale } from "../lib/i18n";
 
 /* ------------------------------ logo ------------------------------ */
 
@@ -652,6 +653,8 @@ export function AuthModal() {
 /* ------------------------------ first-run onboarding ------------------------------ */
 
 /** New real accounts start empty — this creates the wedding behind a calm three-field form. */
+const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD", "CHF", "SEK", "NOK", "DKK", "JPY", "SGD", "NZD", "MXN", "BRL", "INR", "ZAR"] as const;
+
 export function OnboardingModal() {
   const { needsOnboarding, completeOnboarding } = useApp();
   const reduced = usePrefersReducedMotion();
@@ -660,6 +663,12 @@ export function OnboardingModal() {
   const [venue, setVenue] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // start from the browser's language when we translate it, otherwise English
+  const browserLocale = typeof navigator !== "undefined" ? navigator.language : "en-US";
+  const initialLocale = (LOCALES.some((l) => l.id === browserLocale) ? browserLocale : "en-US") as Locale;
+  const [locale, setLocale] = useState<Locale>(initialLocale);
+  const [currency, setCurrency] = useState<string>(() => LOCALES.find((l) => l.id === initialLocale)?.currency ?? "USD");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -678,6 +687,8 @@ export function OnboardingModal() {
         names: `${partnerA} & ${partnerB}`,
         date: new Date(`${date}T12:00:00`).toISOString(),
         venue: venue.trim(),
+        locale,
+        currency,
       });
     } catch (err) {
       setError((err as Error).message || "Could not create the wedding — try again.");
@@ -686,9 +697,40 @@ export function OnboardingModal() {
     }
   };
 
+  return (
+    <I18nProvider locale={locale}>
+      {needsOnboarding && (
+        <OnboardingForm
+          names={names} setNames={setNames}
+          date={date} setDate={setDate}
+          venue={venue} setVenue={setVenue}
+          locale={locale}
+          onLocale={(l) => { setLocale(l); setCurrency(LOCALES.find((x) => x.id === l)?.currency ?? currency); }}
+          currency={currency} setCurrency={setCurrency}
+          busy={busy} error={error} submit={submit} reduced={reduced}
+        />
+      )}
+    </I18nProvider>
+  );
+}
+
+function OnboardingForm({
+  names, setNames, date, setDate, venue, setVenue, locale, onLocale, currency, setCurrency, busy, error, submit, reduced,
+}: {
+  names: string; setNames: (v: string) => void;
+  date: string; setDate: (v: string) => void;
+  venue: string; setVenue: (v: string) => void;
+  locale: Locale; onLocale: (l: Locale) => void;
+  currency: string; setCurrency: (v: string) => void;
+  busy: boolean; error: string | null;
+  submit: (e: React.FormEvent) => Promise<void>;
+  reduced: boolean;
+}) {
+  const { t } = useT();
+
   return createPortal(
     <AnimatePresence>
-      {needsOnboarding && (
+      {(
         <motion.div
           className="fixed inset-0 z-[85] flex items-center justify-center p-5"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }}
