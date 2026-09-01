@@ -23,12 +23,14 @@ export const newId = () =>
 
 export const rowToWedding = (r: WeddingRow): Wedding => ({
   names: r.names, partnerA: r.partner_a, partnerB: r.partner_b, date: r.date,
-  venue: r.venue, location: r.location, timezone: r.timezone, slug: r.slug,
+  venue: r.venue, location: r.location, timezone: r.timezone,
+  locale: r.locale ?? "en-US", currency: r.currency ?? "USD", slug: r.slug,
 });
 
 export const weddingToRow = (w: Wedding) => ({
   names: w.names, partner_a: w.partnerA, partner_b: w.partnerB, date: w.date,
-  venue: w.venue, location: w.location, timezone: w.timezone, slug: w.slug,
+  venue: w.venue, location: w.location, timezone: w.timezone,
+  locale: w.locale, currency: w.currency, slug: w.slug,
 });
 
 export const rowToGuest = (r: GuestRow): Guest => ({
@@ -225,7 +227,10 @@ export async function createWedding(input: {
     const candidate = attempt === 0 ? slug : `${slug}-${attempt + 1}`;
     const res = await s.from("weddings").insert({
       owner_id: userId, slug: candidate, partner_a: input.partnerA, partner_b: input.partnerB,
-      names: input.names, date: input.date, venue: input.venue, location: "", timezone: "UTC", plan: "essential",
+      names: input.names, date: input.date, venue: input.venue, location: "",
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+      locale: (typeof navigator !== "undefined" && navigator.language) || "en-US",
+      currency: "USD", plan: "essential",
     }).select().single();
     if (res.error) {
       if (res.error.code === "23505") continue; // slug taken — try the next
@@ -365,6 +370,9 @@ export interface PublicInvitation {
   date: string;
   venue: string;
   location: string;
+  timezone: string;
+  locale: string;
+  currency: string;
   plan: Plan;
   invitation: {
     template_id: string; line1: string; line2: string; venue_line: string;

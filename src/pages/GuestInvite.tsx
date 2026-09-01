@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Heart, Loader2, Music, Play, Sparkles, StopCircle } from "lucide-react";
-import { MEALS, RsvpSource, fmtDate, seedTemplates } from "../lib/data";
+import { MEALS, RsvpSource, configureFormat, fmtDate, seedTemplates } from "../lib/data";
 import { inviteLink, useApp, usePrefersReducedMotion, type Db, type InvitationConfig } from "../lib/store";
 import { getGuestByToken, getPublicInvitation, submitRsvp, type PublicInvitation } from "../lib/api";
 import { playChime, useChimeLoop } from "../lib/sound";
@@ -105,6 +105,8 @@ export default function GuestInvite() {
         const p = await getPublicInvitation(slug);
         if (!live) return;
         if (!p) { setLoadState("missing"); return; }
+        // show dates & money the way the couple set them, not the visitor's defaults
+        configureFormat({ locale: p.locale, currency: p.currency, timeZone: p.timezone });
         setPub(p);
         setLoadState("ready");
       } catch {

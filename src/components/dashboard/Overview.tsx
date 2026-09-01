@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { ArrowRight, Check, Flower2, Heart, MapPin, Sparkles } from "lucide-react";
-import { greeting, useApp, useCountUp, usePrefersReducedMotion, useStats } from "../../lib/store";
+import { useApp, useCountUp, usePrefersReducedMotion, useStats } from "../../lib/store";
 import { playChime } from "../../lib/sound";
 import { fmtDate, fmtMoney, timeAgo } from "../../lib/data";
+import { greetingKey, useT } from "../../lib/i18n";
 import { Reveal } from "../ui";
 import CalendarCard from "./CalendarCard";
 
@@ -47,6 +48,7 @@ function ProgressRing({ pct }: { pct: number }) {
 
 export default function Overview() {
   const { db, patch, toast } = useApp();
+  const { t } = useT();
   const stats = useStats();
   const reduced = usePrefersReducedMotion();
 
@@ -88,7 +90,7 @@ export default function Overview() {
               Chapter {chapterOf(stats.days)[0]} · {chapterOf(stats.days)[1]}
             </p>
             <h2 className="mt-3 font-display text-3xl tracking-tight text-ink sm:text-4xl">
-              {greeting()}, <em className="text-blush-deep">{db.wedding.names}.</em>
+              {t(greetingKey())}, <em className="text-blush-deep">{db.wedding.names}.</em>
             </h2>
             <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.9rem] font-semibold text-ink-2">
               <span>{fmtDate(db.wedding.date)}</span>

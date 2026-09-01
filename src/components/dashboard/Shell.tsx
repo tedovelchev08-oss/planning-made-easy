@@ -7,18 +7,19 @@ import {
 } from "lucide-react";
 import { useApp, useStats, type SyncStatus } from "../../lib/store";
 import { initials, planLabel } from "../../lib/data";
+import { useT } from "../../lib/i18n";
 import { Logo, Pill } from "../ui";
 import CmdK from "./CmdK";
 
 const MODULES = [
-  { path: "", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { path: "guests", label: "Guest List", icon: Users },
-  { path: "budget", label: "Budget", icon: Wallet },
-  { path: "timeline", label: "Timeline", icon: Clock3 },
-  { path: "vendors", label: "Vendors", icon: Store },
-  { path: "seating", label: "Seating", icon: Armchair },
-  { path: "registry", label: "Registry", icon: Gift },
-  { path: "page", label: "Wedding Page", icon: Globe },
+  { path: "", key: "nav.dashboard", icon: LayoutDashboard, end: true },
+  { path: "guests", key: "nav.guests", icon: Users },
+  { path: "budget", key: "nav.budget", icon: Wallet },
+  { path: "timeline", key: "nav.timeline", icon: Clock3 },
+  { path: "vendors", key: "nav.vendors", icon: Store },
+  { path: "seating", key: "nav.seating", icon: Armchair },
+  { path: "registry", key: "nav.registry", icon: Gift },
+  { path: "page", key: "nav.page", icon: Globe },
 ];
 
 /** saving / saved / offline — the write-behind pulse, always visible */
@@ -56,6 +57,7 @@ function plannerGlows() {
 
 export default function Shell() {
   const { db, user, signOut, toast, mode, weddingId, invitePartner } = useApp();
+  const { t } = useT();
   const stats = useStats();
   const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -130,7 +132,7 @@ export default function Shell() {
           }
         >
           <m.icon size={17} className="shrink-0 transition-transform duration-300 group-hover:scale-110" />
-          {m.label}
+          {t(m.key)}
           {m.path === "page" && db.rsvpLog.some((e) => !e.synced) && (
             <span className="ml-auto h-2 w-2 rounded-full bg-blush anim-pulse-soft" title="New RSVP answers" />
           )}
@@ -394,7 +396,7 @@ export default function Shell() {
                   <span className={`rounded-2xl px-4 py-1.5 transition-all duration-300 ${isActive ? "bg-blush-soft shadow-sm" : ""}`}>
                     <m.icon size={19} />
                   </span>
-                  {m.label.split(" ")[0]}
+                  {t(m.key).split(" ")[0]}
                 </>
               )}
             </NavLink>

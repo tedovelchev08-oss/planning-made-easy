@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   BudgetCategory, CustomTemplate, Guest, Plan, RegistryItem, RsvpEntry, SeatTable, Task, Vendor, Wedding,
-  catCommitted, catPaid,
+  catCommitted, catPaid, configureFormat,
   seedBudget, seedGuests, seedRegistry, seedRsvpLog, seedTables, seedTasks, seedVendors, seedWedding, slugify,
 } from "./data";
 import { isSupabaseConfigured } from "./supabase";
@@ -167,7 +167,9 @@ const placeholderDb = (): Db =>
   emptyDb({
     names: "", partnerA: "", partnerB: "",
     date: new Date(Date.now() + 365 * 864e5).toISOString(),
-    venue: "", location: "", timezone: "UTC", slug: "",
+    venue: "", location: "", timezone: "UTC",
+    locale: typeof navigator !== "undefined" && navigator.language ? navigator.language : "en-US",
+    currency: "USD", slug: "",
   });
 
 /** Public share link for the couple's invitation page. */
@@ -474,6 +476,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const openCheckout = useCallback((p: Plan) => setCheckout(p), []);
   const closeCheckout = useCallback(() => setCheckout(null), []);
+
+  // formatting (money · dates) follows the wedding record — set once on boot
+  // and again whenever the couple edits locale/currency/timezone
+  useEffect(() => {
+    configureFormat({ locale: db.wedding.locale, currency: db.wedding.currency, timeZone: db.wedding.timezone });
+  }, [db.wedding.locale, db.wedding.currency, db.wedding.timezone]);
 
   const completeOnboarding = useCallback(async (input: { partnerA: string; partnerB: string; names: string; date: string; venue: string }) => {
     setBooting(true);

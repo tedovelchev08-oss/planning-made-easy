@@ -31,6 +31,8 @@ export interface WeddingRow {
   venue: string;
   location: string;
   timezone: string;
+  locale: string;
+  currency: string;
   plan: PlanDb;
   created_at: string;
 }

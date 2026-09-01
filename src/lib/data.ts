@@ -721,14 +721,10 @@ export const SITE_SECTIONS = [
 
 /* ------------------------------ helpers ---------------------------- */
 
-export const fmtMoney = (n: number) =>
-  n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
-
-export const fmtDate = (iso: string, opts?: Intl.DateTimeFormatOptions) =>
-  new Date(iso).toLocaleDateString("en-US", opts ?? { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-
-export const fmtDateShort = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+// Locale / currency / timezone are driven by the wedding record — the store
+// calls configureFormat() on every wedding change. These re-exports keep the
+// ~60 existing fmtMoney/fmtDate call sites working unchanged.
+export { fmtMoney, fmtDate, fmtDateShort, configureFormat } from "./format";
 
 export const daysUntil = (iso: string) =>
   Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000));

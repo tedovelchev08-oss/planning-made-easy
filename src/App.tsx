@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { HashRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppProvider, useApp } from "./lib/store";
+import { I18nProvider } from "./lib/i18n";
 import { Logo, OnboardingModal } from "./components/ui";
 import Home from "./pages/Home";
 import GuestInvite from "./pages/GuestInvite";
@@ -76,6 +77,12 @@ function DemoGate() {
   return <Shell />;
 }
 
+/** Binds the i18n dictionary to the wedding record's locale. */
+function Localised({ children }: { children: React.ReactNode }) {
+  const { db } = useApp();
+  return <I18nProvider locale={db.wedding.locale}>{children}</I18nProvider>;
+}
+
 const plannerRoutes = (
   <>
     <Route index element={<Overview />} />
@@ -98,6 +105,7 @@ export default function App() {
         <SkipLink />
         <div className="ambient-mesh" aria-hidden="true" />
         <div className="grain-overlay" aria-hidden="true" />
+        <Localised>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/invite" element={<GuestInvite />} />
@@ -117,6 +125,7 @@ export default function App() {
         <AuthModal />
         <CheckoutModal />
         <OnboardingModal />
+        </Localised>
       </HashRouter>
     </AppProvider>
   );
