@@ -23,23 +23,25 @@ export const newId = () =>
 
 export const rowToWedding = (r: WeddingRow): Wedding => ({
   names: r.names, partnerA: r.partner_a, partnerB: r.partner_b, date: r.date,
-  venue: r.venue, location: r.location, timezone: r.timezone, slug: r.slug,
+  venue: r.venue, location: r.location, timezone: r.timezone,
+  locale: r.locale ?? "en-US", currency: r.currency ?? "USD", slug: r.slug,
 });
 
 export const weddingToRow = (w: Wedding) => ({
   names: w.names, partner_a: w.partnerA, partner_b: w.partnerB, date: w.date,
-  venue: w.venue, location: w.location, timezone: w.timezone, slug: w.slug,
+  venue: w.venue, location: w.location, timezone: w.timezone,
+  locale: w.locale, currency: w.currency, slug: w.slug,
 });
 
 export const rowToGuest = (r: GuestRow): Guest => ({
   id: r.id, name: r.name, party: r.party, rsvp: r.rsvp, meal: r.meal,
-  plusOne: r.plus_one, table: r.table_id, seat: r.seat, dietary: r.dietary,
+  table: r.table_id, seat: r.seat, plusOneOf: r.plus_one_of, dietary: r.dietary,
   notes: r.notes, token: r.rsvp_token,
 });
 
 export const guestToRow = (g: Guest, weddingId: string, sort: number): GuestRow => ({
   id: g.id, wedding_id: weddingId, name: g.name, party: g.party, rsvp: g.rsvp,
-  meal: g.meal, plus_one: g.plusOne, table_id: g.table, seat: g.seat,
+  meal: g.meal, table_id: g.table, seat: g.seat, plus_one_of: g.plusOneOf,
   dietary: g.dietary, notes: g.notes, rsvp_token: g.token ?? newId(), sort,
 });
 
@@ -51,12 +53,12 @@ export const tableToRow = (t: SeatTable, weddingId: string, sort: number) => ({
   id: t.id, wedding_id: weddingId, name: t.name, shape: t.shape, capacity: t.capacity, x: t.x, y: t.y, sort,
 });
 
-export const rowToBudget = (r: { id: string; name: string; budget: number; committed: number; paid: number; color: string }): BudgetCategory => ({
-  id: r.id, name: r.name, budget: Number(r.budget), committed: Number(r.committed), paid: Number(r.paid), color: r.color,
+export const rowToBudget = (r: { id: string; name: string; budget: number; manual_committed: number; manual_paid: number; color: string }): BudgetCategory => ({
+  id: r.id, name: r.name, budget: Number(r.budget), manualCommitted: Number(r.manual_committed), manualPaid: Number(r.manual_paid), color: r.color,
 });
 
 export const budgetToRow = (b: BudgetCategory, weddingId: string, sort: number) => ({
-  id: b.id, wedding_id: weddingId, name: b.name, budget: b.budget, committed: b.committed, paid: b.paid, color: b.color, sort,
+  id: b.id, wedding_id: weddingId, name: b.name, budget: b.budget, manual_committed: b.manualCommitted, manual_paid: b.manualPaid, color: b.color, sort,
 });
 
 export const rowToTask = (r: { id: string; title: string; phase: Task["phase"]; done: boolean; assignee: Task["assignee"]; due: string | null; week: boolean }): Task => ({
@@ -76,7 +78,7 @@ type VendorRowDb = Database["public"]["Tables"]["vendors"]["Row"] & {
 export const rowToVendor = (r: VendorRowDb): Vendor => ({
   id: r.id, category: r.category, company: r.company, contact: r.contact,
   email: r.email, phone: r.phone, price: Number(r.price), status: r.status,
-  contract: r.contract, notes: r.notes,
+  contract: r.contract, notes: r.notes, budgetId: r.budget_id,
   payments: (r.vendor_payments ?? [])
     .sort((a, b) => a.sort - b.sort)
     .map((p) => ({ label: p.label, amount: Number(p.amount), due: p.due, paid: p.paid })),
@@ -93,12 +95,14 @@ export const customTplToRow = (c: CustomTemplate, weddingId: string, sort: numbe
 
 export const rsvpToRow = (e: RsvpEntry, weddingId: string) => ({
   id: e.id, wedding_id: weddingId, guest_id: null as string | null, name: e.name,
-  answer: e.answer, meal: e.meal, note: e.note, source: e.source,
+  answer: e.answer, meal: e.meal, note: e.note,
+  plus_one: e.plusOne ?? null, plus_one_meal: e.plusOneMeal ?? null, source: e.source,
   at: new Date(e.at).toISOString(), synced: e.synced ?? false,
 });
 
 export const rowToRsvp = (r: Database["public"]["Tables"]["rsvps"]["Row"]): RsvpEntry => ({
   id: r.id, name: r.name, answer: r.answer, meal: r.meal, note: r.note ?? "",
+  plusOne: r.plus_one, plusOneMeal: r.plus_one_meal,
   at: new Date(r.at).getTime(), source: r.source as RsvpEntry["source"], synced: r.synced,
 });
 
@@ -209,6 +213,7 @@ export async function fetchWorkspace(weddingId: string, userId: string): Promise
 /** Creates the wedding, the owner membership and default configs. */
 export async function createWedding(input: {
   partnerA: string; partnerB: string; names: string; date: string; venue: string;
+  locale?: string; currency?: string;
 }): Promise<{ weddingId: string; wedding: Wedding }> {
   const s = requireSb();
   const { data: userData } = await s.auth.getUser();
@@ -223,7 +228,10 @@ export async function createWedding(input: {
     const candidate = attempt === 0 ? slug : `${slug}-${attempt + 1}`;
     const res = await s.from("weddings").insert({
       owner_id: userId, slug: candidate, partner_a: input.partnerA, partner_b: input.partnerB,
-      names: input.names, date: input.date, venue: input.venue, location: "", timezone: "UTC", plan: "essential",
+      names: input.names, date: input.date, venue: input.venue, location: "",
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+      locale: input.locale || (typeof navigator !== "undefined" && navigator.language) || "en-US",
+      currency: input.currency || "USD", plan: "essential",
     }).select().single();
     if (res.error) {
       if (res.error.code === "23505") continue; // slug taken — try the next
@@ -308,7 +316,7 @@ export async function syncEntity(
         await run(s.from("vendors").upsert({
           id: v.id, wedding_id: weddingId, category: v.category, company: v.company,
           contact: v.contact, email: v.email, phone: v.phone, price: v.price,
-          status: v.status, contract: v.contract, notes: v.notes, sort: 0,
+          status: v.status, contract: v.contract, notes: v.notes, budget_id: v.budgetId, sort: 0,
         } as never, { onConflict: "id" }));
         void row;
         // replace the schedule wholesale — payment rows carry no client ids
@@ -363,6 +371,9 @@ export interface PublicInvitation {
   date: string;
   venue: string;
   location: string;
+  timezone: string;
+  locale: string;
+  currency: string;
   plan: Plan;
   invitation: {
     template_id: string; line1: string; line2: string; venue_line: string;
@@ -403,6 +414,8 @@ export async function submitRsvp(p: {
   meal?: string | null;
   note?: string | null;
   source?: string;
+  plusOne?: string | null;
+  plusOneMeal?: string | null;
 }): Promise<void> {
   const { error } = await requireSb().rpc("submit_rsvp", {
     p_token: p.token,
@@ -412,6 +425,8 @@ export async function submitRsvp(p: {
     p_meal: p.meal ?? null,
     p_note: p.note ?? null,
     p_source: p.source ?? "link",
+    p_plus_one: p.plusOne ?? null,
+    p_plus_one_meal: p.plusOneMeal ?? null,
   });
   if (error) throw new Error(error.message);
 }

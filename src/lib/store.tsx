@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   BudgetCategory, CustomTemplate, Guest, Plan, RegistryItem, RsvpEntry, SeatTable, Task, Vendor, Wedding,
+  catCommitted, catPaid, configureFormat,
   seedBudget, seedGuests, seedRegistry, seedRsvpLog, seedTables, seedTasks, seedVendors, seedWedding, slugify,
 } from "./data";
 import { isSupabaseConfigured } from "./supabase";
@@ -89,7 +90,7 @@ interface AppCtx {
   weddingId: string | null;
   booting: boolean;
   needsOnboarding: boolean;
-  completeOnboarding: (input: { partnerA: string; partnerB: string; names: string; date: string; venue: string }) => Promise<void>;
+  completeOnboarding: (input: { partnerA: string; partnerB: string; names: string; date: string; venue: string; locale?: string; currency?: string }) => Promise<void>;
   invitePartner: (email: string) => Promise<void>;
 }
 
@@ -166,7 +167,9 @@ const placeholderDb = (): Db =>
   emptyDb({
     names: "", partnerA: "", partnerB: "",
     date: new Date(Date.now() + 365 * 864e5).toISOString(),
-    venue: "", location: "", timezone: "UTC", slug: "",
+    venue: "", location: "", timezone: "UTC",
+    locale: typeof navigator !== "undefined" && navigator.language ? navigator.language : "en-US",
+    currency: "USD", slug: "",
   });
 
 /** Public share link for the couple's invitation page. */
@@ -474,7 +477,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const openCheckout = useCallback((p: Plan) => setCheckout(p), []);
   const closeCheckout = useCallback(() => setCheckout(null), []);
 
-  const completeOnboarding = useCallback(async (input: { partnerA: string; partnerB: string; names: string; date: string; venue: string }) => {
+  // formatting (money · dates) follows the wedding record — set once on boot
+  // and again whenever the couple edits locale/currency/timezone
+  useEffect(() => {
+    configureFormat({ locale: db.wedding.locale, currency: db.wedding.currency, timeZone: db.wedding.timezone });
+  }, [db.wedding.locale, db.wedding.currency, db.wedding.timezone]);
+
+  const completeOnboarding = useCallback(async (input: { partnerA: string; partnerB: string; names: string; date: string; venue: string; locale?: string; currency?: string }) => {
     setBooting(true);
     try {
       const { weddingId: wid, wedding } = await createWedding(input);
@@ -521,8 +530,9 @@ export function useStats() {
   const { db } = useApp();
   return useMemo(() => {
     const totalBudget = db.budget.reduce((s, c) => s + c.budget, 0);
-    const committed = db.budget.reduce((s, c) => s + c.committed, 0);
-    const paid = db.budget.reduce((s, c) => s + c.paid, 0);
+    // committed & paid are derived from booked vendor schedules + manual amounts
+    const committed = db.budget.reduce((s, c) => s + catCommitted(c, db.vendors), 0);
+    const paid = db.budget.reduce((s, c) => s + catPaid(c, db.vendors), 0);
     const remaining = totalBudget - committed;
     const confirmed = db.guests.filter((g) => g.rsvp === "confirmed").length;
     const pending = db.guests.filter((g) => g.rsvp === "pending").length;
@@ -531,7 +541,11 @@ export function useStats() {
     const progressPct = Math.round((tasksDone / Math.max(1, db.tasks.length)) * 100);
     const days = Math.max(0, Math.ceil((new Date(db.wedding.date).getTime() - Date.now()) / 86400000));
     const seated = db.guests.filter((g) => g.table).length;
-    return { totalBudget, committed, paid, remaining, confirmed, pending, declined, total: db.guests.length, tasksDone, tasksTotal: db.tasks.length, progressPct, days, seated };
+    const plusOnes = db.guests.filter((g) => g.plusOneOf).length;
+    const hosts = db.guests.length - plusOnes;
+    // confirmed plates = confirmed guests, plus-ones included (they eat too)
+    const confirmedPlates = confirmed;
+    return { totalBudget, committed, paid, remaining, confirmed, pending, declined, total: db.guests.length, hosts, plusOnes, confirmedPlates, tasksDone, tasksTotal: db.tasks.length, progressPct, days, seated };
   }, [db]);
 }
 

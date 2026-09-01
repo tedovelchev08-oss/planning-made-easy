@@ -19,10 +19,27 @@ export interface Wedding {
   date: string; // ISO
   venue: string;
   location: string;
+  /** IANA zone — drives how every date renders for this couple */
   timezone: string;
+  /** BCP-47 locale — drives number/date formatting */
+  locale: string;
+  /** ISO 4217 — drives every money figure */
+  currency: string;
   /** public address of the wedding page · unique per deployment */
   slug: string;
 }
+
+export const LOCALES: { id: string; label: string; currency: string }[] = [
+  { id: "en-US", label: "English (US)", currency: "USD" },
+  { id: "en-GB", label: "English (UK)", currency: "GBP" },
+  { id: "de-DE", label: "Deutsch", currency: "EUR" },
+  { id: "es-ES", label: "Español", currency: "EUR" },
+  { id: "fr-FR", label: "Français", currency: "EUR" },
+  { id: "it-IT", label: "Italiano", currency: "EUR" },
+  { id: "pt-BR", label: "Português (BR)", currency: "BRL" },
+  { id: "sv-SE", label: "Svenska", currency: "SEK" },
+  { id: "ja-JP", label: "日本語", currency: "JPY" },
+];
 
 export interface Guest {
   id: string;
@@ -30,10 +47,11 @@ export interface Guest {
   party: "A" | "B" | "S";
   rsvp: Rsvp;
   meal: string | null;
-  plusOne: string | null;
   table: string | null;
   /** seat index at the table (0-based) · null while unseated */
   seat: number | null;
+  /** id of the host guest this person is the plus-one of · null for hosts */
+  plusOneOf: string | null;
   dietary: string | null;
   notes: string;
   /** per-guest RSVP link token · present once the guest lives in the cloud */
@@ -44,10 +62,24 @@ export interface BudgetCategory {
   id: string;
   name: string;
   budget: number;
-  committed: number;
-  paid: number;
+  /** commitments NOT tied to a tracked vendor (e.g. cash, informal quotes) */
+  manualCommitted: number;
+  manualPaid: number;
   color: string;
 }
+
+/** Booked vendors posting into a category drive its committed & paid figures. */
+export const catCommitted = (c: BudgetCategory, vendors: Vendor[]): number =>
+  c.manualCommitted +
+  vendors.filter((v) => v.budgetId === c.id && v.status === "Booked").reduce((s, v) => s + v.price, 0);
+
+export const catPaid = (c: BudgetCategory, vendors: Vendor[]): number =>
+  c.manualPaid +
+  vendors.filter((v) => v.budgetId === c.id && v.status === "Booked").reduce((s, v) => s + paidSum(v), 0);
+
+/** the booked vendors behind a category's commitment — for the reconciliation view */
+export const catVendors = (c: BudgetCategory, vendors: Vendor[]): Vendor[] =>
+  vendors.filter((v) => v.budgetId === c.id && v.status === "Booked");
 
 export type PhaseId = "p12" | "p9" | "p6" | "p3" | "p1" | "fw" | "wd";
 
@@ -63,6 +95,14 @@ export interface Task {
 
 export type VendorStatus = "Inquiry" | "Proposal" | "Booked" | "Declined";
 
+export interface VendorPayment {
+  label: string;
+  amount: number;
+  /** due date as a local day key "YYYY-MM-DD" */
+  due: string;
+  paid: boolean;
+}
+
 export interface Vendor {
   id: string;
   category: string;
@@ -74,8 +114,14 @@ export interface Vendor {
   status: VendorStatus;
   contract: boolean;
   notes: string;
-  payments: { label: string; amount: number; due: string; paid: boolean }[];
+  /** budget category this vendor posts into · null = untraced commitment */
+  budgetId: string | null;
+  payments: VendorPayment[];
 }
+
+/** total of a vendor's payments already paid */
+export const paidSum = (v: Vendor) =>
+  v.payments.filter((p) => p.paid).reduce((s, p) => s + p.amount, 0);
 
 export type TableShape = "round" | "rect" | "head" | "sweetheart";
 
@@ -156,12 +202,18 @@ export const seedWedding: Wedding = {
   venue: "The Glasshouse",
   location: "Hudson Yards, New York",
   timezone: "America/New_York",
+  locale: "en-US",
+  currency: "USD",
   slug: "maya-theo",
 };
 
 /* ------------------------------ guests ---------------------------- */
 
-const rich: Omit<Guest, "id" | "seat">[] = [
+/** Seed input: plus-one names are strings here — buildGuests() promotes each
+ *  one to a real guest record linked to its host (see plusOneOf). */
+type RichSeed = Omit<Guest, "id" | "seat" | "plusOneOf"> & { plusOne?: string | null };
+
+const rich: RichSeed[] = [
   { name: "Amara Okafor", party: "A", rsvp: "confirmed", meal: MEALS[2], plusOne: "Kwame Okafor", table: "t1", dietary: "Vegan", notes: "College roommate — near the dance floor" },
   { name: "Liam Bennett", party: "B", rsvp: "confirmed", meal: MEALS[0], plusOne: null, table: "t2", dietary: null, notes: "Best man" },
   { name: "Sofia Lindqvist", party: "A", rsvp: "confirmed", meal: MEALS[1], plusOne: "Erik Lindqvist", table: "t1", dietary: "Gluten-free", notes: "Maid of honor" },
@@ -191,7 +243,7 @@ const rich: Omit<Guest, "id" | "seat">[] = [
   { name: "Tessa Lindgren", party: "A", rsvp: "confirmed", meal: MEALS[2], plusOne: null, table: "t9", dietary: null, notes: "" },
   { name: "Milan Petrov", party: "B", rsvp: "pending", meal: null, plusOne: null, table: null, dietary: null, notes: "" },
   { name: "Ida Ferreira", party: "A", rsvp: "confirmed", meal: MEALS[1], plusOne: "Oskar Ferreira", table: "t9", dietary: null, notes: "" },
-  { name: "Samuel Berg", party: "B", rsvp: "confirmed", meal: MEALS[0], plusOne: null, table: "t10", dietary: null, notes: "Groomsman" },
+  { name: "Samuel Berg", party: "B", rsvp: "confirmed", meal: MEALS[0], plusOne: null, table: "t9", dietary: null, notes: "Groomsman" },
 ];
 
 const first = ["Ava", "Nora", "Elias", "June", "Marco", "Selma", "Theo", "Alma", "Bruno", "Celia", "David", "Ebba", "Filip", "Greta", "Henrik", "Iris", "Jules", "Klara", "Leon", "Maja", "Nils", "Olivia", "Pablo", "Qin", "Ruth", "Sten", "Tove", "Ulf", "Vera", "Wanda", "Xenia", "Yara", "Zane", "Agnes", "Boris", "Cora", "Dante", "Edith", "Flora", "Gideon"];
@@ -206,24 +258,47 @@ function buildGuests(): Guest[] {
     seatCount.set(table, n + 1);
     return n;
   };
-  const guests: Guest[] = rich.map((g, i) => ({ id: `g-${i + 1}`, ...g, seat: nextSeat(g.table) }));
-  // 82 generated → totals: 112 guests, 84 confirmed, 21 pending, 7 declined
+  const withPlusOne = (host: Guest, plusName: string, mealIdx: number): Guest => ({
+    id: `${host.id}p`,
+    name: plusName,
+    party: host.party,
+    rsvp: host.rsvp, // a plus-one arrives with their host's answer
+    meal: host.rsvp === "confirmed" ? MEALS[mealIdx % MEALS.length] : null,
+    table: host.table,
+    seat: nextSeat(host.table),
+    plusOneOf: host.id,
+    dietary: null,
+    notes: `Plus-one of ${host.name.split(" ")[0]}`,
+  });
+
+  const guests: Guest[] = [];
+  rich.forEach((r, i) => {
+    const { plusOne, ...rest } = r;
+    const host: Guest = { id: `g-${i + 1}`, ...rest, plusOneOf: null, seat: nextSeat(r.table) };
+    guests.push(host);
+    if (plusOne) guests.push(withPlusOne(host, plusOne, i + 1));
+  });
+  // 82 generated hosts + 7 plus-ones → 127 guests total: 101 confirmed, 20 pending, 6 declined
   for (let i = 0; i < 82; i++) {
     const name = `${first[i % first.length]} ${last[(i * 7) % last.length]}`;
     const rsvp: Rsvp = i < 66 ? "confirmed" : i < 79 ? "pending" : "declined";
-    const table = rsvp === "confirmed" && i % 3 !== 0 ? `t${(i % 10) + 1}` : null;
-    guests.push({
+    const table = rsvp === "confirmed" && i % 3 !== 0 ? `t${(i % 9) + 1}` : null;
+    const host: Guest = {
       id: `g-${31 + i}`,
       name,
       party: i % 2 === 0 ? "A" : "B",
       rsvp,
       meal: rsvp === "confirmed" ? MEALS[i % MEALS.length] : null,
-      plusOne: i % 11 === 4 ? `${first[(i + 3) % first.length]} ${last[(i * 3) % last.length]}` : null,
       table,
       seat: nextSeat(table),
+      plusOneOf: null,
       dietary: i % 13 === 5 ? "Vegetarian" : i % 17 === 6 ? "Nut allergy" : null,
       notes: "",
-    });
+    };
+    guests.push(host);
+    if (i % 11 === 4) {
+      guests.push(withPlusOne(host, `${first[(i + 3) % first.length]} ${last[(i * 3) % last.length]}`, i + 2));
+    }
   }
   return guests;
 }
@@ -233,17 +308,21 @@ export const seedGuests: Guest[] = buildGuests();
 /* ------------------------------ budget ---------------------------- */
 
 export const seedBudget: BudgetCategory[] = [
-  { id: "b1", name: "Venue", budget: 16000, committed: 16000, paid: 8000, color: "#D4AF37" },
-  { id: "b2", name: "Catering", budget: 12500, committed: 11200, paid: 3000, color: "#EE8FA1" },
-  { id: "b3", name: "Photography", budget: 6200, committed: 6200, paid: 3100, color: "#A78BD4" },
-  { id: "b4", name: "Florals", budget: 4800, committed: 3400, paid: 1000, color: "#74996B" },
-  { id: "b5", name: "Music", budget: 3200, committed: 2800, paid: 800, color: "#FFB5C2" },
-  { id: "b6", name: "Attire", budget: 4100, committed: 3100, paid: 1500, color: "#C9B8E8" },
-  { id: "b7", name: "Stationery", budget: 1600, committed: 900, paid: 400, color: "#A8C5A0" },
-  { id: "b8", name: "Transportation", budget: 1400, committed: 0, paid: 0, color: "#5C4F55" },
-  { id: "b9", name: "Miscellaneous", budget: 2200, committed: 580, paid: 200, color: "#E98BA0" },
+  // committed/paid are derived from the booked vendors linked via budgetId
+  // (Venue→v1, Catering→v3, Photography→v2, Music→v5, Attire→v7).
+  // manualCommitted/manualPaid hold amounts with no tracked vendor.
+  { id: "b1", name: "Venue", budget: 16000, manualCommitted: 0, manualPaid: 0, color: "#D4AF37" },
+  { id: "b2", name: "Catering", budget: 12500, manualCommitted: 0, manualPaid: 0, color: "#EE8FA1" },
+  { id: "b3", name: "Photography", budget: 6200, manualCommitted: 0, manualPaid: 0, color: "#A78BD4" },
+  // the florist is still a proposal — nothing committed until it's booked
+  { id: "b4", name: "Florals", budget: 4800, manualCommitted: 0, manualPaid: 0, color: "#74996B" },
+  { id: "b5", name: "Music", budget: 3200, manualCommitted: 0, manualPaid: 0, color: "#FFB5C2" },
+  { id: "b6", name: "Attire", budget: 4100, manualCommitted: 0, manualPaid: 0, color: "#C9B8E8" },
+  { id: "b7", name: "Stationery", budget: 1600, manualCommitted: 900, manualPaid: 400, color: "#A8C5A0" },
+  { id: "b8", name: "Transportation", budget: 1400, manualCommitted: 0, manualPaid: 0, color: "#5C4F55" },
+  { id: "b9", name: "Miscellaneous", budget: 2200, manualCommitted: 580, manualPaid: 200, color: "#E98BA0" },
 ];
-// total 52,600 · committed 44,180 · remaining 8,420
+// committed & paid now reconcile against vendor payment schedules — see catCommitted / catPaid
 
 /* ------------------------------ tasks ------------------------------ */
 
@@ -326,63 +405,63 @@ export const seedTasks: Task[] = [
 export const seedVendors: Vendor[] = [
   {
     id: "v1", category: "Venue", company: "The Glasshouse", contact: "Renata Cole", email: "events@glasshouse.nyc", phone: "+1 212 555 0184",
-    price: 16000, status: "Booked", contract: true, notes: "Golden-hour ceremony on the west terrace. Rain plan: atrium.",
+    price: 16000, status: "Booked", contract: true, budgetId: "b1", notes: "Golden-hour ceremony on the west terrace. Rain plan: atrium.",
     payments: [
-      { label: "Deposit", amount: 8000, due: "Paid", paid: true },
-      { label: "Balance", amount: 8000, due: "30 days out", paid: false },
+      { label: "Deposit", amount: 8000, due: dueIn(-120), paid: true },
+      { label: "Balance", amount: 8000, due: dueIn(262), paid: false },
     ],
   },
   {
     id: "v2", category: "Photographer", company: "Aria Studio", contact: "June Park", email: "hello@ariastudio.co", phone: "+1 917 555 0142",
-    price: 6200, status: "Booked", contract: true, notes: "Two shooters · film + digital · golden hour portraits.",
+    price: 6200, status: "Booked", contract: true, budgetId: "b3", notes: "Two shooters · film + digital · golden hour portraits.",
     payments: [
-      { label: "Retainer", amount: 3100, due: "Paid", paid: true },
-      { label: "Final", amount: 3100, due: "14 days out", paid: false },
+      { label: "Retainer", amount: 3100, due: dueIn(-90), paid: true },
+      { label: "Final", amount: 3100, due: dueIn(278), paid: false },
     ],
   },
   {
     id: "v3", category: "Catering", company: "Maison Verte", contact: "Chef Didier Blanc", email: "events@maisonverte.com", phone: "+1 646 555 0117",
-    price: 11200, status: "Booked", contract: true, notes: "Seasonal tasting menu · vegan + halal options confirmed.",
+    price: 11200, status: "Booked", contract: true, budgetId: "b2", notes: "Seasonal tasting menu · vegan + halal options confirmed.",
     payments: [
-      { label: "Deposit", amount: 3000, due: "Paid", paid: true },
-      { label: "Midpoint", amount: 4000, due: "60 days out", paid: false },
-      { label: "Balance", amount: 4200, due: "Final week", paid: false },
+      { label: "Deposit", amount: 3000, due: dueIn(-75), paid: true },
+      { label: "Midpoint", amount: 4000, due: dueIn(232), paid: false },
+      { label: "Balance", amount: 4200, due: dueIn(286), paid: false },
     ],
   },
   {
     id: "v4", category: "Florist", company: "Peony & Stem", contact: "Wren Halloran", email: "wren@peonyandstem.com", phone: "+1 347 555 0163",
-    price: 3400, status: "Proposal", contract: false, notes: "Proposal v2 — garden roses, trailing amaranth, candlelight greens.",
-    payments: [{ label: "Retainer", amount: 1000, due: "On booking", paid: false }],
+    price: 3400, status: "Proposal", contract: false, budgetId: "b4", notes: "Proposal v2 — garden roses, trailing amaranth, candlelight greens.",
+    payments: [{ label: "Retainer", amount: 1000, due: dueIn(292), paid: false }],
   },
   {
     id: "v5", category: "DJ / Band", company: "The Marlowe Quartet", contact: "Ezra Marlowe", email: "book@marlowequartet.com", phone: "+1 212 555 0129",
-    price: 2800, status: "Booked", contract: true, notes: "Ceremony strings → jazz cocktail hour → DJ hybrid at night.",
+    price: 2800, status: "Booked", contract: true, budgetId: "b5", notes: "Ceremony strings → jazz cocktail hour → DJ hybrid at night.",
     payments: [
-      { label: "Deposit", amount: 800, due: "Paid", paid: true },
-      { label: "Balance", amount: 2000, due: "Day-of", paid: false },
+      { label: "Deposit", amount: 800, due: dueIn(-60), paid: true },
+      { label: "Balance", amount: 2000, due: dueIn(292), paid: false },
     ],
   },
   {
     id: "v6", category: "Videographer", company: "Frame & Fern", contact: "Sasha Reyes", email: "sasha@frameandfern.film", phone: "+1 929 555 0155",
-    price: 4800, status: "Proposal", contract: false, notes: "Cinematic cut + 60s teaser. Awaiting final quote.",
-    payments: [{ label: "Retainer", amount: 1500, due: "On booking", paid: false }],
+    price: 4800, status: "Proposal", contract: false, budgetId: null, notes: "Cinematic cut + 60s teaser. Awaiting final quote.",
+    payments: [{ label: "Retainer", amount: 1500, due: dueIn(292), paid: false }],
   },
   {
     id: "v7", category: "Attire", company: "Casa Lorena", contact: "Lorena Vitale", email: "atelier@casalorena.com", phone: "+1 212 555 0171",
-    price: 3100, status: "Booked", contract: true, notes: "Two fittings done. Final fitting scheduled.",
+    price: 3100, status: "Booked", contract: true, budgetId: "b6", notes: "Two fittings done. Final fitting scheduled.",
     payments: [
-      { label: "Deposit", amount: 1500, due: "Paid", paid: true },
-      { label: "Balance", amount: 1600, due: "On pickup", paid: false },
+      { label: "Deposit", amount: 1500, due: dueIn(-45), paid: true },
+      { label: "Balance", amount: 1600, due: dueIn(285), paid: false },
     ],
   },
   {
     id: "v8", category: "Beauty", company: "Atelier Blond", contact: "Mina Sato", email: "mina@atelierblond.nyc", phone: "+1 646 555 0139",
-    price: 950, status: "Inquiry", contract: false, notes: "Trial booked for next month. Ask about mother-of-bride slot.",
+    price: 950, status: "Inquiry", contract: false, budgetId: null, notes: "Trial booked for next month. Ask about mother-of-bride slot.",
     payments: [],
   },
   {
     id: "v9", category: "Transportation", company: "Velvet Coach Co.", contact: "Desmond Wright", email: "rides@velvetcoach.com", phone: "+1 718 555 0126",
-    price: 1400, status: "Inquiry", contract: false, notes: "Two vintage coaches for 24 guests + getaway car.",
+    price: 1400, status: "Inquiry", contract: false, budgetId: "b8", notes: "Two vintage coaches for 24 guests + getaway car.",
     payments: [],
   },
 ];
@@ -410,10 +489,12 @@ export const seedTables: SeatTable[] = [
 export interface CustomTemplate {
   id: string;
   name: string;
-  /** PNG/JPG artwork import */
+  /** PNG/JPG artwork import — in-memory / IndexedDB copy */
   dataUrl?: string | null;
   /** full self-contained HTML invitation (inline CSS/JS) — rendered live */
   html?: string | null;
+  /** Supabase Storage public URL once uploaded (cloud accounts) */
+  storageUrl?: string | null;
   addedAt: number;
 }
 
@@ -427,12 +508,15 @@ export interface RsvpEntry {
   note: string;
   at: number;
   source: RsvpSource;
+  /** plus-one named at reply time · becomes a linked guest on sync */
+  plusOne?: string | null;
+  plusOneMeal?: string | null;
   synced?: boolean;
 }
 
 export const seedRsvpLog: RsvpEntry[] = [
-  { id: "rv1", name: "Priya Nair", answer: "yes", meal: "Garden Risotto", note: "Can't wait! Bringing my plus-one Arjun.", at: Date.now() - 2 * 3600000, source: "link", synced: true },
-  { id: "rv2", name: "Jonah Weiss", answer: "no", meal: null, note: "Heartbroken to miss it — in Lisbon for work. Drinks on me when you're back!", at: Date.now() - 26 * 3600000, source: "whatsapp", synced: true },
+  { id: "rv1", name: "Priya Nair", answer: "yes", meal: "Garden Risotto", plusOne: "Arjun Nair", plusOneMeal: "Herb Chicken", note: "Can't wait! Bringing my plus-one Arjun.", at: Date.now() - 2 * 3600000, source: "link", synced: true },
+  { id: "rv2", name: "Jonah Weiss", answer: "no", meal: null, note: "Heartbroken to miss it — in Lisbon for work. Drinks on me when you're back!", at: Date.now() - 26 * 3600000, source: "whatsapp" },
   { id: "rv3", name: "Amara Osei", answer: "yes", meal: "Sea Bass", note: "YES. Do you need help with the seating chart?", at: Date.now() - 49 * 3600000, source: "instagram" },
   { id: "rv4", name: "The Hartley Family", answer: "yes", meal: "Herb Chicken", note: "All four of us will be there. The kids are practicing their dance moves.", at: Date.now() - 4 * 86400000, source: "email", synced: true },
 ];
@@ -456,6 +540,81 @@ export const timeAgo = (ts: number) => {
   if (h < 24) return `${h}h ago`;
   const d = Math.round(h / 24);
   return d === 1 ? "yesterday" : `${d}d ago`;
+};
+
+/* ------------------------------ fuzzy name matching ------------------------------ */
+
+const normaliseName = (s: string) =>
+  s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z ]/g, " ").replace(/\s+/g, " ").trim();
+
+/** Levenshtein, capped — names are short, so plain DP is fine */
+const lev = (a: string, b: string): number => {
+  if (a === b) return 0;
+  const m = a.length, n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, i) => i);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return prev[n];
+};
+
+const tokenScore = (a: string, b: string): number => {
+  if (a === b) return 1;
+  if (!a || !b) return 0;
+  if (a.startsWith(b) || b.startsWith(a)) return 0.85; // nickname / truncation
+  const d = lev(a, b);
+  const maxLen = Math.max(a.length, b.length);
+  return maxLen <= 4 ? (d <= 1 ? 0.8 : 0) : Math.max(0, 1 - d / maxLen);
+};
+
+/**
+ * 0..1 similarity between an RSVP name and a guest-list name.
+ * Token order independent; weights the surname (last token) more heavily.
+ * 1 = exact · ≥0.88 ≈ same person, verify · ≥0.6 plausible · <0.6 probably new
+ */
+export const nameSimilarity = (rawA: string, rawB: string): number => {
+  const a = normaliseName(rawA).split(" ").filter(Boolean);
+  const b = normaliseName(rawB).split(" ").filter(Boolean);
+  if (!a.length || !b.length) return 0;
+  if (a.join(" ") === b.join(" ")) return 1;
+  const bestFor = (tok: string, other: string[]) =>
+    Math.max(0, ...other.map((o) => tokenScore(tok, o)));
+  // greedy alignment: each token of the shorter side finds its best partner
+  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
+  const used = new Set<number>();
+  let sum = 0;
+  for (const tok of short) {
+    let best = 0, idx = -1;
+    long.forEach((o, i) => {
+      if (used.has(i)) return;
+      const s = tokenScore(tok, o);
+      if (s > best) { best = s; idx = i; }
+    });
+    if (idx >= 0) used.add(idx);
+    sum += best;
+  }
+  const coverage = short.length / Math.max(a.length, b.length); // penalise "The Hartley Family" vs "Hartley"
+  const base = (sum / short.length) * (0.55 + 0.45 * coverage);
+  // surname agreement boosts; surname disagreement caps
+  const lastA = a[a.length - 1], lastB = b[b.length - 1];
+  const lastS = tokenScore(lastA, lastB);
+  return Math.min(1, base * (0.7 + 0.3 * lastS) + (lastS === 1 ? 0.08 : 0));
+};
+
+/** best guest match for an RSVP name · null when nothing clears the floor */
+export const bestGuestMatch = (name: string, guests: Guest[], floor = 0.55): { guest: Guest; score: number } | null => {
+  let best: { guest: Guest; score: number } | null = null;
+  for (const g of guests) {
+    const score = nameSimilarity(name, g.name);
+    if (score >= floor && (!best || score > best.score)) best = { guest: g, score };
+  }
+  return best;
 };
 
 /* ------------------------------ registry ---------------------------- */
@@ -562,14 +721,10 @@ export const SITE_SECTIONS = [
 
 /* ------------------------------ helpers ---------------------------- */
 
-export const fmtMoney = (n: number) =>
-  n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
-
-export const fmtDate = (iso: string, opts?: Intl.DateTimeFormatOptions) =>
-  new Date(iso).toLocaleDateString("en-US", opts ?? { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-
-export const fmtDateShort = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+// Locale / currency / timezone are driven by the wedding record — the store
+// calls configureFormat() on every wedding change. These re-exports keep the
+// ~60 existing fmtMoney/fmtDate call sites working unchanged.
+export { fmtMoney, fmtDate, fmtDateShort, configureFormat } from "./format";
 
 export const daysUntil = (iso: string) =>
   Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000));

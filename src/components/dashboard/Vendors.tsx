@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Building2, Check, FileText, Mail, Pencil, Phone, Plus, X } from "lucide-react";
-import { Vendor, VendorStatus, VENDOR_CATEGORIES, fmtMoney } from "../../lib/data";
+import { Vendor, VendorStatus, VENDOR_CATEGORIES, fmtMoney, toDayKey } from "../../lib/data";
 import { useApp } from "../../lib/store";
 import { Field, Modal, Pill, Reveal, btn, inputCls, selectCls } from "../ui";
 
@@ -9,7 +9,7 @@ const STATUSES: VendorStatus[] = ["Inquiry", "Proposal", "Booked", "Declined"];
 
 const blank = (): Vendor => ({
   id: "", category: VENDOR_CATEGORIES[0], company: "", contact: "", email: "", phone: "",
-  price: 0, status: "Inquiry", contract: false, notes: "", payments: [],
+  price: 0, status: "Inquiry", contract: false, notes: "", budgetId: null, payments: [],
 });
 
 export default function Vendors() {
@@ -200,6 +200,72 @@ export default function Vendors() {
                   <FileText size={13} /> {editing.contract ? "Contract signed" : "Mark contract signed"}
                 </button>
               </div>
+              <div className="sm:col-span-2">
+                <Field label="Budget category">
+                  <select className={`${selectCls} w-full`} value={editing.budgetId ?? ""} onChange={(e) => setEditing({ ...editing, budgetId: e.target.value || null })}>
+                    <option value="">Untracked — doesn't post into the budget</option>
+                    {db.budget.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                </Field>
+                {editing.status === "Booked" && !editing.budgetId && (
+                  <p className="mt-2 text-[0.72rem] font-semibold text-gold-deep">Booked without a category — this commitment won't show in Budget until you link one.</p>
+                )}
+              </div>
+
+              {/* payment schedule — drives the paid figure in Budget */}
+              <div className="sm:col-span-2">
+                <div className="flex items-center justify-between">
+                  <span className="mb-1.5 block text-[0.72rem] font-bold uppercase tracking-[0.14em] text-ink-mute">Payment schedule</span>
+                  <button
+                    onClick={() => setEditing({ ...editing, payments: [...editing.payments, { label: editing.payments.length === 0 ? "Deposit" : `Payment ${editing.payments.length + 1}`, amount: 0, due: toDayKey(new Date().toISOString()), paid: false }] })}
+                    className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1.5 text-[0.7rem] font-extrabold text-ink-2 transition hover:border-gold hover:text-gold-deep cursor-pointer"
+                  >
+                    <Plus size={11} /> Add payment
+                  </button>
+                </div>
+                {editing.payments.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-ink/15 px-4 py-4 text-center text-[0.78rem] font-semibold text-ink-mute">
+                    No schedule yet — add the deposit and balances so Budget knows what's paid.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {editing.payments.map((p, i) => {
+                      const set = (patchP: Partial<typeof p>) =>
+                        setEditing({ ...editing, payments: editing.payments.map((x, xi) => (xi === i ? { ...x, ...patchP } : x)) });
+                      return (
+                        <div key={i} className="flex flex-wrap items-center gap-2 rounded-xl border border-ink/10 bg-white/70 p-2.5">
+                          <button
+                            onClick={() => set({ paid: !p.paid })}
+                            aria-pressed={p.paid}
+                            aria-label={`Mark ${p.label} ${p.paid ? "unpaid" : "paid"}`}
+                            title={p.paid ? "Paid — click to undo" : "Mark paid"}
+                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition cursor-pointer ${p.paid ? "border-sage-deep bg-sage-deep text-cream" : "border-ink/25 bg-white text-transparent hover:border-gold"}`}
+                          >
+                            <Check size={13} strokeWidth={3.5} />
+                          </button>
+                          <input className={`${inputCls} !w-32 !py-1.5 text-[0.8rem]`} value={p.label} onChange={(e) => set({ label: e.target.value })} aria-label="Payment label" placeholder="Deposit" />
+                          <input type="number" min={0} className={`${inputCls} !w-24 !py-1.5 text-[0.8rem]`} value={p.amount || ""} onChange={(e) => set({ amount: Number(e.target.value) })} aria-label="Payment amount" placeholder="0" />
+                          <input type="date" className={`${inputCls} !w-36 !py-1.5 text-[0.8rem]`} value={p.due} onChange={(e) => set({ due: e.target.value })} aria-label="Payment due date" />
+                          <button
+                            onClick={() => setEditing({ ...editing, payments: editing.payments.filter((_, xi) => xi !== i) })}
+                            aria-label={`Delete payment ${p.label}`}
+                            className="ml-auto rounded-full p-1.5 text-ink-mute transition hover:bg-blush-soft hover:text-blush-deep cursor-pointer"
+                          >
+                            <X size={13} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                    <p className="text-[0.7rem] font-semibold text-ink-mute">
+                      {fmtMoney(editing.payments.filter((p) => p.paid).reduce((s, p) => s + p.amount, 0))} paid of {fmtMoney(editing.payments.reduce((s, p) => s + p.amount, 0))} scheduled
+                      {editing.payments.reduce((s, p) => s + p.amount, 0) !== editing.price && editing.payments.length > 0 && (
+                        <span className="text-gold-deep"> · price is {fmtMoney(editing.price)}</span>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <div className="sm:col-span-2">
                 <Field label="Notes"><textarea className={`${inputCls} min-h-[80px]`} value={editing.notes} onChange={(e) => setEditing({ ...editing, notes: e.target.value })} placeholder="Vibe, questions, negotiation notes…" /></Field>
               </div>

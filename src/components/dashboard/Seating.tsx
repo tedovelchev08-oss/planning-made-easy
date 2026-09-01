@@ -216,17 +216,17 @@ export default function Seating() {
                     <button
                       key={i}
                       onClick={() => { setSeatPicker({ tableId: t.id, seat: i }); setPickerQ(""); }}
-                      aria-label={g ? `Seat ${i + 1} at ${t.name}: ${g.name}` : `Empty seat ${i + 1} at ${t.name}`}
-                      title={g ? `${g.name}${g.dietary ? ` · ${g.dietary}` : ""}` : "Empty seat — click to fill"}
+                      aria-label={g ? `Seat ${i + 1} at ${t.name}: ${g.name}${g.plusOneOf ? " (plus-one)" : ""}` : `Empty seat ${i + 1} at ${t.name}`}
+                      title={g ? `${g.name}${g.plusOneOf ? " · plus-one" : ""}${g.dietary ? ` · ${g.dietary}` : ""}` : "Empty seat — click to fill"}
                       className={`absolute z-10 flex h-7 w-7 items-center justify-center rounded-full text-[0.56rem] font-extrabold transition-all duration-200 hover:scale-110 cursor-pointer ${
                         g
-                          ? `${g.party === "A" ? "bg-blush text-ink" : "bg-sage text-ink"} ring-2 ring-white shadow-sm`
+                          ? `${g.party === "A" ? "bg-blush text-ink" : "bg-sage text-ink"} ${g.plusOneOf ? "ring-2 ring-gold" : "ring-2 ring-white"} shadow-sm`
                           : "border-2 border-dashed border-ink/25 bg-cream/60 text-ink-mute/70 hover:border-gold"
                       }`}
                       style={{ left: pos.x, top: pos.y }}
                     >
                       {g ? (
-                        <span className="flex items-center gap-0.5">{initials(g.name)}{g.dietary && <span className="h-1.5 w-1.5 rounded-full bg-gold" />}</span>
+                        <span className="flex items-center gap-0.5">{g.plusOneOf ? "+1" : initials(g.name)}{g.dietary && <span className="h-1.5 w-1.5 rounded-full bg-gold" />}</span>
                       ) : (
                         <Plus size={11} />
                       )}
@@ -241,6 +241,7 @@ export default function Seating() {
         <div className="pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-4 rounded-full bg-white/80 px-5 py-2 text-[0.68rem] font-bold text-ink-mute shadow-sm backdrop-blur">
           <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-blush" /> {db.wedding.partnerA}'s side</span>
           <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-sage" /> {db.wedding.partnerB}'s side</span>
+          <span className="flex items-center gap-1.5"><span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-cream text-[0.5rem] font-extrabold text-gold-deep ring-1 ring-gold">+1</span> plus-one</span>
           <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-gold" /> dietary note</span>
         </div>
       </div>

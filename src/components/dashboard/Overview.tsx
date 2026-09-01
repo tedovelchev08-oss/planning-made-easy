@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { ArrowRight, Check, Flower2, Heart, MapPin, Sparkles } from "lucide-react";
-import { greeting, useApp, useCountUp, usePrefersReducedMotion, useStats } from "../../lib/store";
+import { useApp, useCountUp, usePrefersReducedMotion, useStats } from "../../lib/store";
 import { playChime } from "../../lib/sound";
 import { fmtDate, fmtMoney, timeAgo } from "../../lib/data";
+import { greetingKey, useT } from "../../lib/i18n";
 import { Reveal } from "../ui";
 import CalendarCard from "./CalendarCard";
 
@@ -47,6 +48,7 @@ function ProgressRing({ pct }: { pct: number }) {
 
 export default function Overview() {
   const { db, patch, toast } = useApp();
+  const { t } = useT();
   const stats = useStats();
   const reduced = usePrefersReducedMotion();
 
@@ -88,7 +90,7 @@ export default function Overview() {
               Chapter {chapterOf(stats.days)[0]} · {chapterOf(stats.days)[1]}
             </p>
             <h2 className="mt-3 font-display text-3xl tracking-tight text-ink sm:text-4xl">
-              {greeting()}, <em className="text-blush-deep">{db.wedding.names}.</em>
+              {t(greetingKey())}, <em className="text-blush-deep">{db.wedding.names}.</em>
             </h2>
             <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.9rem] font-semibold text-ink-2">
               <span>{fmtDate(db.wedding.date)}</span>
@@ -138,6 +140,11 @@ export default function Overview() {
           </div>
           <p className="mt-2 flex flex-wrap items-center gap-2 text-[0.72rem] font-semibold text-ink-mute">
             {stats.pending} pending · {stats.declined} with love, no
+            {stats.plusOnes > 0 && (
+              <span className="inline-flex items-center rounded-full bg-gold-soft px-2 py-0.5 font-extrabold text-gold-deep">
+                +{stats.plusOnes} plus-ones counted
+              </span>
+            )}
             {weekYes > 0 && (
               <motion.span
                 initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
@@ -221,7 +228,12 @@ export default function Overview() {
                   <button
                     onClick={() => {
                       patch({ vendors: db.vendors.map((v) => (v.id === nextVendor.id ? { ...v, status: "Booked", contract: true } : v)) });
-                      toast(`${nextVendor.company} booked`, "Contract marked signed. Budget updated with the commitment.");
+                      toast(
+                        `${nextVendor.company} booked`,
+                        nextVendor.budgetId
+                          ? `Contract signed — ${fmtMoney(nextVendor.price)} now committed in Budget.`
+                          : "Contract signed. Link the vendor to a budget category to track its commitment.",
+                      );
                     }}
                     className="flex-1 rounded-full bg-ink py-2.5 text-[0.8rem] font-bold text-cream transition hover:bg-ink/85 cursor-pointer"
                   >

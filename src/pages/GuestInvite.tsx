@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Heart, Loader2, Music, Play, Sparkles, StopCircle } from "lucide-react";
-import { MEALS, RsvpSource, fmtDate, seedTemplates } from "../lib/data";
+import { MEALS, RsvpSource, configureFormat, fmtDate, seedTemplates } from "../lib/data";
 import { inviteLink, useApp, usePrefersReducedMotion, type Db, type InvitationConfig } from "../lib/store";
 import { getGuestByToken, getPublicInvitation, submitRsvp, type PublicInvitation } from "../lib/api";
 import { playChime, useChimeLoop } from "../lib/sound";
@@ -105,6 +105,8 @@ export default function GuestInvite() {
         const p = await getPublicInvitation(slug);
         if (!live) return;
         if (!p) { setLoadState("missing"); return; }
+        // show dates & money the way the couple set them, not the visitor's defaults
+        configureFormat({ locale: p.locale, currency: p.currency, timeZone: p.timezone });
         setPub(p);
         setLoadState("ready");
       } catch {
@@ -180,6 +182,8 @@ export default function GuestInvite() {
   const [answer, setAnswer] = useState<"yes" | "no" | null>(null);
   const [meal, setMeal] = useState(MEALS[0]);
   const [note, setNote] = useState("");
+  const [plusOne, setPlusOne] = useState("");
+  const [plusOneMeal, setPlusOneMeal] = useState<string | null>(null);
   const [done, setDone] = useState<null | "yes" | "no">(null);
   const [sending, setSending] = useState(false);
 
@@ -196,12 +200,15 @@ export default function GuestInvite() {
     if (!name.trim()) { toast("Who's answering?", "Pop your name in so we know who to save a seat for.", "warn"); return; }
     if (!answer) { toast("One more tap", "Joyfully accept or regretfully decline — either way, we'll know.", "warn"); return; }
 
+    const po = answer === "yes" && plusOne.trim() ? plusOne.trim() : null;
+    const poMeal = po ? (plusOneMeal ?? meal) : null;
+
     if (pub) {
       // real submission — the anonymous insert policy verifies token/slug.
       // The guest list is NEVER mutated from here; the couple reviews and syncs.
       setSending(true);
       try {
-        await submitRsvp({ token, slug: pub.slug, name: name.trim(), answer, meal: answer === "yes" ? meal : null, note: note.trim() || null, source });
+        await submitRsvp({ token, slug: pub.slug, name: name.trim(), answer, meal: answer === "yes" ? meal : null, note: note.trim() || null, source, plusOne: po, plusOneMeal: poMeal });
         playChime(answer === "yes" ? "sparkle" : "undo");
         setDone(answer);
       } catch {
@@ -214,7 +221,7 @@ export default function GuestInvite() {
 
     // demo playground — local only, and even here answers wait in the RSVP
     // tracker for the couple's review step, so the flow is honest everywhere
-    const entry = { id: `rv-${Date.now()}`, name: name.trim(), answer, meal: answer === "yes" ? meal : null, note: note.trim(), at: Date.now(), source };
+    const entry = { id: `rv-${Date.now()}`, name: name.trim(), answer, meal: answer === "yes" ? meal : null, note: note.trim(), at: Date.now(), source, plusOne: po, plusOneMeal: poMeal };
     patch({ rsvpLog: [entry, ...db.rsvpLog] });
     playChime(answer === "yes" ? "sparkle" : "undo");
     setDone(answer);
@@ -362,6 +369,34 @@ export default function GuestInvite() {
                   </motion.div>
                 )}
 
+                {answer === "yes" && (
+                  <motion.div initial={reduced ? false : { opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="overflow-hidden">
+                    <label className="mt-4 block">
+                      <span className="mb-1.5 block text-[0.7rem] font-extrabold uppercase tracking-[0.16em] opacity-60">Bringing a plus-one? <span className="normal-case opacity-70">(their name)</span></span>
+                      <input
+                        value={plusOne} onChange={(e) => setPlusOne(e.target.value)}
+                        placeholder="Leave blank if it's just you"
+                        className="w-full rounded-xl border bg-transparent px-4 py-3 text-[0.95rem] placeholder:opacity-40 focus:outline-none focus:ring-2"
+                        style={{ borderColor: `${colors.accent}55` }}
+                      />
+                    </label>
+                    {plusOne.trim() && cfg.meal && (
+                      <div className="mt-3">
+                        <p className="mb-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.16em] opacity-60">{plusOne.trim().split(" ")[0]}'s meal</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {MEALS.map((m) => (
+                            <button key={m} type="button" onClick={() => setPlusOneMeal(m)} aria-pressed={plusOneMeal === m}
+                              className={`rounded-full border px-3.5 py-1.5 text-[0.76rem] font-bold transition cursor-pointer ${plusOneMeal === m ? "" : "opacity-55 hover:opacity-90"}`}
+                              style={plusOneMeal === m ? { background: colors.ink, color: colors.bg, borderColor: colors.ink } : { borderColor: `${colors.accent}55` }}>
+                              {m}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+
                 {cfg.notes && (
                   <label className="mt-4 block">
                     <span className="mb-1.5 block text-[0.7rem] font-extrabold uppercase tracking-[0.16em] opacity-60">A note for the couple</span>
@@ -387,10 +422,10 @@ export default function GuestInvite() {
                 <h2 className="mt-4 font-display text-3xl">{done === "yes" ? "You're on the list!" : "You'll be missed"}</h2>
                 <p className="mx-auto mt-2 max-w-sm text-[0.9rem] leading-relaxed opacity-75">
                   {done === "yes"
-                    ? `${name.split(" ")[0]}, we're saving you a seat${cfg.meal ? ` — ${meal} noted` : ""}. ${names.split("&")[0]?.trim()} will be over the moon.`
+                    ? `${name.split(" ")[0]}, we're saving you a seat${plusOne.trim() ? ` — and one for ${plusOne.trim().split(" ")[0]}` : ""}${cfg.meal ? ` (${meal} noted)` : ""}. ${names.split("&")[0]?.trim()} will be over the moon.`
                     : "Thank you for letting us know — we'll raise a glass in your honour."}
                 </p>
-                <button onClick={() => { setDone(null); setAnswer(null); setNote(""); }} className="mt-5 text-[0.78rem] font-bold underline-offset-4 hover:underline cursor-pointer" style={{ color: colors.accent }}>
+                <button onClick={() => { setDone(null); setAnswer(null); setNote(""); setPlusOne(""); setPlusOneMeal(null); }} className="mt-5 text-[0.78rem] font-bold underline-offset-4 hover:underline cursor-pointer" style={{ color: colors.accent }}>
                   Change my answer
                 </button>
               </motion.div>

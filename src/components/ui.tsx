@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import { Check, Heart, Loader2, Lock, Mail, Sparkles, X } from "lucide-react";
 import { TIERS, Plan, fmtMoney } from "../lib/data";
 import { useApp, usePrefersReducedMotion, useStats } from "../lib/store";
 import { authApi } from "../lib/api";
+import { I18nProvider, LOCALES, useT, type Locale } from "../lib/i18n";
 
 /* ------------------------------ logo ------------------------------ */
 
@@ -661,6 +662,12 @@ export function OnboardingModal() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // start from the browser's language when we translate it, otherwise English
+  const browserLocale = typeof navigator !== "undefined" ? navigator.language : "en-US";
+  const initialLocale = (LOCALES.some((l) => l.id === browserLocale) ? browserLocale : "en-US") as Locale;
+  const [locale, setLocale] = useState<Locale>(initialLocale);
+  const [currency, setCurrency] = useState<string>(() => LOCALES.find((l) => l.id === initialLocale)?.currency ?? "USD");
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -678,6 +685,8 @@ export function OnboardingModal() {
         names: `${partnerA} & ${partnerB}`,
         date: new Date(`${date}T12:00:00`).toISOString(),
         venue: venue.trim(),
+        locale,
+        currency,
       });
     } catch (err) {
       setError((err as Error).message || "Could not create the wedding — try again.");
@@ -686,61 +695,123 @@ export function OnboardingModal() {
     }
   };
 
+  return (
+    <I18nProvider locale={locale}>
+      {needsOnboarding && (
+        <OnboardingForm
+          names={names} setNames={setNames}
+          date={date} setDate={setDate}
+          venue={venue} setVenue={setVenue}
+          locale={locale}
+          onLocale={(l) => { setLocale(l); setCurrency(LOCALES.find((x) => x.id === l)?.currency ?? currency); }}
+          currency={currency} setCurrency={setCurrency}
+          busy={busy} error={error} submit={submit} reduced={reduced}
+        />
+      )}
+    </I18nProvider>
+  );
+}
+
+function OnboardingForm({
+  names, setNames, date, setDate, venue, setVenue, locale, onLocale, currency, setCurrency, busy, error, submit, reduced,
+}: {
+  names: string; setNames: (v: string) => void;
+  date: string; setDate: (v: string) => void;
+  venue: string; setVenue: (v: string) => void;
+  locale: Locale; onLocale: (l: Locale) => void;
+  currency: string; setCurrency: (v: string) => void;
+  busy: boolean; error: string | null;
+  submit: (e: React.FormEvent) => Promise<void>;
+  reduced: boolean;
+}) {
+  const { t } = useT();
+
+  // live preview of how the plan will speak in this locale + currency
+  const sampleDate = useMemo(() => {
+    try {
+      return new Intl.DateTimeFormat(locale, { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+        .format(date ? new Date(`${date}T12:00:00`) : new Date(Date.now() + 292 * 864e5));
+    } catch { return ""; }
+  }, [locale, date]);
+  const sampleMoney = useMemo(() => {
+    try {
+      return new Intl.NumberFormat(locale, { style: "currency", currency: /^[A-Za-z]{3}$/.test(currency) ? currency.toUpperCase() : "USD", maximumFractionDigits: 0 }).format(4800);
+    } catch { return ""; }
+  }, [locale, currency]);
+
   return createPortal(
     <AnimatePresence>
-      {needsOnboarding && (
+      <motion.div
+        className="fixed inset-0 z-[85] flex items-center justify-center overflow-y-auto p-5"
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+        role="dialog" aria-modal="true" aria-label="Set up your wedding"
+      >
+        <div className="absolute inset-0 bg-ink/55 backdrop-blur-sm" aria-hidden="true" />
         <motion.div
-          className="fixed inset-0 z-[85] flex items-center justify-center p-5"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          role="dialog" aria-modal="true" aria-label="Set up your wedding"
+          initial={reduced ? false : { y: 40, opacity: 0, scale: 0.97 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 280, damping: 26 }}
+          className="relative my-auto w-full max-w-md overflow-hidden rounded-[1.8rem] bg-cream shadow-glass"
         >
-          <div className="absolute inset-0 bg-ink/55 backdrop-blur-sm" aria-hidden="true" />
-          <motion.div
-            initial={reduced ? false : { y: 40, opacity: 0, scale: 0.97 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            transition={{ type: "spring", stiffness: 280, damping: 26 }}
-            className="relative w-full max-w-md overflow-hidden rounded-[1.8rem] bg-cream shadow-glass"
-          >
-            <div className="relative overflow-hidden bg-ink px-8 py-8 text-cream">
-              <div className="pointer-events-none absolute -left-14 -top-16 h-48 w-48 rounded-full bg-blush/25 blur-3xl" aria-hidden="true" />
-              <div className="pointer-events-none absolute -bottom-20 -right-8 h-52 w-52 rounded-full bg-lav/20 blur-3xl" aria-hidden="true" />
-              {[20, 55, 82].map((left, i) => (
-                <span key={left} className="inv-petal" style={{ left: `${left}%`, animationDuration: `${11 + i * 2}s`, animationDelay: `${i * 1.6}s` }} aria-hidden="true" />
-              ))}
-              <p className="relative text-[0.62rem] font-extrabold uppercase tracking-[0.3em] text-gold">Welcome to Luma</p>
-              <h2 className="relative mt-3 font-display text-[2rem] leading-tight">
-                Let's set the <em className="text-blush">date.</em>
-              </h2>
-              <p className="relative mt-2 text-[0.84rem] font-semibold text-cream/60">
-                Three fields. The rest of the plan grows around them.
-              </p>
-            </div>
+          <div className="relative overflow-hidden bg-ink px-8 py-8 text-cream">
+            <div className="pointer-events-none absolute -left-14 -top-16 h-48 w-48 rounded-full bg-blush/25 blur-3xl" aria-hidden="true" />
+            <div className="pointer-events-none absolute -bottom-20 -right-8 h-52 w-52 rounded-full bg-lav/20 blur-3xl" aria-hidden="true" />
+            {[20, 55, 82].map((left, i) => (
+              <span key={left} className="inv-petal" style={{ left: `${left}%`, animationDuration: `${11 + i * 2}s`, animationDelay: `${i * 1.6}s` }} aria-hidden="true" />
+            ))}
+            <p className="relative text-[0.62rem] font-extrabold uppercase tracking-[0.3em] text-gold">{t("onboard.welcome")}</p>
+            <h2 className="relative mt-3 font-display text-[2rem] leading-tight">
+              {t("onboard.title")}
+            </h2>
+            <p className="relative mt-2 text-[0.84rem] font-semibold text-cream/60">
+              {t("onboard.subtitle")}
+            </p>
+          </div>
 
-            <form onSubmit={submit} className="space-y-4 p-8">
-              <Field label="Your two names">
-                <input className={inputCls} value={names} onChange={(e) => setNames(e.target.value)} placeholder="Maya & Theo" autoFocus />
-              </Field>
-              <Field label="Wedding date">
+          <form onSubmit={submit} className="space-y-4 p-8">
+            <Field label={t("onboard.names")}>
+              <input className={inputCls} value={names} onChange={(e) => setNames(e.target.value)} placeholder="Maya & Theo" autoFocus />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={t("onboard.date")}>
                 <input type="date" className={inputCls} value={date} onChange={(e) => setDate(e.target.value)} min={new Date().toISOString().slice(0, 10)} />
               </Field>
-              <Field label="Venue or city">
-                <input className={inputCls} value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="The Glasshouse, New York" />
+              <Field label={t("onboard.locale")}>
+                <select className={`${inputCls} cursor-pointer`} value={locale} onChange={(e) => onLocale(e.target.value as Locale)} aria-label={t("onboard.locale")}>
+                  {LOCALES.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}
+                </select>
               </Field>
-              {error && (
-                <p className="rounded-xl border border-blush-deep/40 bg-blush-soft/70 px-4 py-3 text-[0.82rem] font-bold text-blush-deep" role="alert">
-                  {error}
-                </p>
-              )}
-              <button type="submit" disabled={busy} className="btn3d btn3d-gold w-full rounded-2xl py-4 text-[0.95rem] font-extrabold disabled:pointer-events-none disabled:opacity-60 cursor-pointer">
-                {busy ? <Loader2 size={17} className="mx-auto animate-spin" /> : "Begin the plan →"}
-              </button>
-              <p className="text-center text-[0.68rem] font-semibold text-ink-mute">
-                You'll start on Essential — upgrade any time, one purchase, yours forever.
+            </div>
+            <Field label={t("onboard.venue")}>
+              <input className={inputCls} value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="The Glasshouse, New York" />
+            </Field>
+            <Field label={t("onboard.currency")}>
+              <div className="flex gap-3">
+                <select className={`${inputCls} w-32 cursor-pointer`} value={currency} onChange={(e) => setCurrency(e.target.value)} aria-label={t("onboard.currency")}>
+                  {[...new Set(LOCALES.map((l) => l.currency))].map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+                {(sampleDate || sampleMoney) && (
+                  <p className="flex min-w-0 flex-1 flex-col justify-center text-[0.72rem] font-bold text-ink-mute" aria-live="polite">
+                    {sampleDate && <span className="truncate">{sampleDate}</span>}
+                    {sampleMoney && <span>{sampleMoney} · {t("onboard.currency")}</span>}
+                  </p>
+                )}
+              </div>
+            </Field>
+            {error && (
+              <p className="rounded-xl border border-blush-deep/40 bg-blush-soft/70 px-4 py-3 text-[0.82rem] font-bold text-blush-deep" role="alert">
+                {error}
               </p>
-            </form>
-          </motion.div>
+            )}
+            <button type="submit" disabled={busy} className="btn3d btn3d-gold w-full rounded-2xl py-4 text-[0.95rem] font-extrabold disabled:pointer-events-none disabled:opacity-60 cursor-pointer">
+              {busy ? <Loader2 size={17} className="mx-auto animate-spin" /> : `${t("onboard.submit")} →`}
+            </button>
+            <p className="text-center text-[0.68rem] font-semibold text-ink-mute">
+              {t("onboard.essential")}
+            </p>
+          </form>
         </motion.div>
-      )}
+      </motion.div>
     </AnimatePresence>,
     document.body,
   );
