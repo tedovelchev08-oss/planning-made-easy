@@ -564,19 +564,27 @@ const lev = (a: string, b: string): number => {
   return prev[n];
 };
 
+// Deliberately NO prefix/nickname shortcut: it scored "jon"/"jonah" at 0.85,
+// which (with the surname bonus) made "Jon Weiss" auto-match "Jonah Weiss".
+// Conservative Levenshtein keeps near-ties in the manual-confirm bucket,
+// where a human — not the matcher — decides.
 const tokenScore = (a: string, b: string): number => {
   if (a === b) return 1;
   if (!a || !b) return 0;
-  if (a.startsWith(b) || b.startsWith(a)) return 0.85; // nickname / truncation
   const d = lev(a, b);
   const maxLen = Math.max(a.length, b.length);
-  return maxLen <= 4 ? (d <= 1 ? 0.8 : 0) : Math.max(0, 1 - d / maxLen);
+  const tolerance = maxLen <= 4 ? 1 : 2;
+  return d <= tolerance ? 1 - d / maxLen : 0;
 };
 
 /**
  * 0..1 similarity between an RSVP name and a guest-list name.
- * Token order independent; weights the surname (last token) more heavily.
- * 1 = exact · ≥0.88 ≈ same person, verify · ≥0.6 plausible · <0.6 probably new
+ * Token order independent; the surname (last token) weights the result.
+ * Buckets used by the RSVP tracker:
+ *   1         exact
+ *   ≥0.88     auto-match (same person beyond reasonable doubt)
+ *   0.6–0.88  manual "is this them?" confirm
+ *   <0.6      treat as a new guest
  */
 export const nameSimilarity = (rawA: string, rawB: string): number => {
   const a = normaliseName(rawA).split(" ").filter(Boolean);
@@ -599,10 +607,12 @@ export const nameSimilarity = (rawA: string, rawB: string): number => {
   }
   const coverage = short.length / Math.max(a.length, b.length); // penalise "The Hartley Family" vs "Hartley"
   const base = (sum / short.length) * (0.55 + 0.45 * coverage);
-  // surname agreement boosts; surname disagreement caps
+  // surname agreement weights the result; disagreement caps it. Multiplicative
+  // (never additive) so a shared surname alone can't force an auto-match:
+  // "Jon Weiss" vs "Jonah Weiss" → 0.80 → manual confirm, never silent merge.
   const lastA = a[a.length - 1], lastB = b[b.length - 1];
   const lastS = tokenScore(lastA, lastB);
-  return Math.min(1, base * (0.7 + 0.3 * lastS) + (lastS === 1 ? 0.08 : 0));
+  return Math.min(1, base * (0.75 + 0.25 * lastS));
 };
 
 /** best guest match for an RSVP name · null when nothing clears the floor */
