@@ -288,7 +288,7 @@ function PetalField({ count }: { count: number }) {
   const { reduced } = useContext(SceneCtx);
   const group = useRef<THREE.Group>(null);
   const petals = useMemo<PetalState[]>(
-    () => Array.from({ length: count }).map((_, i) => ({
+    () => Array.from({ length: count }).map(() => ({
       x: (Math.random() - 0.5) * 11,
       y: (Math.random() - 0.5) * 6.4,
       z: (Math.random() - 0.5) * 3 + 0.8,

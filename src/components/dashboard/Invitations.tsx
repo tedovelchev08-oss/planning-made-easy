@@ -8,7 +8,7 @@ import { Guest, MEALS, MUSIC_TRACKS, RsvpEntry, TEMPLATE_CATS, Template, bestGue
 import { IMAGES } from "../../lib/images";
 import { inviteLink, useApp, usePrefersReducedMotion } from "../../lib/store";
 import { playChime, useChimeLoop } from "../../lib/sound";
-import { DesignFrame, Field, Modal, Pill, Reveal, SafeImg, btn, inputCls } from "../ui";
+import { DesignFrame, Field, Modal, Pill, SafeImg, btn, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
 
 /* ------------------------------ palette & font presets ------------------------------ */
@@ -1075,7 +1075,7 @@ function LuxeStudio({ cfg, setCfg, unlocked }: {
   setCfg: (p: Partial<ReturnType<typeof useApp>["db"]["invitation"]>) => void;
   unlocked: boolean;
 }) {
-  const { toast, openCheckout, patch, db } = useApp();
+  const { toast, openCheckout, db } = useApp();
   const fileRef = useRef<HTMLInputElement>(null);
   const motion = cfg.motion;
   const music = cfg.music;

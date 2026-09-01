@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Heart, Loader2, Music, Play, Sparkles, StopCircle } from "lucide-react";
+import { Check, Heart, Loader2, Play, Sparkles, StopCircle } from "lucide-react";
 import { MEALS, RsvpSource, configureFormat, fmtDate, seedTemplates } from "../lib/data";
 import { inviteLink, useApp, usePrefersReducedMotion, type Db, type InvitationConfig } from "../lib/store";
 import { getGuestByToken, getPublicInvitation, submitRsvp, type PublicInvitation } from "../lib/api";
@@ -406,8 +406,22 @@ export default function GuestInvite() {
                   </label>
                 )}
 
-                <button type="submit" className="mt-6 w-full rounded-full py-3.5 text-[0.92rem] font-extrabold transition-all duration-300 hover:brightness-110 active:scale-[0.98] cursor-pointer" style={{ background: colors.ink, color: colors.bg }}>
-                  Send my answer <Heart size={13} className="ml-1 inline" fill="currentColor" />
+                <button
+                  type="submit"
+                  disabled={sending}
+                  aria-busy={sending}
+                  className="mt-6 w-full rounded-full py-3.5 text-[0.92rem] font-extrabold transition-all duration-300 hover:brightness-110 active:scale-[0.98] cursor-pointer disabled:cursor-wait disabled:opacity-70 disabled:hover:brightness-100"
+                  style={{ background: colors.ink, color: colors.bg }}
+                >
+                  {sending ? (
+                    <>
+                      <Loader2 size={15} className="mr-1.5 inline animate-spin" /> Sending…
+                    </>
+                  ) : (
+                    <>
+                      Send my answer <Heart size={13} className="ml-1 inline" fill="currentColor" />
+                    </>
+                  )}
                 </button>
               </motion.form>
             ) : (

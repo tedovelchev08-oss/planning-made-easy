@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { ArrowRight, Check, Flower2, Heart, MapPin, Sparkles } from "lucide-react";
+import { ArrowRight, Flower2, Heart, MapPin, Sparkles } from "lucide-react";
 import { useApp, useCountUp, usePrefersReducedMotion, useStats } from "../../lib/store";
 import { playChime } from "../../lib/sound";
 import { fmtDate, fmtMoney, timeAgo } from "../../lib/data";

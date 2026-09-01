@@ -353,13 +353,17 @@ export function CheckoutModal() {
 /* ------------------------------ auth modal ------------------------------ */
 
 /** word that keeps turning in the auth headline */
+// module scope: rebuilding this array each render would make words.length an
+// unstable effect dependency and reset the interval on every keystroke nearby
+const ROTATING_WORDS = ["feeling.", "calm.", "story.", "yes."];
+
 function RotatingWord() {
   const reduced = usePrefersReducedMotion();
-  const words = ["feeling.", "calm.", "story.", "yes."];
+  const words = ROTATING_WORDS;
   const [i, setI] = useState(0);
   useEffect(() => {
     if (reduced) return;
-    const id = window.setInterval(() => setI((v) => (v + 1) % words.length), 2400);
+    const id = window.setInterval(() => setI((v) => (v + 1) % ROTATING_WORDS.length), 2400);
     return () => window.clearInterval(id);
   }, [reduced]);
   return (
