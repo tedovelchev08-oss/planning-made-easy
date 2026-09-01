@@ -1,3 +1,16 @@
+# ==================================================================
+# ⚠️  KEEP IN STEP WITH vercel.json
+#
+# This site deploys on VERCEL (planning-made-easy.vercel.app), which
+# IGNORES this file. The live headers come from vercel.json.
+# This file is kept so a Netlify deploy behaves identically.
+#
+# If you change ANY security header or the CSP in one file, change
+# the other in the SAME commit — a header fixed in one silently does
+# nothing on the other host. vercel.json is strict JSON and cannot
+# carry comments, so the rationale lives in docs/SECURITY-HEADERS.md.
+# ==================================================================
+
 [build]
   command = "npm run build"
   publish = "dist"
@@ -13,11 +26,19 @@
   status = 200
 
 # ------------------------------------------------------------------
-# Security headers
+# Security headers  (mirror of vercel.json — see docs/SECURITY-HEADERS.md)
 #
 # CSP notes:
+#  - connect-src carries the Supabase project origin (read from
+#    VITE_SUPABASE_URL, ref yyznkxfxmwetsmivgpxu) — auth, workspace
+#    fetches and anonymous RSVP inserts all go through it. The wss://
+#    entry covers Supabase Realtime should it be switched on; the app
+#    does not use Realtime today and the entry is harmless insurance.
 #  - Google Fonts needs fonts.googleapis.com (styles) + fonts.gstatic.com (files).
 #  - Remote marketing/venue images live on image.qwenlm.ai.
+#  - img-src and media-src include data: because owner-uploaded content
+#    is stored inline: imported designs are canvas.toDataURL() images and
+#    uploaded invitation tracks are FileReader.readAsDataURL() audio.
 #  - DesignFrame renders owner-supplied HTML invitations in sandboxed srcDoc
 #    iframes (allow-scripts, no allow-same-origin). srcDoc documents inherit
 #    this policy, so 'unsafe-inline' in script-src/style-src is required for
@@ -28,7 +49,7 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://image.qwenlm.ai https:; media-src 'self' data: blob:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' blob: data: https://image.qwenlm.ai https:; media-src 'self' blob: data:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://yyznkxfxmwetsmivgpxu.supabase.co wss://yyznkxfxmwetsmivgpxu.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
