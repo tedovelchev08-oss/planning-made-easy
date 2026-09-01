@@ -583,8 +583,6 @@ export const nameSimilarity = (rawA: string, rawB: string): number => {
   const b = normaliseName(rawB).split(" ").filter(Boolean);
   if (!a.length || !b.length) return 0;
   if (a.join(" ") === b.join(" ")) return 1;
-  const bestFor = (tok: string, other: string[]) =>
-    Math.max(0, ...other.map((o) => tokenScore(tok, o)));
   // greedy alignment: each token of the shorter side finds its best partner
   const [short, long] = a.length <= b.length ? [a, b] : [b, a];
   const used = new Set<number>();

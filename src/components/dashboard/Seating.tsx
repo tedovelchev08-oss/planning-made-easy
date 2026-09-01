@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Armchair, Leaf, Plus, Search, Settings2, Trash2, Wheat } from "lucide-react";
-import { Guest, SeatTable, TableShape, initials } from "../../lib/data";
+import { SeatTable, TableShape, initials } from "../../lib/data";
 import { useApp } from "../../lib/store";
 import { playChime } from "../../lib/sound";
 import { Field, Modal, Pill, btn, inputCls, selectCls } from "../ui";
@@ -20,7 +20,6 @@ export default function Seating() {
   const [seatPicker, setSeatPicker] = useState<{ tableId: string; seat: number } | null>(null);
   const [pickerQ, setPickerQ] = useState("");
   const [settings, setSettings] = useState<SeatTable | null>(null);
-  const [addingShape, setAddingShape] = useState(false);
 
   const seated = useMemo(() => db.guests.filter((g) => g.table), [db.guests]);
   const unassigned = useMemo(() => {
@@ -72,7 +71,6 @@ export default function Seating() {
       y: 20 + Math.random() * 55,
     };
     setDb((d) => ({ ...d, tables: [...d.tables, t] }));
-    setAddingShape(false);
     toast(`${t.name} added`, "Drag it anywhere on the floor.");
   };
 

@@ -221,7 +221,7 @@ export async function createWedding(input: {
   if (!userId) throw new Error("Not signed in");
 
   let weddingId: string | null = null;
-  let slug = slugify(input.names) || "our-wedding";
+  const slug = slugify(input.names) || "our-wedding";
   let weddingRow: WeddingRow | null = null;
 
   for (let attempt = 0; attempt < 4 && !weddingId; attempt++) {

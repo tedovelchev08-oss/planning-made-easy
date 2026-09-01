@@ -74,10 +74,15 @@ export default function Guests() {
     return [...t.entries()].sort((a, b) => b[1] - a[1]);
   }, [db.guests]);
 
-  // receive quick actions from the ⌘K palette and the mobile dock
+  // receive quick actions from the ⌘K palette and the mobile dock.
+  // openEdit closes over db.guests (to load the plus-one draft), so it is a new
+  // function every render — calling it through a ref keeps these window
+  // listeners subscribed exactly once. Do NOT add openEdit to the deps array:
+  // that would tear down and re-add the listeners on every render.
+  const openEditRef = useRef<(g: Guest, fresh: boolean) => void>(() => {});
   useEffect(() => {
     const onFocus = (e: Event) => setQ(((e as CustomEvent).detail as string) ?? "");
-    const onAdd = () => openEdit(emptyForm(), true);
+    const onAdd = () => openEditRef.current(emptyForm(), true);
     window.addEventListener("luma:guest-focus", onFocus);
     window.addEventListener("luma:guest-add", onAdd);
     return () => { window.removeEventListener("luma:guest-focus", onFocus); window.removeEventListener("luma:guest-add", onAdd); };
@@ -152,6 +157,11 @@ export default function Guests() {
     const po = fresh ? null : db.guests.find((x) => x.plusOneOf === g.id);
     setPlusOneDraft({ name: po?.name ?? "", meal: po?.meal ?? null });
   };
+  // keep the palette/dock listener (subscribed once, above) pointed at the
+  // freshest openEdit without re-subscribing — see the comment there.
+  useEffect(() => {
+    openEditRef.current = openEdit;
+  });
 
   /** removing a host also releases their plus-one */
   const remove = (id: string) => {

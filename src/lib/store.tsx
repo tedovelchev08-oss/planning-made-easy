@@ -8,7 +8,7 @@ import { isSupabaseConfigured } from "./supabase";
 import {
   EntityKey, acceptPendingInvites, authApi, budgetToRow, createWedding, customTplToRow, fetchFreshRsvps,
   fetchWorkspace, guestToRow, invitationToRow, invitePartner as apiInvitePartner, isUuid, myWeddingId, newId,
-  registryToRow, rsvpToRow, syncEntity, tableToRow, taskToRow, websiteToRow, weddingToRow,
+  registryToRow, rsvpToRow, syncEntity, tableToRow, taskToRow, websiteToRow,
 } from "./api";
 
 /* ------------------------------------------------------------------ */
