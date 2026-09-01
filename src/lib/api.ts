@@ -33,13 +33,13 @@ export const weddingToRow = (w: Wedding) => ({
 
 export const rowToGuest = (r: GuestRow): Guest => ({
   id: r.id, name: r.name, party: r.party, rsvp: r.rsvp, meal: r.meal,
-  plusOne: r.plus_one, table: r.table_id, seat: r.seat, dietary: r.dietary,
+  table: r.table_id, seat: r.seat, plusOneOf: r.plus_one_of, dietary: r.dietary,
   notes: r.notes, token: r.rsvp_token,
 });
 
 export const guestToRow = (g: Guest, weddingId: string, sort: number): GuestRow => ({
   id: g.id, wedding_id: weddingId, name: g.name, party: g.party, rsvp: g.rsvp,
-  meal: g.meal, plus_one: g.plusOne, table_id: g.table, seat: g.seat,
+  meal: g.meal, table_id: g.table, seat: g.seat, plus_one_of: g.plusOneOf,
   dietary: g.dietary, notes: g.notes, rsvp_token: g.token ?? newId(), sort,
 });
 
@@ -76,7 +76,7 @@ type VendorRowDb = Database["public"]["Tables"]["vendors"]["Row"] & {
 export const rowToVendor = (r: VendorRowDb): Vendor => ({
   id: r.id, category: r.category, company: r.company, contact: r.contact,
   email: r.email, phone: r.phone, price: Number(r.price), status: r.status,
-  contract: r.contract, notes: r.notes,
+  contract: r.contract, notes: r.notes, budgetId: r.budget_id,
   payments: (r.vendor_payments ?? [])
     .sort((a, b) => a.sort - b.sort)
     .map((p) => ({ label: p.label, amount: Number(p.amount), due: p.due, paid: p.paid })),
@@ -93,12 +93,14 @@ export const customTplToRow = (c: CustomTemplate, weddingId: string, sort: numbe
 
 export const rsvpToRow = (e: RsvpEntry, weddingId: string) => ({
   id: e.id, wedding_id: weddingId, guest_id: null as string | null, name: e.name,
-  answer: e.answer, meal: e.meal, note: e.note, source: e.source,
+  answer: e.answer, meal: e.meal, note: e.note,
+  plus_one: e.plusOne ?? null, plus_one_meal: e.plusOneMeal ?? null, source: e.source,
   at: new Date(e.at).toISOString(), synced: e.synced ?? false,
 });
 
 export const rowToRsvp = (r: Database["public"]["Tables"]["rsvps"]["Row"]): RsvpEntry => ({
   id: r.id, name: r.name, answer: r.answer, meal: r.meal, note: r.note ?? "",
+  plusOne: r.plus_one, plusOneMeal: r.plus_one_meal,
   at: new Date(r.at).getTime(), source: r.source as RsvpEntry["source"], synced: r.synced,
 });
 
@@ -308,7 +310,7 @@ export async function syncEntity(
         await run(s.from("vendors").upsert({
           id: v.id, wedding_id: weddingId, category: v.category, company: v.company,
           contact: v.contact, email: v.email, phone: v.phone, price: v.price,
-          status: v.status, contract: v.contract, notes: v.notes, sort: 0,
+          status: v.status, contract: v.contract, notes: v.notes, budget_id: v.budgetId, sort: 0,
         } as never, { onConflict: "id" }));
         void row;
         // replace the schedule wholesale — payment rows carry no client ids

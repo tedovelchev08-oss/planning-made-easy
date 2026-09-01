@@ -9,7 +9,7 @@ const STATUSES: VendorStatus[] = ["Inquiry", "Proposal", "Booked", "Declined"];
 
 const blank = (): Vendor => ({
   id: "", category: VENDOR_CATEGORIES[0], company: "", contact: "", email: "", phone: "",
-  price: 0, status: "Inquiry", contract: false, notes: "", payments: [],
+  price: 0, status: "Inquiry", contract: false, notes: "", budgetId: null, payments: [],
 });
 
 export default function Vendors() {

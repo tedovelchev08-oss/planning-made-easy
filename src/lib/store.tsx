@@ -531,7 +531,11 @@ export function useStats() {
     const progressPct = Math.round((tasksDone / Math.max(1, db.tasks.length)) * 100);
     const days = Math.max(0, Math.ceil((new Date(db.wedding.date).getTime() - Date.now()) / 86400000));
     const seated = db.guests.filter((g) => g.table).length;
-    return { totalBudget, committed, paid, remaining, confirmed, pending, declined, total: db.guests.length, tasksDone, tasksTotal: db.tasks.length, progressPct, days, seated };
+    const plusOnes = db.guests.filter((g) => g.plusOneOf).length;
+    const hosts = db.guests.length - plusOnes;
+    // confirmed plates = confirmed guests, plus-ones included (they eat too)
+    const confirmedPlates = confirmed;
+    return { totalBudget, committed, paid, remaining, confirmed, pending, declined, total: db.guests.length, hosts, plusOnes, confirmedPlates, tasksDone, tasksTotal: db.tasks.length, progressPct, days, seated };
   }, [db]);
 }
 

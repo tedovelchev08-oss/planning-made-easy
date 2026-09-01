@@ -42,7 +42,7 @@ export interface GuestRow {
   party: "A" | "B" | "S";
   rsvp: "confirmed" | "pending" | "declined";
   meal: string | null;
-  plus_one: string | null;
+  plus_one_of: string | null;
   table_id: string | null;
   seat: number | null;
   dietary: string | null;
@@ -107,6 +107,7 @@ export interface VendorRow {
   status: "Inquiry" | "Proposal" | "Booked" | "Declined";
   contract: boolean;
   notes: string;
+  budget_id: string | null;
   sort: number;
   vendor_payments?: VendorPaymentRow[];
 }
@@ -136,6 +137,7 @@ export interface InvitationConfigRow {
   font_serif: boolean | null;
   motion: Json;
   music: Json;
+  music_url: string | null;
 }
 
 export interface WebsiteConfigRow {
@@ -170,6 +172,8 @@ export interface RsvpRow {
   answer: "yes" | "no";
   meal: string | null;
   note: string | null;
+  plus_one: string | null;
+  plus_one_meal: string | null;
   source: string;
   at: string;
   synced: boolean;

@@ -138,6 +138,11 @@ export default function Overview() {
           </div>
           <p className="mt-2 flex flex-wrap items-center gap-2 text-[0.72rem] font-semibold text-ink-mute">
             {stats.pending} pending · {stats.declined} with love, no
+            {stats.plusOnes > 0 && (
+              <span className="inline-flex items-center rounded-full bg-gold-soft px-2 py-0.5 font-extrabold text-gold-deep">
+                +{stats.plusOnes} plus-ones counted
+              </span>
+            )}
             {weekYes > 0 && (
               <motion.span
                 initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
