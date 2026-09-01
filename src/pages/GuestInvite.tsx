@@ -1,13 +1,55 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Heart, Music, Play, Sparkles, StopCircle } from "lucide-react";
-import { Guest, MEALS, RsvpSource, fmtDate, seedTemplates } from "../lib/data";
-import { inviteLink, useApp, usePrefersReducedMotion } from "../lib/store";
+import { Check, Heart, Loader2, Music, Play, Sparkles, StopCircle } from "lucide-react";
+import { MEALS, RsvpSource, fmtDate, seedTemplates } from "../lib/data";
+import { inviteLink, useApp, usePrefersReducedMotion, type Db, type InvitationConfig } from "../lib/store";
+import { getGuestByToken, getPublicInvitation, submitRsvp, type PublicInvitation } from "../lib/api";
 import { playChime, useChimeLoop } from "../lib/sound";
 import { InviteArt } from "../components/dashboard/Invitations";
 import { SiteBody } from "../components/dashboard/Website";
 import { DesignFrame, Logo, SafeImg } from "../components/ui";
+
+const VALID_SOURCES: RsvpSource[] = ["link", "whatsapp", "instagram", "messenger", "email"];
+
+/* Custom templates arrive over the wire without client-only fields. */
+type PublicCustom = { id: string; name: string; dataUrl?: string | null; html?: string | null } | null;
+
+function PageSkeleton() {
+  return (
+    <div className="flex min-h-[100svh] flex-col items-center justify-center bg-cream px-6">
+      <span className="flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 bg-white/70 shadow-card">
+        <Loader2 size={20} className="animate-spin text-gold-deep" />
+      </span>
+      <p className="mt-5 font-display text-xl italic text-ink-2">Fetching the invitation…</p>
+      <div className="mt-6 w-full max-w-sm space-y-2.5" aria-hidden="true">
+        <div className="h-3 w-2/3 animate-pulse rounded-full bg-blush/30" />
+        <div className="h-3 w-full animate-pulse rounded-full bg-ink/8" style={{ animationDelay: "0.15s" }} />
+        <div className="h-3 w-5/6 animate-pulse rounded-full bg-ink/8" style={{ animationDelay: "0.3s" }} />
+      </div>
+    </div>
+  );
+}
+
+function MissingInvite() {
+  return (
+    <div className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-cream px-6 text-center">
+      <span className="inv-petal" style={{ left: "22%", animationDuration: "12s" }} aria-hidden="true" />
+      <span className="inv-petal" style={{ left: "64%", animationDuration: "14s", animationDelay: "3s" }} aria-hidden="true" />
+      <span className="flex h-16 w-16 items-center justify-center rounded-full border border-gold/50 bg-white/70 shadow-card">
+        <Heart size={22} className="text-blush-deep" />
+      </span>
+      <h1 className="mt-6 font-display text-4xl tracking-tight text-ink">This invitation can't be found</h1>
+      <p className="mt-3 max-w-sm text-[0.92rem] leading-relaxed text-ink-2">
+        The link may have lost a letter on the way, or the couple hasn't published their page yet.
+        Double-check the address — or head back to Luma.
+      </p>
+      <Link to="/" className="mt-8 inline-flex items-center gap-2 rounded-full bg-ink px-7 py-3.5 text-[0.88rem] font-bold text-cream transition hover:bg-ink/85 active:scale-[0.97]">
+        Back to Luma
+      </Link>
+    </div>
+  );
+}
 
 function useCountdown(target: number) {
   const [c, setC] = useState({ d: 0, h: 0, m: 0, s: 0 });
@@ -29,20 +71,93 @@ function useCountdown(target: number) {
 }
 
 export default function GuestInvite() {
-  const { db, patch, toast } = useApp();
+  const { db, patch, toast, mode } = useApp();
   const reduced = usePrefersReducedMotion();
-  const cfg = db.invitation;
-  const custom = db.customTemplates.find((c) => c.id === cfg.templateId) ?? null;
+  const [params] = useSearchParams();
+  const token = params.get("token");
+  const srcParam = params.get("src");
+  const source: RsvpSource = VALID_SOURCES.includes(srcParam as RsvpSource) ? (srcParam as RsvpSource) : "link";
+
+  /*
+   * Cloud mode: the page renders from the couple's PUBLIC record, addressed by
+   * slug (open link) or resolved from a per-guest token — so a guest on any
+   * device sees the real invitation, not the viewer's own workspace.
+   * Demo mode keeps the seeded local playground.
+   */
+  const [pub, setPub] = useState<PublicInvitation | null>(null);
+  const [knownGuest, setKnownGuest] = useState<{ id: string; name: string } | null>(null);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "missing">(mode === "cloud" ? "loading" : "ready");
+
+  useEffect(() => {
+    if (mode !== "cloud") return;
+    let live = true;
+    (async () => {
+      try {
+        let slug = params.get("slug");
+        if (token) {
+          const g = await getGuestByToken(token);
+          if (!live) return;
+          if (g) { setKnownGuest({ id: g.id, name: g.name }); slug = slug ?? g.slug; }
+        }
+        // a signed-in couple landing here with no params previews their own page
+        if (!slug && db.wedding.slug) slug = db.wedding.slug;
+        if (!slug) { setLoadState("missing"); return; }
+        const p = await getPublicInvitation(slug);
+        if (!live) return;
+        if (!p) { setLoadState("missing"); return; }
+        setPub(p);
+        setLoadState("ready");
+      } catch {
+        if (live) setLoadState("missing");
+      }
+    })();
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, token]);
+
+  const cfg: InvitationConfig = pub
+    ? {
+        templateId: pub.invitation.template_id,
+        names: pub.names,
+        line1: pub.invitation.line1,
+        line2: pub.invitation.line2,
+        venueLine: pub.invitation.venue_line,
+        rsvp: pub.invitation.collect_rsvp,
+        meal: pub.invitation.collect_meal,
+        notes: pub.invitation.collect_notes,
+        photo: pub.invitation.photo,
+        colors: pub.invitation.colors,
+        fontSerif: pub.invitation.font_serif,
+        motion: pub.invitation.motion,
+        music: pub.invitation.music,
+      }
+    : db.invitation;
+  const custom: PublicCustom = pub ? pub.custom : db.customTemplates.find((c) => c.id === cfg.templateId) ?? null;
+  const names = pub ? pub.names : db.wedding.names;
+  const dateIso = pub ? pub.date : db.wedding.date;
+  const plan = pub ? pub.plan : db.plan;
+  const website = pub
+    ? { ...pub.website, heroPhoto: pub.website.hero_photo }
+    : db.website;
+  /** minimal Db-shaped object so SiteBody can render the public record */
+  const siteDb: Db = pub
+    ? {
+        ...db,
+        wedding: { ...db.wedding, names: pub.names, partnerA: pub.partnerA, partnerB: pub.partnerB, date: pub.date, venue: pub.venue, location: pub.location },
+        registry: pub.registry.map((r, i) => ({ id: `pr-${i}`, name: r.name, store: r.store, price: 0, url: "#", purchased: false })),
+      }
+    : db;
+
   const template = seedTemplates.find((t) => t.id === cfg.templateId) ?? seedTemplates[0];
   const colors = cfg.colors ?? { bg: template.bg, ink: template.ink, accent: template.accent };
   const serif = cfg.fontSerif ?? template.serif;
   const fontFamily = serif ? "'Playfair Display', Georgia, serif" : "'Nunito Sans', sans-serif";
-  const luxe = db.plan === "luxe";
+  const luxe = plan === "luxe";
   const motionCfg = cfg.motion;
   const petalsOn = luxe && motionCfg.petals !== "off" && !reduced;
   const petalCount = motionCfg.petals === "lush" ? 14 : 7;
 
-  const countdown = useCountdown(new Date(db.wedding.date).getTime());
+  const countdown = useCountdown(new Date(dateIso).getTime());
 
   const musicCfg = cfg.music;
   const hasUpload = musicCfg.track === "upload" && !!musicCfg.uploadData;
@@ -66,28 +181,49 @@ export default function GuestInvite() {
   const [meal, setMeal] = useState(MEALS[0]);
   const [note, setNote] = useState("");
   const [done, setDone] = useState<null | "yes" | "no">(null);
+  const [sending, setSending] = useState(false);
 
-  const suggestions = useMemo(() => db.guests.map((g) => g.name), [db.guests]);
+  // personal links pre-fill the invited guest's name
+  useEffect(() => { if (knownGuest) setName(knownGuest.name); }, [knownGuest]);
 
-  const submit = (e: React.FormEvent) => {
+  const suggestions = useMemo(
+    () => (pub ? (knownGuest ? [knownGuest.name] : []) : db.guests.map((g) => g.name)),
+    [pub, knownGuest, db.guests],
+  );
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) { toast("Who's answering?", "Pop your name in so we know who to save a seat for.", "warn"); return; }
     if (!answer) { toast("One more tap", "Joyfully accept or regretfully decline — either way, we'll know.", "warn"); return; }
 
-    const source: RsvpSource = "link";
+    if (pub) {
+      // real submission — the anonymous insert policy verifies token/slug.
+      // The guest list is NEVER mutated from here; the couple reviews and syncs.
+      setSending(true);
+      try {
+        await submitRsvp({ token, slug: pub.slug, name: name.trim(), answer, meal: answer === "yes" ? meal : null, note: note.trim() || null, source });
+        playChime(answer === "yes" ? "sparkle" : "undo");
+        setDone(answer);
+      } catch {
+        toast("Couldn't send your RSVP", "Check your connection and try again — nothing was lost.", "warn");
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
+
+    // demo playground — local only, and even here answers wait in the RSVP
+    // tracker for the couple's review step, so the flow is honest everywhere
     const entry = { id: `rv-${Date.now()}`, name: name.trim(), answer, meal: answer === "yes" ? meal : null, note: note.trim(), at: Date.now(), source };
-    const match = db.guests.find((g) => g.name.toLowerCase() === name.trim().toLowerCase());
-    patch({
-      rsvpLog: [entry, ...db.rsvpLog],
-      guests: match
-        ? db.guests.map((g) => (g.id === match.id ? { ...g, rsvp: (answer === "yes" ? "confirmed" : "declined") as Guest["rsvp"], meal: answer === "yes" ? meal : g.meal } : g))
-        : db.guests,
-    });
+    patch({ rsvpLog: [entry, ...db.rsvpLog] });
     playChime(answer === "yes" ? "sparkle" : "undo");
     setDone(answer);
   };
 
-  const link = inviteLink(db.wedding.names);
+  const link = pub ? inviteLink(pub.slug) : inviteLink(db.wedding.names);
+
+  if (mode === "cloud" && loadState === "loading") return <PageSkeleton />;
+  if (mode === "cloud" && loadState === "missing") return <MissingInvite />;
 
   return (
     <div className="relative min-h-[100svh] overflow-hidden" style={{ background: colors.bg, color: colors.ink, fontFamily }}>
@@ -141,13 +277,13 @@ export default function GuestInvite() {
               <div>
                 <SafeImg src={custom.dataUrl ?? ""} alt={`${custom.name} — wedding invitation`} className="w-full" />
                 <div className="px-7 py-8 text-center sm:px-10">
-                  <p className="font-display text-xl italic" style={{ color: colors.accent }}>{fmtDate(db.wedding.date, { month: "long", day: "numeric", year: "numeric" })}</p>
+                  <p className="font-display text-xl italic" style={{ color: colors.accent }}>{fmtDate(dateIso, { month: "long", day: "numeric", year: "numeric" })}</p>
                   <p className="mt-1.5 text-[0.88rem] font-semibold opacity-80">{cfg.venueLine}</p>
                 </div>
               </div>
             )
           ) : (
-            <InviteArt template={template} colors={colors} serif={serif} cfg={cfg} animated={luxe && !reduced} dateIso={db.wedding.date} />
+            <InviteArt template={template} colors={colors} serif={serif} cfg={cfg} animated={luxe && !reduced} dateIso={dateIso} />
           )}
 
           {/* countdown */}
@@ -165,6 +301,7 @@ export default function GuestInvite() {
         </motion.div>
 
         {/* RSVP */}
+        {cfg.rsvp && (
         <motion.section
           ref={rsvpRef}
           initial={reduced ? false : { opacity: 0, y: 30 }}
@@ -179,6 +316,11 @@ export default function GuestInvite() {
               <motion.form key="form" onSubmit={submit} exit={{ opacity: 0, y: -16 }} className="text-left">
                 <p className="text-center text-[0.62rem] font-extrabold uppercase tracking-[0.32em]" style={{ color: colors.accent }}>Kindly reply</p>
                 <h1 className="mt-2 text-center font-display text-[1.8rem] leading-tight sm:text-3xl">Will you join us?</h1>
+                {knownGuest && (
+                  <p className="mt-2 text-center text-[0.8rem] font-semibold opacity-70">
+                    Answering as <span className="font-extrabold" style={{ color: colors.accent }}>{knownGuest.name}</span>
+                  </p>
+                )}
 
                 <label className="mt-6 block">
                   <span className="mb-1.5 block text-[0.7rem] font-extrabold uppercase tracking-[0.16em] opacity-60">Your name</span>
@@ -245,7 +387,7 @@ export default function GuestInvite() {
                 <h2 className="mt-4 font-display text-3xl">{done === "yes" ? "You're on the list!" : "You'll be missed"}</h2>
                 <p className="mx-auto mt-2 max-w-sm text-[0.9rem] leading-relaxed opacity-75">
                   {done === "yes"
-                    ? `${name.split(" ")[0]}, we're saving you a seat${cfg.meal ? ` — ${meal} noted` : ""}. ${db.wedding.names.split("&")[0]?.trim()} will be over the moon.`
+                    ? `${name.split(" ")[0]}, we're saving you a seat${cfg.meal ? ` — ${meal} noted` : ""}. ${names.split("&")[0]?.trim()} will be over the moon.`
                     : "Thank you for letting us know — we'll raise a glass in your honour."}
                 </p>
                 <button onClick={() => { setDone(null); setAnswer(null); setNote(""); }} className="mt-5 text-[0.78rem] font-bold underline-offset-4 hover:underline cursor-pointer" style={{ color: colors.accent }}>
@@ -255,9 +397,10 @@ export default function GuestInvite() {
             )}
           </AnimatePresence>
         </motion.section>
+        )}
 
         {/* the rest of the story — the wedding website, living on this same page */}
-        {db.website.published && (
+        {website.published && (
           <motion.section
             initial={reduced ? false : { opacity: 0, y: 36 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -268,9 +411,9 @@ export default function GuestInvite() {
             aria-label="Wedding details"
           >
             <SiteBody
-              w={{ ...db.website, sections: { ...db.website.sections, hero: false, rsvp: false } }}
-              db={db}
-              anim={luxe && db.website.animations && !reduced}
+              w={{ ...website, sections: { ...website.sections, hero: false, rsvp: false } }}
+              db={siteDb}
+              anim={luxe && website.animations && !reduced}
               footer={false}
               onRsvp={() => rsvpRef.current?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" })}
             />

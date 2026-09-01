@@ -20,6 +20,8 @@ export interface Wedding {
   venue: string;
   location: string;
   timezone: string;
+  /** public address of the wedding page · unique per deployment */
+  slug: string;
 }
 
 export interface Guest {
@@ -30,8 +32,12 @@ export interface Guest {
   meal: string | null;
   plusOne: string | null;
   table: string | null;
+  /** seat index at the table (0-based) · null while unseated */
+  seat: number | null;
   dietary: string | null;
   notes: string;
+  /** per-guest RSVP link token · present once the guest lives in the cloud */
+  token?: string;
 }
 
 export interface BudgetCategory {
@@ -122,6 +128,20 @@ export const PHASES: { id: PhaseId; label: string; hint: string }[] = [
 
 /* ------------------------------------------------------------------ */
 
+/**
+ * Local-timezone day key "YYYY-MM-DD". The single format used anywhere a date
+ * becomes a map key or is compared for equality (calendar cells, task dues,
+ * the wedding day). Full ISO timestamps must pass through here first.
+ */
+export const toDayKey = (iso: string): string => {
+  // Already a day key? Return untouched — parsing "YYYY-MM-DD" as a Date would
+  // read it as UTC midnight and shift a day backwards west of UTC.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
 const addDays = (d: number) => {
   const t = new Date();
   t.setDate(t.getDate() + d);
@@ -136,11 +156,12 @@ export const seedWedding: Wedding = {
   venue: "The Glasshouse",
   location: "Hudson Yards, New York",
   timezone: "America/New_York",
+  slug: "maya-theo",
 };
 
 /* ------------------------------ guests ---------------------------- */
 
-const rich: Omit<Guest, "id">[] = [
+const rich: Omit<Guest, "id" | "seat">[] = [
   { name: "Amara Okafor", party: "A", rsvp: "confirmed", meal: MEALS[2], plusOne: "Kwame Okafor", table: "t1", dietary: "Vegan", notes: "College roommate — near the dance floor" },
   { name: "Liam Bennett", party: "B", rsvp: "confirmed", meal: MEALS[0], plusOne: null, table: "t2", dietary: null, notes: "Best man" },
   { name: "Sofia Lindqvist", party: "A", rsvp: "confirmed", meal: MEALS[1], plusOne: "Erik Lindqvist", table: "t1", dietary: "Gluten-free", notes: "Maid of honor" },
@@ -177,7 +198,15 @@ const first = ["Ava", "Nora", "Elias", "June", "Marco", "Selma", "Theo", "Alma",
 const last = ["Andersson", "Bergman", "Costa", "Dahl", "Ekström", "Fontaine", "Galli", "Holm", "Ibrahim", "Jensen", "Klein", "Larsen", "Meyer", "Nilsen", "Olsson", "Petersen", "Quist", "Rossi", "Sund", "Thomsen", "Ueda", "Vidal", "Weber", "Xavier", "Young", "Zeller"];
 
 function buildGuests(): Guest[] {
-  const guests: Guest[] = rich.map((g, i) => ({ id: `g-${i + 1}`, ...g }));
+  // hand out increasing seat indices per table so seated guests render at fixed seats
+  const seatCount = new Map<string, number>();
+  const nextSeat = (table: string | null): number | null => {
+    if (!table) return null;
+    const n = seatCount.get(table) ?? 0;
+    seatCount.set(table, n + 1);
+    return n;
+  };
+  const guests: Guest[] = rich.map((g, i) => ({ id: `g-${i + 1}`, ...g, seat: nextSeat(g.table) }));
   // 82 generated → totals: 112 guests, 84 confirmed, 21 pending, 7 declined
   for (let i = 0; i < 82; i++) {
     const name = `${first[i % first.length]} ${last[(i * 7) % last.length]}`;
@@ -191,6 +220,7 @@ function buildGuests(): Guest[] {
       meal: rsvp === "confirmed" ? MEALS[i % MEALS.length] : null,
       plusOne: i % 11 === 4 ? `${first[(i + 3) % first.length]} ${last[(i * 3) % last.length]}` : null,
       table,
+      seat: nextSeat(table),
       dietary: i % 13 === 5 ? "Vegetarian" : i % 17 === 6 ? "Nut allergy" : null,
       notes: "",
     });
@@ -217,17 +247,17 @@ export const seedBudget: BudgetCategory[] = [
 
 /* ------------------------------ tasks ------------------------------ */
 
-/** ISO date n days from today (or an explicit ISO string) */
+/** Day key n days from today (or an explicit ISO string normalised to a day key) */
 const dueIn = (n: number) => {
   const d = new Date();
   d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
+  return toDayKey(d.toISOString());
 };
 
 const task = (title: string, phase: PhaseId, done: boolean, assignee: Assignee, week = false, due?: number | string): Task => ({
   id: `t-${title.replace(/[^a-z0-9]/gi, "").slice(0, 18)}-${phase}`,
   title, phase, done, assignee, week,
-  ...(due !== undefined ? { due: typeof due === "string" ? due : dueIn(due) } : {}),
+  ...(due !== undefined ? { due: typeof due === "string" ? toDayKey(due) : dueIn(due) } : {}),
 });
 
 export const seedTasks: Task[] = [

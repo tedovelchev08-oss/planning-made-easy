@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Armchair, BellRing, CalendarDays, Clock3, ExternalLink, Gift, Globe, LayoutDashboard,
+  Armchair, BellRing, CalendarDays, Check, Clock3, ExternalLink, Gift, Globe, LayoutDashboard,
   Link2, LogOut, Menu, Plus, Search, Store, Users, Wallet, X,
 } from "lucide-react";
-import { useApp, useStats } from "../../lib/store";
+import { useApp, useStats, type SyncStatus } from "../../lib/store";
 import { initials, planLabel } from "../../lib/data";
 import { Logo, Pill } from "../ui";
 import CmdK from "./CmdK";
@@ -21,6 +21,30 @@ const MODULES = [
   { path: "page", label: "Wedding Page", icon: Globe },
 ];
 
+/** saving / saved / offline — the write-behind pulse, always visible */
+function SyncChip() {
+  const { sync } = useApp();
+  const meta: Record<SyncStatus, { label: string; dot: string; cls: string }> = {
+    demo: { label: "Demo · in-memory", dot: "bg-lav-deep", cls: "border-lav/60 bg-lav-soft/70 text-lav-deep" },
+    booting: { label: "Loading plan", dot: "bg-ink-mute anim-pulse-soft", cls: "border-ink/10 bg-white/60 text-ink-mute" },
+    saving: { label: sync.pending > 0 ? `Saving · ${sync.pending}` : "Saving", dot: "bg-gold anim-pulse-soft", cls: "border-gold/40 bg-gold-soft/70 text-gold-deep" },
+    saved: { label: "Saved", dot: "bg-sage-deep", cls: "border-sage/50 bg-sage-soft/70 text-sage-deep" },
+    offline: { label: "Offline — queued", dot: "bg-blush-deep", cls: "border-blush/60 bg-blush-soft/70 text-blush-deep" },
+    error: { label: "Sync issue", dot: "bg-blush-deep anim-pulse-soft", cls: "border-blush/60 bg-blush-soft/70 text-blush-deep" },
+  };
+  const m = meta[sync.status];
+  return (
+    <span
+      role="status" aria-live="polite"
+      title={sync.lastSaved ? `Last saved ${new Date(sync.lastSaved).toLocaleTimeString()}` : "Nothing saved yet"}
+      className={`hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.64rem] font-extrabold uppercase tracking-[0.12em] md:flex ${m.cls}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />
+      {m.label}
+    </span>
+  );
+}
+
 /** ambient planner light — shifts with the hour so the room feels lived-in */
 function plannerGlows() {
   const h = new Date().getHours();
@@ -31,13 +55,29 @@ function plannerGlows() {
 }
 
 export default function Shell() {
-  const { db, user, signOut, toast } = useApp();
+  const { db, user, signOut, toast, mode, weddingId, invitePartner } = useApp();
   const stats = useStats();
   const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [dockOpen, setDockOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [invited, setInvited] = useState(false);
+
+  const sendInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setInviteBusy(true);
+    try {
+      await invitePartner(inviteEmail.trim());
+      setInvited(true);
+    } catch (err) {
+      toast("Couldn't send the invite", (err as Error).message, "warn");
+    } finally {
+      setInviteBusy(false);
+    }
+  };
 
   useEffect(() => setDrawerOpen(false), [location.pathname]);
 
@@ -190,7 +230,9 @@ export default function Shell() {
               <Search size={15} />
             </button>
 
-            <span className="hidden items-center gap-2 rounded-full border border-gold/40 bg-gold-soft/60 px-3.5 py-2 text-[0.72rem] font-extrabold text-gold-deep md:flex">
+            <SyncChip />
+
+            <span className="hidden items-center gap-2 rounded-full border border-gold/40 bg-gold-soft/60 px-3.5 py-2 text-[0.72rem] font-extrabold text-gold-deep lg:flex">
               <CalendarDays size={13} /> {stats.days} days
             </span>
 
@@ -218,6 +260,34 @@ export default function Shell() {
                         <p className="mt-0.5 truncate text-[0.72rem] font-semibold text-ink-mute">{user?.email ?? "demo couple session"}</p>
                         <span className="mt-2.5 inline-block"><Pill tone="gold">{planLabel(db.plan)}</Pill></span>
                       </div>
+
+                      {mode === "cloud" && weddingId && (
+                        <div className="border-t border-ink/8 px-4 py-3.5">
+                          <p className="text-[0.6rem] font-extrabold uppercase tracking-[0.16em] text-ink-mute">Invite your partner</p>
+                          {invited ? (
+                            <p className="mt-2 flex items-start gap-1.5 text-[0.76rem] font-bold leading-snug text-sage-deep">
+                              <Check size={13} className="mt-0.5 shrink-0" /> Invite sent — when they sign up with this email, your plan becomes theirs too.
+                            </p>
+                          ) : (
+                            <form onSubmit={sendInvite} className="mt-2 flex gap-1.5">
+                              <input
+                                type="email" required value={inviteEmail}
+                                onChange={(e) => setInviteEmail(e.target.value)}
+                                placeholder="their@email.com"
+                                aria-label="Partner email address"
+                                className="w-full min-w-0 rounded-xl border border-ink/12 bg-white/80 px-3 py-2 text-[0.78rem] placeholder:text-ink-mute/60 focus:border-gold/60 focus:outline-none"
+                              />
+                              <button
+                                type="submit" disabled={inviteBusy}
+                                className="shrink-0 rounded-full bg-ink px-3.5 py-2 text-[0.72rem] font-bold text-cream transition hover:bg-ink/85 disabled:opacity-50 cursor-pointer"
+                              >
+                                {inviteBusy ? "…" : "Invite"}
+                              </button>
+                            </form>
+                          )}
+                        </div>
+                      )}
+
                       <div className="border-t border-ink/8 p-2">
                         <button
                           onClick={() => { signOut(); setAccountOpen(false); toast("Signed out", "Your plan is saved — see you soon.", "info"); }}

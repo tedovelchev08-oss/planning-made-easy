@@ -711,13 +711,23 @@ export default function Invitations() {
 
 /* ------------------------------ share link card ------------------------------ */
 
+/** The link that actually resolves to the couple's guest page on this deployment. */
+export const pageLink = (slug: string, params?: Record<string, string>) => {
+  const base = `${window.location.origin}${window.location.pathname}#/invite`;
+  const q = new URLSearchParams(params ?? (slug ? { slug } : {})).toString();
+  return q ? `${base}?${q}` : base;
+};
+
 export function ShareCard() {
   const { db, toast } = useApp();
   const [copied, setCopied] = useState(false);
-  const link = inviteLink(db.wedding.names);
+  // cloud links carry the real slug so any device lands on this couple's page;
+  // demo keeps the canonical luma.love vanity link
+  const link = db.wedding.slug ? pageLink(db.wedding.slug) : inviteLink(db.wedding.names);
   const dateStr = fmtDate(db.wedding.date, { month: "long", day: "numeric", year: "numeric" });
-  const message = `${db.wedding.names} are getting married — ${dateStr} at ${db.wedding.venue}. RSVP in one tap: ${link}`;
-  const enc = encodeURIComponent(message);
+  const messageFor = (src: string) =>
+    `${db.wedding.names} are getting married — ${dateStr} at ${db.wedding.venue}. RSVP in one tap: ${link}${db.wedding.slug ? `&src=${src}` : ""}`;
+  const message = messageFor("link");
 
   const copy = async () => {
     try {
@@ -738,11 +748,11 @@ export function ShareCard() {
   };
 
   const channels = [
-    { label: "WhatsApp", icon: MessageCircle, href: `https://wa.me/?text=${enc}`, tint: "hover:border-[#25D366]/70 hover:text-[#128C4A]" },
+    { label: "WhatsApp", icon: MessageCircle, href: `https://wa.me/?text=${encodeURIComponent(messageFor("whatsapp"))}`, tint: "hover:border-[#25D366]/70 hover:text-[#128C4A]" },
     { label: "Instagram", icon: Instagram, href: "https://www.instagram.com/", copyFirst: true, tint: "hover:border-blush-deep/70 hover:text-blush-deep" },
-    { label: "Messenger", icon: Send, href: `https://www.facebook.com/dialog/send?link=${encodeURIComponent(link)}&app_id=140586622674265&redirect_uri=${encodeURIComponent(link)}`, tint: "hover:border-lav-deep/70 hover:text-lav-deep" },
-    { label: "Text", icon: MessageCircle, href: `sms:?&body=${enc}`, tint: "hover:border-sage-deep/70 hover:text-sage-deep" },
-    { label: "Email", icon: Mail, href: `mailto:?subject=${encodeURIComponent(`${db.wedding.names} — you're invited ♥`)}&body=${enc}`, tint: "hover:border-gold-deep/70 hover:text-gold-deep" },
+    { label: "Messenger", icon: Send, href: `https://www.facebook.com/dialog/send?link=${encodeURIComponent(link + (db.wedding.slug ? "&src=messenger" : ""))}&app_id=140586622674265&redirect_uri=${encodeURIComponent(link)}`, tint: "hover:border-lav-deep/70 hover:text-lav-deep" },
+    { label: "Text", icon: MessageCircle, href: `sms:?&body=${encodeURIComponent(messageFor("link"))}`, tint: "hover:border-sage-deep/70 hover:text-sage-deep" },
+    { label: "Email", icon: Mail, href: `mailto:?subject=${encodeURIComponent(`${db.wedding.names} — you're invited ♥`)}&body=${encodeURIComponent(messageFor("email"))}`, tint: "hover:border-gold-deep/70 hover:text-gold-deep" },
   ];
 
   return (
@@ -805,6 +815,32 @@ const SOURCE_META: Record<string, { icon: typeof Link2; label: string; cls: stri
   messenger: { icon: Send, label: "Messenger", cls: "bg-lav-soft text-lav-deep" },
   email: { icon: Mail, label: "Email", cls: "bg-ink/6 text-ink-2" },
 };
+
+/** Copies a guest's personal invite link — their name arrives pre-filled. */
+function PersonalLinkButton({ guest, token }: { guest: string; token: string }) {
+  const { toast } = useApp();
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={async () => {
+        const url = pageLink("", { token });
+        try {
+          await navigator.clipboard.writeText(url);
+          setCopied(true);
+          playChime("place");
+          toast(`${guest}'s link copied`, "Send it straight to them — their name comes pre-filled.");
+          setTimeout(() => setCopied(false), 1800);
+        } catch {
+          toast(`${guest}'s link`, url, "info");
+        }
+      }}
+      aria-label={`Copy personal invite link for ${guest}`}
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-[0.66rem] font-extrabold transition cursor-pointer ${copied ? "bg-sage text-ink" : "bg-ink text-cream hover:bg-ink/85"}`}
+    >
+      {copied ? <Check size={11} strokeWidth={3.4} /> : <Copy size={11} />} {copied ? "Copied" : "Copy"}
+    </button>
+  );
+}
 
 export function RsvpTracker() {
   const { db, patch, toast } = useApp();
@@ -886,6 +922,30 @@ export function RsvpTracker() {
           </div>
         ))}
       </div>
+
+      {/* per-guest personal links — the fastest way to convert the undecided */}
+      {(() => {
+        const pendingWithToken = db.guests.filter((g) => g.rsvp === "pending" && g.token);
+        if (pendingWithToken.length === 0) return null;
+        return (
+          <div className="mt-5 rounded-2xl border border-gold/30 bg-gold-soft/35 p-5">
+            <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-gold-deep">
+              <Link2 size={12} /> Personal links · guests still deciding
+            </p>
+            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+              {pendingWithToken.slice(0, 6).map((g) => (
+                <li key={g.id} className="flex items-center gap-2.5 rounded-xl border border-ink/8 bg-white/75 px-3 py-2">
+                  <span className="min-w-0 flex-1 truncate text-[0.82rem] font-bold text-ink">{g.name}</span>
+                  <PersonalLinkButton guest={g.name} token={g.token ?? ""} />
+                </li>
+              ))}
+            </ul>
+            {pendingWithToken.length > 6 && (
+              <p className="mt-2.5 text-[0.7rem] font-semibold text-ink-mute">+{pendingWithToken.length - 6} more waiting on their own link</p>
+            )}
+          </div>
+        );
+      })()}
 
       {log.length === 0 ? (
         <p className="mt-5 rounded-2xl border border-dashed border-ink/15 px-5 py-8 text-center text-[0.88rem] font-semibold text-ink-mute">

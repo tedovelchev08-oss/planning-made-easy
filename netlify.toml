@@ -11,3 +11,31 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# ------------------------------------------------------------------
+# Security headers
+#
+# CSP notes:
+#  - Google Fonts needs fonts.googleapis.com (styles) + fonts.gstatic.com (files).
+#  - Remote marketing/venue images live on image.qwenlm.ai.
+#  - DesignFrame renders owner-supplied HTML invitations in sandboxed srcDoc
+#    iframes (allow-scripts, no allow-same-origin). srcDoc documents inherit
+#    this policy, so 'unsafe-inline' in script-src/style-src is required for
+#    their inline <script>/<style> blocks to run; img-src allows https: + data:
+#    because owner designs may reference any CDN. The sandbox attribute keeps
+#    that code on an opaque origin with no access to the app.
+# ------------------------------------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://image.qwenlm.ai https:; media-src 'self' data: blob:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+
+# Hashed assets are immutable — cache them aggressively.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
