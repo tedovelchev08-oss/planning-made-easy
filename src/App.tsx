@@ -15,7 +15,7 @@ import Seating from "./components/dashboard/Seating";
 import Registry from "./components/dashboard/Registry";
 import PageHub from "./components/dashboard/PageHub";
 import NotFound from "./pages/NotFound";
-import { AuthModal, CheckoutModal, ToastHost } from "./components/ui";
+import { AuthModal, CheckoutModal, ErrorBoundary, ToastHost } from "./components/ui";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -105,6 +105,9 @@ export default function App() {
         <SkipLink />
         <div className="ambient-mesh" aria-hidden="true" />
         <div className="grain-overlay" aria-hidden="true" />
+        {/* a render crash anywhere below shows the styled fallback instead of
+            a blank document — and is reported, never swallowed */}
+        <ErrorBoundary>
         <Localised>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -126,6 +129,7 @@ export default function App() {
         <CheckoutModal />
         <OnboardingModal />
         </Localised>
+        </ErrorBoundary>
       </HashRouter>
     </AppProvider>
   );

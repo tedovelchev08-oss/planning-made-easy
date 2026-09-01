@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
-import { Check, Heart, Loader2, Lock, Mail, Sparkles, X } from "lucide-react";
+import { ArrowRight, Check, Heart, Loader2, Lock, Mail, RefreshCw, Sparkles, X } from "lucide-react";
 import { TIERS, Plan, fmtMoney } from "../lib/data";
 import { useApp, usePrefersReducedMotion, useStats } from "../lib/store";
 import { authApi } from "../lib/api";
 import { I18nProvider, LOCALES, useT, type Locale } from "../lib/i18n";
+import { captureError } from "../lib/report";
 
 /* ------------------------------ logo ------------------------------ */
 
@@ -968,4 +969,78 @@ export function Stars({ n = 5, className = "" }: { n?: number; className?: strin
 
 export function GoldDivider({ className = "" }: { className?: string }) {
   return <div className={`gold-hairline ${className}`} aria-hidden="true" />;
+}
+
+/* ------------------------------ top-level error boundary ------------------------------ */
+
+interface BoundaryProps { children: React.ReactNode }
+interface BoundaryState { error: Error | null }
+
+/**
+ * The last line of defence around the whole router. A render crash anywhere
+ * outside the 3D hero lands here instead of blanking the document.
+ * Nothing is swallowed: componentDidCatch forwards to the reporting layer
+ * (Sentry when configured, /api/report otherwise) with the component stack.
+ */
+export class ErrorBoundary extends React.Component<BoundaryProps, BoundaryState> {
+  state: BoundaryState = { error: null };
+
+  static getDerivedStateFromError(error: Error): BoundaryState {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    captureError(error, { scope: "root-boundary", componentStack: info.componentStack?.slice(0, 2000) ?? null });
+  }
+
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div role="alert" className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-6 py-16">
+        {/* ambient accents — the page stays alive even when the app isn't */}
+        <div className="pointer-events-none absolute -left-24 top-[-8rem] h-[24rem] w-[24rem] rounded-full bg-blush/25 blur-3xl" aria-hidden="true" />
+        <div className="pointer-events-none absolute -right-20 bottom-[-6rem] h-[22rem] w-[22rem] rounded-full bg-lav/25 blur-3xl" aria-hidden="true" />
+        <svg className="anim-spin-slow pointer-events-none absolute right-[12%] top-[14%] h-24 w-24 text-gold/35" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 10" />
+        </svg>
+        {[18, 52, 81].map((left, i) => (
+          <span key={left} className="inv-petal" style={{ left: `${left}%`, animationDuration: `${12 + i * 3}s`, animationDelay: `${i * 2.4}s` }} aria-hidden="true" />
+        ))}
+
+        <div className="relative w-full max-w-lg text-center">
+          <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.3em] text-gold-deep">An unexpected snag</p>
+          <h1 className="mt-4 font-display text-4xl leading-[1.08] tracking-tight text-ink sm:text-5xl">
+            The plan hiccuped.
+            <span className="mt-1 block italic text-blush-deep">The feeling didn't.</span>
+          </h1>
+          <div className="gold-hairline mx-auto my-6 w-40" />
+          <p className="mx-auto max-w-md text-[0.95rem] leading-relaxed text-ink-2">
+            Something broke while we were arranging things. We've already logged it —
+            your data is safe, and a refresh usually puts everything back where it belongs.
+          </p>
+
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center gap-2.5 rounded-full bg-ink px-8 py-4 text-[0.92rem] font-bold text-cream shadow-lift transition-all duration-300 hover:bg-ink/85 hover:shadow-glass active:scale-[0.97] cursor-pointer"
+            >
+              <RefreshCw size={16} /> Reload the planner
+            </button>
+            <a
+              href="#/"
+              onClick={() => { this.setState({ error: null }); }}
+              className="group inline-flex items-center gap-2 rounded-full border border-ink/20 bg-white/50 px-7 py-4 text-[0.92rem] font-bold text-ink transition-all duration-300 hover:border-ink/45 hover:bg-white/80"
+            >
+              Back to the beginning
+              <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
+            </a>
+          </div>
+
+          <p className="mt-8 text-[0.7rem] font-semibold text-ink-mute">
+            If this keeps happening, write to <span className="text-gold-deep">care@luma.love</span> — we answer fast.
+          </p>
+        </div>
+      </div>
+    );
+  }
 }
