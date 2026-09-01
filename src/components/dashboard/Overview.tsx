@@ -226,7 +226,12 @@ export default function Overview() {
                   <button
                     onClick={() => {
                       patch({ vendors: db.vendors.map((v) => (v.id === nextVendor.id ? { ...v, status: "Booked", contract: true } : v)) });
-                      toast(`${nextVendor.company} booked`, "Contract marked signed. Budget updated with the commitment.");
+                      toast(
+                        `${nextVendor.company} booked`,
+                        nextVendor.budgetId
+                          ? `Contract signed — ${fmtMoney(nextVendor.price)} now committed in Budget.`
+                          : "Contract signed. Link the vendor to a budget category to track its commitment.",
+                      );
                     }}
                     className="flex-1 rounded-full bg-ink py-2.5 text-[0.8rem] font-bold text-cream transition hover:bg-ink/85 cursor-pointer"
                   >

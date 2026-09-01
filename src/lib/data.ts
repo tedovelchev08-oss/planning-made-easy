@@ -19,10 +19,27 @@ export interface Wedding {
   date: string; // ISO
   venue: string;
   location: string;
+  /** IANA zone — drives how every date renders for this couple */
   timezone: string;
+  /** BCP-47 locale — drives number/date formatting */
+  locale: string;
+  /** ISO 4217 — drives every money figure */
+  currency: string;
   /** public address of the wedding page · unique per deployment */
   slug: string;
 }
+
+export const LOCALES: { id: string; label: string; currency: string }[] = [
+  { id: "en-US", label: "English (US)", currency: "USD" },
+  { id: "en-GB", label: "English (UK)", currency: "GBP" },
+  { id: "de-DE", label: "Deutsch", currency: "EUR" },
+  { id: "es-ES", label: "Español", currency: "EUR" },
+  { id: "fr-FR", label: "Français", currency: "EUR" },
+  { id: "it-IT", label: "Italiano", currency: "EUR" },
+  { id: "pt-BR", label: "Português (BR)", currency: "BRL" },
+  { id: "sv-SE", label: "Svenska", currency: "SEK" },
+  { id: "ja-JP", label: "日本語", currency: "JPY" },
+];
 
 export interface Guest {
   id: string;
@@ -185,6 +202,8 @@ export const seedWedding: Wedding = {
   venue: "The Glasshouse",
   location: "Hudson Yards, New York",
   timezone: "America/New_York",
+  locale: "en-US",
+  currency: "USD",
   slug: "maya-theo",
 };
 
