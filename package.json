@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p api/tsconfig.json",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -13,7 +13,9 @@
     "@react-three/drei": "^9.114.3",
     "@react-three/fiber": "^8.17.10",
     "@supabase/supabase-js": "^2.98.0",
+    "@types/node": "^26.4.0",
     "@types/three": "^0.169.0",
+    "@vercel/node": "^10.0.0",
     "canvas-confetti": "^1.9.3",
     "eslint": "^10.9.1",
     "eslint-plugin-react-hooks": "^7.1.1",
@@ -23,6 +25,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.0",
+    "stripe": "^22.6.0",
     "three": "^0.169.0",
     "typescript-eslint": "^8.68.0"
   },
