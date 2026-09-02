@@ -34,7 +34,8 @@ const stripe = () => {
 /** Find the tier's one-time price, creating product + price on first use. */
 async function priceFor(s: Stripe, tier: string): Promise<string> {
   const lookupKey = `luma_${tier}`;
-  const existing = await s.prices.list({ lookup_key: lookupKey, limit: 1 });
+  // stripe-node v22 renamed the list filter to `lookup_keys` (array)
+  const existing = await s.prices.list({ lookup_keys: [lookupKey], limit: 1 });
   if (existing.data.length > 0) return existing.data[0].id;
 
   const product = await s.products.create({

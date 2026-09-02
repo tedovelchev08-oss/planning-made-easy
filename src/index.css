@@ -44,16 +44,6 @@ body {
   color: var(--color-ink);
 }
 
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-button, a, summary, [role="button"] {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
 :focus-visible {
   outline: 2px solid var(--color-gold);
   outline-offset: 3px;
@@ -97,7 +87,7 @@ button, a, summary, [role="button"] {
   pointer-events: none;
   opacity: 0.05;
   mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: url("image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 180px 180px;
 }
 
@@ -156,6 +146,30 @@ button, a, summary, [role="button"] {
   animation: shimmer 5s linear infinite;
 }
 
+/* ---------- 3D auth buttons ---------- */
+.btn3d {
+  box-shadow: 0 6px 0 0 rgb(51 43 49 / 0.9), 0 14px 30px -10px rgb(51 43 49 / 0.45);
+  transform: translateY(0);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.2s ease;
+}
+.btn3d:hover { filter: brightness(1.06); }
+.btn3d:active {
+  transform: translateY(5px);
+  box-shadow: 0 1px 0 0 rgb(51 43 49 / 0.9), 0 6px 14px -8px rgb(51 43 49 / 0.4);
+}
+.btn3d-gold {
+  box-shadow: 0 6px 0 0 var(--color-gold-deep), 0 14px 30px -10px rgb(168 137 31 / 0.5);
+}
+.btn3d-gold:active {
+  box-shadow: 0 1px 0 0 var(--color-gold-deep), 0 6px 14px -8px rgb(168 137 31 / 0.45);
+}
+.btn3d-light {
+  box-shadow: 0 6px 0 0 rgb(51 43 49 / 0.18), 0 14px 30px -12px rgb(51 43 49 / 0.25);
+}
+.btn3d-light:active {
+  box-shadow: 0 1px 0 0 rgb(51 43 49 / 0.18), 0 6px 14px -10px rgb(51 43 49 / 0.2);
+}
+
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -207,35 +221,5 @@ button, a, summary, [role="button"] {
   stroke-dashoffset: 24;
   animation: draw-check 0.45s 0.05s cubic-bezier(0.65, 0, 0.35, 1) forwards;
 }
-
-/* ---------- tactile 3D buttons ---------- */
-.btn3d {
-  position: relative;
-  will-change: transform;
-  transition: transform 0.13s ease, box-shadow 0.13s ease, filter 0.25s ease;
-}
-.btn3d:active { transform: translateY(5px); }
-.btn3d-ink {
-  background: var(--color-ink);
-  color: var(--color-cream);
-  box-shadow: 0 7px 0 #1d181b, 0 22px 34px -14px rgb(51 43 49 / 0.55);
-}
-.btn3d-ink:hover { filter: brightness(1.12); }
-.btn3d-ink:active { box-shadow: 0 2px 0 #1d181b, 0 10px 18px -12px rgb(51 43 49 / 0.5); }
-.btn3d-gold {
-  background: linear-gradient(180deg, #e8c964, var(--color-gold));
-  color: var(--color-ink);
-  box-shadow: 0 7px 0 #8a6f1c, 0 22px 34px -14px rgb(168 137 31 / 0.5);
-}
-.btn3d-gold:hover { filter: brightness(1.06); }
-.btn3d-gold:active { box-shadow: 0 2px 0 #8a6f1c, 0 10px 18px -12px rgb(168 137 31 / 0.45); }
-.btn3d-light {
-  background: #ffffff;
-  color: var(--color-ink);
-  border: 1px solid rgb(51 43 49 / 0.12);
-  box-shadow: 0 6px 0 rgb(51 43 49 / 0.14), 0 18px 28px -14px rgb(51 43 49 / 0.3);
-}
-.btn3d-light:hover { filter: brightness(0.99); }
-.btn3d-light:active { box-shadow: 0 2px 0 rgb(51 43 49 / 0.14), 0 8px 14px -12px rgb(51 43 49 / 0.25); }
 
 input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }

@@ -4,12 +4,11 @@
     "module": "CommonJS",
     "moduleResolution": "node",
     "lib": ["ES2020"],
-    "types": ["node"],
     "strict": true,
-    "skipLibCheck": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "noEmit": true,
-    "isolatedModules": true
+    "types": ["node"]
   },
   "include": ["./**/*.ts"]
 }
