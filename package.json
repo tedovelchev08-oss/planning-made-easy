@@ -1,0 +1,34 @@
+{
+  "name": "luma",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "@supabase/supabase-js": "^2.114.0",
+    "canvas-confetti": "^1.9.4",
+    "framer-motion": "^11.18.2",
+    "lucide-react": "^0.294.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.6",
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.7",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/three": "^0.169.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.1.7",
+    "typescript": "^5.7.0",
+    "vite": "^6.3.5"
+  }
+}
