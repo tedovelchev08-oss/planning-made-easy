@@ -397,8 +397,7 @@ export function CheckoutReturnGate() {
 
     const tryOnce = async () => {
       if (cancelled) return;
-      let plan: Plan | null = null;
-      try { plan = await refreshEntitlement(); } catch { plan = null; }
+      const plan = await refreshEntitlement().catch(() => null);
       if (!cancelled && plan && rankOf(plan) >= targetRank) {
         sessionStorage.removeItem(PENDING_TIER_KEY);
         stripParam();

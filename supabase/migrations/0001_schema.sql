@@ -51,9 +51,15 @@ create table wedding_invites (
   email       text not null,
   invited_by  uuid not null references auth.users (id),
   accepted_at timestamptz,
-  created_at  timestamptz not null default now(),
-  unique (wedding_id, lower(email))
+  created_at  timestamptz not null default now()
 );
+
+-- functional uniqueness (case-insensitive email per wedding) requires a
+-- unique INDEX — Postgres cannot express lower() in a table-level constraint.
+-- This same index also backs the `on conflict (wedding_id, lower(email))`
+-- upsert inside invite_partner() (0002).
+create unique index wedding_invites_wedding_email_idx
+  on wedding_invites (wedding_id, lower(email));
 
 -- ---------- planner entities ----------
 
