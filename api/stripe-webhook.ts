@@ -5,9 +5,10 @@
  *   charge.refunded            → revoke (the 14-day happiness promise)
  *
  * Security notes:
- *  · Stripe signature verification requires the RAW body, so Vercel's body
- *    parser is disabled for this route (`config.api.bodyParser = false`) and
- *    the stream is collected by hand.
+ *  · Stripe signature verification requires the RAW body. `getRawBody()` reads
+ *    it defensively — from `req.body` if @vercel/node already buffered it, or
+ *    from the request stream otherwise. (There is no `config.bodyParser`
+ *    toggle on @vercel/node; that's a Next.js-only convention.)
  *  · SUPABASE_SERVICE_ROLE_KEY lives ONLY here (and in create-checkout for
  *    JWT verification). It is never VITE_-prefixed, so it cannot reach the
  *    client bundle. The client only ever READS entitlements (RLS read-own).
@@ -18,7 +19,10 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-export const config = { api: { bodyParser: false } };
+// NOTE: there is intentionally no `export const config = { api: { bodyParser: false } }`.
+// That is a Next.js API-route convention and is silently IGNORED by @vercel/node,
+// so relying on it would be a lie. Instead, getRawBody() below defensively reads
+// the body whether or not the platform has already buffered it.
 
 const PLAN_RANK: Record<string, number> = { essential: 0, celebration: 1, luxe: 2 };
 
@@ -38,8 +42,23 @@ const admin = () => {
   return createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 };
 
-/** Collect the raw request stream — signature verification fails on a parsed body. */
-function rawBody(req: VercelRequest): Promise<Buffer> {
+/**
+ * Stripe signature verification needs the EXACT raw bytes of the payload.
+ *
+ * On @vercel/node the runtime may already have buffered the request body
+ * (leaving the stream drained) OR may hand us a live stream. Try the buffered
+ * body first — if the platform set `req.body` to a non-empty string or Buffer
+ * that IS the truth — and only fall back to consuming the stream otherwise.
+ *
+ * (If a runtime ever hands us a body already parsed into a JSON *object*, the
+ * original bytes are unrecoverable and verification must fail; we deliberately
+ * do not re-serialize, since re-serialized bytes would never match the
+ * signature and would fail in a confusing way.)
+ */
+async function getRawBody(req: VercelRequest): Promise<Buffer> {
+  const r = req as VercelRequest & { body?: unknown };
+  if (typeof r.body === "string" && r.body.length > 0) return Buffer.from(r.body);
+  if (Buffer.isBuffer(r.body) && r.body.length > 0) return r.body;
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     req.on("data", (c) => chunks.push(Buffer.from(c)));
@@ -127,7 +146,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   let event: Stripe.Event;
   try {
-    const body = await rawBody(req);
+    const body = await getRawBody(req);
     const signature = req.headers["stripe-signature"];
     if (!signature) return res.status(400).json({ error: "Missing stripe-signature" });
     event = stripe().webhooks.constructEvent(body, signature, secret);

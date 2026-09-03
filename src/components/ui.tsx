@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { ArrowRight, Check, Heart, Loader2, Lock, Mail, RefreshCw, Sparkles, X } from "lucide-react";
 import { TIERS, Plan, fmtMoney } from "../lib/data";
 import { useApp, usePrefersReducedMotion, useStats } from "../lib/store";
-import { authApi } from "../lib/api";
+import { authApi, createCheckoutSession } from "../lib/api";
 import { I18nProvider, LOCALES, useT, type Locale } from "../lib/i18n";
 import { captureError } from "../lib/report";
 
@@ -232,25 +232,27 @@ export function ToastHost() {
   );
 }
 
-/* ------------------------------ checkout (simulated Stripe) ------------------------------ */
+/* ------------------------------ checkout (real Stripe · one-time) ------------------------------ */
+
+const rankOf = (p: Plan | null): number => (p ? TIERS.findIndex((t) => t.id === p) : -1);
+
+/** Stashed before redirecting to Stripe so the return gate knows what to wait for. */
+const PENDING_TIER_KEY = "luma:pendingTier";
 
 export function CheckoutModal() {
-  const { checkout, closeCheckout, patch, toast, db, mode } = useApp();
-  const [step, setStep] = useState<"review" | "processing" | "done">("review");
+  const { checkout, closeCheckout, toast, db, mode } = useApp();
+  const [step, setStep] = useState<"review" | "starting" | "error">("review");
+  const [errMsg, setErrMsg] = useState<string | null>(null);
   const tier = TIERS.find((t) => t.id === checkout);
-  const completedFor = useRef<Plan | null>(null);
 
   useEffect(() => {
-    if (checkout) {
-      setStep("review");
-      completedFor.current = null;
-    }
+    if (checkout) { setStep("review"); setErrMsg(null); }
   }, [checkout]);
 
-  const rankOf = (p: Plan) => TIERS.findIndex((t) => t.id === p);
-  const startPayment = () => {
+  const startPayment = async () => {
     if (!tier) return;
-    // entitlements only ever move upward — never downgrade or re-sell the same plan
+    // Monotonic guard — a UX affordance only. The webhook is the real authority
+    // on entitlements; the client can never grant itself a plan.
     if (rankOf(tier.id) <= rankOf(db.plan)) {
       const owned = TIERS[rankOf(db.plan)];
       toast(
@@ -261,25 +263,28 @@ export function CheckoutModal() {
       closeCheckout();
       return;
     }
-    setStep("processing");
+
+    if (mode !== "cloud") {
+      // Demo: clearly-labeled simulation. No server, no real money, no entitlement.
+      toast(`${tier.name} (demo)`, "Simulated locally — connect Supabase + Stripe to make purchases real.", "info");
+      closeCheckout();
+      return;
+    }
+
+    setStep("starting");
+    setErrMsg(null);
+    try {
+      sessionStorage.setItem(PENDING_TIER_KEY, tier.id);
+      const url = await createCheckoutSession(tier.id);
+      // Top-level navigation to Stripe Checkout. The entitlement is granted by
+      // the webhook; on return, CheckoutReturnGate confirms it (see below).
+      window.location.assign(url);
+    } catch (err) {
+      // Never fall through to a fake "done" — a failed start is a real error.
+      setStep("error");
+      setErrMsg(err instanceof Error ? err.message : "Checkout could not be started.");
+    }
   };
-
-  useEffect(() => {
-    if (step !== "processing") return;
-    const t = setTimeout(() => setStep("done"), 1500);
-    return () => clearTimeout(t);
-  }, [step]);
-
-  useEffect(() => {
-    if (step !== "done" || !tier) return;
-    // Fire exactly once per purchase — guard against re-runs from identity churn.
-    if (completedFor.current === tier.id) return;
-    completedFor.current = tier.id;
-    patch({ plan: tier.id });
-    toast(`Welcome to ${tier.name}`, "Your entitlement is active across the whole workspace.");
-    const t = setTimeout(closeCheckout, 1600);
-    return () => clearTimeout(t);
-  }, [step, tier, patch, toast, closeCheckout]);
 
   return (
     <Modal open={!!checkout} onClose={closeCheckout} label="Checkout">
@@ -297,57 +302,184 @@ export function CheckoutModal() {
             <p className="mt-1 text-xs text-ink-mute">No monthly subscription. One beautiful purchase — yours forever.</p>
             {db.plan !== "essential" && step === "review" && (
               <div className="mt-4 border-t border-dashed border-ink/10 pt-3 text-xs text-ink-2">
-                Current plan: <span className="font-bold capitalize text-ink">{db.plan}</span> — you'll be upgraded instantly.
+                Current plan: <span className="font-bold capitalize text-ink">{db.plan}</span> — you'll be upgraded when payment clears.
               </div>
             )}
           </div>
 
-          {step === "review" && (mode === "cloud" ? (
-            <div className="mt-6 rounded-2xl border border-ink/10 bg-white/70 p-5">
-              <p className="flex items-center gap-2 text-[0.88rem] font-extrabold text-ink">
-                <Lock size={14} className="text-gold-deep" /> Checkout lands with Stripe — Phase 2
-              </p>
-              <p className="mt-2 text-[0.8rem] leading-relaxed text-ink-2">
-                Entitlements are granted <strong className="text-ink">server-side by the payment webhook</strong> and
-                cannot be switched on from the UI — that's the whole point of the entitlements table. Until the
-                webhook exists, explore every tier freely in the demo.
-              </p>
-              <button
-                onClick={() => { closeCheckout(); window.location.hash = "/demo?demo=1"; window.location.reload(); }}
-                className={`${btn.outline} mt-4 w-full`}
-              >
-                Open the demo playground
-              </button>
-            </div>
-          ) : (
+          {step === "review" && (
             <div className="mt-6 space-y-3">
-              <button className={`${btn.ink} w-full`} onClick={startPayment}>
+              <button className={`${btn.ink} w-full`} onClick={() => void startPayment()}>
                 <Lock size={14} /> Pay {fmtMoney(tier.price)} securely
               </button>
-              <p className="text-center text-[0.7rem] text-ink-mute">Demo checkout — simulated locally. Real payments arrive with the Stripe webhook.</p>
-            </div>
-          ))}
-          {step === "processing" && (
-            <div className="mt-8 flex flex-col items-center gap-3 py-4 text-ink-2">
-              <Loader2 size={26} className="animate-spin text-gold-deep" />
-              <p className="text-sm font-semibold">Confirming with Stripe…</p>
+              <p className="text-center text-[0.7rem] text-ink-mute">
+                {mode === "cloud"
+                  ? "One-time purchase via Stripe. Your plan unlocks the moment payment clears."
+                  : "Demo checkout — simulated locally, no charge."}
+              </p>
             </div>
           )}
-          {step === "done" && (
-            <div className="mt-8 flex flex-col items-center gap-3 py-4">
-              <motion.span
-                initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 18 }}
-                className="flex h-14 w-14 items-center justify-center rounded-full bg-sage-soft text-sage-deep"
-              >
-                <Check size={26} strokeWidth={3} />
-              </motion.span>
-              <p className="font-display text-xl text-ink">Payment complete</p>
+
+          {step === "starting" && (
+            <div className="mt-8 flex flex-col items-center gap-3 py-4 text-ink-2">
+              <Loader2 size={26} className="animate-spin text-gold-deep" />
+              <p className="text-sm font-semibold">Opening Stripe Checkout…</p>
+            </div>
+          )}
+
+          {step === "error" && (
+            <div className="mt-6 rounded-2xl border border-blush-deep/40 bg-blush-soft/60 p-5">
+              <p className="text-[0.88rem] font-extrabold text-blush-deep">We couldn't start checkout.</p>
+              <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink-2">{errMsg}</p>
+              <div className="mt-4 flex gap-2">
+                <button className={`${btn.ink} flex-1`} onClick={() => void startPayment()}>Try again</button>
+                <button className={`${btn.outline} flex-1`} onClick={closeCheckout}>Cancel</button>
+              </div>
             </div>
           )}
         </div>
       )}
     </Modal>
+  );
+}
+
+/**
+ * Handles the return from Stripe (`?checkout=success` / `?checkout=cancelled`).
+ *
+ * Stripe redirects to success_url the moment payment clears — often BEFORE the
+ * webhook has been delivered and the entitlement written. So we don't trust a
+ * single refetch: we poll the server entitlement with backoff for ~17s, showing
+ * a calm "confirming…" state the whole time. We never optimistically set the
+ * plan locally; the server value is the only source of truth.
+ */
+export function CheckoutReturnGate() {
+  const { refreshEntitlement, toast, mode } = useApp();
+  const [phase, setPhase] = useState<"idle" | "confirming" | "success" | "waiting">("idle");
+  const startedRef = useRef(false);
+  const timerRef = useRef<number | undefined>(undefined);
+
+  const readParam = (): string | null => {
+    const h = window.location.hash;
+    const qIndex = h.indexOf("?");
+    if (qIndex === -1) return null;
+    return new URLSearchParams(h.slice(qIndex + 1)).get("checkout");
+  };
+
+  const stripParam = () => {
+    const h = window.location.hash;
+    const qIndex = h.indexOf("?");
+    if (qIndex === -1) return;
+    const path = h.slice(0, qIndex);
+    const q = new URLSearchParams(h.slice(qIndex + 1));
+    q.delete("checkout");
+    const rest = q.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${path}${rest ? "?" + rest : ""}`);
+  };
+
+  useEffect(() => {
+    if (mode !== "cloud") return;
+    const param = readParam();
+    if (param === "cancelled") {
+      stripParam();
+      toast("Checkout cancelled", "No charge was made — your plan is unchanged.", "info");
+      return;
+    }
+    if (param !== "success" || startedRef.current) return;
+    startedRef.current = true;
+    setPhase("confirming");
+
+    const pendingTier = sessionStorage.getItem(PENDING_TIER_KEY);
+    // If we don't know what was bought (stale param), any entitlement counts.
+    const targetRank = pendingTier ? rankOf(pendingTier as Plan) : 0;
+    const delays = [800, 1600, 3200, 4800, 6400]; // ~16.8s total
+    let attempt = 0;
+    let cancelled = false;
+
+    const tryOnce = async () => {
+      if (cancelled) return;
+      let plan: Plan | null = null;
+      try { plan = await refreshEntitlement(); } catch { plan = null; }
+      if (!cancelled && plan && rankOf(plan) >= targetRank) {
+        sessionStorage.removeItem(PENDING_TIER_KEY);
+        stripParam();
+        setPhase("success");
+        timerRef.current = window.setTimeout(() => setPhase("idle"), 2400);
+        return;
+      }
+      attempt++;
+      if (!cancelled && attempt < delays.length) {
+        timerRef.current = window.setTimeout(() => void tryOnce(), delays[attempt]);
+      } else if (!cancelled) {
+        // Honest fallback — don't show a bare wrong plan.
+        sessionStorage.removeItem(PENDING_TIER_KEY);
+        stripParam();
+        setPhase("waiting");
+      }
+    };
+    void tryOnce();
+
+    return () => {
+      cancelled = true;
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
+  }, [mode, refreshEntitlement, toast]);
+
+  const recheck = async () => {
+    setPhase("confirming");
+    const plan = await refreshEntitlement().catch(() => null);
+    if (plan && rankOf(plan) >= 0) setPhase("success");
+    else setPhase("waiting");
+    timerRef.current = window.setTimeout(() => setPhase("idle"), 2400);
+  };
+
+  if (phase === "idle") return null;
+
+  return createPortal(
+    <motion.div
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-ink/60 px-6 backdrop-blur-md"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+      role="dialog" aria-modal="true" aria-label="Purchase status"
+    >
+      <div className="w-full max-w-md rounded-[1.6rem] bg-cream p-8 text-center shadow-glass">
+        {phase === "confirming" && (
+          <>
+            <Loader2 size={30} className="mx-auto animate-spin text-gold-deep" />
+            <h2 className="mt-4 font-display text-2xl text-ink">Confirming your purchase…</h2>
+            <p className="mt-2 text-sm leading-relaxed text-ink-2">
+              Stripe has your payment. We're waiting for its confirmation to land —
+              this usually takes just a few seconds.
+            </p>
+          </>
+        )}
+        {phase === "success" && (
+          <>
+            <motion.span
+              initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 18 }}
+              className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-sage-soft text-sage-deep"
+            >
+              <Check size={26} strokeWidth={3} />
+            </motion.span>
+            <h2 className="mt-4 font-display text-2xl text-ink">You're all set</h2>
+            <p className="mt-2 text-sm text-ink-2">Your plan is active. Enjoy.</p>
+          </>
+        )}
+        {phase === "waiting" && (
+          <>
+            <RefreshCw size={28} className="mx-auto text-gold-deep" />
+            <h2 className="mt-4 font-display text-2xl text-ink">Almost there</h2>
+            <p className="mt-2 text-sm leading-relaxed text-ink-2">
+              Payment went through, but Stripe's confirmation is taking a little longer
+              than usual. Your plan will unlock automatically — nothing to do on your end.
+            </p>
+            <button onClick={() => void recheck()} className={`${btn.ink} mt-5 w-full`}>
+              Check again
+            </button>
+          </>
+        )}
+      </div>
+    </motion.div>,
+    document.body,
   );
 }
 
