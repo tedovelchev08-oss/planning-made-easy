@@ -312,13 +312,12 @@ export async function syncEntity(
     case "vendors": {
       if (deletes.length) await run(s.from("vendors").delete().in("id", deletes));
       for (const v of upserts as Vendor[]) {
-        const { payments, ...row } = v as Vendor & { payments?: Vendor["payments"] };
+        const { payments } = v as Vendor & { payments?: Vendor["payments"] };
         await run(s.from("vendors").upsert({
           id: v.id, wedding_id: weddingId, category: v.category, company: v.company,
           contact: v.contact, email: v.email, phone: v.phone, price: v.price,
           status: v.status, contract: v.contract, notes: v.notes, budget_id: v.budgetId, sort: 0,
         } as never, { onConflict: "id" }));
-        void row;
         // replace the schedule wholesale — payment rows carry no client ids
         await run(s.from("vendor_payments").delete().eq("vendor_id", v.id));
         if (payments?.length) {
@@ -429,6 +428,50 @@ export async function submitRsvp(p: {
     p_plus_one_meal: p.plusOneMeal ?? null,
   });
   if (error) throw new Error(error.message);
+}
+
+/* ------------------------------ checkout & entitlements ------------------------------ */
+
+/**
+ * Starts a one-time Stripe Checkout session for a tier.
+ * The server verifies the caller's JWT, mints the session and returns only
+ * `{ url }` — the client redirects and NEVER writes entitlements itself.
+ */
+export async function createCheckoutSession(tier: Plan): Promise<string> {
+  const s = requireSb();
+  const { data: session } = await s.auth.getSession();
+  const token = session.session?.access_token;
+  if (!token) throw new Error("You need to be signed in to purchase.");
+  const res = await fetch("/api/create-checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ tier }),
+  });
+  if (!res.ok) {
+    let msg = "Checkout could not be started.";
+    try {
+      const j = (await res.json()) as { error?: string };
+      if (j.error) msg = j.error;
+    } catch { /* non-JSON error body */ }
+    throw new Error(msg);
+  }
+  const j = (await res.json()) as { url?: string };
+  if (!j.url) throw new Error("Checkout returned no redirect URL.");
+  return j.url;
+}
+
+/**
+ * Re-reads the signed-in user's entitlement row — the ONLY path by which the
+ * client's plan changes. Returns null when there is no entitlement (or user).
+ */
+export async function refreshEntitlement(): Promise<Plan | null> {
+  const s = requireSb();
+  const { data: session } = await s.auth.getSession();
+  const uid = session.session?.user?.id;
+  if (!uid) return null;
+  const { data, error } = await s.from("entitlements").select("plan").eq("user_id", uid).maybeSingle();
+  if (error) throw error;
+  return (data?.plan as Plan | undefined) ?? null;
 }
 
 /* ------------------------------ partner invites ------------------------------ */

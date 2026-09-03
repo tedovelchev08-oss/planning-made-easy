@@ -8,7 +8,7 @@ import { isSupabaseConfigured } from "./supabase";
 import {
   EntityKey, acceptPendingInvites, authApi, budgetToRow, createWedding, customTplToRow, fetchFreshRsvps,
   fetchWorkspace, guestToRow, invitationToRow, invitePartner as apiInvitePartner, isUuid, myWeddingId, newId,
-  registryToRow, rsvpToRow, syncEntity, tableToRow, taskToRow, websiteToRow,
+  refreshEntitlement as apiRefreshEntitlement, registryToRow, rsvpToRow, syncEntity, tableToRow, taskToRow, websiteToRow,
 } from "./api";
 
 /* ------------------------------------------------------------------ */
@@ -92,6 +92,8 @@ interface AppCtx {
   needsOnboarding: boolean;
   completeOnboarding: (input: { partnerA: string; partnerB: string; names: string; date: string; venue: string; locale?: string; currency?: string }) => Promise<void>;
   invitePartner: (email: string) => Promise<void>;
+  /** Re-reads the server entitlement and applies it. The client never writes plans. */
+  refreshEntitlement: () => Promise<Plan | null>;
 }
 
 /* ------------------------------ seeds & factories ------------------------------ */
@@ -505,6 +507,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toast("Invitation sent", `When ${email} signs up, your plan becomes theirs too.`);
   }, [toast]);
 
+  /**
+   * Server-authoritative plan refresh. Reads the entitlement row and applies
+   * whatever the server says — never an optimistic local write. Returns the
+   * resolved plan (or null when there is no entitlement / not in cloud mode).
+   */
+  const refreshEntitlement = useCallback(async (): Promise<Plan | null> => {
+    if (modeRef.current !== "cloud") return null;
+    const plan = await apiRefreshEntitlement();
+    if (plan) {
+      setDbState((d) => (d.plan === plan ? d : { ...d, plan }));
+    }
+    return plan;
+  }, []);
+
   /* ------------------------------ value ------------------------------ */
 
   const value = useMemo<AppCtx>(() => ({
@@ -513,7 +529,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     authOpen, setAuthOpen,
     checkout, openCheckout, closeCheckout,
     mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner,
-  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, authOpen, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner]);
+    refreshEntitlement,
+  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, authOpen, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
