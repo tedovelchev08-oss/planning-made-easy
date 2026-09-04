@@ -67,10 +67,10 @@ body {
   inset: -20%;
   z-index: -2;
   background:
-    radial-gradient(42% 38% at 18% 22%, rgb(255 181 194 / 0.34), transparent 70%),
-    radial-gradient(36% 34% at 82% 16%, rgb(201 184 232 / 0.32), transparent 70%),
-    radial-gradient(40% 40% at 70% 84%, rgb(168 197 160 / 0.28), transparent 70%),
-    radial-gradient(30% 30% at 22% 78%, rgb(243 231 195 / 0.5), transparent 70%),
+    radial-gradient(42% 38% at 18% 22%, rgb(255 181 194 / 0.36), transparent 70%),
+    radial-gradient(36% 34% at 82% 16%, rgb(249 239 223 / 0.8), transparent 70%),
+    radial-gradient(40% 40% at 70% 84%, rgb(233 139 160 / 0.16), transparent 70%),
+    radial-gradient(30% 30% at 22% 78%, rgb(255 231 236 / 0.6), transparent 70%),
     var(--color-cream);
   animation: mesh-drift 26s ease-in-out infinite alternate;
 }
@@ -109,6 +109,13 @@ body {
 
 .gold-hairline {
   background: linear-gradient(90deg, transparent, rgb(212 175 55 / 0.6), transparent);
+  height: 1px;
+}
+
+/* the one permitted gold usage on marketing surfaces: a thin metallic rule.
+   Gold is a detail tone — never a fill, button, or headline colour. */
+.hairline {
+  background: linear-gradient(90deg, transparent, rgb(212 175 55 / 0.55), transparent);
   height: 1px;
 }
 
@@ -193,7 +200,7 @@ body {
   top: 0;
   pointer-events: none;
   border-radius: 9999px;
-  background: radial-gradient(circle, rgb(255 181 194 / 0.16) 0%, rgb(212 175 55 / 0.07) 42%, transparent 68%);
+  background: radial-gradient(circle, rgb(255 181 194 / 0.18) 0%, rgb(255 181 194 / 0.06) 44%, transparent 68%);
   transform: translate(-50%, -50%);
   will-change: transform;
 }

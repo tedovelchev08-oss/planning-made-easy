@@ -11,14 +11,14 @@ export function Pricing() {
   const { openCheckout } = useApp();
   return (
     <section id="pricing" className="relative scroll-mt-28 overflow-hidden px-5 py-24 sm:px-8 sm:py-32">
-      <div className="pointer-events-none absolute right-[-10%] top-10 h-96 w-96 rounded-full bg-lav/25 blur-3xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute right-[-10%] top-10 h-96 w-96 rounded-full bg-blush/20 blur-3xl" aria-hidden="true" />
       <div className="pointer-events-none absolute bottom-0 left-[-8%] h-80 w-80 rounded-full bg-blush/20 blur-3xl" aria-hidden="true" />
 
       <div className="relative mx-auto max-w-7xl">
         <div className="grid items-end gap-8 lg:grid-cols-[1.2fr_1fr]">
           <Reveal>
-            <p className="flex items-center gap-3 text-[0.68rem] font-extrabold uppercase tracking-[0.28em] text-gold-deep">
-              <span className="h-px w-9 bg-gold/70" /> Pricing
+            <p className="flex items-center gap-3 text-[0.68rem] font-extrabold uppercase tracking-[0.28em] text-blush-deep">
+              <span className="h-px w-9 bg-blush-deep/60" /> Pricing
             </p>
             <h2 className="mt-5 font-display text-4xl leading-[1.08] tracking-tight text-ink sm:text-5xl">
               One beautiful <em className="text-blush-deep">purchase.</em>
@@ -40,17 +40,17 @@ export function Pricing() {
                 <article
                   className={`relative flex h-full flex-col overflow-hidden rounded-[2rem] p-8 transition-all duration-500 hover:-translate-y-2 ${
                     featured
-                      ? "border border-gold/40 bg-ink text-cream shadow-glass"
+                      ? "border border-blush-deep/50 bg-ink text-cream shadow-glass"
                       : "border border-white/70 bg-white/55 backdrop-blur-md hover:shadow-lift hover:bg-white/80"
                   }`}
                 >
                   {featured && (
-                    <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold px-4 py-1.5 text-[0.64rem] font-extrabold uppercase tracking-[0.2em] text-ink shadow-card">
+                    <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blush-deep px-4 py-1.5 text-[0.64rem] font-extrabold uppercase tracking-[0.2em] text-cream shadow-card">
                       Most loved
                     </span>
                   )}
                   {tier.id === "luxe" && (
-                    <span className="absolute right-6 top-6"><Pill tone="gold">Luxe</Pill></span>
+                    <span className="absolute right-6 top-6"><Pill tone="pending">Luxe</Pill></span>
                   )}
 
                   <h3 className={`font-display text-[1.55rem] ${featured ? "text-cream" : "text-ink"}`}>{tier.name}</h3>
@@ -61,14 +61,14 @@ export function Pricing() {
                     <span className={`text-[0.8rem] font-bold ${featured ? "text-blush" : "text-ink-mute"}`}>one-time</span>
                   </div>
 
-                  <div className={`gold-hairline my-6 ${featured ? "opacity-60" : ""}`} />
+                  <div className={`hairline my-6 ${featured ? "opacity-60" : ""}`} />
 
                   <ul className="flex-1 space-y-3">
                     {tier.features.map((f) => {
                       const excluded = f.startsWith("No ");
                       return (
                         <li key={f} className={`flex items-start gap-2.5 text-[0.9rem] ${excluded ? (featured ? "text-cream/35 line-through" : "text-ink-mute/70 line-through") : featured ? "text-cream/85" : "text-ink-2"}`}>
-                          <span className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full ${excluded ? "bg-transparent border border-current opacity-50" : featured ? "bg-gold text-ink" : "bg-sage-soft text-sage-deep"}`}>
+                          <span className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full ${excluded ? "bg-transparent border border-current opacity-50" : featured ? "bg-blush-deep text-cream" : "bg-blush-soft text-blush-deep"}`}>
                             {excluded ? <X size={10} strokeWidth={3} /> : <Check size={10} strokeWidth={3.4} />}
                           </span>
                           {f}
@@ -81,7 +81,7 @@ export function Pricing() {
                     onClick={() => openCheckout(tier.id)}
                     className={`mt-8 w-full cursor-pointer rounded-full py-3.5 text-[0.92rem] font-bold transition-all duration-300 active:scale-[0.97] ${
                       featured
-                        ? "bg-gold text-ink hover:brightness-110 hover:shadow-lift"
+                        ? "bg-blush-deep text-cream hover:brightness-110 hover:shadow-lift"
                         : "border border-ink/20 text-ink hover:border-ink/50 hover:bg-ink hover:text-cream"
                     }`}
                   >
@@ -95,7 +95,7 @@ export function Pricing() {
 
         <Reveal delay={0.2}>
           <p className="mt-10 flex flex-wrap items-center justify-center gap-2 text-center text-[0.78rem] font-semibold text-ink-mute">
-            <Lock size={13} className="text-gold-deep" />
+            <Lock size={13} className="text-blush-deep" />
             Secure checkout via Stripe · entitlement granted server-side · lifetime access · 14-day happiness promise
           </p>
         </Reveal>
@@ -115,7 +115,7 @@ function QuoteBlock({ t, big = false, className = "" }: { t: (typeof TESTIMONIAL
         {t.quote}
       </blockquote>
       <figcaption className="mt-5 flex items-center gap-3">
-        <span className="h-px w-8 bg-gold" aria-hidden="true" />
+        <span className="h-px w-8 bg-blush-deep/70" aria-hidden="true" />
         <span className="text-[0.88rem] font-extrabold text-ink">{t.names}</span>
         <span className="text-[0.82rem] font-semibold text-ink-mute">· {t.city}</span>
       </figcaption>
@@ -132,8 +132,8 @@ export function Stories() {
   return (
     <section id="stories" className="relative mx-auto max-w-7xl scroll-mt-28 px-5 py-24 sm:px-8 sm:py-32">
       <Reveal>
-        <p className="flex items-center gap-3 text-[0.68rem] font-extrabold uppercase tracking-[0.28em] text-gold-deep">
-          <span className="h-px w-9 bg-gold/70" /> Love notes
+        <p className="flex items-center gap-3 text-[0.68rem] font-extrabold uppercase tracking-[0.28em] text-blush-deep">
+          <span className="h-px w-9 bg-blush-deep/60" /> Love notes
         </p>
         <h2 className="mt-5 font-display text-4xl leading-[1.08] tracking-tight text-ink sm:text-5xl">
           Couples kept <em className="text-blush-deep">the calm.</em>
@@ -164,7 +164,7 @@ export function Stories() {
             <div className="flex gap-2">
               {TESTIMONIALS.map((_, i) => (
                 <button key={i} onClick={() => setIdx(i)} aria-label={`Story ${i + 1}`}
-                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${i === idx ? "w-7 bg-gold" : "w-2 bg-ink/20 hover:bg-ink/40"}`} />
+                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${i === idx ? "w-7 bg-blush-deep" : "w-2 bg-ink/20 hover:bg-ink/40"}`} />
               ))}
             </div>
             <div className="flex gap-2">
