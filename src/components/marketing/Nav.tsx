@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import { Logo } from "../ui";
-import { useApp } from "../../lib/store";
 
 const LINKS = [
   { label: "Features", id: "features" },
@@ -17,7 +16,13 @@ export default function Nav() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { setAuthOpen, user } = useApp();
+
+  // The marketing page is independent of auth/store state: signing in means
+  // entering the product, where the real session and auth flow live.
+  const enterProduct = () => {
+    setOpen(false);
+    navigate("/planner");
+  };
 
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 28);
@@ -72,10 +77,10 @@ export default function Nav() {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setAuthOpen(true)}
+            onClick={enterProduct}
             className="hidden rounded-full px-4 py-2 text-[0.86rem] font-semibold text-ink-2 transition hover:bg-ink/5 hover:text-ink sm:block cursor-pointer"
           >
-            {user ? user.name.split(" ")[0] : "Sign in"}
+            Sign in
           </button>
           <Link
             to="/planner"
@@ -127,8 +132,8 @@ export default function Nav() {
               <Link to="/planner" onClick={() => setOpen(false)} className="rounded-full bg-blush px-6 py-4 text-center font-bold text-ink">
                 Open planner →
               </Link>
-              <button onClick={() => { setOpen(false); setAuthOpen(true); }} className="rounded-full border border-cream/25 px-6 py-4 font-semibold text-cream cursor-pointer">
-                {user ? `Signed in as ${user.name.split(" ")[0]}` : "Sign in"}
+              <button onClick={enterProduct} className="rounded-full border border-cream/25 px-6 py-4 font-semibold text-cream cursor-pointer">
+                Sign in
               </button>
             </motion.div>
           </motion.div>

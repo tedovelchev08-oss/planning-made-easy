@@ -1,14 +1,18 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronLeft, ChevronRight, Lock, X } from "lucide-react";
 import { TESTIMONIALS, TIERS, fmtMoney } from "../../lib/data";
-import { useApp, useMediaQuery } from "../../lib/store";
+import { useMediaQuery } from "../../lib/store";
 import { Pill, Reveal, Stars } from "../ui";
 
 /* ------------------------------ pricing ------------------------------ */
 
 export function Pricing() {
-  const { openCheckout } = useApp();
+  const navigate = useNavigate();
+  // The marketing page never touches the store: choosing a tier enters the
+  // product, where checkout and the server-granted entitlement actually happen.
+  const choose = () => navigate("/planner");
   return (
     <section id="pricing" className="relative scroll-mt-28 overflow-hidden px-5 py-24 sm:px-8 sm:py-32">
       <div className="pointer-events-none absolute right-[-10%] top-10 h-96 w-96 rounded-full bg-blush/20 blur-3xl" aria-hidden="true" />
@@ -78,7 +82,7 @@ export function Pricing() {
                   </ul>
 
                   <button
-                    onClick={() => openCheckout(tier.id)}
+                    onClick={choose}
                     className={`mt-8 w-full cursor-pointer rounded-full py-3.5 text-[0.92rem] font-bold transition-all duration-300 active:scale-[0.97] ${
                       featured
                         ? "bg-blush-deep text-cream hover:brightness-110 hover:shadow-lift"

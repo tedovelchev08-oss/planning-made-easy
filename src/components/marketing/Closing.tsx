@@ -3,23 +3,23 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, Heart, Send } from "lucide-react";
 import { Reveal, Logo } from "../ui";
-import { useApp } from "../../lib/store";
 
 /* ------------------------------ final CTA ------------------------------ */
 
 export function FinalCta() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
-  const { toast } = useApp();
+  const [error, setError] = useState<string | null>(null);
 
+  // The marketing page owns its own feedback — no store, no toasts.
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.includes("@") || email.length < 5) {
-      toast("That email needs a second look", "Try something like you@example.com", "warn");
+      setError("That email needs a second look — try something like you@example.com.");
       return;
     }
+    setError(null);
     setSent(true);
-    toast("You're on the list", "A warm welcome is on its way to your inbox.");
   };
 
   return (

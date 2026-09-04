@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { ArrowRight, CalendarDays, ChevronDown, Heart, Users } from "lucide-react";
 import { fmtDateShort, fmtMoney } from "../../lib/data";
-import { useApp, useMediaQuery, usePrefersReducedMotion, useStats } from "../../lib/store";
+import { useMediaQuery, usePrefersReducedMotion } from "../../lib/store";
 import { Stars } from "../ui";
 
 const HeroScene = lazy(() => import("../three/HeroScene"));
@@ -28,9 +28,29 @@ function CursorGlow() {
   return <motion.div ref={ref} className="cursor-glow" style={{ x: sx, y: sy }} aria-hidden="true" />;
 }
 
+/**
+ * Designed sample data for the landing page.
+ *
+ * The marketing page is collateral: it must render IDENTICALLY for a signed-out
+ * visitor on a phone and for a signed-in couple with a full plan. It therefore
+ * renders from this constant — never from the live store (no useApp / useStats).
+ * Figures mirror the figures the demo workspace was designed around; the date is
+ * fixed (not derived from Date.now()) so the page never drifts.
+ */
+const HERO_PREVIEW = {
+  date: "2026-10-17T16:00:00",
+  guests: 112,
+  confirmed: 87,
+  remaining: 7_820,
+  totalBudget: 46_000, // committed < totalBudget always holds → no NaN widths
+  committed: 38_180,
+  tasksDone: 39,
+  tasksTotal: 50,
+  progressPct: 78,
+} as const;
+
 function GlassPlannerCard({ tilt }: { tilt: boolean }) {
-  const { db } = useApp();
-  const stats = useStats();
+  const stats = HERO_PREVIEW;
   const reduced = usePrefersReducedMotion();
   const rx = useMotionValue(0);
   const ry = useMotionValue(0);
@@ -80,10 +100,10 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blush-soft text-blush-deep"><CalendarDays size={15} /></span>
             <div>
               <p className="text-[0.62rem] font-bold uppercase tracking-[0.16em] text-ink-mute">The date</p>
-              <p className="font-semibold text-ink">{fmtDateShort(db.wedding.date)}</p>
+              <p className="font-semibold text-ink">{fmtDateShort(stats.date)}</p>
             </div>
             <span className="ml-auto flex items-center gap-1.5 rounded-full bg-white/70 px-2.5 py-1 text-[0.7rem] font-bold text-ink-2">
-              <Users size={12} className="text-blush-deep" /> {stats.total} guests
+              <Users size={12} className="text-blush-deep" /> {stats.guests} guests
             </span>
           </div>
 
