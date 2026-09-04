@@ -55,12 +55,17 @@ export function FinalCta() {
                   key="form" onSubmit={submit}
                   initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
                   className="flex flex-col gap-3 sm:flex-row sm:items-center sm:rounded-full sm:border sm:border-white/80 sm:bg-white/55 sm:p-2 sm:shadow-card sm:backdrop-blur-md"
-                >
+            >
                   <label htmlFor="cta-email" className="sr-only">Email address</label>
                   <input
-                    id="cta-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                    id="cta-email" type="email" value={email}
+                    onChange={(e) => { setEmail(e.target.value); if (error) setError(null); }}
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "cta-email-error" : undefined}
                     placeholder="you@example.com"
-                    className="w-full flex-1 rounded-full border border-white/80 bg-white/70 px-6 py-3.5 text-[0.95rem] text-ink placeholder:text-ink-mute/70 focus:border-blush-deep/60 focus:outline-none focus:ring-2 focus:ring-blush/30 sm:border-0 sm:bg-transparent sm:py-2.5 sm:focus:ring-0"
+                    className={`w-full flex-1 rounded-full border bg-white/70 px-6 py-3.5 text-[0.95rem] text-ink placeholder:text-ink-mute/70 focus:outline-none focus:ring-2 sm:border-0 sm:bg-transparent sm:py-2.5 sm:focus:ring-0 ${
+                      error ? "border-blush-deep/70 focus:ring-blush/40" : "border-white/80 focus:border-blush-deep/60 focus:ring-blush/30"
+                    }`}
                   />
                   <button type="submit" className="group inline-flex items-center justify-center gap-2 rounded-full bg-ink px-8 py-3.5 text-[0.92rem] font-bold text-cream transition-all duration-300 hover:bg-ink/85 active:scale-[0.97] cursor-pointer">
                     Get started
@@ -79,11 +84,14 @@ export function FinalCta() {
                 </motion.div>
               )}
             </AnimatePresence>
+            {error && !sent && (
+              <p id="cta-email-error" role="alert" className="mt-3 text-[0.78rem] font-bold text-blush-deep">
+                {error}
+              </p>
+            )}
             <p className="mt-4 text-[0.74rem] font-semibold text-ink-mute">Free to begin · upgrade only when you're ready</p>
           </div>
         </div>
-      </Reveal>
-    </section>
   );
 }
 
