@@ -3,23 +3,23 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, Heart, Send } from "lucide-react";
 import { Reveal, Logo } from "../ui";
-import { useApp } from "../../lib/store";
 
 /* ------------------------------ final CTA ------------------------------ */
 
 export function FinalCta() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
-  const { toast } = useApp();
+  const [error, setError] = useState<string | null>(null);
 
+  // The marketing page owns its own feedback — no store, no toasts.
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.includes("@") || email.length < 5) {
-      toast("That email needs a second look", "Try something like you@example.com", "warn");
+      setError("That email needs a second look — try something like you@example.com.");
       return;
     }
+    setError(null);
     setSent(true);
-    toast("You're on the list", "A warm welcome is on its way to your inbox.");
   };
 
   return (
@@ -100,7 +100,6 @@ export function FinalCta() {
 export function Footer() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useApp();
 
   const go = (id: string) => {
     if (location.pathname !== "/") {
@@ -112,9 +111,12 @@ export function Footer() {
   const links: { label: string; onClick: () => void }[] = [
     { label: "Features", onClick: () => go("features") },
     { label: "Pricing", onClick: () => go("pricing") },
-    { label: "Support", onClick: () => toast("We're here", "support@luma.love — replies within a day, usually faster.", "info") },
-    { label: "Privacy", onClick: () => toast("Privacy, plainly", "Your data is yours. Export or erase anytime.", "info") },
-    { label: "Terms", onClick: () => toast("Terms, kindly", "Fair terms, written for humans. Available in-app.", "info") },
+  ];
+
+  const mailLinks: { label: string; href: string }[] = [
+    { label: "Support", href: "mailto:support@luma.love" },
+    { label: "Privacy", href: "mailto:privacy@luma.love" },
+    { label: "Terms", href: "mailto:legal@luma.love" },
   ];
 
   return (
@@ -132,6 +134,11 @@ export function Footer() {
             <button key={l.label} onClick={l.onClick} className="text-[0.82rem] font-semibold text-cream/60 transition hover:text-blush cursor-pointer">
               {l.label}
             </button>
+          ))}
+          {mailLinks.map((l) => (
+            <a key={l.label} href={l.href} className="text-[0.82rem] font-semibold text-cream/60 transition hover:text-blush">
+              {l.label}
+            </a>
           ))}
           <span className="hidden text-cream/20 md:inline">·</span>
           <button onClick={() => navigate("/planner")} className="inline-flex items-center gap-1.5 rounded-full border border-blush/40 px-4 py-2 text-[0.8rem] font-bold text-blush transition hover:bg-blush hover:text-ink cursor-pointer">
