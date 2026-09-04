@@ -18,8 +18,8 @@ type PublicCustom = { id: string; name: string; dataUrl?: string | null; html?: 
 function PageSkeleton() {
   return (
     <div className="flex min-h-[100svh] flex-col items-center justify-center bg-cream px-6">
-      <span className="flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 bg-white/70 shadow-card">
-        <Loader2 size={20} className="animate-spin text-gold-deep" />
+      <span className="flex h-14 w-14 items-center justify-center rounded-full border border-blush/50 bg-white/70 shadow-card">
+        <Loader2 size={20} className="animate-spin text-blush-deep" />
       </span>
       <p className="mt-5 font-display text-xl italic text-ink-2">Fetching the invitation…</p>
       <div className="mt-6 w-full max-w-sm space-y-2.5" aria-hidden="true">
@@ -36,7 +36,7 @@ function MissingInvite() {
     <div className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-cream px-6 text-center">
       <span className="inv-petal" style={{ left: "22%", animationDuration: "12s" }} aria-hidden="true" />
       <span className="inv-petal" style={{ left: "64%", animationDuration: "14s", animationDelay: "3s" }} aria-hidden="true" />
-      <span className="flex h-16 w-16 items-center justify-center rounded-full border border-gold/50 bg-white/70 shadow-card">
+      <span className="flex h-16 w-16 items-center justify-center rounded-full border border-blush/50 bg-white/70 shadow-card">
         <Heart size={22} className="text-blush-deep" />
       </span>
       <h1 className="mt-6 font-display text-4xl tracking-tight text-ink">This invitation can't be found</h1>

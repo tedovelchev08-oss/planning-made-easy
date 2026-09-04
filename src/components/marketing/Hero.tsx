@@ -57,13 +57,13 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
 
       <div className="relative">
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 text-[0.64rem] font-extrabold uppercase tracking-[0.22em] text-gold-deep">
-            <Heart size={11} fill="#D4AF37" className="text-gold" /> The Luma planner
+          <span className="inline-flex items-center gap-1.5 text-[0.64rem] font-extrabold uppercase tracking-[0.22em] text-blush-deep">
+            <Heart size={11} fill="#E98BA0" className="text-blush-deep" /> The Luma planner
           </span>
           <motion.span
             animate={hover && !reduced ? { scale: [1, 1.25, 1] } : {}}
             transition={{ duration: 0.5 }}
-            className="rounded-full bg-sage-soft px-2 py-0.5 text-[0.62rem] font-bold text-sage-deep"
+            className="rounded-full bg-blush-soft px-2 py-0.5 text-[0.62rem] font-bold text-blush-deep"
           >
             ON TRACK
           </motion.span>
@@ -73,7 +73,7 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
           Plan Your<br /><em className="text-blush-deep">Dream Wedding</em>
         </h3>
 
-        <div className="gold-hairline my-4" />
+        <div className="hairline my-4" />
 
         <div className="space-y-3.5">
           <div className="flex items-center gap-3 text-sm">
@@ -83,7 +83,7 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
               <p className="font-semibold text-ink">{fmtDateShort(db.wedding.date)}</p>
             </div>
             <span className="ml-auto flex items-center gap-1.5 rounded-full bg-white/70 px-2.5 py-1 text-[0.7rem] font-bold text-ink-2">
-              <Users size={12} className="text-sage-deep" /> {stats.total} guests
+              <Users size={12} className="text-blush-deep" /> {stats.total} guests
             </span>
           </div>
 
@@ -96,7 +96,7 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
               <motion.div
                 initial={{ width: 0 }} animate={{ width: `${(stats.committed / stats.totalBudget) * 100}%` }}
                 transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
-                className="h-full rounded-full bg-gradient-to-r from-sage via-gold to-blush-deep"
+                className="h-full rounded-full bg-gradient-to-r from-blush to-blush-deep"
               />
             </div>
           </div>
@@ -106,7 +106,7 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
               <svg viewBox="0 0 44 44" className="h-11 w-11 -rotate-90">
                 <circle cx="22" cy="22" r="17" fill="none" stroke="rgb(51 43 49 / 0.1)" strokeWidth="4.5" />
                 <motion.circle
-                  cx="22" cy="22" r="17" fill="none" stroke="#D4AF37" strokeWidth="4.5" strokeLinecap="round"
+                  cx="22" cy="22" r="17" fill="none" stroke="#E98BA0" strokeWidth="4.5" strokeLinecap="round"
                   strokeDasharray={C}
                   initial={{ strokeDashoffset: C }} animate={{ strokeDashoffset: C * (1 - pct / 100) }}
                   transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
@@ -124,10 +124,10 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
         <div className="mt-5 flex items-center justify-between rounded-2xl bg-ink/90 px-4 py-3 text-cream">
           <div className="flex items-center">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blush text-[0.62rem] font-extrabold text-ink ring-2 ring-ink">M</span>
-            <span className="-ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-sage text-[0.62rem] font-extrabold text-ink ring-2 ring-ink">T</span>
+            <span className="-ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-blush-deep text-[0.62rem] font-extrabold text-cream ring-2 ring-ink">T</span>
             <span className="ml-2.5 text-[0.72rem] font-semibold text-cream/80">2 planning · {stats.confirmed} said yes</span>
           </div>
-          <Link to="/planner" className="inline-flex items-center gap-1 text-[0.72rem] font-bold text-gold transition hover:gap-2">
+          <Link to="/planner" className="inline-flex items-center gap-1 text-[0.72rem] font-bold text-blush transition hover:gap-2">
             Open <ArrowRight size={12} />
           </Link>
         </div>
@@ -173,9 +173,9 @@ export default function Hero() {
         <div className="max-w-xl lg:w-[46%]">
           <motion.p
             initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="flex items-center gap-3 text-[0.68rem] font-extrabold uppercase tracking-[0.28em] text-gold-deep"
+            className="flex items-center gap-3 text-[0.68rem] font-extrabold uppercase tracking-[0.28em] text-blush-deep"
           >
-            <span className="h-px w-9 bg-gold/70" /> A calmer way to plan a wedding
+            <span className="h-px w-9 bg-blush-deep/60" /> A calmer way to plan a wedding
           </motion.p>
 
           <motion.h1
@@ -222,7 +222,7 @@ export default function Hero() {
             className="mt-9 flex items-center gap-3.5"
           >
             <div className="flex -space-x-2">
-              {[["MK", "bg-blush"], ["SR", "bg-sage"], ["PD", "bg-lav"], ["AL", "bg-gold-soft"]].map(([t, c]) => (
+              {[["MK", "bg-blush"], ["SR", "bg-blush-soft"], ["PD", "bg-parchment"], ["AL", "bg-blush-deep/70"]].map(([t, c]) => (
                 <span key={t} className={`flex h-8 w-8 items-center justify-center rounded-full ${c} text-[0.58rem] font-extrabold text-ink ring-2 ring-cream`}>{t}</span>
               ))}
             </div>

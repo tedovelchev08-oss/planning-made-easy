@@ -65,7 +65,7 @@ export default function Nav() {
               className="group relative text-[0.86rem] font-semibold text-ink-2 transition hover:text-ink cursor-pointer"
             >
               {l.label}
-              <span className="absolute -bottom-1 left-0 h-px w-0 bg-gold transition-all duration-300 group-hover:w-full" />
+              <span className="absolute -bottom-1 left-0 h-px w-0 bg-blush-deep transition-all duration-300 group-hover:w-full" />
             </button>
           ))}
         </nav>
