@@ -163,6 +163,7 @@ export default function Hero() {
   const scrollToHow = () => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" });
 
   return (
+    <>
     <section className="relative overflow-hidden" aria-label="Introduction">
       {/* 3D installation */}
       <div className="absolute inset-0" aria-hidden="true">
@@ -188,12 +189,12 @@ export default function Hero() {
         }}
       />
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-7xl flex-col px-5 pt-28 sm:px-8 lg:min-h-[104vh] lg:flex-row lg:items-center lg:gap-10 lg:pt-24">
+      <div className="relative z-10 mx-auto flex min-h-dvh max-w-7xl flex-col px-5 pt-28 sm:px-8 lg:flex-row lg:items-center lg:gap-10 lg:pt-24">
         {/* copy */}
         <div className="max-w-xl lg:w-[46%]">
           <motion.p
             initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="flex items-center gap-3 text-[0.68rem] font-extrabold uppercase tracking-[0.28em] text-blush-deep"
+            className="flex items-center gap-3 text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-blush-deep sm:tracking-[0.28em]"
           >
             <span className="h-px w-9 bg-blush-deep/60" /> A calmer way to plan a wedding
           </motion.p>
@@ -201,10 +202,10 @@ export default function Hero() {
           <motion.h1
             initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-6 font-display text-[2.9rem] leading-[1.04] tracking-tight text-ink sm:text-6xl xl:text-[4.6rem]"
+            className="mt-6 font-display text-[2.75rem] leading-[1.1] tracking-tight text-ink sm:text-6xl xl:text-[4.25rem]"
           >
             Plan the feeling.
-            <span className="mt-2 block italic text-blush-deep">Not just the wedding.</span>
+            <span className="mt-1.5 block pb-1 italic text-blush-deep">Not just the wedding.</span>
           </motion.h1>
 
           <motion.p
@@ -236,21 +237,6 @@ export default function Hero() {
               <ChevronDown size={16} className="transition-transform duration-300 group-hover:translate-y-0.5" />
             </button>
           </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 1 }}
-            className="mt-9 flex items-center gap-3.5"
-          >
-            <div className="flex -space-x-2">
-              {[["MK", "bg-blush"], ["SR", "bg-blush-soft"], ["PD", "bg-parchment"], ["AL", "bg-blush-deep/70"]].map(([t, c]) => (
-                <span key={t} className={`flex h-8 w-8 items-center justify-center rounded-full ${c} text-[0.58rem] font-extrabold text-ink ring-2 ring-cream`}>{t}</span>
-              ))}
-            </div>
-            <div>
-              <Stars />
-              <p className="mt-0.5 font-display text-[0.82rem] italic text-ink-2">Made for modern couples, not spreadsheets.</p>
-            </div>
-          </motion.div>
         </div>
 
         {/* glass planner card */}
@@ -264,22 +250,45 @@ export default function Hero() {
           </div>
         </motion.div>
       </div>
+    </section>
+    <ProofStrip />
+    </>
+  );
+}
 
-      {/* scroll cue */}
-      <motion.button
-        onClick={scrollToHow}
-        aria-label="Scroll to how it works"
-        className="absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 text-ink-mute transition hover:text-ink lg:flex cursor-pointer"
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }}
+/* ------------------------------------------------------------------ */
+/* Social proof — lives below the hero, never inside it.              */
+/* ------------------------------------------------------------------ */
+function ProofStrip() {
+  const reduced = usePrefersReducedMotion();
+  return (
+    <section aria-label="What couples say" className="relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-8">
+      <motion.div
+        initial={reduced ? false : { opacity: 0, y: 18 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-40px" }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        className="grid gap-x-10 gap-y-4 border-t border-ink/10 py-6 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:py-7"
       >
-        <span className="text-[0.6rem] font-bold uppercase tracking-[0.3em]">Scroll</span>
-        <motion.span
-          animate={reduced ? {} : { y: [0, 7, 0] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <ChevronDown size={15} />
-        </motion.span>
-      </motion.button>
+        <div className="flex items-center gap-3.5">
+          <div className="flex -space-x-2">
+            {[["MK", "bg-blush"], ["SR", "bg-blush-soft"], ["PD", "bg-parchment"], ["AL", "bg-blush-deep/70"]].map(([t, c]) => (
+              <span key={t} className={`flex h-8 w-8 items-center justify-center rounded-full ${c} text-[0.58rem] font-extrabold text-ink ring-2 ring-cream`}>{t}</span>
+            ))}
+          </div>
+          <div className="flex flex-col gap-1">
+            <Stars />
+            <span className="text-[0.6rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">loved by couples</span>
+          </div>
+        </div>
+
+        <p className="font-display text-lg leading-snug text-ink sm:pl-2 sm:text-[1.4rem]">
+          <em className="text-ink-2">Made for modern couples,</em>{" "}
+          <em className="text-blush-deep">not spreadsheets.</em>
+        </p>
+
+        <span className="hairline hidden w-24 justify-self-end sm:block" aria-hidden="true" />
+      </motion.div>
     </section>
   );
 }
