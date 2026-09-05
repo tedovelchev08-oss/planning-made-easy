@@ -4,7 +4,6 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 import { ArrowRight, CalendarDays, ChevronDown, Heart, Users } from "lucide-react";
 import { fmtDateShort, fmtMoney } from "../../lib/data";
 import { useMediaQuery, usePrefersReducedMotion } from "../../lib/store";
-import { Stars } from "../ui";
 import { SAMPLE_PLANNER } from "./sample";
 
 const HeroScene = lazy(() => import("../three/HeroScene"));
@@ -167,20 +166,13 @@ export default function Hero() {
         }}
       />
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-7xl flex-col px-5 pt-28 sm:px-8 lg:min-h-[104vh] lg:flex-row lg:items-center lg:gap-10 lg:pt-24">
+      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-7xl flex-col px-5 pt-24 sm:px-8 sm:pt-28 lg:min-h-[104vh] lg:flex-row lg:items-center lg:gap-10 lg:pt-24">
         {/* copy */}
         <div className="max-w-xl lg:w-[46%]">
-          <motion.p
-            initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="flex items-center gap-3 text-[0.68rem] font-extrabold uppercase tracking-[0.28em] text-blush-deep"
-          >
-            <span className="h-px w-9 bg-blush-deep/60" /> A calmer way to plan a wedding
-          </motion.p>
-
           <motion.h1
             initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-6 font-display text-[2.9rem] leading-[1.04] tracking-tight text-ink sm:text-6xl xl:text-[4.6rem]"
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            className="font-display text-[2.9rem] leading-[1.04] tracking-tight text-ink sm:text-6xl xl:text-[4.6rem]"
           >
             Plan the feeling.
             <span className="mt-2 block italic text-blush-deep">Not just the wedding.</span>
@@ -188,8 +180,8 @@ export default function Hero() {
 
           <motion.p
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.26, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-7 max-w-md text-[1.05rem] leading-relaxed text-ink-2"
+            transition={{ duration: 0.9, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-6 max-w-md text-[1.05rem] leading-relaxed text-ink-2"
           >
             Luma turns the moving parts of your wedding into one beautiful, intelligent
             workspace, from the first guest to the final dance.
@@ -197,8 +189,8 @@ export default function Hero() {
 
           <motion.div
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.38, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-9 flex flex-wrap items-center gap-4"
+            transition={{ duration: 0.9, delay: 0.26, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-8 flex flex-wrap items-center gap-4"
           >
             <Link
               to="/planner"
@@ -215,28 +207,13 @@ export default function Hero() {
               <ChevronDown size={16} className="transition-transform duration-300 group-hover:translate-y-0.5" />
             </button>
           </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 1 }}
-            className="mt-9 flex items-center gap-3.5"
-          >
-            <div className="flex -space-x-2">
-              {[["MK", "bg-blush"], ["SR", "bg-blush-soft"], ["PD", "bg-parchment"], ["AL", "bg-blush-deep/70"]].map(([t, c]) => (
-                <span key={t} className={`flex h-8 w-8 items-center justify-center rounded-full ${c} text-[0.58rem] font-extrabold text-ink ring-2 ring-cream`}>{t}</span>
-              ))}
-            </div>
-            <div>
-              <Stars />
-              <p className="mt-0.5 font-display text-[0.82rem] italic text-ink-2">Made for modern couples, not spreadsheets.</p>
-            </div>
-          </motion.div>
         </div>
 
         {/* glass planner card */}
         <motion.div
           initial={{ opacity: 0, y: 44, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 1.1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="relative z-10 mx-auto mt-12 w-full max-w-[400px] lg:mt-0 lg:ml-auto lg:w-[380px]"
+          className="relative z-10 mx-auto mt-7 w-full max-w-[400px] sm:mt-12 lg:mt-0 lg:ml-auto lg:w-[380px]"
         >
           <div className={reduced ? "" : "anim-bob"}>
             <GlassPlannerCard tilt={isDesktop} />

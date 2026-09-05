@@ -419,6 +419,18 @@ function KeyLight() {
 
 function Scene({ offsetX, offsetY }: { offsetX: number; offsetY: number }) {
   const { lite } = useContext(SceneCtx);
+
+  /* The composition is authored for landscape. In portrait the horizontal
+     frustum is only about ±2.2 world units against ±5.7 on desktop (fov 37 is
+     vertical, so a 0.39 aspect narrows it), which cropped every object beyond
+     that off-frame — on a phone the hero rendered as an empty arch. Compress x
+     and open up y to remap the same arrangement into the taller, narrower
+     window, at full object scale. The -2.1 bias drops the arrangement below
+     the headline: on a 375px-wide phone the copy spans the full width, so
+     there is no clear horizontal band to place decoration in, only a vertical
+     one beneath the text. */
+  const pos = (x: number, y: number, z: number): [number, number, number] =>
+    lite ? [x * 0.38, y * 1.15 - 2.1, z] : [x, y, z];
   return (
     <>
       <CameraRig z={lite ? 16.5 : 11} />
@@ -459,51 +471,51 @@ function Scene({ offsetX, offsetY }: { offsetX: number; offsetY: number }) {
           <ArchBackdrop />
         </group>
         {!lite && (
-          <F p={[-4.8, -1.7, -2.2]} amp={0.1} speed={0.6} spin={0.02}>
+          <F p={pos(-4.8, -1.7, -2.2)} amp={0.1} speed={0.6} spin={0.02}>
             <Cake />
           </F>
         )}
         {!lite && (
-          <F p={[5.1, 2.3, -2]} amp={0.12} speed={0.7} phase={1.4}>
+          <F p={pos(5.1, 2.3, -2)} amp={0.12} speed={0.7} phase={1.4}>
             <MusicNote />
           </F>
         )}
-        <F p={[-3.4, 2.8, -2.4]} amp={0.1} speed={0.55} phase={2.2}>
+        <F p={pos(-3.4, 2.8, -2.4)} amp={0.1} speed={0.55} phase={2.2}>
           <Peony scale={0.85} />
         </F>
-        <F p={[5.5, -2.6, -1.6]} amp={0.1} speed={0.5} phase={3}>
+        <F p={pos(5.5, -2.6, -1.6)} amp={0.1} speed={0.5} phase={3}>
           <CeramicBlob color="#C9B8E8" squash={0.8} />
         </F>
-        <Sparkles count={lite ? 26 : 55} scale={[13, 7, 5]} position={[0, 0, -2]} size={lite ? 1.6 : 2.2} speed={0.25} opacity={0.5} color="#E9C46A" />
+        <Sparkles count={lite ? 26 : 55} scale={lite ? [5, 11, 5] : [13, 7, 5]} position={[0, 0, -2]} size={lite ? 1.6 : 2.2} speed={0.25} opacity={0.5} color="#E9C46A" />
       </Parallax>
 
       {/* mid layer */}
       <Parallax factor={0.6}>
-        <F p={[-4, 1.35, -0.3]} amp={0.17} speed={0.8} spin={0.12} phase={0.6}>
+        <F p={pos(-4, 1.35, -0.3)} amp={0.17} speed={0.8} spin={0.12} phase={0.6}>
           <Rings />
         </F>
-        <F p={[3.8, 1.75, -0.1]} amp={0.15} speed={0.7} phase={1.8}>
+        <F p={pos(3.8, 1.75, -0.1)} amp={0.15} speed={0.7} phase={1.8}>
           <Envelope />
         </F>
-        <F p={[-4.4, -1.3, 0.5]} amp={0.14} speed={0.75} phase={2.6}>
+        <F p={pos(-4.4, -1.3, 0.5)} amp={0.14} speed={0.75} phase={2.6}>
           <CalendarCard />
         </F>
-        <F p={[4.7, 0.1, -0.7]} amp={0.16} speed={0.85} spin={0.05} phase={0.9}>
+        <F p={pos(4.7, 0.1, -0.7)} amp={0.16} speed={0.85} spin={0.05} phase={0.9}>
           <Peony scale={1.05} />
         </F>
-        <F p={[-5.4, 0.1, 0.7]} amp={0.2} speed={0.9} spin={0.2} phase={1.1}>
+        <F p={pos(-5.4, 0.1, 0.7)} amp={0.2} speed={0.9} spin={0.2} phase={1.1}>
           <HeartGem />
         </F>
-        <F p={[2.9, -2.7, 0.75]} amp={0.18} speed={0.8} spin={-0.16} phase={2}>
+        <F p={pos(2.9, -2.7, 0.75)} amp={0.18} speed={0.8} spin={-0.16} phase={2}>
           <HeartGem color="#E8B7C4" />
         </F>
-        <F p={[0.9, 3, -0.5]} amp={0.15} speed={0.75} spin={0.14} phase={3.4}>
+        <F p={pos(0.9, 3, -0.5)} amp={0.15} speed={0.75} spin={0.14} phase={3.4}>
           <HeartGem color="#D8C8EE" />
         </F>
-        <F p={[-2.3, -2.8, 0.6]} amp={0.12} speed={0.6} spin={0.08}>
+        <F p={pos(-2.3, -2.8, 0.6)} amp={0.12} speed={0.6} spin={0.08}>
           <CeramicBlob color="#A8C5A0" squash={1.25} />
         </F>
-        <Sparkles count={lite ? 18 : 36} scale={[12, 6.5, 4]} position={[0, 0, 0.5]} size={1.5} speed={0.3} opacity={0.45} color="#FFC9D2" />
+        <Sparkles count={lite ? 18 : 36} scale={lite ? [4.6, 10, 4] : [12, 6.5, 4]} position={[0, 0, 0.5]} size={1.5} speed={0.3} opacity={0.45} color="#FFC9D2" />
       </Parallax>
 
       {/* glass slab (anchored to overlay card) — kept in front of the mid layer
@@ -522,10 +534,10 @@ function Scene({ offsetX, offsetY }: { offsetX: number; offsetY: number }) {
       <Parallax factor={1}>
         <PetalField count={lite ? 8 : 16} />
         <Bubbles count={lite ? 8 : 14} />
-        <F p={[5.9, -0.6, 1.5]} amp={0.2} speed={1} spin={0.2} phase={1.3}>
+        <F p={pos(5.9, -0.6, 1.5)} amp={0.2} speed={1} spin={0.2} phase={1.3}>
           <Rings linked={false} />
         </F>
-        <Sparkles count={lite ? 10 : 20} scale={[12, 6, 3]} position={[0, 0, 2]} size={2.6} speed={0.35} opacity={0.6} color="#F5DFA0" />
+        <Sparkles count={lite ? 10 : 20} scale={lite ? [4.6, 9, 3] : [12, 6, 3]} position={[0, 0, 2]} size={2.6} speed={0.35} opacity={0.6} color="#F5DFA0" />
       </Parallax>
     </>
   );
