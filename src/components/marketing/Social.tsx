@@ -27,7 +27,7 @@ export function Pricing() {
           <Reveal delay={0.12}>
             <p className="max-w-md text-[1.02rem] leading-relaxed text-ink-2 lg:ml-auto">
               <strong className="text-ink">No monthly subscription. Ever.</strong> Pay once and every
-              tool is yours for the whole journey — engagement to thank-you notes.
+              tool is yours for the whole journey: engagement to thank-you notes.
             </p>
           </Reveal>
         </div>
@@ -37,6 +37,15 @@ export function Pricing() {
             const featured = !!tier.featured;
             return (
               <Reveal key={tier.id} delay={i * 0.1} className={featured ? "lg:-translate-y-5" : ""}>
+                {/* The badge straddles the card's top edge, so it lives on this
+                    wrapper rather than inside the card — the card clips its own
+                    overflow to keep the 2rem radius, which cut the badge in half. */}
+                <div className="relative h-full">
+                {featured && (
+                  <span className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-blush-deep px-4 py-1.5 text-[0.64rem] font-extrabold uppercase tracking-[0.2em] text-cream shadow-card">
+                    Most loved
+                  </span>
+                )}
                 <article
                   className={`relative flex h-full flex-col overflow-hidden rounded-[2rem] p-8 transition-all duration-500 hover:-translate-y-2 ${
                     featured
@@ -44,11 +53,6 @@ export function Pricing() {
                       : "border border-white/70 bg-white/55 backdrop-blur-md hover:shadow-lift hover:bg-white/80"
                   }`}
                 >
-                  {featured && (
-                    <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blush-deep px-4 py-1.5 text-[0.64rem] font-extrabold uppercase tracking-[0.2em] text-cream shadow-card">
-                      Most loved
-                    </span>
-                  )}
                   {tier.id === "luxe" && (
                     <span className="absolute right-6 top-6"><Pill tone="pending">Luxe</Pill></span>
                   )}
@@ -88,6 +92,7 @@ export function Pricing() {
                     Choose {tier.id === "essential" ? "Essential" : tier.id === "celebration" ? "Celebration" : "Luxe"}
                   </button>
                 </article>
+                </div>
               </Reveal>
             );
           })}
