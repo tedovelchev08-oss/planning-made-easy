@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { ArrowRight, CalendarDays, ChevronDown, Heart, Users } from "lucide-react";
 import { fmtDateShort, fmtMoney } from "../../lib/data";
-import { useApp, useMediaQuery, usePrefersReducedMotion, useStats } from "../../lib/store";
+import { useMediaQuery, usePrefersReducedMotion } from "../../lib/store";
 import { Stars } from "../ui";
+import { SAMPLE_PLANNER } from "./sample";
 
 const HeroScene = lazy(() => import("../three/HeroScene"));
 
@@ -29,8 +30,6 @@ function CursorGlow() {
 }
 
 function GlassPlannerCard({ tilt }: { tilt: boolean }) {
-  const { db } = useApp();
-  const stats = useStats();
   const reduced = usePrefersReducedMotion();
   const rx = useMotionValue(0);
   const ry = useMotionValue(0);
@@ -38,7 +37,7 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
   const sry = useSpring(ry, { stiffness: 60, damping: 14 });
   const [hover, setHover] = useState(false);
 
-  const pct = stats.progressPct;
+  const pct = SAMPLE_PLANNER.progressPct;
   const C = 2 * Math.PI * 17;
 
   return (
@@ -80,21 +79,21 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blush-soft text-blush-deep"><CalendarDays size={15} /></span>
             <div>
               <p className="text-[0.62rem] font-bold uppercase tracking-[0.16em] text-ink-mute">The date</p>
-              <p className="font-semibold text-ink">{fmtDateShort(db.wedding.date)}</p>
+              <p className="font-semibold text-ink">{fmtDateShort(SAMPLE_PLANNER.date)}</p>
             </div>
             <span className="ml-auto flex items-center gap-1.5 rounded-full bg-white/70 px-2.5 py-1 text-[0.7rem] font-bold text-ink-2">
-              <Users size={12} className="text-blush-deep" /> {stats.total} guests
+              <Users size={12} className="text-blush-deep" /> {SAMPLE_PLANNER.guests} guests
             </span>
           </div>
 
           <div>
             <div className="flex items-baseline justify-between text-[0.7rem] font-bold">
               <span className="uppercase tracking-[0.16em] text-ink-mute">Budget</span>
-              <span className="text-ink">{fmtMoney(stats.remaining)} <span className="text-ink-mute">left</span></span>
+              <span className="text-ink">{fmtMoney(SAMPLE_PLANNER.remaining)} <span className="text-ink-mute">left</span></span>
             </div>
             <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink/8">
               <motion.div
-                initial={{ width: 0 }} animate={{ width: `${(stats.committed / stats.totalBudget) * 100}%` }}
+                initial={{ width: 0 }} animate={{ width: `${SAMPLE_PLANNER.committedPct}%` }}
                 transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
                 className="h-full rounded-full bg-gradient-to-r from-blush to-blush-deep"
               />
@@ -116,7 +115,7 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
             </div>
             <div className="text-sm">
               <p className="font-semibold text-ink">Planning progress</p>
-              <p className="text-[0.72rem] text-ink-mute">{stats.tasksDone} of {stats.tasksTotal} moments arranged</p>
+              <p className="text-[0.72rem] text-ink-mute">{SAMPLE_PLANNER.tasksDone} of {SAMPLE_PLANNER.tasksTotal} moments arranged</p>
             </div>
           </div>
         </div>
@@ -125,7 +124,7 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
           <div className="flex items-center">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blush text-[0.62rem] font-extrabold text-ink ring-2 ring-ink">M</span>
             <span className="-ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-blush-deep text-[0.62rem] font-extrabold text-cream ring-2 ring-ink">T</span>
-            <span className="ml-2.5 text-[0.72rem] font-semibold text-cream/80">2 planning · {stats.confirmed} said yes</span>
+            <span className="ml-2.5 text-[0.72rem] font-semibold text-cream/80">2 planning · {SAMPLE_PLANNER.confirmed} said yes</span>
           </div>
           <Link to="/planner" className="inline-flex items-center gap-1 text-[0.72rem] font-bold text-blush transition hover:gap-2">
             Open <ArrowRight size={12} />
