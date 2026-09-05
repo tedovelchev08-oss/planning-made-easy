@@ -76,6 +76,35 @@
   --color-ink-2: #5c4f55;
   --color-ink-mute: #96868d;
 
+  /* ---------- marketing type scale ----------
+     The marketing surface had grown 35 distinct font sizes across 75 uses,
+     with steps as fine as 0.02rem (0.32px) — differences nobody can see and
+     nobody chose. These 14 steps replace them. Deliberately named for their
+     role rather than reusing Tailwind's --text-sm / --tracking-wide, which
+     the dashboard relies on and which is out of scope for this pass. */
+  --text-eyebrow: 0.65rem;
+  --text-caption: 0.74rem;
+  --text-small: 0.85rem;
+  --text-body: 0.94rem;
+  --text-lead: 1.05rem;
+  --text-title: 1.4rem;
+  --text-title-lg: 1.62rem;
+  --text-heading: 1.85rem;
+  --text-display-xs: 2.4rem;
+  --text-display-sm: 2.9rem;
+  --text-display: 3.3rem;
+  --text-display-lg: 4.6rem;
+  --text-display-xl: 5.2rem;
+  --text-ornament: 6.75rem;
+
+  --tracking-label: 0.16em;
+  --tracking-label-wide: 0.22em;
+  --tracking-label-x: 0.28em;
+
+  --radius-card: 1.25rem;
+  --radius-panel: 2rem;
+  --radius-hero: 3rem;
+
   --shadow-card: 0 10px 40px -18px rgb(51 43 49 / 0.22);
   --shadow-lift: 0 28px 70px -28px rgb(51 43 49 / 0.32);
   --shadow-glass: 0 40px 100px -36px rgb(51 43 49 / 0.45);
@@ -228,6 +257,15 @@ body {
 }
 .btn3d-light:active {
   box-shadow: 0 1px 0 0 rgb(51 43 49 / 0.18), 0 6px 14px -10px rgb(51 43 49 / 0.2);
+}
+
+/* Decorative loops are parked while their section is off screen; see
+   useIdleWhenOffscreen(). Paint state is untouched, so nothing moves or
+   reflows when a section is parked or released. */
+.motion-idle [class*="anim-"],
+.motion-idle .inv-petal,
+.motion-idle .shimmer-text {
+  animation-play-state: paused;
 }
 
 /* ---------- reduced motion ---------- */

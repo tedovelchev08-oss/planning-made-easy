@@ -62,7 +62,7 @@ export default function Nav() {
             <button
               key={l.id}
               onClick={() => goSection(l.id)}
-              className="group relative text-[0.86rem] font-semibold text-ink-2 transition hover:text-ink cursor-pointer"
+              className="group relative text-small font-semibold text-ink-2 transition hover:text-ink cursor-pointer"
             >
               {l.label}
               <span className="absolute -bottom-1 left-0 h-px w-0 bg-blush-deep transition-all duration-300 group-hover:w-full" />
@@ -73,13 +73,13 @@ export default function Nav() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setAuthOpen(true)}
-            className="hidden rounded-full px-4 py-2 text-[0.86rem] font-semibold text-ink-2 transition hover:bg-ink/5 hover:text-ink sm:block cursor-pointer"
+            className="hidden rounded-full px-4 py-2 text-small font-semibold text-ink-2 transition hover:bg-ink/5 hover:text-ink sm:block cursor-pointer"
           >
             {user ? user.name.split(" ")[0] : "Sign in"}
           </button>
           <Link
             to="/planner"
-            className="group inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-[0.86rem] font-bold text-cream transition-all duration-300 hover:bg-ink/85 hover:shadow-lift active:scale-95"
+            className="group inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-small font-bold text-cream transition-all duration-300 hover:bg-ink/85 hover:shadow-lift active:scale-95"
           >
             Open planner
             <ArrowUpRight size={14} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

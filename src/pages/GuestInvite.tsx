@@ -40,11 +40,11 @@ function MissingInvite() {
         <Heart size={22} className="text-blush-deep" />
       </span>
       <h1 className="mt-6 font-display text-4xl tracking-tight text-ink">This invitation can't be found</h1>
-      <p className="mt-3 max-w-sm text-[0.92rem] leading-relaxed text-ink-2">
+      <p className="mt-3 max-w-sm text-body leading-relaxed text-ink-2">
         The link may have lost a letter on the way, or the couple hasn't published their page yet.
         Double-check the address, or head back to Luma.
       </p>
-      <Link to="/" className="mt-8 inline-flex items-center gap-2 rounded-full bg-ink px-7 py-3.5 text-[0.88rem] font-bold text-cream transition hover:bg-ink/85 active:scale-[0.97]">
+      <Link to="/" className="mt-8 inline-flex items-center gap-2 rounded-full bg-ink px-7 py-3.5 text-small font-bold text-cream transition hover:bg-ink/85 active:scale-[0.97]">
         Back to Luma
       </Link>
     </div>
@@ -252,7 +252,7 @@ export default function GuestInvite() {
         <button
           onClick={toggleMusic}
           aria-label={playing || uploadPlaying ? "Stop music" : "Play music"}
-          className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[0.74rem] font-bold transition cursor-pointer ${playing || uploadPlaying ? "" : "opacity-80 hover:opacity-100"}`}
+          className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-caption font-bold transition cursor-pointer ${playing || uploadPlaying ? "" : "opacity-80 hover:opacity-100"}`}
           style={{ borderColor: `${colors.accent}66`, background: playing || uploadPlaying ? colors.accent : `${colors.accent}14`, color: playing || uploadPlaying ? colors.bg : colors.ink }}
         >
           {playing || uploadPlaying ? <StopCircle size={13} /> : <Play size={13} />}
@@ -267,7 +267,7 @@ export default function GuestInvite() {
           initial={reduced ? false : { opacity: 0, y: 40, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-          className="overflow-hidden rounded-[1.6rem] shadow-glass"
+          className="overflow-hidden rounded-panel shadow-glass"
           style={{ border: `1px solid ${colors.accent}44` }}
         >
           {custom ? (
@@ -275,7 +275,7 @@ export default function GuestInvite() {
               <div>
                 <DesignFrame html={custom.html} title={`${custom.name} — the invitation`} className="h-[74vh] min-h-[500px] bg-white" />
                 <div className="px-7 py-5 text-center sm:px-10">
-                  <p className="text-[0.78rem] font-bold tracking-wide opacity-75">
+                  <p className="text-caption font-bold tracking-wide opacity-75">
                     A live invitation. Explore it above, then answer below when you're ready.
                   </p>
                 </div>
@@ -285,7 +285,7 @@ export default function GuestInvite() {
                 <SafeImg src={custom.dataUrl ?? ""} alt={`${custom.name} — wedding invitation`} className="w-full" />
                 <div className="px-7 py-8 text-center sm:px-10">
                   <p className="font-display text-xl italic" style={{ color: colors.accent }}>{fmtDate(dateIso, { month: "long", day: "numeric", year: "numeric" })}</p>
-                  <p className="mt-1.5 text-[0.88rem] font-semibold opacity-80">{cfg.venueLine}</p>
+                  <p className="mt-1.5 text-small font-semibold opacity-80">{cfg.venueLine}</p>
                 </div>
               </div>
             )
@@ -295,12 +295,12 @@ export default function GuestInvite() {
 
           {/* countdown */}
           <div className="border-t px-6 py-7" style={{ borderColor: `${colors.accent}33`, background: `${colors.accent}0A` }}>
-            <p className="text-center text-[0.6rem] font-extrabold uppercase tracking-[0.35em]" style={{ color: colors.accent }}>Counting down to forever</p>
+            <p className="text-center text-eyebrow font-extrabold uppercase tracking-label-x" style={{ color: colors.accent }}>Counting down to forever</p>
             <div className="mt-4 flex justify-center gap-2.5 sm:gap-4" aria-label="Countdown to the wedding">
               {[["days", countdown.d], ["hours", countdown.h], ["min", countdown.m], ["sec", countdown.s]].map(([label, v]) => (
                 <div key={label as string} className="w-16 rounded-2xl border px-2 py-3 text-center sm:w-[4.6rem]" style={{ borderColor: `${colors.accent}55`, background: colors.bg }}>
-                  <p className={`font-display text-2xl tabular-nums sm:text-[1.7rem] ${luxe && motionCfg.shimmer ? "shimmer-text" : ""}`}>{String(v).padStart(2, "0")}</p>
-                  <p className="text-[0.56rem] font-extrabold uppercase tracking-[0.18em] opacity-55">{label}</p>
+                  <p className={`font-display text-2xl tabular-nums sm:text-title-lg ${luxe && motionCfg.shimmer ? "shimmer-text" : ""}`}>{String(v).padStart(2, "0")}</p>
+                  <p className="text-eyebrow font-extrabold uppercase tracking-label opacity-55">{label}</p>
                 </div>
               ))}
             </div>
@@ -314,27 +314,27 @@ export default function GuestInvite() {
           initial={reduced ? false : { opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.8 }}
-          className="mt-8 scroll-mt-6 rounded-[1.6rem] p-7 text-center sm:p-9"
+          className="mt-8 scroll-mt-6 rounded-panel p-7 text-center sm:p-9"
           style={{ border: `1px solid ${colors.accent}44`, background: `${colors.accent}0D` }}
           aria-label="RSVP"
         >
           <AnimatePresence mode="wait">
             {done === null ? (
               <motion.form key="form" onSubmit={submit} exit={{ opacity: 0, y: -16 }} className="text-left">
-                <p className="text-center text-[0.62rem] font-extrabold uppercase tracking-[0.32em]" style={{ color: colors.accent }}>Kindly reply</p>
-                <h1 className="mt-2 text-center font-display text-[1.8rem] leading-tight sm:text-3xl">Will you join us?</h1>
+                <p className="text-center text-eyebrow font-extrabold uppercase tracking-label-x" style={{ color: colors.accent }}>Kindly reply</p>
+                <h1 className="mt-2 text-center font-display text-heading leading-tight sm:text-3xl">Will you join us?</h1>
                 {knownGuest && (
-                  <p className="mt-2 text-center text-[0.8rem] font-semibold opacity-70">
+                  <p className="mt-2 text-center text-small font-semibold opacity-70">
                     Answering as <span className="font-extrabold" style={{ color: colors.accent }}>{knownGuest.name}</span>
                   </p>
                 )}
 
                 <label className="mt-6 block">
-                  <span className="mb-1.5 block text-[0.7rem] font-extrabold uppercase tracking-[0.16em] opacity-60">Your name</span>
+                  <span className="mb-1.5 block text-caption font-extrabold uppercase tracking-label opacity-60">Your name</span>
                   <input
                     list="guest-names" value={name} onChange={(e) => setName(e.target.value)}
                     placeholder="As it appears on the invitation"
-                    className="w-full rounded-xl border bg-transparent px-4 py-3 text-[0.95rem] placeholder:opacity-40 focus:outline-none focus:ring-2"
+                    className="w-full rounded-xl border bg-transparent px-4 py-3 text-body placeholder:opacity-40 focus:outline-none focus:ring-2"
                     style={{ borderColor: `${colors.accent}55` }}
                   />
                   <datalist id="guest-names">
@@ -346,7 +346,7 @@ export default function GuestInvite() {
                   {([["yes", "Joyfully accept"], ["no", "Regretfully decline"]] as const).map(([v, label]) => (
                     <button
                       key={v} type="button" onClick={() => setAnswer(v)} aria-pressed={answer === v}
-                      className={`rounded-xl border px-4 py-3.5 text-[0.85rem] font-bold transition-all duration-300 cursor-pointer ${answer === v ? "scale-[1.02] shadow-card" : "opacity-65 hover:opacity-100"}`}
+                      className={`rounded-xl border px-4 py-3.5 text-small font-bold transition-all duration-300 cursor-pointer ${answer === v ? "scale-[1.02] shadow-card" : "opacity-65 hover:opacity-100"}`}
                       style={answer === v ? { background: colors.ink, color: colors.bg, borderColor: colors.ink } : { borderColor: `${colors.accent}55` }}
                     >
                       {label}
@@ -356,11 +356,11 @@ export default function GuestInvite() {
 
                 {cfg.meal && answer === "yes" && (
                   <motion.div initial={reduced ? false : { opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="overflow-hidden">
-                    <p className="mb-1.5 mt-4 text-[0.7rem] font-extrabold uppercase tracking-[0.16em] opacity-60">Your meal</p>
+                    <p className="mb-1.5 mt-4 text-caption font-extrabold uppercase tracking-label opacity-60">Your meal</p>
                     <div className="flex flex-wrap gap-1.5">
                       {MEALS.map((m) => (
                         <button key={m} type="button" onClick={() => setMeal(m)} aria-pressed={meal === m}
-                          className={`rounded-full border px-3.5 py-1.5 text-[0.76rem] font-bold transition cursor-pointer ${meal === m ? "" : "opacity-55 hover:opacity-90"}`}
+                          className={`rounded-full border px-3.5 py-1.5 text-caption font-bold transition cursor-pointer ${meal === m ? "" : "opacity-55 hover:opacity-90"}`}
                           style={meal === m ? { background: colors.accent, color: colors.bg, borderColor: colors.accent } : { borderColor: `${colors.accent}55` }}>
                           {m}
                         </button>
@@ -372,21 +372,21 @@ export default function GuestInvite() {
                 {answer === "yes" && (
                   <motion.div initial={reduced ? false : { opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="overflow-hidden">
                     <label className="mt-4 block">
-                      <span className="mb-1.5 block text-[0.7rem] font-extrabold uppercase tracking-[0.16em] opacity-60">Bringing a plus-one? <span className="normal-case opacity-70">(their name)</span></span>
+                      <span className="mb-1.5 block text-caption font-extrabold uppercase tracking-label opacity-60">Bringing a plus-one? <span className="normal-case opacity-70">(their name)</span></span>
                       <input
                         value={plusOne} onChange={(e) => setPlusOne(e.target.value)}
                         placeholder="Leave blank if it's just you"
-                        className="w-full rounded-xl border bg-transparent px-4 py-3 text-[0.95rem] placeholder:opacity-40 focus:outline-none focus:ring-2"
+                        className="w-full rounded-xl border bg-transparent px-4 py-3 text-body placeholder:opacity-40 focus:outline-none focus:ring-2"
                         style={{ borderColor: `${colors.accent}55` }}
                       />
                     </label>
                     {plusOne.trim() && cfg.meal && (
                       <div className="mt-3">
-                        <p className="mb-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.16em] opacity-60">{plusOne.trim().split(" ")[0]}'s meal</p>
+                        <p className="mb-1.5 text-caption font-extrabold uppercase tracking-label opacity-60">{plusOne.trim().split(" ")[0]}'s meal</p>
                         <div className="flex flex-wrap gap-1.5">
                           {MEALS.map((m) => (
                             <button key={m} type="button" onClick={() => setPlusOneMeal(m)} aria-pressed={plusOneMeal === m}
-                              className={`rounded-full border px-3.5 py-1.5 text-[0.76rem] font-bold transition cursor-pointer ${plusOneMeal === m ? "" : "opacity-55 hover:opacity-90"}`}
+                              className={`rounded-full border px-3.5 py-1.5 text-caption font-bold transition cursor-pointer ${plusOneMeal === m ? "" : "opacity-55 hover:opacity-90"}`}
                               style={plusOneMeal === m ? { background: colors.ink, color: colors.bg, borderColor: colors.ink } : { borderColor: `${colors.accent}55` }}>
                               {m}
                             </button>
@@ -399,9 +399,9 @@ export default function GuestInvite() {
 
                 {cfg.notes && (
                   <label className="mt-4 block">
-                    <span className="mb-1.5 block text-[0.7rem] font-extrabold uppercase tracking-[0.16em] opacity-60">A note for the couple</span>
+                    <span className="mb-1.5 block text-caption font-extrabold uppercase tracking-label opacity-60">A note for the couple</span>
                     <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Songs you'll dance to, allergies, excitement…"
-                      className="w-full rounded-xl border bg-transparent px-4 py-3 text-[0.9rem] placeholder:opacity-40 focus:outline-none focus:ring-2"
+                      className="w-full rounded-xl border bg-transparent px-4 py-3 text-body placeholder:opacity-40 focus:outline-none focus:ring-2"
                       style={{ borderColor: `${colors.accent}55` }} />
                   </label>
                 )}
@@ -410,7 +410,7 @@ export default function GuestInvite() {
                   type="submit"
                   disabled={sending}
                   aria-busy={sending}
-                  className="mt-6 w-full rounded-full py-3.5 text-[0.92rem] font-extrabold transition-all duration-300 hover:brightness-110 active:scale-[0.98] cursor-pointer disabled:cursor-wait disabled:opacity-70 disabled:hover:brightness-100"
+                  className="mt-6 w-full rounded-full py-3.5 text-body font-extrabold transition-all duration-300 hover:brightness-110 active:scale-[0.98] cursor-pointer disabled:cursor-wait disabled:opacity-70 disabled:hover:brightness-100"
                   style={{ background: colors.ink, color: colors.bg }}
                 >
                   {sending ? (
@@ -434,12 +434,12 @@ export default function GuestInvite() {
                   {done === "yes" ? <Heart size={30} style={{ color: colors.accent }} fill={colors.accent} /> : <Check size={28} style={{ color: colors.accent }} strokeWidth={2.6} />}
                 </motion.span>
                 <h2 className="mt-4 font-display text-3xl">{done === "yes" ? "You're on the list!" : "You'll be missed"}</h2>
-                <p className="mx-auto mt-2 max-w-sm text-[0.9rem] leading-relaxed opacity-75">
+                <p className="mx-auto mt-2 max-w-sm text-body leading-relaxed opacity-75">
                   {done === "yes"
                     ? `${name.split(" ")[0]}, we're saving you a seat${plusOne.trim() ? ` — and one for ${plusOne.trim().split(" ")[0]}` : ""}${cfg.meal ? ` (${meal} noted)` : ""}. ${names.split("&")[0]?.trim()} will be over the moon.`
                     : "Thank you for letting us know. We'll raise a glass in your honour."}
                 </p>
-                <button onClick={() => { setDone(null); setAnswer(null); setNote(""); setPlusOne(""); setPlusOneMeal(null); }} className="mt-5 text-[0.78rem] font-bold underline-offset-4 hover:underline cursor-pointer" style={{ color: colors.accent }}>
+                <button onClick={() => { setDone(null); setAnswer(null); setNote(""); setPlusOne(""); setPlusOneMeal(null); }} className="mt-5 text-caption font-bold underline-offset-4 hover:underline cursor-pointer" style={{ color: colors.accent }}>
                   Change my answer
                 </button>
               </motion.div>
@@ -455,7 +455,7 @@ export default function GuestInvite() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-12 overflow-hidden rounded-[1.6rem] shadow-lift"
+            className="mt-12 overflow-hidden rounded-panel shadow-lift"
             style={{ border: `1px solid ${colors.accent}44` }}
             aria-label="Wedding details"
           >
@@ -469,7 +469,7 @@ export default function GuestInvite() {
           </motion.section>
         )}
 
-        <p className="mt-8 flex items-center justify-center gap-2 text-center text-[0.66rem] font-bold uppercase tracking-[0.3em] opacity-45">
+        <p className="mt-8 flex items-center justify-center gap-2 text-center text-eyebrow font-bold uppercase tracking-label-x opacity-45">
           <Sparkles size={11} /> Made with Luma · {link.replace("https://", "")}
         </p>
       </main>
