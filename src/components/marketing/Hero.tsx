@@ -49,25 +49,25 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
       } : undefined}
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => { setHover(false); rx.set(0); ry.set(0); }}
-      className="relative w-full rounded-[2rem] border border-white/65 bg-white/30 p-6 shadow-glass backdrop-blur-2xl sm:p-7"
+      className="relative w-full rounded-panel border border-white/65 bg-white/30 p-6 shadow-glass backdrop-blur-2xl sm:p-7"
     >
-      <div className="pointer-events-none absolute inset-0 rounded-[2rem] bg-gradient-to-br from-white/50 via-transparent to-blush/20" aria-hidden="true" />
+      <div className="pointer-events-none absolute inset-0 rounded-panel bg-gradient-to-br from-white/50 via-transparent to-blush/20" aria-hidden="true" />
 
       <div className="relative">
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 text-[0.64rem] font-extrabold uppercase tracking-[0.22em] text-blush-deep">
+          <span className="inline-flex items-center gap-1.5 text-eyebrow font-extrabold uppercase tracking-label-wide text-blush-deep">
             <Heart size={11} fill="#E98BA0" className="text-blush-deep" /> The Luma planner
           </span>
           <motion.span
             animate={hover && !reduced ? { scale: [1, 1.25, 1] } : {}}
             transition={{ duration: 0.5 }}
-            className="rounded-full bg-blush-soft px-2 py-0.5 text-[0.62rem] font-bold text-blush-deep"
+            className="rounded-full bg-blush-soft px-2 py-0.5 text-eyebrow font-bold text-blush-deep"
           >
             ON TRACK
           </motion.span>
         </div>
 
-        <h3 className="mt-3 font-display text-[1.65rem] leading-tight text-ink">
+        <h3 className="mt-3 font-display text-title-lg leading-tight text-ink">
           Plan Your<br /><em className="text-blush-deep">Dream Wedding</em>
         </h3>
 
@@ -77,17 +77,17 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
           <div className="flex items-center gap-3 text-sm">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blush-soft text-blush-deep"><CalendarDays size={15} /></span>
             <div>
-              <p className="text-[0.62rem] font-bold uppercase tracking-[0.16em] text-ink-mute">The date</p>
+              <p className="text-eyebrow font-bold uppercase tracking-label text-ink-mute">The date</p>
               <p className="font-semibold text-ink">{fmtDateShort(SAMPLE_PLANNER.date)}</p>
             </div>
-            <span className="ml-auto flex items-center gap-1.5 rounded-full bg-white/70 px-2.5 py-1 text-[0.7rem] font-bold text-ink-2">
+            <span className="ml-auto flex items-center gap-1.5 rounded-full bg-white/70 px-2.5 py-1 text-caption font-bold text-ink-2">
               <Users size={12} className="text-blush-deep" /> {SAMPLE_PLANNER.guests} guests
             </span>
           </div>
 
           <div>
-            <div className="flex items-baseline justify-between text-[0.7rem] font-bold">
-              <span className="uppercase tracking-[0.16em] text-ink-mute">Budget</span>
+            <div className="flex items-baseline justify-between text-caption font-bold">
+              <span className="uppercase tracking-label text-ink-mute">Budget</span>
               <span className="text-ink">{fmtMoney(SAMPLE_PLANNER.remaining)} <span className="text-ink-mute">left</span></span>
             </div>
             <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink/8">
@@ -110,22 +110,22 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
                   transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
                 />
               </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-[0.62rem] font-extrabold text-ink">{pct}%</span>
+              <span className="absolute inset-0 flex items-center justify-center text-eyebrow font-extrabold text-ink">{pct}%</span>
             </div>
             <div className="text-sm">
               <p className="font-semibold text-ink">Planning progress</p>
-              <p className="text-[0.72rem] text-ink-mute">{SAMPLE_PLANNER.tasksDone} of {SAMPLE_PLANNER.tasksTotal} moments arranged</p>
+              <p className="text-caption text-ink-mute">{SAMPLE_PLANNER.tasksDone} of {SAMPLE_PLANNER.tasksTotal} moments arranged</p>
             </div>
           </div>
         </div>
 
         <div className="mt-5 flex items-center justify-between rounded-2xl bg-ink/90 px-4 py-3 text-cream">
           <div className="flex items-center">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blush text-[0.62rem] font-extrabold text-ink ring-2 ring-ink">M</span>
-            <span className="-ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-blush-deep text-[0.62rem] font-extrabold text-cream ring-2 ring-ink">T</span>
-            <span className="ml-2.5 text-[0.72rem] font-semibold text-cream/80">2 planning · {SAMPLE_PLANNER.confirmed} said yes</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blush text-eyebrow font-extrabold text-ink ring-2 ring-ink">M</span>
+            <span className="-ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-blush-deep text-eyebrow font-extrabold text-cream ring-2 ring-ink">T</span>
+            <span className="ml-2.5 text-caption font-semibold text-cream/80">2 planning · {SAMPLE_PLANNER.confirmed} said yes</span>
           </div>
-          <Link to="/planner" className="inline-flex items-center gap-1 text-[0.72rem] font-bold text-blush transition hover:gap-2">
+          <Link to="/planner" className="inline-flex items-center gap-1 text-caption font-bold text-blush transition hover:gap-2">
             Open <ArrowRight size={12} />
           </Link>
         </div>
@@ -172,7 +172,7 @@ export default function Hero() {
           <motion.h1
             initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            className="font-display text-[2.9rem] leading-[1.04] tracking-tight text-ink sm:text-6xl xl:text-[4.6rem]"
+            className="font-display text-display-sm leading-[1.04] tracking-tight text-ink sm:text-6xl xl:text-display-lg"
           >
             Plan the feeling.
             <span className="mt-2 block italic text-blush-deep">Not just the wedding.</span>
@@ -181,7 +181,7 @@ export default function Hero() {
           <motion.p
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-6 max-w-md text-[1.05rem] leading-relaxed text-ink-2"
+            className="mt-6 max-w-md text-lead leading-relaxed text-ink-2"
           >
             Luma turns the moving parts of your wedding into one beautiful, intelligent
             workspace, from the first guest to the final dance.
@@ -194,14 +194,14 @@ export default function Hero() {
           >
             <Link
               to="/planner"
-              className="group inline-flex items-center gap-2.5 rounded-full bg-ink px-8 py-4 text-[0.95rem] font-bold text-cream shadow-lift transition-all duration-300 hover:bg-ink/85 hover:shadow-glass active:scale-[0.97]"
+              className="group inline-flex items-center gap-2.5 rounded-full bg-ink px-8 py-4 text-body font-bold text-cream shadow-lift transition-all duration-300 hover:bg-ink/85 hover:shadow-glass active:scale-[0.97]"
             >
               Start planning
               <ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
             <button
               onClick={scrollToHow}
-              className="group inline-flex items-center gap-2 rounded-full border border-ink/20 bg-white/40 px-7 py-4 text-[0.95rem] font-bold text-ink backdrop-blur transition-all duration-300 hover:border-ink/45 hover:bg-white/70 cursor-pointer"
+              className="group inline-flex items-center gap-2 rounded-full border border-ink/20 bg-white/40 px-7 py-4 text-body font-bold text-ink backdrop-blur transition-all duration-300 hover:border-ink/45 hover:bg-white/70 cursor-pointer"
             >
               Explore how it works
               <ChevronDown size={16} className="transition-transform duration-300 group-hover:translate-y-0.5" />
@@ -228,7 +228,7 @@ export default function Hero() {
         className="absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 text-ink-mute transition hover:text-ink lg:flex cursor-pointer"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }}
       >
-        <span className="text-[0.6rem] font-bold uppercase tracking-[0.3em]">Scroll</span>
+        <span className="text-eyebrow font-bold uppercase tracking-label-x">Scroll</span>
         <motion.span
           animate={reduced ? {} : { y: [0, 7, 0] }}
           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
