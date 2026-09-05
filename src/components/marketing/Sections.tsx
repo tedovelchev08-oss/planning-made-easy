@@ -141,7 +141,7 @@ export function Features() {
         </Reveal>
         <Reveal delay={0.15}>
           <p className="max-w-md text-[1.02rem] leading-relaxed text-ink-2 lg:ml-auto">
-            Six instruments that play together — so the plan stays as warm as the
+            Six instruments that play together, so the plan stays as warm as the
             reason you're making it.
           </p>
         </Reveal>

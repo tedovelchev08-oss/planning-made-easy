@@ -82,7 +82,7 @@ export function FinalCta() {
                   className="flex items-center justify-center gap-3 rounded-full border border-white/80 bg-white/70 px-7 py-4 shadow-card backdrop-blur-md"
                 >
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blush-deep text-cream"><Check size={15} strokeWidth={3} /></span>
-                  <p className="text-[0.95rem] font-bold text-ink">You're on the list — see you at <em className="font-display italic">organized.</em></p>
+                  <p className="text-[0.95rem] font-bold text-ink">You're on the list. See you at <em className="font-display italic">organized.</em></p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -116,7 +116,7 @@ export function Footer() {
   const links: { label: string; onClick: () => void }[] = [
     { label: "Features", onClick: () => go("features") },
     { label: "Pricing", onClick: () => go("pricing") },
-    { label: "Support", onClick: () => toast("We're here", "support@luma.love — replies within a day, usually faster.", "info") },
+    { label: "Support", onClick: () => toast("We're here", "support@luma.love. Replies within a day, usually faster.", "info") },
     { label: "Privacy", onClick: () => toast("Privacy, plainly", "Your data is yours. Export or erase anytime.", "info") },
     { label: "Terms", onClick: () => toast("Terms, kindly", "Fair terms, written for humans. Available in-app.", "info") },
   ];

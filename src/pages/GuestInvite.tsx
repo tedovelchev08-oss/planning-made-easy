@@ -42,7 +42,7 @@ function MissingInvite() {
       <h1 className="mt-6 font-display text-4xl tracking-tight text-ink">This invitation can't be found</h1>
       <p className="mt-3 max-w-sm text-[0.92rem] leading-relaxed text-ink-2">
         The link may have lost a letter on the way, or the couple hasn't published their page yet.
-        Double-check the address — or head back to Luma.
+        Double-check the address, or head back to Luma.
       </p>
       <Link to="/" className="mt-8 inline-flex items-center gap-2 rounded-full bg-ink px-7 py-3.5 text-[0.88rem] font-bold text-cream transition hover:bg-ink/85 active:scale-[0.97]">
         Back to Luma
@@ -198,7 +198,7 @@ export default function GuestInvite() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) { toast("Who's answering?", "Pop your name in so we know who to save a seat for.", "warn"); return; }
-    if (!answer) { toast("One more tap", "Joyfully accept or regretfully decline — either way, we'll know.", "warn"); return; }
+    if (!answer) { toast("One more tap", "Joyfully accept or regretfully decline. Either way, we'll know.", "warn"); return; }
 
     const po = answer === "yes" && plusOne.trim() ? plusOne.trim() : null;
     const poMeal = po ? (plusOneMeal ?? meal) : null;
@@ -212,7 +212,7 @@ export default function GuestInvite() {
         playChime(answer === "yes" ? "sparkle" : "undo");
         setDone(answer);
       } catch {
-        toast("Couldn't send your RSVP", "Check your connection and try again — nothing was lost.", "warn");
+        toast("Couldn't send your RSVP", "Check your connection and try again. Nothing was lost.", "warn");
       } finally {
         setSending(false);
       }
@@ -276,7 +276,7 @@ export default function GuestInvite() {
                 <DesignFrame html={custom.html} title={`${custom.name} — the invitation`} className="h-[74vh] min-h-[500px] bg-white" />
                 <div className="px-7 py-5 text-center sm:px-10">
                   <p className="text-[0.78rem] font-bold tracking-wide opacity-75">
-                    A live invitation — explore it above, then answer below when you're ready.
+                    A live invitation. Explore it above, then answer below when you're ready.
                   </p>
                 </div>
               </div>
@@ -437,7 +437,7 @@ export default function GuestInvite() {
                 <p className="mx-auto mt-2 max-w-sm text-[0.9rem] leading-relaxed opacity-75">
                   {done === "yes"
                     ? `${name.split(" ")[0]}, we're saving you a seat${plusOne.trim() ? ` — and one for ${plusOne.trim().split(" ")[0]}` : ""}${cfg.meal ? ` (${meal} noted)` : ""}. ${names.split("&")[0]?.trim()} will be over the moon.`
-                    : "Thank you for letting us know — we'll raise a glass in your honour."}
+                    : "Thank you for letting us know. We'll raise a glass in your honour."}
                 </p>
                 <button onClick={() => { setDone(null); setAnswer(null); setNote(""); setPlusOne(""); setPlusOneMeal(null); }} className="mt-5 text-[0.78rem] font-bold underline-offset-4 hover:underline cursor-pointer" style={{ color: colors.accent }}>
                   Change my answer

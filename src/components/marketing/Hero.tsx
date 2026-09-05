@@ -192,7 +192,7 @@ export default function Hero() {
             className="mt-7 max-w-md text-[1.05rem] leading-relaxed text-ink-2"
           >
             Luma turns the moving parts of your wedding into one beautiful, intelligent
-            workspace — from the first guest to the final dance.
+            workspace, from the first guest to the final dance.
           </motion.p>
 
           <motion.div
