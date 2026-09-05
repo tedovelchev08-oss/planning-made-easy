@@ -10,14 +10,16 @@ import { useApp } from "../../lib/store";
 export function FinalCta() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useApp();
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.includes("@") || email.length < 5) {
-      toast("That email needs a second look", "Try something like you@example.com", "warn");
+      setError("Try something like you@example.com");
       return;
     }
+    setError(null);
     setSent(true);
     toast("You're on the list", "A warm welcome is on its way to your inbox.");
   };
@@ -92,6 +94,8 @@ export function FinalCta() {
             <p className="mt-4 text-[0.74rem] font-semibold text-ink-mute">Free to begin · upgrade only when you're ready</p>
           </div>
         </div>
+      </Reveal>
+    </section>
   );
 }
 
