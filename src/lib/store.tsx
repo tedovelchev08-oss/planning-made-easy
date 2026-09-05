@@ -207,6 +207,10 @@ function writeCache(uid: string, db: Db) {
   try { localStorage.setItem(cacheKey(uid), JSON.stringify(db)); } catch { /* full — Supabase still has it */ }
 }
 
+function clearCache(uid: string) {
+  try { localStorage.removeItem(cacheKey(uid)); } catch { /* nothing to clear */ }
+}
+
 /* ------------------------------ context ------------------------------ */
 
 const Ctx = createContext<AppCtx | null>(null);
@@ -471,8 +475,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   /* ------------------------------ auth surface ------------------------------ */
 
+  /**
+   * Reset the workspace here rather than waiting on the onAuthChange callback:
+   * authApi.signOut() can reject (swallowed below), and the previous couple's
+   * guests, budget and plan must not survive a failed sign-out. onAuthChange
+   * performs the same reset when it does fire, which is harmless.
+   */
   const signOut = useCallback(() => {
-    if (mode === "cloud") void authApi.signOut().catch(() => {});
+    if (mode === "cloud") {
+      void authApi.signOut().catch(() => {});
+      // Drop the queued write-behind batch and its timer first: a pending
+      // flush fires ~700ms later and would rewrite the cache entry we clear.
+      if (flushTimer.current) { window.clearTimeout(flushTimer.current); flushTimer.current = null; }
+      pendingRef.current = new Map();
+      const email = userRef.current?.email;
+      if (email) clearCache(email);
+      setWeddingId(null);
+      setNeedsOnboarding(false);
+      setDbState(placeholderDb());
+      setSync({ status: "saved", lastSaved: null, pending: 0 });
+    }
+    // demo mode keeps its seeded workspace — there is no account to leave
     setUser(null);
   }, [mode]);
 

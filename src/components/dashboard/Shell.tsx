@@ -245,7 +245,7 @@ export default function Shell() {
                 aria-label="Account menu" aria-expanded={accountOpen}
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-blush text-[0.66rem] font-extrabold text-ink shadow-sm ring-2 ring-white transition hover:scale-105 cursor-pointer"
               >
-                {user ? initials(user.name) : "M·T"}
+                {user ? initials(user.name) : mode === "demo" ? "M·T" : "··"}
               </button>
               <AnimatePresence>
                 {accountOpen && (
@@ -258,8 +258,8 @@ export default function Shell() {
                       role="menu" aria-label="Account"
                     >
                       <div className="px-4 py-4">
-                        <p className="text-[0.92rem] font-extrabold text-ink">{user?.name ?? "Maya & Theo"}</p>
-                        <p className="mt-0.5 truncate text-[0.72rem] font-semibold text-ink-mute">{user?.email ?? "demo couple session"}</p>
+                        <p className="text-[0.92rem] font-extrabold text-ink">{user?.name ?? (mode === "demo" ? "Maya & Theo" : "Not signed in")}</p>
+                        <p className="mt-0.5 truncate text-[0.72rem] font-semibold text-ink-mute">{user?.email ?? (mode === "demo" ? "demo couple session" : "Sign in to sync your plan")}</p>
                         <span className="mt-2.5 inline-block"><Pill tone="gold">{planLabel(db.plan)}</Pill></span>
                       </div>
 
