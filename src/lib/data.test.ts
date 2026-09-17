@@ -9,9 +9,10 @@ import {
   initials,
   slugify,
   daysUntil,
+  planRank,
   TIERS,
 } from "./data";
-import type { Guest, BudgetCategory, Vendor } from "./data";
+import type { Guest, BudgetCategory, Vendor, Plan } from "./data";
 
 /* ------------------------------------------------------------------ *
  * toDayKey — the regression the handoff asks to lock down before any
@@ -262,20 +263,71 @@ describe("budget aggregation", () => {
 
 describe("plan tiers", () => {
   it("are ordered cheapest to dearest", () => {
+    // planRank is an index into TIERS, so the checkout gate is only correct
+    // while this array stays ascending. Reordering it silently inverts the gate.
     expect(TIERS.map((t) => t.id)).toEqual(["essential", "celebration", "luxe"]);
     const prices = TIERS.map((t) => t.price);
     expect([...prices].sort((a, b) => a - b)).toEqual(prices);
   });
 
-  it("gate an upgrade correctly by index", () => {
-    const rank = (p: string) => TIERS.findIndex((t) => t.id === p);
-    // owning celebration means luxe is still buyable, essential is not
-    expect(rank("luxe") > rank("celebration")).toBe(true);
-    expect(rank("essential") <= rank("celebration")).toBe(true);
-  });
-
   it("expose exactly one featured tier", () => {
     expect(TIERS.filter((t) => t.featured)).toHaveLength(1);
+  });
+
+  it("have a unique id each", () => {
+    expect(new Set(TIERS.map((t) => t.id)).size).toBe(TIERS.length);
+  });
+});
+
+describe("planRank", () => {
+  it("ranks the ladder in ascending order", () => {
+    expect(planRank("essential")).toBeLessThan(planRank("celebration"));
+    expect(planRank("celebration")).toBeLessThan(planRank("luxe"));
+  });
+
+  it("returns -1 for no plan, below every real tier", () => {
+    expect(planRank(null)).toBe(-1);
+    expect(planRank(null)).toBeLessThan(planRank("essential"));
+  });
+});
+
+/* The gate in CheckoutModal is `planRank(target) <= planRank(owned)` → blocked.
+   These assert the decision table it implements, so an upgrade path can never
+   silently invert. The webhook remains the real authority; this is UX only. */
+describe("checkout upgrade gate", () => {
+  const blocked = (target: Plan, owned: Plan | null) => planRank(target) <= planRank(owned);
+
+  it("blocks rebuying the plan you already own", () => {
+    expect(blocked("essential", "essential")).toBe(true);
+    expect(blocked("celebration", "celebration")).toBe(true);
+    expect(blocked("luxe", "luxe")).toBe(true);
+  });
+
+  it("blocks downgrading to a cheaper plan", () => {
+    expect(blocked("essential", "celebration")).toBe(true);
+    expect(blocked("essential", "luxe")).toBe(true);
+    expect(blocked("celebration", "luxe")).toBe(true);
+  });
+
+  it("allows every genuine upgrade", () => {
+    expect(blocked("celebration", "essential")).toBe(false);
+    expect(blocked("luxe", "essential")).toBe(false);
+    expect(blocked("luxe", "celebration")).toBe(false);
+  });
+
+  it("allows any purchase when nothing is owned", () => {
+    for (const t of ["essential", "celebration", "luxe"] as Plan[]) {
+      expect(blocked(t, null)).toBe(false);
+    }
+  });
+
+  it("names a real owned tier whenever it blocks", () => {
+    // The blocked branch reads TIERS[planRank(db.plan)] for the message, so a
+    // blocked state must always land on a real tier rather than undefined.
+    for (const owned of ["essential", "celebration", "luxe"] as Plan[]) {
+      expect(TIERS[planRank(owned)]).toBeDefined();
+      expect(TIERS[planRank(owned)].id).toBe(owned);
+    }
   });
 });
 
