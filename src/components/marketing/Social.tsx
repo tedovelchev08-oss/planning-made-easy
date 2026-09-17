@@ -101,7 +101,7 @@ export function Pricing() {
         <Reveal delay={0.2}>
           <p className="mt-10 flex flex-wrap items-center justify-center gap-2 text-center text-caption font-semibold text-ink-mute">
             <Lock size={13} className="text-blush-deep" />
-            Secure checkout via Stripe · entitlement granted server-side · lifetime access · 14-day happiness promise
+            Secure checkout via Stripe · entitlement granted server-side · lifetime access
           </p>
         </Reveal>
       </div>
@@ -131,8 +131,13 @@ function QuoteBlock({ t, big = false, className = "" }: { t: (typeof TESTIMONIAL
 export function Stories() {
   const isMd = useMediaQuery("(min-width: 768px)");
   const [idx, setIdx] = useState(0);
+  // Nothing real to show — render nothing rather than an empty shell or, as
+  // before, invented quotes. Populate TESTIMONIALS and the section returns.
+  const hasStories = TESTIMONIALS.length > 0;
   const next = () => setIdx((i) => (i + 1) % TESTIMONIALS.length);
   const prev = () => setIdx((i) => (i - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+
+  if (!hasStories) return null;
 
   return (
     <section id="stories" className="relative mx-auto max-w-7xl scroll-mt-28 px-5 py-24 sm:px-8 sm:py-32">

@@ -703,12 +703,18 @@ export const TIERS: {
 
 /* ------------------------------ testimonials ---------------------------- */
 
-export const TESTIMONIALS = [
-  { quote: "It made planning feel like part of our engagement, not a second job.", names: "Maya & Theo", city: "Brooklyn", stars: 5 },
-  { quote: "The seating studio alone saved our sanity. We dragged, dropped, and finally exhaled.", names: "Sofia & Erik", city: "Copenhagen", stars: 5 },
-  { quote: "Our guests are still talking about the invitation. It felt like the first scene of the wedding.", names: "Priya & Dev", city: "London", stars: 5 },
-  { quote: "We watched the budget bar instead of arguing about it. Calm is a feature, apparently.", names: "Camila & Rafael", city: "Lisbon", stars: 5 },
-];
+/**
+ * Real customer quotes only.
+ *
+ * This held four invented testimonials — fictional couples, fictional cities,
+ * five stars each — presented as genuine reviews on a page that takes payment.
+ * Fabricated reviews are deceptive advertising, so they have been removed
+ * rather than reworded.
+ *
+ * The Stories section and its nav link render only when this is non-empty, so
+ * adding real quotes here brings the whole section back with no other change.
+ */
+export const TESTIMONIALS: { quote: string; names: string; city: string; stars: number }[] = [];
 
 /* ------------------------------ features ---------------------------- */
 
