@@ -4,12 +4,15 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import { Logo } from "../ui";
 import { useApp } from "../../lib/store";
+import { TESTIMONIALS } from "../../lib/data";
 
+// Stories only appears while there are real testimonials to link to —
+// otherwise the link scrolls to a section that does not render.
 const LINKS = [
   { label: "Features", id: "features" },
   { label: "How it works", id: "how" },
   { label: "Pricing", id: "pricing" },
-  { label: "Stories", id: "stories" },
+  ...(TESTIMONIALS.length > 0 ? [{ label: "Stories", id: "stories" }] : []),
 ];
 
 export default function Nav() {
