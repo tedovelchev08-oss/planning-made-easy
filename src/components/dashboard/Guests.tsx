@@ -3,25 +3,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Download, Mail, MessageSquare, Pencil, Plus, Search, Trash2, Upload, Users, X } from "lucide-react";
 import { Guest, MEALS, Rsvp, initials } from "../../lib/data";
 import { useApp } from "../../lib/store";
+import { parseCsvLine, toCsvRow } from "../../lib/csv";
 import { EmptyState, Field, Modal, Pill, btn, inputCls, selectCls } from "../ui";
 
 const RSVPS: Rsvp[] = ["confirmed", "pending", "declined"];
-
-function parseCsvLine(line: string): string[] {
-  const out: string[] = [];
-  let cur = "";
-  let inQ = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') {
-      if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
-      else inQ = !inQ;
-    } else if (c === "," && !inQ) { out.push(cur); cur = ""; }
-    else cur += c;
-  }
-  out.push(cur);
-  return out.map((s) => s.trim());
-}
 
 const emptyForm = (): Guest => ({
   id: "", name: "", party: "A", rsvp: "pending", meal: null, table: null, seat: null, plusOneOf: null, dietary: null, notes: "",
@@ -174,8 +159,7 @@ export default function Guests() {
   const exportCsv = () => {
     const header = "name,party,rsvp,meal,plus_one_of,table,dietary,notes";
     const lines = rows.map((g) =>
-      [g.name, g.party, g.rsvp, g.meal ?? "", hostOf(g)?.name ?? "", g.table ?? "", g.dietary ?? "", g.notes]
-        .map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","));
+      toCsvRow([g.name, g.party, g.rsvp, g.meal, hostOf(g)?.name, g.table, g.dietary, g.notes]));
     const blob = new Blob([[header, ...lines].join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

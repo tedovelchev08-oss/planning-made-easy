@@ -9,6 +9,15 @@ export type Plan = "essential" | "celebration" | "luxe";
 
 export const planLabel = (p: Plan) =>
   p === "essential" ? "Essential Planner" : p === "celebration" ? "Celebration Suite" : "Premium Luxe";
+
+/**
+ * Position of a plan in the upgrade ladder; -1 when there is no plan.
+ *
+ * The checkout gate compares ranks to block buying the same tier twice or
+ * downgrading, so this is only correct while TIERS stays in ascending price
+ * order — asserted in the tests.
+ */
+export const planRank = (p: Plan | null): number => (p ? TIERS.findIndex((t) => t.id === p) : -1);
 /** A = partner one · T = partner two · B = both */
 export type Assignee = "A" | "T" | "B";
 

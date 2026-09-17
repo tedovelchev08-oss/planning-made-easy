@@ -11,10 +11,14 @@
 
 /**
  * June 12 of next year — always 4-16 months out, so the sample never reads as
- * past. Anchored at noon UTC so it renders as the 12th in every timezone;
- * midnight would display as the 11th anywhere west of Greenwich.
+ * past.
+ *
+ * Built at noon LOCAL time, not UTC. The date is only ever rendered in the
+ * viewer's own timezone, so anchoring it locally makes it read as the 12th
+ * everywhere. Noon UTC only survives about +/-11 hours of offset: a test run
+ * under Pacific/Kiritimati (UTC+14) displayed the 13th.
  */
-const sampleDate = () => new Date(Date.UTC(new Date().getUTCFullYear() + 1, 5, 12, 12)).toISOString();
+const sampleDate = () => new Date(new Date().getFullYear() + 1, 5, 12, 12, 0, 0).toISOString();
 
 export const SAMPLE_PLANNER = {
   date: sampleDate(),
