@@ -134,6 +134,21 @@ export const paidSum = (v: Vendor) =>
 
 export type TableShape = "round" | "rect" | "head" | "sweetheart";
 
+/** Surface treatment for a table on the floor plan. */
+export type TableSkin = "linen" | "marble" | "oak" | "noir";
+
+/**
+ * Table surfaces. Linen is the house default and always available; the rest
+ * are part of Premium Luxe and render locked for everyone else, so the choice
+ * is visible before it is bought rather than hidden behind an upsell.
+ */
+export const TABLE_SKINS: { id: TableSkin; label: string; note: string; lockedBy?: Plan }[] = [
+  { id: "linen", label: "Linen", note: "Soft, warm, classic" },
+  { id: "marble", label: "Marble", note: "Pale stone, faint vein", lockedBy: "luxe" },
+  { id: "oak", label: "Oak", note: "Warm wood, banquet hall", lockedBy: "luxe" },
+  { id: "noir", label: "Noir", note: "Deep ink, candlelit", lockedBy: "luxe" },
+];
+
 export interface SeatTable {
   id: string;
   name: string;
@@ -141,6 +156,8 @@ export interface SeatTable {
   capacity: number;
   x: number; // % of canvas
   y: number;
+  /** Optional so rows written before skins existed still load as linen. */
+  skin?: TableSkin;
 }
 
 export interface RegistryItem {
