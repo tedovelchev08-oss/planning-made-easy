@@ -72,6 +72,7 @@ vi.mock("./api", async () => {
       tasks: [],
       vendors: [],
       tables: [],
+      venueObjects: [],
       registry: [],
       plan: "celebration",
       // Realistic enough for scheduleDiff, which reads invitation.music.*
