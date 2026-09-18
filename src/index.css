@@ -321,3 +321,74 @@ body {
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }
+
+/* ---------- printable seating chart ----------
+   SeatingSheet lives in the DOM but is hidden on screen. Printing hides the
+   app and reveals it, so "Save as PDF" produces real vector text rather than
+   a screenshot. Black on white on purpose: this gets printed in a venue
+   office, and ink is not free. */
+
+#seating-sheet { display: none; }
+
+@media print {
+  @page { margin: 14mm; }
+
+  /* Hide the app, show the sheet.
+     visibility rather than display: the sheet renders INSIDE #root, and a
+     display:none ancestor would hide it no matter what it sets itself. */
+  body * { visibility: hidden !important; }
+  #seating-sheet, #seating-sheet * { visibility: visible !important; }
+  #seating-sheet {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    color: #000;
+    background: #fff;
+    font-family: "Nunito Sans", "Avenir Next", sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+
+  #seating-sheet .sheet-head { border-bottom: 1.5pt solid #000; padding-bottom: 6pt; margin-bottom: 12pt; }
+  #seating-sheet h1 { font-family: "Playfair Display", Georgia, serif; font-size: 22pt; margin: 0 0 2pt; }
+  #seating-sheet .sheet-head p { margin: 0; font-size: 10pt; }
+  #seating-sheet .sheet-sub { margin-top: 3pt !important; font-weight: 700; }
+
+  #seating-sheet h2 {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 14pt; margin: 0 0 6pt;
+    border-bottom: 0.5pt solid #999; padding-bottom: 3pt;
+  }
+  #seating-sheet .sheet-block { margin-bottom: 14pt; break-inside: avoid; }
+
+  #seating-sheet .sheet-inline { list-style: none; padding: 0; margin: 0 0 8pt; }
+  #seating-sheet .sheet-inline li { display: inline-block; margin: 0 14pt 3pt 0; }
+
+  #seating-sheet .sheet-table { width: 100%; border-collapse: collapse; }
+  #seating-sheet .sheet-table th { text-align: left; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 0.5pt solid #999; padding: 2pt 4pt; }
+  #seating-sheet .sheet-table td { vertical-align: top; padding: 3pt 4pt; border-bottom: 0.25pt solid #ddd; }
+  #seating-sheet .nowrap { white-space: nowrap; }
+
+  /* two columns of tables, each kept whole across a page break */
+  #seating-sheet .sheet-tables { columns: 2; column-gap: 10mm; }
+  #seating-sheet .sheet-card { break-inside: avoid; margin-bottom: 9pt; }
+  #seating-sheet .sheet-card h3 {
+    font-size: 11pt; margin: 0 0 2pt;
+    border-bottom: 0.5pt solid #000; padding-bottom: 1pt;
+    display: flex; justify-content: space-between; gap: 8pt;
+  }
+  #seating-sheet .sheet-count { font-weight: 400; font-size: 9pt; white-space: nowrap; }
+  #seating-sheet .sheet-card ol { margin: 0; padding-left: 14pt; }
+  #seating-sheet .sheet-card li { margin-bottom: 0.5pt; }
+  #seating-sheet .sheet-empty { margin: 0; font-style: italic; color: #666; }
+  #seating-sheet .sheet-tag { font-size: 8pt; border: 0.5pt solid #000; border-radius: 3pt; padding: 0 2pt; margin-left: 3pt; }
+  #seating-sheet .sheet-meal,
+  #seating-sheet .sheet-diet { font-size: 9pt; color: #444; }
+  #seating-sheet .sheet-diet { font-weight: 700; color: #000; }
+
+  #seating-sheet .sheet-note { margin: 0 0 4pt; font-size: 9pt; color: #555; }
+  #seating-sheet .sheet-names { margin: 0; }
+  #seating-sheet .sheet-foot { margin-top: 12pt; padding-top: 4pt; border-top: 0.5pt solid #999; font-size: 8.5pt; color: #555; }
+}
