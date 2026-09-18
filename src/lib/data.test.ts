@@ -11,6 +11,7 @@ import {
   daysUntil,
   planRank,
   TIERS,
+  TABLE_SKINS,
 } from "./data";
 import type { Guest, BudgetCategory, Vendor, Plan } from "./data";
 
@@ -328,6 +329,44 @@ describe("checkout upgrade gate", () => {
       expect(TIERS[planRank(owned)]).toBeDefined();
       expect(TIERS[planRank(owned)].id).toBe(owned);
     }
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * table skins — cosmetic, but the lock drives the Luxe upsell, so the
+ * gate needs to be right in both directions.
+ * ------------------------------------------------------------------ */
+
+describe("table skins", () => {
+  const locked = (skin: (typeof TABLE_SKINS)[number], plan: Plan) => !!skin.lockedBy && plan !== skin.lockedBy;
+
+  it("keeps linen free on every plan", () => {
+    const linen = TABLE_SKINS.find((s) => s.id === "linen")!;
+    expect(linen.lockedBy).toBeUndefined();
+    for (const p of ["essential", "celebration", "luxe"] as Plan[]) {
+      expect(locked(linen, p)).toBe(false);
+    }
+  });
+
+  it("locks every other surface below Luxe", () => {
+    for (const skin of TABLE_SKINS.filter((s) => s.id !== "linen")) {
+      expect(locked(skin, "essential")).toBe(true);
+      expect(locked(skin, "celebration")).toBe(true);
+    }
+  });
+
+  it("unlocks every surface on Luxe", () => {
+    for (const skin of TABLE_SKINS) expect(locked(skin, "luxe")).toBe(false);
+  });
+
+  it("leaves at least one surface available on the cheapest plan", () => {
+    // A table always has to render as something.
+    expect(TABLE_SKINS.filter((s) => !locked(s, "essential")).length).toBeGreaterThan(0);
+  });
+
+  it("has a unique id and a label per surface", () => {
+    expect(new Set(TABLE_SKINS.map((s) => s.id)).size).toBe(TABLE_SKINS.length);
+    for (const s of TABLE_SKINS) expect(s.label.length).toBeGreaterThan(0);
   });
 });
 

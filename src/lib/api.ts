@@ -45,12 +45,14 @@ export const guestToRow = (g: Guest, weddingId: string, sort: number): GuestRow 
   dietary: g.dietary, notes: g.notes, rsvp_token: g.token ?? newId(), sort,
 });
 
-export const rowToTable = (r: { id: string; name: string; shape: SeatTable["shape"]; capacity: number; x: number; y: number }): SeatTable => ({
+export const rowToTable = (r: { id: string; name: string; shape: SeatTable["shape"]; capacity: number; x: number; y: number; skin?: string | null }): SeatTable => ({
   id: r.id, name: r.name, shape: r.shape, capacity: r.capacity, x: Number(r.x), y: Number(r.y),
+  skin: (r.skin as SeatTable["skin"]) ?? "linen",
 });
 
 export const tableToRow = (t: SeatTable, weddingId: string, sort: number) => ({
-  id: t.id, wedding_id: weddingId, name: t.name, shape: t.shape, capacity: t.capacity, x: t.x, y: t.y, sort,
+  id: t.id, wedding_id: weddingId, name: t.name, shape: t.shape, capacity: t.capacity, x: t.x, y: t.y,
+  skin: t.skin ?? "linen", sort,
 });
 
 export const rowToBudget = (r: { id: string; name: string; budget: number; manual_committed: number; manual_paid: number; color: string }): BudgetCategory => ({

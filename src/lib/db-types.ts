@@ -61,6 +61,8 @@ export interface TableRow {
   capacity: number;
   x: number;
   y: number;
+  /** Added in 0006; rows written before it default to 'linen'. */
+  skin: "linen" | "marble" | "oak" | "noir";
   sort: number;
 }
 

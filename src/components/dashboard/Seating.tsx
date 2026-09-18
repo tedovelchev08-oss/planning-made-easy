@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
 import { motion, useMotionValue } from "framer-motion";
-import { AlertTriangle, Armchair, Leaf, Plus, Search, Settings2, Trash2, Wheat } from "lucide-react";
-import { SeatTable, TableShape, initials } from "../../lib/data";
+import { AlertTriangle, Armchair, Leaf, Lock, Plus, Search, Settings2, Trash2, Wheat } from "lucide-react";
+import { SeatTable, TableShape, TableSkin, TABLE_SKINS, initials } from "../../lib/data";
 import { useApp } from "../../lib/store";
 import { playChime } from "../../lib/sound";
 import { Field, Modal, Pill, btn, inputCls, selectCls } from "../ui";
@@ -12,6 +12,46 @@ const SHAPES: { id: TableShape; label: string }[] = [
   { id: "head", label: "Head table" },
   { id: "sweetheart", label: "Sweetheart" },
 ];
+
+/**
+ * How each surface paints.
+ *
+ * Pure CSS gradients rather than images: the floor can hold twenty of these and
+ * they cost nothing to download. The old tables were white with a dashed gold
+ * outline, which reads as a wireframe placeholder rather than a laid table.
+ */
+const SKIN: Record<TableSkin, { surface: string; ring: string; ink: string; sub: string }> = {
+  linen: {
+    surface:
+      "linear-gradient(145deg,#FFFDFA 0%,#FBF4EA 55%,#F6EBDC 100%)",
+    ring: "rgb(212 175 55 / 0.30)",
+    ink: "#332B31",
+    sub: "#96868D",
+  },
+  marble: {
+    surface:
+      "linear-gradient(140deg,#FDFDFC 0%,#F2F1EE 40%,#FAFAF8 62%,#ECEBE7 100%)",
+    ring: "rgb(120 120 130 / 0.26)",
+    ink: "#2E2E33",
+    sub: "#8C8C95",
+  },
+  oak: {
+    surface:
+      "linear-gradient(135deg,#C89B6A 0%,#B98A58 30%,#C49466 52%,#AE7E4D 100%)",
+    ring: "rgb(90 58 28 / 0.35)",
+    ink: "#3A2614",
+    sub: "#6B4F31",
+  },
+  noir: {
+    surface:
+      "linear-gradient(145deg,#3B333A 0%,#2C262C 55%,#231E23 100%)",
+    ring: "rgb(212 175 55 / 0.45)",
+    ink: "#FFF8F0",
+    sub: "rgb(255 248 240 / 0.55)",
+  },
+};
+
+const skinOf = (t: SeatTable): TableSkin => t.skin ?? "linen";
 
 /** Rough table width as a share of the floor, for keeping new tables apart. */
 const widthPct = (shape: TableShape) =>
@@ -76,7 +116,12 @@ function TableNode({
     // which is what let wide tables hang off the edge of the floor.
     const px = Math.min(c.width - halfW, Math.max(halfW, cx));
     const py = Math.min(c.height - halfH, Math.max(halfH, cy));
-    onMove((px / c.width) * 100, (py / c.height) * 100);
+    // Snap to a 1% grid. Fine enough that a deliberate nudge still lands where
+    // it was aimed, coarse enough that a row of tables ends up genuinely
+    // aligned rather than a pixel out — which is most of what makes a floor
+    // plan look composed instead of approximate.
+    const snap = (v: number) => Math.round(v * 100) / 100;
+    onMove(snap((px / c.width) * 100), snap((py / c.height) * 100));
     // left/top now carries the position — drop the drag transform so it is not
     // applied a second time on top of it.
     x.set(0);
@@ -252,7 +297,9 @@ export default function Seating() {
         className="dotted-canvas relative h-[560px] min-w-[1280px] rounded-[1.8rem] border border-white/70 bg-[#FDF6EA]/70 shadow-inner sm:h-[640px] lg:h-full"
         aria-label="Seating floor — scroll horizontally on smaller screens"
       >
-        <div className="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-ink/90 px-4 py-1.5 text-[0.7rem] font-bold text-cream">
+        {/* Top-left, not centred: the sweetheart table sits at x:50 y:7 and was
+            sitting on top of this counter. */}
+        <div className="pointer-events-none absolute left-4 top-4 z-20 rounded-full bg-ink/85 px-4 py-1.5 text-[0.7rem] font-bold text-cream backdrop-blur-sm">
           {seated.length} seated · {db.tables.length} tables
         </div>
 
@@ -266,15 +313,34 @@ export default function Seating() {
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) assign(id, t.id); }}
-                className={`relative shadow-card transition-shadow hover:shadow-lift ${t.shape === "round" ? "rounded-full border-2 border-dashed border-gold/60 bg-white/85" : isSweet ? "rounded-[2rem] border-2 border-blush-deep/50 bg-blush-soft/80" : "rounded-[1.4rem] border-2 border-dashed border-gold/60 bg-white/85"}`}
-                style={{ width: size.w, height: size.h }}
+                className={`relative shadow-card transition-shadow duration-300 hover:shadow-lift ${
+                  t.shape === "round" ? "rounded-full" : isSweet ? "rounded-[2rem]" : "rounded-[1.4rem]"
+                }`}
+                style={{
+                  width: size.w,
+                  height: size.h,
+                  background: isSweet
+                    ? "linear-gradient(145deg,#FFF1F4 0%,#FFE4EA 100%)"
+                    : SKIN[skinOf(t)].surface,
+                  // a single hairline ring plus an inner highlight reads as a
+                  // laid surface; the old 2px dashed outline read as a wireframe
+                  boxShadow: `0 0 0 1px ${isSweet ? "rgb(233 139 160 / 0.45)" : SKIN[skinOf(t)].ring}, inset 0 1px 0 rgb(255 255 255 / 0.55)`,
+                }}
               >
                 <button onClick={() => setSettings({ ...t })} aria-label={`Settings for ${t.name}`} className="absolute -right-2 -top-2 z-10 rounded-full bg-ink p-1.5 text-cream opacity-70 shadow-card transition hover:bg-gold-deep hover:opacity-100 cursor-pointer">
                   <Settings2 size={12} />
                 </button>
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <p className="max-w-[80%] truncate font-display text-[0.95rem] text-ink">{t.name}</p>
-                  <p className={`flex items-center gap-1 text-[0.62rem] font-extrabold ${at.length > t.capacity ? "text-blush-deep" : "text-ink-mute"}`}>
+                  <p
+                    className="max-w-[80%] truncate font-display text-[1rem] tracking-tight"
+                    style={{ color: isSweet ? "#332B31" : SKIN[skinOf(t)].ink }}
+                  >
+                    {t.name}
+                  </p>
+                  <p
+                    className="flex items-center gap-1 text-[0.62rem] font-extrabold"
+                    style={{ color: at.length > t.capacity ? "#E98BA0" : isSweet ? "#96868D" : SKIN[skinOf(t)].sub }}
+                  >
                     {/* Over capacity carried an icon and a word, not just a tint —
                         colour alone is not an accessible signal, and 12 people at an
                         8-seat table is a planning error worth stating. */}
@@ -297,7 +363,7 @@ export default function Seating() {
                       className={`absolute z-10 flex h-7 w-7 items-center justify-center rounded-full text-[0.56rem] font-extrabold transition-all duration-200 hover:scale-110 cursor-pointer ${
                         g
                           ? `${g.party === "A" ? "bg-blush text-ink" : "bg-sage text-ink"} ${g.plusOneOf ? "ring-2 ring-gold" : "ring-2 ring-white"} shadow-sm`
-                          : "border-2 border-dashed border-ink/25 bg-cream/60 text-ink-mute/70 hover:border-gold"
+                          : "border border-ink/15 bg-cream/70 text-ink-mute/50 shadow-sm hover:border-gold hover:text-gold-deep"
                       }`}
                       style={{ left: pos.x, top: pos.y }}
                     >
@@ -403,6 +469,45 @@ export default function Seating() {
                 </div>
               </Field>
             </div>
+
+            <div className="mt-7">
+              <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-ink-mute">Surface</p>
+              <div className="mt-3 grid grid-cols-4 gap-2.5">
+                {TABLE_SKINS.map((sk) => {
+                  const locked = !!sk.lockedBy && db.plan !== sk.lockedBy;
+                  const active = skinOf(settings) === sk.id;
+                  return (
+                    <button
+                      key={sk.id}
+                      type="button"
+                      disabled={locked}
+                      aria-pressed={active}
+                      title={locked ? `${sk.label} — part of Premium Luxe` : sk.note}
+                      onClick={() => setSettings({ ...settings, skin: sk.id })}
+                      className={`group relative overflow-hidden rounded-2xl p-1.5 text-left transition ${
+                        active ? "ring-2 ring-gold" : "ring-1 ring-ink/10 hover:ring-ink/30"
+                      } ${locked ? "cursor-not-allowed" : "cursor-pointer"}`}
+                    >
+                      <span
+                        className={`block h-12 w-full rounded-xl transition ${locked ? "opacity-45 saturate-50" : ""}`}
+                        style={{ background: SKIN[sk.id].surface, boxShadow: `inset 0 0 0 1px ${SKIN[sk.id].ring}` }}
+                      />
+                      <span className="mt-1.5 flex items-center gap-1 px-0.5 text-[0.66rem] font-bold text-ink-2">
+                        {locked && <Lock size={9} className="shrink-0 text-gold-deep" aria-hidden="true" />}
+                        {sk.label}
+                      </span>
+                      {locked && <span className="sr-only"> — locked, part of Premium Luxe</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              {TABLE_SKINS.some((sk) => sk.lockedBy && db.plan !== sk.lockedBy) && (
+                <p className="mt-2.5 text-[0.72rem] font-semibold text-ink-mute">
+                  Marble, oak and noir come with <span className="font-extrabold text-gold-deep">Premium Luxe</span>.
+                </p>
+              )}
+            </div>
+
             <div className="mt-7 flex justify-between">
               <button
                 onClick={() => {
