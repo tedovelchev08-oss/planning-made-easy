@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from "react";
 import { motion, useMotionValue } from "framer-motion";
-import { AlertTriangle, Armchair, Leaf, Lock, Plus, Search, Settings2, Trash2, Wheat } from "lucide-react";
+import { AlertTriangle, Armchair, Leaf, Lock, Plus, Printer, Search, Settings2, Trash2, Wheat } from "lucide-react";
 import {
   FloorObject, FloorObjectKind, SeatTable, TableShape, TableSkin,
   TABLE_SKINS, VENUE_KINDS, initials, venueKind,
@@ -8,6 +8,7 @@ import {
 import { useApp } from "../../lib/store";
 import { playChime } from "../../lib/sound";
 import { Field, Modal, Pill, btn, inputCls, selectCls } from "../ui";
+import SeatingSheet from "./SeatingSheet";
 
 const SHAPES: { id: TableShape; label: string }[] = [
   { id: "round", label: "Round" },
@@ -392,6 +393,16 @@ export default function Seating() {
               </button>
             ))}
           </div>
+          <button
+            onClick={() => window.print()}
+            className={`${btn.outline} mt-5 w-full !py-2.5`}
+          >
+            <Printer size={14} /> Export seating chart
+          </button>
+          <p className="mt-2 text-[0.7rem] leading-relaxed text-ink-mute">
+            Opens your print dialog — choose <strong>Save as PDF</strong> to send it to the venue.
+          </p>
+
           <h3 className="mt-6 text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-ink-mute">Add to the room</h3>
           <div className="mt-3 grid grid-cols-2 gap-2">
             {VENUE_KINDS.map((v) => (
@@ -739,6 +750,9 @@ export default function Seating() {
           </div>
         )}
       </Modal>
+
+      {/* Hidden on screen; @media print swaps the app out for this. */}
+      <SeatingSheet />
     </div>
   );
 }
