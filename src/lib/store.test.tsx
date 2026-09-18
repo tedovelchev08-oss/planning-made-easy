@@ -196,3 +196,37 @@ describe("AppProvider boot", () => {
     expect(result.current.stats.total).toBeGreaterThan(0);
   });
 });
+
+describe("venue objects", () => {
+  it("are seeded into the demo room", () => {
+    const { result } = renderStats();
+    expect(result.current.app.db.venueObjects.length).toBeGreaterThan(0);
+    expect(result.current.app.db.venueObjects.map((o) => o.kind)).toContain("dance");
+  });
+
+  it("survive a workspace shape written before they existed", () => {
+    // The upgrade path that matters: a cached Db from before this collection
+    // was added deserialises without it. Diffing must not blow up on that.
+    const { result } = renderStats();
+    act(() =>
+      result.current.app.setDb((d) => {
+        const legacy = { ...d } as Partial<Db>;
+        delete legacy.venueObjects;
+        return legacy as Db;
+      }),
+    );
+    expect(() =>
+      act(() => result.current.app.setDb((d) => ({ ...d, guests: [guest("After the upgrade")] }))),
+    ).not.toThrow();
+  });
+
+  it("carry a position and a footprint", () => {
+    const { result } = renderStats();
+    for (const o of result.current.app.db.venueObjects) {
+      expect(o.x).toBeGreaterThanOrEqual(0);
+      expect(o.x).toBeLessThanOrEqual(100);
+      expect(o.w).toBeGreaterThan(0);
+      expect(o.h).toBeGreaterThan(0);
+    }
+  });
+});

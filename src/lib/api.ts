@@ -7,7 +7,8 @@
 import { requireSb } from "./supabase";
 import type { Database, GuestRow, WeddingRow } from "./db-types";
 import {
-  BudgetCategory, CustomTemplate, Guest, Plan, RegistryItem, RsvpEntry, SeatTable, Task, Vendor, Wedding, slugify, toDayKey,
+  BudgetCategory, CustomTemplate, FloorObject, Guest, Plan, RegistryItem, RsvpEntry, SeatTable, Task,
+  Vendor, Wedding, slugify, toDayKey,
 } from "./data";
 import type { Db, InvitationConfig, WebsiteConfig } from "./store";
 
@@ -48,6 +49,17 @@ export const guestToRow = (g: Guest, weddingId: string, sort: number): GuestRow 
 export const rowToTable = (r: { id: string; name: string; shape: SeatTable["shape"]; capacity: number; x: number; y: number; skin?: string | null }): SeatTable => ({
   id: r.id, name: r.name, shape: r.shape, capacity: r.capacity, x: Number(r.x), y: Number(r.y),
   skin: (r.skin as SeatTable["skin"]) ?? "linen",
+});
+
+export const rowToVenueObject = (r: {
+  id: string; kind: FloorObject["kind"]; label: string; x: number; y: number; w: number; h: number;
+}): FloorObject => ({
+  id: r.id, kind: r.kind, label: r.label ?? "",
+  x: Number(r.x), y: Number(r.y), w: Number(r.w), h: Number(r.h),
+});
+
+export const venueObjectToRow = (o: FloorObject, weddingId: string, sort: number) => ({
+  id: o.id, wedding_id: weddingId, kind: o.kind, label: o.label, x: o.x, y: o.y, w: o.w, h: o.h, sort,
 });
 
 export const tableToRow = (t: SeatTable, weddingId: string, sort: number) => ({
@@ -136,11 +148,12 @@ export async function myWeddingId(): Promise<string | null> {
 /** Loads the couple's whole plan in one round of parallel selects. */
 export async function fetchWorkspace(weddingId: string, userId: string): Promise<Db> {
   const s = requireSb();
-  const [wedding, guests, tables, budget, tasks, vendors, registry, invitation, website, custom, rsvps, entitlement] =
+  const [wedding, guests, tables, venueObjects, budget, tasks, vendors, registry, invitation, website, custom, rsvps, entitlement] =
     await Promise.all([
       s.from("weddings").select("*").eq("id", weddingId).single(),
       s.from("guests").select("*").eq("wedding_id", weddingId).order("sort"),
       s.from("tables").select("*").eq("wedding_id", weddingId).order("sort"),
+      s.from("venue_objects").select("*").eq("wedding_id", weddingId).order("sort"),
       s.from("budget_categories").select("*").eq("wedding_id", weddingId).order("sort"),
       s.from("tasks").select("*").eq("wedding_id", weddingId).order("sort"),
       s.from("vendors").select("*, vendor_payments(*)").eq("wedding_id", weddingId).order("sort"),
@@ -153,7 +166,7 @@ export async function fetchWorkspace(weddingId: string, userId: string): Promise
     ]);
 
   if (wedding.error) throw wedding.error;
-  for (const r of [guests, tables, budget, tasks, vendors, registry, custom, rsvps, entitlement]) {
+  for (const r of [guests, tables, venueObjects, budget, tasks, vendors, registry, custom, rsvps, entitlement]) {
     if (r.error) throw r.error;
   }
   if (invitation.error || website.error) throw invitation.error ?? website.error;
@@ -169,6 +182,7 @@ export async function fetchWorkspace(weddingId: string, userId: string): Promise
     wedding: w,
     guests: (guests.data ?? []).map(rowToGuest),
     tables: (tables.data ?? []).map(rowToTable),
+    venueObjects: (venueObjects.data ?? []).map(rowToVenueObject),
     budget: (budget.data ?? []).map(rowToBudget),
     tasks: (tasks.data ?? []).map(rowToTask),
     vendors: (vendors.data ?? []).map(rowToVendor as never) as Vendor[],
@@ -271,7 +285,7 @@ export async function createWedding(input: {
 /* ------------------------------ write-behind ------------------------------ */
 
 export type EntityKey =
-  | "wedding" | "guests" | "tables" | "budget" | "tasks" | "vendors"
+  | "wedding" | "guests" | "tables" | "venueObjects" | "budget" | "tasks" | "vendors"
   | "registry" | "customTemplates" | "rsvpLog" | "invitation" | "website";
 
 /**
@@ -302,6 +316,10 @@ export async function syncEntity(
     case "tables":
       if (deletes.length) await run(s.from("tables").delete().in("id", deletes));
       if (upserts.length) await run(s.from("tables").upsert(upserts as never, { onConflict: "id" }));
+      return;
+    case "venueObjects":
+      if (deletes.length) await run(s.from("venue_objects").delete().in("id", deletes));
+      if (upserts.length) await run(s.from("venue_objects").upsert(upserts as never, { onConflict: "id" }));
       return;
     case "budget":
       if (deletes.length) await run(s.from("budget_categories").delete().in("id", deletes));

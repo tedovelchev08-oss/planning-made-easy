@@ -160,6 +160,50 @@ export interface SeatTable {
   skin?: TableSkin;
 }
 
+/* ------------------------------ venue objects ------------------------------ */
+
+/** Things on the floor that are not tables: nobody sits at them. */
+export type FloorObjectKind = "dance" | "stage" | "bar" | "entrance" | "cake" | "photo";
+
+export interface FloorObject {
+  id: string;
+  kind: FloorObjectKind;
+  /** Blank falls back to the kind's default name. */
+  label: string;
+  x: number; // centre, % of floor
+  y: number;
+  w: number; // size, % of floor
+  h: number;
+}
+
+/**
+ * The palette of objects, with the footprint each one starts at. Sizes are
+ * percentages so an object keeps its proportion of the room on any screen.
+ */
+export const VENUE_KINDS: {
+  id: FloorObjectKind; label: string; w: number; h: number; hint: string;
+}[] = [
+  { id: "dance", label: "Dance floor", w: 26, h: 26, hint: "Where the night actually happens" },
+  { id: "stage", label: "Stage", w: 24, h: 11, hint: "Band, DJ or speeches" },
+  { id: "bar", label: "Bar", w: 20, h: 9, hint: "Keep it away from the top table" },
+  { id: "entrance", label: "Entrance", w: 14, h: 7, hint: "How guests arrive" },
+  { id: "cake", label: "Cake table", w: 11, h: 8, hint: "Somewhere everyone can see" },
+  { id: "photo", label: "Photo corner", w: 15, h: 12, hint: "Backdrop and props" },
+];
+
+export const venueKind = (k: FloorObjectKind) => VENUE_KINDS.find((v) => v.id === k)!;
+
+/** A plausible room, so the demo floor reads as a venue rather than a grid. */
+export const seedVenueObjects: FloorObject[] = [
+  // Placed in the margins the seeded tables leave free. A dance floor is the
+  // most striking object but the demo floor is already full of tables, and a
+  // dance floor rendered under table seven would read as a bug rather than a
+  // room — so it ships as a button rather than a seed.
+  { id: "vo-stage", kind: "stage", label: "", x: 22, y: 13, w: 22, h: 10 },
+  { id: "vo-bar", kind: "bar", label: "", x: 82, y: 13, w: 19, h: 9 },
+  { id: "vo-entrance", kind: "entrance", label: "", x: 93, y: 95, w: 13, h: 7 },
+];
+
 export interface RegistryItem {
   id: string;
   name: string;
