@@ -139,19 +139,9 @@ export default function Shell() {
         </NavLink>
       ))}
 
-      <div className="mt-auto rounded-2xl border border-gold/35 bg-gold-soft/50 p-4">
-        <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.18em] text-gold-deep">Your plan</p>
-        <p className="mt-1 font-display text-lg leading-tight text-ink">{planLabel(db.plan)}</p>
-        <p className="mt-1 text-[0.7rem] leading-relaxed text-ink-2">One purchase, yours forever.</p>
-        {db.plan !== "luxe" && (
-          <button
-            onClick={() => setDrawerLike("/planner/page")}
-            className="mt-3 w-full rounded-full bg-ink py-2 text-[0.72rem] font-bold text-cream transition hover:bg-ink/85 cursor-pointer"
-          >
-            Explore Luxe
-          </button>
-        )}
-      </div>
+      {/* The "Your plan" panel sat here: three lines of static text plus an
+          "Explore Luxe" button that opened the Wedding Page editor rather than
+          any upgrade. The plan is already named in the account menu. */}
     </nav>
   );
 
