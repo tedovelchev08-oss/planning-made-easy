@@ -200,8 +200,12 @@ describe("AppProvider boot", () => {
 describe("venue objects", () => {
   it("are seeded into the demo room", () => {
     const { result } = renderStats();
-    expect(result.current.app.db.venueObjects.length).toBeGreaterThan(0);
-    expect(result.current.app.db.venueObjects.map((o) => o.kind)).toContain("dance");
+    const kinds = result.current.app.db.venueObjects.map((o) => o.kind);
+    expect(kinds.length).toBeGreaterThan(0);
+    expect(kinds).toContain("stage");
+    // Deliberately NOT a dance floor: the demo already carries eleven tables
+    // and one would render underneath them. It ships as a button instead.
+    expect(kinds).not.toContain("dance");
   });
 
   it("survive a workspace shape written before they existed", () => {

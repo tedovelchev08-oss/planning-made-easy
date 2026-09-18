@@ -1,7 +1,10 @@
 import React, { useMemo, useRef, useState } from "react";
 import { motion, useMotionValue } from "framer-motion";
 import { AlertTriangle, Armchair, Leaf, Lock, Plus, Search, Settings2, Trash2, Wheat } from "lucide-react";
-import { SeatTable, TableShape, TableSkin, TABLE_SKINS, initials } from "../../lib/data";
+import {
+  FloorObject, FloorObjectKind, SeatTable, TableShape, TableSkin,
+  TABLE_SKINS, VENUE_KINDS, initials, venueKind,
+} from "../../lib/data";
 import { useApp } from "../../lib/store";
 import { playChime } from "../../lib/sound";
 import { Field, Modal, Pill, btn, inputCls, selectCls } from "../ui";
@@ -52,6 +55,93 @@ const SKIN: Record<TableSkin, { surface: string; ring: string; ink: string; sub:
 };
 
 const skinOf = (t: SeatTable): TableSkin => t.skin ?? "linen";
+
+/**
+ * How each venue object paints. Deliberately flatter and quieter than the
+ * tables: these are the room, not the furniture, so they sit underneath and
+ * must never compete with a table for attention.
+ */
+const VENUE_STYLE: Record<FloorObjectKind, { fill: string; edge: string; ink: string; dashed?: boolean }> = {
+  dance: { fill: "repeating-linear-gradient(45deg,rgb(212 175 55 / 0.10) 0 14px,rgb(212 175 55 / 0.04) 14px 28px)", edge: "rgb(212 175 55 / 0.40)", ink: "#A8891F" },
+  stage: { fill: "linear-gradient(160deg,rgb(51 43 49 / 0.10),rgb(51 43 49 / 0.05))", edge: "rgb(51 43 49 / 0.28)", ink: "#5C4F55" },
+  bar: { fill: "linear-gradient(160deg,rgb(169 139 212 / 0.16),rgb(169 139 212 / 0.07))", edge: "rgb(167 139 212 / 0.42)", ink: "#7E5FB0" },
+  entrance: { fill: "transparent", edge: "rgb(51 43 49 / 0.30)", ink: "#96868D", dashed: true },
+  cake: { fill: "linear-gradient(160deg,rgb(255 181 194 / 0.22),rgb(255 181 194 / 0.10))", edge: "rgb(233 139 160 / 0.45)", ink: "#E98BA0" },
+  photo: { fill: "linear-gradient(160deg,rgb(168 197 160 / 0.20),rgb(168 197 160 / 0.08))", edge: "rgb(116 153 107 / 0.42)", ink: "#74996B" },
+};
+
+/**
+ * A venue object on the floor.
+ *
+ * Same commit-from-the-element-rect approach as TableNode — see the note there
+ * for why the pointer position cannot be used.
+ */
+function VenueNode({
+  obj,
+  canvasRef,
+  onMove,
+  onOpen,
+}: {
+  obj: FloorObject;
+  canvasRef: React.RefObject<HTMLDivElement | null>;
+  onMove: (x: number, y: number) => void;
+  onOpen: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const style = VENUE_STYLE[obj.kind];
+  const meta = venueKind(obj.kind);
+
+  const commit = () => {
+    const canvas = canvasRef.current;
+    const el = ref.current;
+    if (!canvas || !el) return;
+    const c = canvas.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const halfW = r.width / 2;
+    const halfH = r.height / 2;
+    const px = Math.min(c.width - halfW, Math.max(halfW, r.left + halfW - c.left));
+    const py = Math.min(c.height - halfH, Math.max(halfH, r.top + halfH - c.top));
+    const snap = (v: number) => Math.round(v * 100) / 100;
+    onMove(snap((px / c.width) * 100), snap((py / c.height) * 100));
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      drag
+      dragMomentum={false}
+      dragElastic={0.06}
+      onDragEnd={commit}
+      /* Size lives on the positioned element so the percentages resolve against
+         the floor. On the inner div they would resolve against a shrink-to-fit
+         parent and collapse to nothing. */
+      style={{ left: `${obj.x}%`, top: `${obj.y}%`, width: `${obj.w}%`, height: `${obj.h}%`, x, y }}
+      /* z-0: the room sits under the furniture, always */
+      className="absolute z-0 cursor-grab active:cursor-grabbing"
+    >
+      <div ref={ref} className="h-full w-full -translate-x-1/2 -translate-y-1/2">
+        <button
+          onClick={onOpen}
+          aria-label={`${obj.label || meta.label} — edit or remove`}
+          className={`flex h-full w-full items-center justify-center rounded-2xl text-center transition hover:brightness-95 ${
+            style.dashed ? "border-2 border-dashed" : "border"
+          }`}
+          style={{ background: style.fill, borderColor: style.edge }}
+        >
+          <span
+            className="px-2 font-display text-[0.9rem] tracking-tight"
+            style={{ color: style.ink }}
+          >
+            {obj.label || meta.label}
+          </span>
+        </button>
+      </div>
+    </motion.div>
+  );
+}
 
 /** Rough table width as a share of the floor, for keeping new tables apart. */
 const widthPct = (shape: TableShape) =>
@@ -151,6 +241,7 @@ export default function Seating() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [q, setQ] = useState("");
   const [seatPicker, setSeatPicker] = useState<{ tableId: string; seat: number } | null>(null);
+  const [venueEdit, setVenueEdit] = useState<FloorObject | null>(null);
   const [pickerQ, setPickerQ] = useState("");
   const [settings, setSettings] = useState<SeatTable | null>(null);
 
@@ -205,6 +296,23 @@ export default function Seating() {
     setDb((d) => ({ ...d, tables: [...d.tables, t] }));
     toast(`${t.name} added`, "Drag it anywhere on the floor.");
   };
+
+  const addVenueObject = (kind: FloorObjectKind) => {
+    const meta = venueKind(kind);
+    const o: FloorObject = {
+      id: `vo-${Date.now()}`,
+      kind,
+      label: "",
+      ...freeSpot(kind === "dance" ? "round" : "rect", db.tables),
+      w: meta.w,
+      h: meta.h,
+    };
+    setDb((d) => ({ ...d, venueObjects: [...(d.venueObjects ?? []), o] }));
+    toast(`${meta.label} added`, "Drag it into place.");
+  };
+
+  const moveVenueObject = (id: string) => (x: number, y: number) =>
+    setDb((d) => ({ ...d, venueObjects: d.venueObjects.map((o) => (o.id === id ? { ...o, x, y } : o)) }));
 
   const moveTable = (id: string) => (x: number, y: number) =>
     setDb((d) => ({ ...d, tables: d.tables.map((t) => (t.id === id ? { ...t, x, y } : t)) }));
@@ -284,8 +392,22 @@ export default function Seating() {
               </button>
             ))}
           </div>
+          <h3 className="mt-6 text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-ink-mute">Add to the room</h3>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {VENUE_KINDS.map((v) => (
+              <button
+                key={v.id}
+                onClick={() => addVenueObject(v.id)}
+                title={v.hint}
+                className="rounded-xl border border-ink/12 bg-white/80 px-3 py-2.5 text-[0.78rem] font-bold text-ink-2 transition hover:border-gold/60 hover:text-ink hover:shadow-sm cursor-pointer"
+              >
+                + {v.label}
+              </button>
+            ))}
+          </div>
+
           <p className="mt-4 text-[0.72rem] leading-relaxed text-ink-mute">
-            Drag tables around the floor. Drag guests onto a table, or click any seat to choose who sits there.
+            Drag anything around the floor. Drag guests onto a table, or click any seat to choose who sits there.
           </p>
         </div>
       </div>
@@ -302,6 +424,17 @@ export default function Seating() {
         <div className="pointer-events-none absolute left-4 top-4 z-20 rounded-full bg-ink/85 px-4 py-1.5 text-[0.7rem] font-bold text-cream backdrop-blur-sm">
           {seated.length} seated · {db.tables.length} tables
         </div>
+
+        {/* The room, painted under the furniture. */}
+        {(db.venueObjects ?? []).map((o) => (
+          <VenueNode
+            key={o.id}
+            obj={o}
+            canvasRef={canvasRef}
+            onMove={moveVenueObject(o.id)}
+            onOpen={() => setVenueEdit({ ...o })}
+          />
+        ))}
 
         {db.tables.map((t) => {
           const at = guestsAt(t.id);
@@ -449,6 +582,66 @@ export default function Seating() {
 
       {/* table settings modal */}
       <Modal open={!!settings} onClose={() => setSettings(null)} label="Table settings">
+        {venueEdit && (
+          <div className="p-7 sm:p-8">
+            <h2 className="font-display text-2xl text-ink">{venueEdit.label || venueKind(venueEdit.kind).label}</h2>
+            <p className="mt-1 text-[0.8rem] text-ink-mute">{venueKind(venueEdit.kind).hint}</p>
+
+            <div className="mt-6">
+              <Field label="Label">
+                <input
+                  className={inputCls}
+                  placeholder={venueKind(venueEdit.kind).label}
+                  value={venueEdit.label}
+                  onChange={(e) => setVenueEdit({ ...venueEdit, label: e.target.value })}
+                />
+              </Field>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-4">
+              <Field label="Width">
+                <input
+                  type="range" min={6} max={60} step={1} className="w-full accent-gold-deep"
+                  value={venueEdit.w}
+                  onChange={(e) => setVenueEdit({ ...venueEdit, w: Number(e.target.value) })}
+                />
+              </Field>
+              <Field label="Depth">
+                <input
+                  type="range" min={5} max={50} step={1} className="w-full accent-gold-deep"
+                  value={venueEdit.h}
+                  onChange={(e) => setVenueEdit({ ...venueEdit, h: Number(e.target.value) })}
+                />
+              </Field>
+            </div>
+
+            <div className="mt-7 flex justify-between">
+              <button
+                onClick={() => {
+                  setDb((d) => ({ ...d, venueObjects: d.venueObjects.filter((o) => o.id !== venueEdit.id) }));
+                  toast(`${venueEdit.label || venueKind(venueEdit.kind).label} removed`, undefined, "info");
+                  setVenueEdit(null);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[0.8rem] font-bold text-blush-deep transition hover:bg-blush-soft cursor-pointer"
+              >
+                <Trash2 size={13} /> Remove
+              </button>
+              <div className="flex gap-3">
+                <button onClick={() => setVenueEdit(null)} className={btn.ghost}>Cancel</button>
+                <button
+                  onClick={() => {
+                    setDb((d) => ({ ...d, venueObjects: d.venueObjects.map((o) => (o.id === venueEdit.id ? venueEdit : o)) }));
+                    setVenueEdit(null);
+                  }}
+                  className={btn.ink}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {settings && (
           <div className="p-7 sm:p-8">
             <h2 className="flex items-center gap-2.5 font-display text-2xl text-ink"><Armchair size={20} className="text-gold-deep" /> {settings.name}</h2>
