@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
-import { Armchair, Leaf, Plus, Search, Settings2, Trash2, Wheat } from "lucide-react";
+import { motion, useMotionValue } from "framer-motion";
+import { AlertTriangle, Armchair, Leaf, Plus, Search, Settings2, Trash2, Wheat } from "lucide-react";
 import { SeatTable, TableShape, initials } from "../../lib/data";
 import { useApp } from "../../lib/store";
 import { playChime } from "../../lib/sound";
@@ -12,6 +12,94 @@ const SHAPES: { id: TableShape; label: string }[] = [
   { id: "head", label: "Head table" },
   { id: "sweetheart", label: "Sweetheart" },
 ];
+
+/** Rough table width as a share of the floor, for keeping new tables apart. */
+const widthPct = (shape: TableShape) =>
+  shape === "head" ? 25 : shape === "rect" ? 23 : shape === "sweetheart" ? 13 : 15;
+
+/**
+ * First spot on a loose grid that does not collide with an existing table.
+ *
+ * New tables used to be dropped at `20 + Math.random() * 60`, which is why a
+ * populated floor ended up with tables sitting on top of one another.
+ */
+function freeSpot(shape: TableShape, existing: SeatTable[]): { x: number; y: number } {
+  const need = widthPct(shape);
+  for (const y of [26, 48, 70, 86]) {
+    for (const x of [18, 36, 54, 72, 90]) {
+      const clash = existing.some((t) => {
+        const gap = (need + widthPct(t.shape)) / 2 + 2;
+        return Math.abs(t.x - x) < gap && Math.abs(t.y - y) < 12;
+      });
+      if (!clash) return { x, y };
+    }
+  }
+  return { x: 50, y: 50 }; // floor is full — drop it in the middle to be moved
+}
+
+/**
+ * One draggable table.
+ *
+ * Its own component so each table owns motion values. The previous version
+ * dragged inside a .map() and committed `info.point` — framer-motion's POINTER
+ * position — as the table's centre, so grabbing a table anywhere but dead
+ * centre threw it by the grab offset. The drag transform was never cleared
+ * either, so the movement landed twice.
+ */
+function TableNode({
+  table,
+  canvasRef,
+  onMove,
+  children,
+}: {
+  table: SeatTable;
+  canvasRef: React.RefObject<HTMLDivElement | null>;
+  onMove: (x: number, y: number) => void;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const commit = () => {
+    const canvas = canvasRef.current;
+    const el = ref.current;
+    if (!canvas || !el) return;
+    const c = canvas.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    // Measure the element, so where it was grabbed is irrelevant.
+    const halfW = r.width / 2;
+    const halfH = r.height / 2;
+    const cx = r.left + halfW - c.left;
+    const cy = r.top + halfH - c.top;
+    // Clamp on the table's real size rather than a fixed percentage margin,
+    // which is what let wide tables hang off the edge of the floor.
+    const px = Math.min(c.width - halfW, Math.max(halfW, cx));
+    const py = Math.min(c.height - halfH, Math.max(halfH, cy));
+    onMove((px / c.width) * 100, (py / c.height) * 100);
+    // left/top now carries the position — drop the drag transform so it is not
+    // applied a second time on top of it.
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      drag
+      dragMomentum={false}
+      dragElastic={0.08}
+      onDragEnd={commit}
+      style={{ left: `${table.x}%`, top: `${table.y}%`, x, y }}
+      className="absolute z-10 cursor-grab active:z-30 active:cursor-grabbing"
+    >
+      {/* Centring lives on an inner element: framer writes its own transform on
+          the drag target, which would override a Tailwind -translate. */}
+      <div ref={ref} className="-translate-x-1/2 -translate-y-1/2">
+        {children}
+      </div>
+    </motion.div>
+  );
+}
 
 export default function Seating() {
   const { db, setDb, toast } = useApp();
@@ -67,24 +155,14 @@ export default function Seating() {
       name: shape === "round" || shape === "rect" ? `Table ${n}` : shape === "head" ? "Head Table" : "Sweetheart",
       shape,
       capacity: shape === "sweetheart" ? 2 : shape === "head" ? 8 : 8,
-      x: 20 + Math.random() * 60,
-      y: 20 + Math.random() * 55,
+      ...freeSpot(shape, db.tables),
     };
     setDb((d) => ({ ...d, tables: [...d.tables, t] }));
     toast(`${t.name} added`, "Drag it anywhere on the floor.");
   };
 
-  const endDrag = (id: string) => (_e: unknown, info: { point: { x: number; y: number } }) => {
-    const canvas = canvasRef.current;
-    const table = db.tables.find((t) => t.id === id);
-    if (!canvas || !table) return;
-    // wide tables need wider margins so they never hang off the floor edge
-    const mx = table.shape === "head" ? 17 : table.shape === "rect" ? 15 : table.shape === "sweetheart" ? 7 : 9;
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.min(100 - mx, Math.max(mx, ((info.point.x - rect.left) / rect.width) * 100));
-    const y = Math.min(92, Math.max(9, ((info.point.y - rect.top) / rect.height) * 100));
+  const moveTable = (id: string) => (x: number, y: number) =>
     setDb((d) => ({ ...d, tables: d.tables.map((t) => (t.id === id ? { ...t, x, y } : t)) }));
-  };
 
   const seatPositions = (t: SeatTable, size: { w: number; h: number }) => {
     const pts: { x: number; y: number }[] = [];
@@ -171,7 +249,7 @@ export default function Seating() {
       <div className="overflow-x-auto overscroll-x-contain rounded-[1.8rem] lg:h-full lg:min-h-0">
       <div
         ref={canvasRef}
-        className="dotted-canvas relative h-[560px] min-w-[1080px] rounded-[1.8rem] border border-white/70 bg-[#FDF6EA]/70 shadow-inner sm:h-[640px] lg:h-full"
+        className="dotted-canvas relative h-[560px] min-w-[1280px] rounded-[1.8rem] border border-white/70 bg-[#FDF6EA]/70 shadow-inner sm:h-[640px] lg:h-full"
         aria-label="Seating floor — scroll horizontally on smaller screens"
       >
         <div className="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-ink/90 px-4 py-1.5 text-[0.7rem] font-bold text-cream">
@@ -184,15 +262,7 @@ export default function Seating() {
           const seats = seatPositions(t, size);
           const isSweet = t.shape === "sweetheart";
           return (
-            <motion.div
-              key={t.id}
-              drag
-              dragMomentum={false}
-              dragElastic={0.08}
-              onDragEnd={endDrag(t.id)}
-              className="absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-grab active:z-30 active:cursor-grabbing"
-              style={{ left: `${t.x}%`, top: `${t.y}%` }}
-            >
+            <TableNode key={t.id} table={t} canvasRef={canvasRef} onMove={moveTable(t.id)}>
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) assign(id, t.id); }}
@@ -204,7 +274,15 @@ export default function Seating() {
                 </button>
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
                   <p className="max-w-[80%] truncate font-display text-[0.95rem] text-ink">{t.name}</p>
-                  <p className={`text-[0.62rem] font-extrabold ${at.length >= t.capacity ? "text-blush-deep" : "text-ink-mute"}`}>{at.length}/{t.capacity}</p>
+                  <p className={`flex items-center gap-1 text-[0.62rem] font-extrabold ${at.length > t.capacity ? "text-blush-deep" : "text-ink-mute"}`}>
+                    {/* Over capacity carried an icon and a word, not just a tint —
+                        colour alone is not an accessible signal, and 12 people at an
+                        8-seat table is a planning error worth stating. */}
+                    {at.length > t.capacity && <AlertTriangle size={10} aria-hidden="true" />}
+                    {at.length}/{t.capacity}
+                    {at.length > t.capacity && <span className="sr-only"> — over capacity</span>}
+                    {at.length > t.capacity && <span aria-hidden="true">over</span>}
+                  </p>
                   {isSweet && <span className="mt-0.5 font-display text-[0.68rem] italic text-blush-deep">just the two of us</span>}
                 </div>
 
@@ -232,7 +310,7 @@ export default function Seating() {
                   );
                 })}
               </div>
-            </motion.div>
+            </TableNode>
           );
         })}
 
