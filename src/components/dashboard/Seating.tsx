@@ -57,6 +57,49 @@ const SKIN: Record<TableSkin, { surface: string; ring: string; ink: string; sub:
 
 const skinOf = (t: SeatTable): TableSkin => t.skin ?? "linen";
 
+/** Snap a percentage to the same 1% grid dragging commits to. */
+export const snapPct = (v: number) => Math.round(v * 100) / 100;
+
+/**
+ * Clamp a centre position so the whole element stays on the floor, measuring
+ * the element rather than assuming a size. Shared by dragging and by the
+ * keyboard nudge so both land in exactly the same place.
+ */
+function clampToFloor(
+  el: HTMLElement | null,
+  canvas: HTMLElement | null,
+  xPct: number,
+  yPct: number,
+): { x: number; y: number } | null {
+  if (!el || !canvas) return null;
+  const c = canvas.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  if (!c.width || !c.height) return null;
+  const halfW = (r.width / 2 / c.width) * 100;
+  const halfH = (r.height / 2 / c.height) * 100;
+  return {
+    x: snapPct(Math.min(100 - halfW, Math.max(halfW, xPct))),
+    y: snapPct(Math.min(100 - halfH, Math.max(halfH, yPct))),
+  };
+}
+
+/**
+ * Arrow keys move whatever is focused; Shift jumps five times as far.
+ *
+ * WCAG 2.2 AA (Dragging Movements) requires a single-pointer alternative to any
+ * author-controlled drag. Until this, dragging was the only way to position a
+ * table or a venue object, which also made the floor unusable with a keyboard,
+ * a trackpad-averse hand, or assistive tech.
+ */
+export function arrowDelta(key: string, shift: boolean): { dx: number; dy: number } | null {
+  const step = shift ? 5 : 1;
+  if (key === "ArrowLeft") return { dx: -step, dy: 0 };
+  if (key === "ArrowRight") return { dx: step, dy: 0 };
+  if (key === "ArrowUp") return { dx: 0, dy: -step };
+  if (key === "ArrowDown") return { dx: 0, dy: step };
+  return null;
+}
+
 /**
  * How each venue object paints. Deliberately flatter and quieter than the
  * tables: these are the room, not the furniture, so they sit underneath and
@@ -82,11 +125,13 @@ function VenueNode({
   canvasRef,
   onMove,
   onOpen,
+  announce,
 }: {
   obj: FloorObject;
   canvasRef: React.RefObject<HTMLDivElement | null>;
   onMove: (x: number, y: number) => void;
   onOpen: () => void;
+  announce: (msg: string) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
@@ -94,20 +139,28 @@ function VenueNode({
   const style = VENUE_STYLE[obj.kind];
   const meta = venueKind(obj.kind);
 
+  const name = obj.label || meta.label;
+
   const commit = () => {
     const canvas = canvasRef.current;
     const el = ref.current;
     if (!canvas || !el) return;
     const c = canvas.getBoundingClientRect();
     const r = el.getBoundingClientRect();
-    const halfW = r.width / 2;
-    const halfH = r.height / 2;
-    const px = Math.min(c.width - halfW, Math.max(halfW, r.left + halfW - c.left));
-    const py = Math.min(c.height - halfH, Math.max(halfH, r.top + halfH - c.top));
-    const snap = (v: number) => Math.round(v * 100) / 100;
-    onMove(snap((px / c.width) * 100), snap((py / c.height) * 100));
+    const next = clampToFloor(el, canvas, ((r.left + r.width / 2 - c.left) / c.width) * 100, ((r.top + r.height / 2 - c.top) / c.height) * 100);
+    if (next) onMove(next.x, next.y);
     x.set(0);
     y.set(0);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const d = arrowDelta(e.key, e.shiftKey);
+    if (!d) return;
+    e.preventDefault();
+    const next = clampToFloor(ref.current, canvasRef.current, obj.x + d.dx, obj.y + d.dy);
+    if (!next) return;
+    onMove(next.x, next.y);
+    announce(`${name} moved to ${Math.round(next.x)} percent across, ${Math.round(next.y)} percent down`);
   };
 
   return (
@@ -116,12 +169,16 @@ function VenueNode({
       dragMomentum={false}
       dragElastic={0.06}
       onDragEnd={commit}
+      onKeyDown={onKeyDown}
+      tabIndex={0}
+      role="group"
+      aria-label={`${name}. Arrow keys to move, shift for larger steps. Enter to edit.`}
       /* Size lives on the positioned element so the percentages resolve against
          the floor. On the inner div they would resolve against a shrink-to-fit
          parent and collapse to nothing. */
       style={{ left: `${obj.x}%`, top: `${obj.y}%`, width: `${obj.w}%`, height: `${obj.h}%`, x, y }}
       /* z-0: the room sits under the furniture, always */
-      className="absolute z-0 cursor-grab active:cursor-grabbing"
+      className="absolute z-0 cursor-grab focus-visible:z-30 active:cursor-grabbing"
     >
       <div ref={ref} className="h-full w-full -translate-x-1/2 -translate-y-1/2">
         <button
@@ -181,11 +238,13 @@ function TableNode({
   table,
   canvasRef,
   onMove,
+  announce,
   children,
 }: {
   table: SeatTable;
   canvasRef: React.RefObject<HTMLDivElement | null>;
   onMove: (x: number, y: number) => void;
+  announce: (msg: string) => void;
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -207,16 +266,24 @@ function TableNode({
     // which is what let wide tables hang off the edge of the floor.
     const px = Math.min(c.width - halfW, Math.max(halfW, cx));
     const py = Math.min(c.height - halfH, Math.max(halfH, cy));
-    // Snap to a 1% grid. Fine enough that a deliberate nudge still lands where
-    // it was aimed, coarse enough that a row of tables ends up genuinely
-    // aligned rather than a pixel out — which is most of what makes a floor
-    // plan look composed instead of approximate.
-    const snap = (v: number) => Math.round(v * 100) / 100;
-    onMove(snap((px / c.width) * 100), snap((py / c.height) * 100));
+    // Snap to a 1% grid — see snapPct. Fine enough that a deliberate nudge
+    // lands where it was aimed, coarse enough that a row of tables ends up
+    // genuinely aligned rather than a pixel out.
+    onMove(snapPct((px / c.width) * 100), snapPct((py / c.height) * 100));
     // left/top now carries the position — drop the drag transform so it is not
     // applied a second time on top of it.
     x.set(0);
     y.set(0);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const d = arrowDelta(e.key, e.shiftKey);
+    if (!d) return;
+    e.preventDefault();
+    const next = clampToFloor(ref.current, canvasRef.current, table.x + d.dx, table.y + d.dy);
+    if (!next) return;
+    onMove(next.x, next.y);
+    announce(`${table.name} moved to ${Math.round(next.x)} percent across, ${Math.round(next.y)} percent down`);
   };
 
   return (
@@ -225,8 +292,12 @@ function TableNode({
       dragMomentum={false}
       dragElastic={0.08}
       onDragEnd={commit}
+      onKeyDown={onKeyDown}
+      tabIndex={0}
+      role="group"
+      aria-label={`${table.name}. Arrow keys to move, shift for larger steps.`}
       style={{ left: `${table.x}%`, top: `${table.y}%`, x, y }}
-      className="absolute z-10 cursor-grab active:z-30 active:cursor-grabbing"
+      className="absolute z-10 cursor-grab focus-visible:z-30 active:z-30 active:cursor-grabbing"
     >
       {/* Centring lives on an inner element: framer writes its own transform on
           the drag target, which would override a Tailwind -translate. */}
@@ -243,6 +314,8 @@ export default function Seating() {
   const [q, setQ] = useState("");
   const [seatPicker, setSeatPicker] = useState<{ tableId: string; seat: number } | null>(null);
   const [venueEdit, setVenueEdit] = useState<FloorObject | null>(null);
+  /** Spoken after a keyboard nudge — a sighted user sees the move, others need telling. */
+  const [liveMsg, setLiveMsg] = useState("");
   const [pickerQ, setPickerQ] = useState("");
   const [settings, setSettings] = useState<SeatTable | null>(null);
 
@@ -418,7 +491,9 @@ export default function Seating() {
           </div>
 
           <p className="mt-4 text-[0.72rem] leading-relaxed text-ink-mute">
-            Drag anything around the floor. Drag guests onto a table, or click any seat to choose who sits there.
+            Drag anything around the floor, or select it and use the arrow keys
+            — hold shift for larger steps. Drag guests onto a table, or click any
+            seat to choose who sits there.
           </p>
         </div>
       </div>
@@ -430,6 +505,9 @@ export default function Seating() {
         className="dotted-canvas relative h-[560px] min-w-[1280px] rounded-[1.8rem] border border-white/70 bg-[#FDF6EA]/70 shadow-inner sm:h-[640px] lg:h-full"
         aria-label="Seating floor — scroll horizontally on smaller screens"
       >
+        {/* Keyboard moves are silent to anyone not watching the floor. */}
+        <p className="sr-only" role="status" aria-live="polite">{liveMsg}</p>
+
         {/* Top-left, not centred: the sweetheart table sits at x:50 y:7 and was
             sitting on top of this counter. */}
         <div className="pointer-events-none absolute left-4 top-4 z-20 rounded-full bg-ink/85 px-4 py-1.5 text-[0.7rem] font-bold text-cream backdrop-blur-sm">
@@ -444,6 +522,7 @@ export default function Seating() {
             canvasRef={canvasRef}
             onMove={moveVenueObject(o.id)}
             onOpen={() => setVenueEdit({ ...o })}
+            announce={setLiveMsg}
           />
         ))}
 
@@ -453,7 +532,7 @@ export default function Seating() {
           const seats = seatPositions(t, size);
           const isSweet = t.shape === "sweetheart";
           return (
-            <TableNode key={t.id} table={t} canvasRef={canvasRef} onMove={moveTable(t.id)}>
+            <TableNode key={t.id} table={t} canvasRef={canvasRef} onMove={moveTable(t.id)} announce={setLiveMsg}>
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) assign(id, t.id); }}
@@ -610,6 +689,20 @@ export default function Seating() {
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-4">
+              <Field label="Across (%)">
+                <input
+                  type="number" min={0} max={100} step={1} className={inputCls}
+                  value={Math.round(venueEdit.x)}
+                  onChange={(e) => setVenueEdit({ ...venueEdit, x: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })}
+                />
+              </Field>
+              <Field label="Down (%)">
+                <input
+                  type="number" min={0} max={100} step={1} className={inputCls}
+                  value={Math.round(venueEdit.y)}
+                  onChange={(e) => setVenueEdit({ ...venueEdit, y: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })}
+                />
+              </Field>
               <Field label="Width">
                 <input
                   type="range" min={6} max={60} step={1} className="w-full accent-gold-deep"
@@ -671,6 +764,23 @@ export default function Seating() {
                   <span className="w-8 text-center font-display text-xl text-ink">{settings.capacity}</span>
                   <button onClick={() => setSettings({ ...settings, capacity: Math.min(14, settings.capacity + 1) })} className="h-10 w-10 rounded-full border border-ink/15 text-lg font-bold text-ink transition hover:border-ink/40 cursor-pointer">+</button>
                 </div>
+              </Field>
+              {/* Typing a position is the non-pointer route WCAG 2.2 asks for,
+                  and it is the only way to place two tables at exactly the
+                  same height. */}
+              <Field label="Across (%)">
+                <input
+                  type="number" min={0} max={100} step={1} className={inputCls}
+                  value={Math.round(settings.x)}
+                  onChange={(e) => setSettings({ ...settings, x: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })}
+                />
+              </Field>
+              <Field label="Down (%)">
+                <input
+                  type="number" min={0} max={100} step={1} className={inputCls}
+                  value={Math.round(settings.y)}
+                  onChange={(e) => setSettings({ ...settings, y: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })}
+                />
               </Field>
             </div>
 
