@@ -240,7 +240,7 @@ const rankOf = (p: Plan | null): number => (p ? TIERS.findIndex((t) => t.id === 
 const PENDING_TIER_KEY = "luma:pendingTier";
 
 export function CheckoutModal() {
-  const { checkout, closeCheckout, toast, db, mode } = useApp();
+  const { checkout, closeCheckout, toast, db, mode, weddingId } = useApp();
   const [step, setStep] = useState<"review" | "starting" | "error">("review");
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const tier = TIERS.find((t) => t.id === checkout);
@@ -275,7 +275,8 @@ export function CheckoutModal() {
     setErrMsg(null);
     try {
       sessionStorage.setItem(PENDING_TIER_KEY, tier.id);
-      const url = await createCheckoutSession(tier.id);
+      if (!weddingId) throw new Error("No wedding found. Please complete onboarding first.");
+      const url = await createCheckoutSession(tier.id, weddingId);
       // Top-level navigation to Stripe Checkout. The entitlement is granted by
       // the webhook; on return, CheckoutReturnGate confirms it (see below).
       window.location.assign(url);

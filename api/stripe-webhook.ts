@@ -79,12 +79,32 @@ async function claimEvent(supabase: ReturnType<typeof admin>, id: string, type: 
 async function grantFromCheckout(supabase: ReturnType<typeof admin>, session: Stripe.Checkout.Session) {
   const tier = session.metadata?.tier;
   const userId = session.metadata?.user_id ?? session.client_reference_id;
+  const weddingId = session.metadata?.wedding_id;
   const paymentIntent =
     typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id ?? null;
 
   if (!tier || !userId || !(tier in PLAN_RANK)) {
     console.warn("[webhook] checkout.session.completed without usable metadata — skipped", session.id);
     return;
+  }
+
+  // Determine which wedding to update:
+  // - If wedding_id is in metadata (new sessions), use it directly
+  // - Otherwise, fall back to the purchaser's membership (older sessions)
+  let targetWeddingId = weddingId;
+  if (!targetWeddingId) {
+    const { data: membership } = await supabase
+      .from("wedding_members")
+      .select("wedding_id")
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle();
+    targetWeddingId = membership?.wedding_id ?? null;
+  }
+
+  if (!targetWeddingId) {
+    console.warn("[webhook] no wedding found for purchaser — entitlement recorded but plan not updated", userId);
+    // Still record the entitlement, just don't update any wedding
   }
 
   // monotonic: entitlements only ever move upward. A stale or replayed
@@ -108,10 +128,31 @@ async function grantFromCheckout(supabase: ReturnType<typeof admin>, session: St
   );
   if (error) throw new Error(`entitlement upsert failed: ${error.message}`);
 
-  // keep the denormalised weddings.plan copy in step (webhook is its writer)
-  await supabase.from("weddings").update({ plan: tier }).eq("owner_id", userId);
+  // Update the wedding's plan (authoritative, per-wedding)
+  if (targetWeddingId) {
+    // Check current plan to enforce monotonic upgrade
+    const { data: wedding } = await supabase
+      .from("weddings")
+      .select("plan")
+      .eq("id", targetWeddingId)
+      .maybeSingle();
+    
+    if (wedding && PLAN_RANK[wedding.plan] >= PLAN_RANK[tier]) {
+      console.log(`[webhook] wedding ${targetWeddingId} already at ${wedding.plan} — not downgrading to ${tier}`);
+      return;
+    }
 
-  console.log(`[webhook] granted ${tier} to ${userId} (pi ${paymentIntent ?? "n/a"})`);
+    const { error: updateError } = await supabase
+      .from("weddings")
+      .update({ plan: tier })
+      .eq("id", targetWeddingId);
+    
+    if (updateError) {
+      throw new Error(`weddings plan update failed: ${updateError.message}`);
+    }
+  }
+
+  console.log(`[webhook] granted ${tier} to ${userId} for wedding ${targetWeddingId ?? "none"} (pi ${paymentIntent ?? "n/a"})`);
 }
 
 async function revokeFromRefund(supabase: ReturnType<typeof admin>, charge: Stripe.Charge) {
@@ -131,7 +172,37 @@ async function revokeFromRefund(supabase: ReturnType<typeof admin>, charge: Stri
   }
   const { error } = await supabase.from("entitlements").delete().eq("user_id", row.user_id);
   if (error) throw new Error(`entitlement revoke failed: ${error.message}`);
-  await supabase.from("weddings").update({ plan: "essential" }).eq("owner_id", row.user_id);
+  
+  // Find the wedding(s) this user is a member of and downgrade them
+  // (A user can be a member of multiple weddings, but typically just one)
+  const { data: memberships } = await supabase
+    .from("wedding_members")
+    .select("wedding_id")
+    .eq("user_id", row.user_id);
+  
+  if (memberships && memberships.length > 0) {
+    for (const membership of memberships) {
+      // Check if any other member of this wedding still has a higher entitlement
+      const { data: otherEntitlements } = await supabase
+        .from("entitlements")
+        .select("plan")
+        .in("user_id", memberships.map(m => m.user_id).filter(id => id !== row.user_id));
+      
+      const highestOtherPlan = otherEntitlements?.reduce((best, e) => 
+        PLAN_RANK[e.plan] > PLAN_RANK[best] ? e.plan : best, 'essential' as string
+      ) ?? 'essential';
+      
+      const { error: updateError } = await supabase
+        .from("weddings")
+        .update({ plan: highestOtherPlan })
+        .eq("id", membership.wedding_id);
+      
+      if (updateError) {
+        console.error(`[webhook] failed to downgrade wedding ${membership.wedding_id}: ${updateError.message}`);
+      }
+    }
+  }
+  
   console.log(`[webhook] revoked ${row.plan} from ${row.user_id} (refund ${charge.id})`);
 }
 
