@@ -12,7 +12,7 @@
 
 begin;
 
-select plan(20);
+select plan(21);
 
 -- ---------- helpers ----------
 
@@ -351,4 +351,5 @@ select results_eq(
 
 -- ---------- cleanup ----------
 
+select * from finish();
 rollback;
