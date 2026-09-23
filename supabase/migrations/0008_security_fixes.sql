@@ -85,23 +85,32 @@ drop policy if exists "media read" on storage.objects;
 drop policy if exists "media write" on storage.objects;
 drop policy if exists "media update" on storage.objects;
 drop policy if exists "media delete" on storage.objects;
+drop policy if exists "media list" on storage.objects;
 
--- Public read: anyone can read (guests viewing invitations)
-create policy "media read" on storage.objects
-  for select
-  using (bucket_id = 'media');
+-- Public bucket: no SELECT policy needed. Public URLs work without policies.
+-- Only authenticated members can list/upload/update/delete in their wedding folder.
 
--- Write/update/delete: only members of the wedding folder
+-- Helper function to safely check wedding membership with UUID validation
+create or replace function is_valid_wedding_folder(path text)
+returns boolean
+language sql stable
+as $$
+  select case
+    when array_length(storage.foldername(path), 1) >= 1
+         and (storage.foldername(path))[1] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    then is_wedding_member(((storage.foldername(path))[1])::uuid)
+    else false
+  end;
+$$;
+
+-- Write/update/delete/list: only members of the wedding folder
 -- Folder structure: media/<wedding_id>/<filename>
--- storage.foldername(name) returns array of path segments
 create policy "media write" on storage.objects
   for insert
   to authenticated
   with check (
     bucket_id = 'media'
-    and array_length(storage.foldername(name), 1) >= 1
-    and (storage.foldername(name))[1]::uuid is not null
-    and is_wedding_member((storage.foldername(name))[1]::uuid)
+    and is_valid_wedding_folder(name)
   );
 
 create policy "media update" on storage.objects
@@ -109,9 +118,7 @@ create policy "media update" on storage.objects
   to authenticated
   using (
     bucket_id = 'media'
-    and array_length(storage.foldername(name), 1) >= 1
-    and (storage.foldername(name))[1]::uuid is not null
-    and is_wedding_member((storage.foldername(name))[1]::uuid)
+    and is_valid_wedding_folder(name)
   );
 
 create policy "media delete" on storage.objects
@@ -119,26 +126,21 @@ create policy "media delete" on storage.objects
   to authenticated
   using (
     bucket_id = 'media'
-    and array_length(storage.foldername(name), 1) >= 1
-    and (storage.foldername(name))[1]::uuid is not null
-    and is_wedding_member((storage.foldername(name))[1]::uuid)
+    and is_valid_wedding_folder(name)
   );
 
--- List: only members of that folder
 create policy "media list" on storage.objects
   for select
   to authenticated
   using (
     bucket_id = 'media'
-    and array_length(storage.foldername(name), 1) >= 1
-    and (storage.foldername(name))[1]::uuid is not null
-    and is_wedding_member((storage.foldername(name))[1]::uuid)
+    and is_valid_wedding_folder(name)
   );
 
 -- Set bucket limits (idempotent)
 update storage.buckets
 set file_size_limit = 10485760,  -- 10 MB
-    allowed_mime_types = array['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/ogg']
+    allowed_mime_types = array['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/ogg', 'audio/mp4', 'audio/x-m4a', 'audio/aac']
 where id = 'media';
 
 -- ---------- 1d. accept_pending_invite email verification ----------
@@ -151,6 +153,7 @@ as $$
 declare
   v_email text;
   v_claimed int := 0;
+  v_wedding_ids uuid[];
 begin
   v_email := auth.jwt()->>'email';
   if v_email is null then
@@ -165,6 +168,18 @@ begin
     return jsonb_build_object('claimed', 0);
   end if;
 
+  -- Collect wedding_ids from pending invites ONLY (accepted_at is null)
+  select array_agg(wedding_id) into v_wedding_ids
+  from wedding_invites
+  where lower(email) = lower(v_email)
+    and accepted_at is null;
+
+  -- If no pending invites, return early
+  if v_wedding_ids is null or array_length(v_wedding_ids, 1) is null then
+    return jsonb_build_object('claimed', 0);
+  end if;
+
+  -- Mark exactly those invites as accepted
   update wedding_invites
   set accepted_at = now()
   where lower(email) = lower(v_email)
@@ -172,17 +187,10 @@ begin
 
   get diagnostics v_claimed = row_count;
 
-  -- Auto-add to wedding_members
+  -- Auto-add to wedding_members for exactly those weddings
   insert into wedding_members (wedding_id, user_id, role)
-  select wedding_id, auth.uid(), 'partner'
-  from wedding_invites
-  where lower(email) = lower(v_email)
-    and accepted_at is not null
-    and not exists (
-      select 1 from wedding_members
-      where wedding_id = wedding_invites.wedding_id
-        and user_id = auth.uid()
-    );
+  select unnest(v_wedding_ids), auth.uid(), 'partner'
+  on conflict (wedding_id, user_id) do nothing;
 
   return jsonb_build_object('claimed', v_claimed);
 end;

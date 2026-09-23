@@ -464,12 +464,10 @@ export async function createCheckoutSession(tier: Plan, weddingId: string): Prom
  * Re-reads the signed-in user's entitlement row — the ONLY path by which the
  * client's plan changes. Returns null when there is no entitlement (or user).
  */
-export async function refreshEntitlement(): Promise<Plan | null> {
+export async function refreshEntitlement(weddingId: string): Promise<Plan | null> {
   // Poll the wedding's plan (authoritative), not the user's entitlement.
   // This ensures partner purchases are visible to the owner.
   const s = requireSb();
-  const weddingId = await myWeddingId();
-  if (!weddingId) return null;
   const { data, error } = await s.from("weddings").select("plan").eq("id", weddingId).maybeSingle();
   if (error) throw error;
   return (data?.plan as Plan | undefined) ?? null;
