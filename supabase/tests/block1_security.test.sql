@@ -35,12 +35,7 @@ values
 
 -- Test 1: Member cannot update plan directly
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('1')::text,
-  'role', 'authenticated',
-  'email', 'owner@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000001", "role": "authenticated", "email": "owner@example.com", "email_verified": true}';
 
 insert into weddings (id, owner_id, slug, names, date)
 values (test_uuid('100'), test_uuid('1'), 'test-wedding', 'Test & Wedding', now() + interval '1 year');
@@ -88,12 +83,7 @@ select results_eq(
 
 -- Reset for next tests
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('1')::text,
-  'role', 'authenticated',
-  'email', 'owner@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000001", "role": "authenticated", "email": "owner@example.com", "email_verified": true}';
 
 -- ---------- 1b. webhook_events RLS ----------
 
@@ -107,12 +97,7 @@ select is_empty(
 
 -- Test 6: Authenticated cannot select from webhook_events
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('1')::text,
-  'role', 'authenticated',
-  'email', 'owner@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000001", "role": "authenticated", "email": "owner@example.com", "email_verified": true}';
 
 select is_empty(
   $$select * from webhook_events$$,
@@ -131,12 +116,7 @@ select lives_ok(
 
 -- Test 8: User cannot insert into another wedding's folder
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('3')::text,
-  'role', 'authenticated',
-  'email', 'outsider@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000003", "role": "authenticated", "email": "outsider@example.com", "email_verified": true}';
 
 select throws_ok(
   $$insert into storage.objects (name, bucket_id) values (test_uuid('100')::text || '/test.jpg', 'media')$$,
@@ -147,12 +127,7 @@ select throws_ok(
 
 -- Test 9: Member can insert into their own wedding's folder
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('1')::text,
-  'role', 'authenticated',
-  'email', 'owner@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000001", "role": "authenticated", "email": "owner@example.com", "email_verified": true}';
 
 select lives_ok(
   $$insert into storage.objects (name, bucket_id) values (test_uuid('100')::text || '/test.jpg', 'media')$$,
@@ -161,12 +136,7 @@ select lives_ok(
 
 -- Test 10: Non-member cannot list another wedding's files
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('3')::text,
-  'role', 'authenticated',
-  'email', 'outsider@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000003", "role": "authenticated", "email": "outsider@example.com", "email_verified": true}';
 
 select is_empty(
   $$select * from storage.objects where name like test_uuid('100')::text || '%'$$,
@@ -177,32 +147,17 @@ select is_empty(
 
 -- Test 11: Unverified email cannot claim invite
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('2')::text,
-  'role', 'authenticated',
-  'email', 'partner@example.com',
-  'email_verified', false
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000002", "role": "authenticated", "email": "partner@example.com", "email_verified": false}';
 
 -- Insert an invite
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('1')::text,
-  'role', 'authenticated',
-  'email', 'owner@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000001", "role": "authenticated", "email": "owner@example.com", "email_verified": true}';
 insert into wedding_invites (wedding_id, email, invited_by)
 values (test_uuid('100'), 'partner@example.com', test_uuid('1'));
 
 -- Partner tries to claim with unverified email
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('2')::text,
-  'role', 'authenticated',
-  'email', 'partner@example.com',
-  'email_verified', false
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000002", "role": "authenticated", "email": "partner@example.com", "email_verified": false}';
 
 select results_eq(
   $$select claimed from accept_pending_invite()$$,
@@ -211,12 +166,7 @@ select results_eq(
 );
 
 -- Test 12: Verified email can claim invite
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('2')::text,
-  'role', 'authenticated',
-  'email', 'partner@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000002", "role": "authenticated", "email": "partner@example.com", "email_verified": true}';
 
 select results_eq(
   $$select claimed from accept_pending_invite()$$,
@@ -234,23 +184,13 @@ select results_eq(
 -- Test 14: Removed partner is NOT re-added on sign-in
 -- First, remove the partner
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('1')::text,
-  'role', 'authenticated',
-  'email', 'owner@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000001", "role": "authenticated", "email": "owner@example.com", "email_verified": true}';
 
 delete from wedding_members where wedding_id = test_uuid('100') and user_id = test_uuid('2');
 
 -- Partner tries to claim again (but invite is already accepted)
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('2')::text,
-  'role', 'authenticated',
-  'email', 'partner@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000002", "role": "authenticated", "email": "partner@example.com", "email_verified": true}';
 
 select results_eq(
   $$select claimed from accept_pending_invite()$$,
@@ -299,12 +239,7 @@ select is_empty(
 
 -- Test 18: Invalid UUID in folder name is rejected
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('1')::text,
-  'role', 'authenticated',
-  'email', 'owner@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000001", "role": "authenticated", "email": "owner@example.com", "email_verified": true}';
 
 select throws_ok(
   $$insert into storage.objects (name, bucket_id) values ('not-a-uuid/test.jpg', 'media')$$,
@@ -322,12 +257,7 @@ update weddings set plan = 'celebration' where id = test_uuid('100');
 
 -- Owner should see the upgrade
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('1')::text,
-  'role', 'authenticated',
-  'email', 'owner@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000001", "role": "authenticated", "email": "owner@example.com", "email_verified": true}';
 
 select results_eq(
   $$select plan from weddings where id = test_uuid('100')$$,

@@ -22,12 +22,7 @@ values
 
 -- the owner creates a wedding and their membership -----------
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('10')::text,
-  'role', 'authenticated',
-  'email', 'owner@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000010", "role": "authenticated", "email": "owner@example.com", "email_verified": true}';
 
 select lives_ok(
   $$ insert into public.weddings (id, owner_id, slug, names, partner_a, partner_b, date)
@@ -55,12 +50,7 @@ create temp table tok as select rsvp_token from public.guests where name = 'Amar
 
 -- a stranger sees and touches nothing ------------------------
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('12')::text,
-  'role', 'authenticated',
-  'email', 'stranger@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000012", "role": "authenticated", "email": "stranger@example.com", "email_verified": true}';
 
 select is_empty($$ select * from public.weddings $$, 'stranger sees no weddings');
 select is_empty($$ select * from public.guests $$,  'stranger sees no guests');
@@ -124,12 +114,7 @@ select throws_ok(
 
 -- partner invite flow ------------------------------------------
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('10')::text,
-  'role', 'authenticated',
-  'email', 'owner@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000010", "role": "authenticated", "email": "owner@example.com", "email_verified": true}';
 
 select lives_ok(
   $$ select public.invite_partner(test_uuid('200'), 'partner@example.com') $$,
@@ -137,12 +122,7 @@ select lives_ok(
 );
 
 set local role authenticated;
-set local request.jwt.claims = jsonb_build_object(
-  'sub', test_uuid('11')::text,
-  'role', 'authenticated',
-  'email', 'partner@example.com',
-  'email_verified', true
-);
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000011", "role": "authenticated", "email": "partner@example.com", "email_verified": true}';
 
 select is(
   (select public.accept_pending_invite() ->> 'claimed'), '1',
