@@ -168,7 +168,7 @@ async function revokeFromRefund(supabase: ReturnType<typeof admin>, charge: Stri
   try {
     paymentIntent = await stripe().paymentIntents.retrieve(piId);
   } catch (err) {
-    throw new Error(`failed to retrieve payment intent ${piId}`, { cause: err });
+    throw new Error(`failed to retrieve payment intent ${piId}: ${(err as Error).message}`);
   }
 
   const weddingId = paymentIntent.metadata?.wedding_id;
