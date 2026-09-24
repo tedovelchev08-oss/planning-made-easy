@@ -41,12 +41,13 @@ select lives_ok(
   'member can insert guests'
 );
 
-select lives_ok(
-  $$ insert into public.rsvps (wedding_id, name, answer) values (test_uuid('200'), 'walk-in', 'yes') $$,
-  'authenticated member can insert rsvps directly'
-);
-
 create temp table tok as select rsvp_token from public.guests where name = 'Amara';
+
+-- Direct rsvp inserts are blocked; members must use submit_rsvp
+select throws_ok(
+  $$ insert into public.rsvps (wedding_id, name, answer) values (test_uuid('200'), 'walk-in', 'yes') $$,
+  null, null, 'direct rsvp insert is blocked (must use submit_rsvp)'
+);
 
 -- a stranger sees and touches nothing ------------------------
 set local role authenticated;
