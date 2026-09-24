@@ -145,19 +145,18 @@ select is_empty(
 
 -- ---------- 1d. accept_pending_invite email verification ----------
 
--- Test 11: Unverified email cannot claim invite
-set local role authenticated;
-set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000002", "role": "authenticated", "email": "partner@example.com", "email_verified": false}';
-
--- Insert an invite
+-- Insert invites for both partner and outsider
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000001", "role": "authenticated", "email": "owner@example.com", "email_verified": true}';
 insert into wedding_invites (wedding_id, email, invited_by)
-values (test_uuid('100'), 'partner@example.com', test_uuid('1'));
+values 
+  (test_uuid('100'), 'partner@example.com', test_uuid('1')),
+  (test_uuid('100'), 'outsider@example.com', test_uuid('1'));
 
--- Partner tries to claim with unverified email
+-- Test 11: Unverified email cannot claim invite
+-- Use outsider (test_uuid('3')) who has email_confirmed_at = null in database
 set local role authenticated;
-set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000002", "role": "authenticated", "email": "partner@example.com", "email_verified": false}';
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000003", "role": "authenticated", "email": "outsider@example.com", "email_verified": false}';
 
 select is(
   (accept_pending_invite() ->> 'claimed')::int,
@@ -166,6 +165,8 @@ select is(
 );
 
 -- Test 12: Verified email can claim invite
+-- Use partner (test_uuid('2')) who has email_confirmed_at set in database
+set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000002", "role": "authenticated", "email": "partner@example.com", "email_verified": true}';
 
 select is(

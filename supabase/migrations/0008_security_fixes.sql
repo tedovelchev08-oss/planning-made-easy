@@ -89,6 +89,12 @@ create policy invites_insert on wedding_invites for insert
     select 1 from weddings w where w.id = wedding_id and w.owner_id = auth.uid()
   ));
 
+-- ---------- Fix: remove duplicate submit_rsvp function ----------
+-- Migration 0002 created a 7-parameter version, migration 0003 created a 9-parameter version.
+-- This caused ambiguity in function calls. Drop the old 7-parameter version.
+
+drop function if exists submit_rsvp(uuid, text, text, answer_t, text, text, text);
+
 -- ---------- Fix: get_public_wedding type mismatch ----------
 -- Migration 0004 had a type mismatch: custom_templates.id is uuid but
 -- invitation_config.template_id is text. This caused "operator does not exist: uuid = text".
