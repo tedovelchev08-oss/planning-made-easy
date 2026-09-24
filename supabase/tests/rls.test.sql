@@ -41,7 +41,10 @@ select lives_ok(
   'member can insert guests'
 );
 
-create temp table tok as select rsvp_token from public.guests where name = 'Amara';
+-- Store the token in a regular table (temp tables aren't accessible after role switch)
+create table test_tokens (rsvp_token uuid);
+insert into test_tokens select rsvp_token from public.guests where name = 'Amara';
+grant select on test_tokens to anon, authenticated;
 
 -- Direct rsvp inserts are blocked; members must use submit_rsvp
 select throws_ok(
@@ -89,7 +92,7 @@ select is(
 select ok(public.get_public_wedding('does-not-exist') is null, 'unknown slug returns null');
 
 select lives_ok(
-  $$ select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text) $$,
+  $$ select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text) $$,
   'anon can submit an RSVP with a valid guest token'
 );
 select throws_ok(
@@ -102,14 +105,14 @@ select throws_ok(
 );
 
 -- burn the 6-per-hour token budget, then hit the wall
-select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
-select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
-select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
-select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
-select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
 
 select throws_ok(
-  $$ select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text) $$,
+  $$ select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text) $$,
   'P0002', null, 'rate limit kicks in after 6 submissions per token per hour'
 );
 
@@ -133,6 +136,9 @@ select isnt_empty(
   $$ select * from public.guests $$,
   'partner membership grants planner access'
 );
+
+-- cleanup
+drop table if exists test_tokens;
 
 select * from finish();
 rollback;
