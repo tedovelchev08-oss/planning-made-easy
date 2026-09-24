@@ -79,12 +79,57 @@ async function claimEvent(supabase: ReturnType<typeof admin>, id: string, type: 
 async function grantFromCheckout(supabase: ReturnType<typeof admin>, session: Stripe.Checkout.Session) {
   const tier = session.metadata?.tier;
   const userId = session.metadata?.user_id ?? session.client_reference_id;
+  const weddingId = session.metadata?.wedding_id;
   const paymentIntent =
     typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id ?? null;
 
   if (!tier || !userId || !(tier in PLAN_RANK)) {
     console.warn("[webhook] checkout.session.completed without usable metadata — skipped", session.id);
     return;
+  }
+
+  // Determine which wedding to update:
+  // - If wedding_id is in metadata (new sessions), use it directly
+  // - Otherwise, fall back to the purchaser's membership (older sessions)
+  let targetWeddingId = weddingId;
+  if (!targetWeddingId) {
+    const { data: membership } = await supabase
+      .from("wedding_members")
+      .select("wedding_id")
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle();
+    targetWeddingId = membership?.wedding_id ?? null;
+  }
+
+  if (!targetWeddingId) {
+    console.warn("[webhook] no wedding found for purchaser — entitlement recorded but plan not updated", userId);
+    // Still record the entitlement, just don't update any wedding
+  }
+
+  // Update the wedding's plan (authoritative, per-wedding)
+  // This happens regardless of the user's existing entitlements
+  if (targetWeddingId) {
+    // Check current plan to enforce monotonic upgrade
+    const { data: wedding } = await supabase
+      .from("weddings")
+      .select("plan")
+      .eq("id", targetWeddingId)
+      .maybeSingle();
+    
+    if (wedding && PLAN_RANK[wedding.plan] >= PLAN_RANK[tier]) {
+      console.log(`[webhook] wedding ${targetWeddingId} already at ${wedding.plan} — not downgrading to ${tier}`);
+      // Still record the entitlement even if wedding doesn't need upgrade
+    } else {
+      const { error: updateError } = await supabase
+        .from("weddings")
+        .update({ plan: tier })
+        .eq("id", targetWeddingId);
+      
+      if (updateError) {
+        throw new Error(`weddings plan update failed: ${updateError.message}`);
+      }
+    }
   }
 
   // monotonic: entitlements only ever move upward. A stale or replayed
@@ -108,31 +153,73 @@ async function grantFromCheckout(supabase: ReturnType<typeof admin>, session: St
   );
   if (error) throw new Error(`entitlement upsert failed: ${error.message}`);
 
-  // keep the denormalised weddings.plan copy in step (webhook is its writer)
-  await supabase.from("weddings").update({ plan: tier }).eq("owner_id", userId);
-
-  console.log(`[webhook] granted ${tier} to ${userId} (pi ${paymentIntent ?? "n/a"})`);
+  console.log(`[webhook] granted ${tier} to ${userId} for wedding ${targetWeddingId ?? "none"} (pi ${paymentIntent ?? "n/a"})`);
 }
 
 async function revokeFromRefund(supabase: ReturnType<typeof admin>, charge: Stripe.Charge) {
-  const pi = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
-  if (!pi) {
+  const piId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
+  if (!piId) {
     console.warn("[webhook] charge.refunded without payment_intent — skipped", charge.id);
     return;
   }
-  const { data: row } = await supabase
-    .from("entitlements")
-    .select("user_id, plan")
-    .eq("stripe_payment_intent_id", pi)
-    .maybeSingle();
-  if (!row) {
-    console.log(`[webhook] refund for unknown payment_intent ${pi} — nothing to revoke`);
+
+  // Retrieve the PaymentIntent to get wedding_id from metadata
+  let paymentIntent: Stripe.PaymentIntent;
+  try {
+    paymentIntent = await stripe().paymentIntents.retrieve(piId);
+  } catch (err) {
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error(`failed to retrieve payment intent ${piId}: ${(err as Error).message}`);
+  }
+
+  const weddingId = paymentIntent.metadata?.wedding_id;
+  const userId = paymentIntent.metadata?.user_id;
+
+  if (!weddingId || !userId) {
+    console.warn(`[webhook] refund for payment_intent ${piId} missing metadata — skipped`);
     return;
   }
-  const { error } = await supabase.from("entitlements").delete().eq("user_id", row.user_id);
-  if (error) throw new Error(`entitlement revoke failed: ${error.message}`);
-  await supabase.from("weddings").update({ plan: "essential" }).eq("owner_id", row.user_id);
-  console.log(`[webhook] revoked ${row.plan} from ${row.user_id} (refund ${charge.id})`);
+
+  // Delete the entitlement
+  const { error: deleteError } = await supabase.from("entitlements").delete().eq("user_id", userId);
+  if (deleteError) throw new Error(`entitlement revoke failed: ${deleteError.message}`);
+
+  // Find all members of this wedding
+  const { data: members, error: membersError } = await supabase
+    .from("wedding_members")
+    .select("user_id")
+    .eq("wedding_id", weddingId);
+  
+  if (membersError) throw new Error(`failed to query wedding members: ${membersError.message}`);
+
+  // Find the highest entitlement among OTHER members (excluding the refunded user)
+  const otherUserIds = members?.map(m => m.user_id).filter(id => id !== userId) ?? [];
+  
+  let highestPlan = 'essential';
+  if (otherUserIds.length > 0) {
+    const { data: otherEntitlements, error: entitlementsError } = await supabase
+      .from("entitlements")
+      .select("plan")
+      .in("user_id", otherUserIds);
+    
+    if (entitlementsError) throw new Error(`failed to query entitlements: ${entitlementsError.message}`);
+
+    highestPlan = otherEntitlements?.reduce((best, e) => 
+      PLAN_RANK[e.plan] > PLAN_RANK[best] ? e.plan : best, 'essential' as string
+    ) ?? 'essential';
+  }
+
+  // Update the wedding's plan
+  const { error: updateError } = await supabase
+    .from("weddings")
+    .update({ plan: highestPlan })
+    .eq("id", weddingId);
+  
+  if (updateError) {
+    throw new Error(`wedding plan update failed: ${updateError.message}`);
+  }
+
+  console.log(`[webhook] revoked entitlement for ${userId}, wedding ${weddingId} now at ${highestPlan} (refund ${charge.id})`);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

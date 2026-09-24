@@ -15,15 +15,16 @@ export function FinalCta() {
   const { toast } = useApp();
   const motionRef = useIdleWhenOffscreen<HTMLDivElement>();
 
+  // The marketing page owns its own feedback — no store, no toasts.
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.includes("@") || email.length < 5) {
+      setError("That email needs a second look — try something like you@example.com.");
       setError("Try something like you@example.com");
       return;
     }
     setError(null);
     setSent(true);
-    toast("You're on the list", "A warm welcome is on its way to your inbox.");
   };
 
   return (
@@ -68,6 +69,7 @@ export function FinalCta() {
                     aria-invalid={!!error}
                     aria-describedby={error ? "cta-email-error" : undefined}
                     placeholder="you@example.com"
+                    className={`w-full flex-1 rounded-full border bg-white/70 px-6 py-3.5 text-[0.95rem] text-ink placeholder:text-ink-mute/70 focus:outline-none focus:ring-2 sm:border-0 sm:bg-transparent sm:py-2.5 sm:focus:ring-0 ${
                     className={`w-full flex-1 rounded-full border bg-white/70 px-6 py-3.5 text-body text-ink placeholder:text-ink-mute/70 focus:outline-none focus:ring-2 sm:border-0 sm:bg-transparent sm:py-2.5 sm:focus:ring-0 ${
                       error ? "border-blush-deep/70 focus:ring-blush/40" : "border-white/80 focus:border-blush-deep/60 focus:ring-blush/30"
                     }`}
@@ -90,6 +92,11 @@ export function FinalCta() {
               )}
             </AnimatePresence>
             {error && !sent && (
+              <p id="cta-email-error" role="alert" className="mt-3 text-[0.78rem] font-bold text-blush-deep">
+                {error}
+              </p>
+            )}
+            <p className="mt-4 text-[0.74rem] font-semibold text-ink-mute">Free to begin · upgrade only when you're ready</p>
               <p id="cta-email-error" role="alert" className="mt-3 text-caption font-bold text-blush-deep">
                 {error}
               </p>
@@ -107,7 +114,6 @@ export function FinalCta() {
 export function Footer() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useApp();
 
   const go = (id: string) => {
     if (location.pathname !== "/") {
@@ -119,6 +125,12 @@ export function Footer() {
   const links: { label: string; onClick: () => void }[] = [
     { label: "Features", onClick: () => go("features") },
     { label: "Pricing", onClick: () => go("pricing") },
+  ];
+
+  const mailLinks: { label: string; href: string }[] = [
+    { label: "Support", href: "mailto:support@luma.love" },
+    { label: "Privacy", href: "mailto:privacy@luma.love" },
+    { label: "Terms", href: "mailto:legal@luma.love" },
     { label: "Support", onClick: () => toast("We're here", "support@luma.love. Replies within a day, usually faster.", "info") },
     { label: "Privacy", onClick: () => toast("Privacy, plainly", "Your data is yours. Export or erase anytime.", "info") },
     { label: "Terms", onClick: () => toast("Terms, kindly", "Fair terms, written for humans. Available in-app.", "info") },
@@ -139,6 +151,11 @@ export function Footer() {
             <button key={l.label} onClick={l.onClick} className="text-small font-semibold text-cream/60 transition hover:text-blush cursor-pointer">
               {l.label}
             </button>
+          ))}
+          {mailLinks.map((l) => (
+            <a key={l.label} href={l.href} className="text-[0.82rem] font-semibold text-cream/60 transition hover:text-blush">
+              {l.label}
+            </a>
           ))}
           <span className="hidden text-cream/20 md:inline">·</span>
           <button onClick={() => navigate("/planner")} className="inline-flex items-center gap-1.5 rounded-full border border-blush/40 px-4 py-2 text-small font-bold text-blush transition hover:bg-blush hover:text-ink cursor-pointer">

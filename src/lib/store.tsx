@@ -545,7 +545,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
    */
   const refreshEntitlement = useCallback(async (): Promise<Plan | null> => {
     if (modeRef.current !== "cloud") return null;
-    const plan = await apiRefreshEntitlement();
+    const wid = weddingIdRef.current;
+    if (!wid) return null;
+    const plan = await apiRefreshEntitlement(wid);
     if (plan) {
       setDbState((d) => (d.plan === plan ? d : { ...d, plan }));
     }
