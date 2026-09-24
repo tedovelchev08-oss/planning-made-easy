@@ -45,10 +45,8 @@ select lives_ok(
   'member can insert guests'
 );
 
--- Store the token in a regular table (temp tables aren't accessible after role switch)
-create table test_tokens (rsvp_token uuid);
+-- Store the token in the table we created earlier
 insert into test_tokens select rsvp_token from public.guests where name = 'Amara';
-grant select on test_tokens to anon, authenticated;
 
 -- Direct rsvp inserts are blocked; members must use submit_rsvp
 select throws_ok(
@@ -140,9 +138,6 @@ select isnt_empty(
   $$ select * from public.guests $$,
   'partner membership grants planner access'
 );
-
--- cleanup
-drop table if exists test_tokens;
 
 select * from finish();
 rollback;
