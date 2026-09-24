@@ -13,6 +13,10 @@ as $$
   select ('00000000-0000-0000-0000-' || lpad(suffix, 12, '0'))::uuid;
 $$;
 
+-- Create test_tokens table as postgres (before any role switches)
+create table test_tokens (rsvp_token uuid);
+grant select, insert on test_tokens to anon, authenticated;
+
 -- fixtures ---------------------------------------------------
 insert into auth.users (id, email, encrypted_password, email_confirmed_at)
 values
