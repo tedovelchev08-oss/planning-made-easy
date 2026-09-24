@@ -89,27 +89,27 @@ select is(
 select ok(public.get_public_wedding('does-not-exist') is null, 'unknown slug returns null');
 
 select lives_ok(
-  $$ select public.submit_rsvp((select rsvp_token from tok), null, 'Amara', 'yes', null, null, 'link') $$,
+  $$ select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text) $$,
   'anon can submit an RSVP with a valid guest token'
 );
 select throws_ok(
-  $$ select public.submit_rsvp(null, 'nope', 'x', 'yes', null, null, 'link') $$,
+  $$ select public.submit_rsvp(null::uuid, 'nope'::text, 'x'::text, 'yes'::answer_t, null::text, null::text, 'link'::text) $$,
   'P0001', null, 'open-link submission against an unknown slug is rejected'
 );
 select throws_ok(
-  $$ select public.submit_rsvp('00000000-0000-0000-0000-000000000000'::uuid, null, 'x', 'yes', null, null, 'link') $$,
+  $$ select public.submit_rsvp('00000000-0000-0000-0000-000000000000'::uuid, null::text, 'x'::text, 'yes'::answer_t, null::text, null::text, 'link'::text) $$,
   'P0001', null, 'a forged token is rejected'
 );
 
 -- burn the 6-per-hour token budget, then hit the wall
-select public.submit_rsvp((select rsvp_token from tok), null, 'Amara', 'yes', null, null, 'link');
-select public.submit_rsvp((select rsvp_token from tok), null, 'Amara', 'yes', null, null, 'link');
-select public.submit_rsvp((select rsvp_token from tok), null, 'Amara', 'yes', null, null, 'link');
-select public.submit_rsvp((select rsvp_token from tok), null, 'Amara', 'yes', null, null, 'link');
-select public.submit_rsvp((select rsvp_token from tok), null, 'Amara', 'yes', null, null, 'link');
+select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text);
+select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text);
+select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text);
+select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text);
+select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text);
 
 select throws_ok(
-  $$ select public.submit_rsvp((select rsvp_token from tok), null, 'Amara', 'yes', null, null, 'link') $$,
+  $$ select public.submit_rsvp((select rsvp_token from tok)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text) $$,
   'P0002', null, 'rate limit kicks in after 6 submissions per token per hour'
 );
 

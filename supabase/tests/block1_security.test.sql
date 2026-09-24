@@ -159,18 +159,18 @@ values (test_uuid('100'), 'partner@example.com', test_uuid('1'));
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000002", "role": "authenticated", "email": "partner@example.com", "email_verified": false}';
 
-select results_eq(
-  $$select claimed from accept_pending_invite()$$,
-  $$values (0::int)$$,
+select is(
+  (accept_pending_invite() ->> 'claimed')::int,
+  0,
   'Unverified email cannot claim invite'
 );
 
 -- Test 12: Verified email can claim invite
 set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000002", "role": "authenticated", "email": "partner@example.com", "email_verified": true}';
 
-select results_eq(
-  $$select claimed from accept_pending_invite()$$,
-  $$values (1::int)$$,
+select is(
+  (accept_pending_invite() ->> 'claimed')::int,
+  1,
   'Verified email can claim invite'
 );
 
@@ -192,9 +192,9 @@ delete from wedding_members where wedding_id = test_uuid('100') and user_id = te
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000002", "role": "authenticated", "email": "partner@example.com", "email_verified": true}';
 
-select results_eq(
-  $$select claimed from accept_pending_invite()$$,
-  $$values (0::int)$$,
+select is(
+  (accept_pending_invite() ->> 'claimed')::int,
+  0,
   'Removed partner is not re-added (invite already accepted)'
 );
 
