@@ -6,7 +6,7 @@ on:
 
 jobs:
   verify:
-    name: Typecheck · Lint · Build
+    name: Typecheck · Lint · Test · Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -26,6 +26,23 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      # Runs before the build: a failing test should stop the pipeline at the
+      # cheapest point, and a green build says nothing about behaviour.
+      - name: Test
+        run: npm run test:run
+
+      # Runners are UTC, which is the one timezone the date bugs do not show up
+      # in. toDayKey shifts a day WEST of Greenwich, and the marketing sample
+      # date shifted EAST — that one only failed at UTC+14 and passed
+      # everywhere else. Both ends get checked, or neither bug would be caught.
+      - name: Test across timezone extremes
+        run: |
+          for tz in Pacific/Midway Pacific/Kiritimati; do
+            echo "::group::$tz"
+            TZ=$tz npm run test:run
+            echo "::endgroup::"
+          done
 
       - name: Build
         run: npm run build

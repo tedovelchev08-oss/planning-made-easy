@@ -3,12 +3,13 @@ import {
   BudgetCategory, CustomTemplate, Guest, Plan, RegistryItem, RsvpEntry, SeatTable, Task, Vendor, Wedding,
   catCommitted, catPaid, configureFormat,
   seedBudget, seedGuests, seedRegistry, seedRsvpLog, seedTables, seedTasks, seedVendors, seedWedding, slugify,
+  FloorObject, seedVenueObjects,
 } from "./data";
 import { isSupabaseConfigured } from "./supabase";
 import {
   EntityKey, acceptPendingInvites, authApi, budgetToRow, createWedding, customTplToRow, fetchFreshRsvps,
   fetchWorkspace, guestToRow, invitationToRow, invitePartner as apiInvitePartner, isUuid, myWeddingId, newId,
-  refreshEntitlement as apiRefreshEntitlement, registryToRow, rsvpToRow, syncEntity, tableToRow, taskToRow, websiteToRow,
+  refreshEntitlement as apiRefreshEntitlement, registryToRow, rsvpToRow, syncEntity, tableToRow, taskToRow, venueObjectToRow, websiteToRow,
 } from "./api";
 
 /* ------------------------------------------------------------------ */
@@ -49,6 +50,7 @@ export interface Db {
   tasks: Task[];
   vendors: Vendor[];
   tables: SeatTable[];
+  venueObjects: FloorObject[];
   registry: RegistryItem[];
   plan: Plan;
   invitation: InvitationConfig;
@@ -106,6 +108,7 @@ const seedDb: Db = {
   tasks: seedTasks,
   vendors: seedVendors,
   tables: seedTables,
+  venueObjects: seedVenueObjects,
   registry: seedRegistry,
   plan: "celebration",
   invitation: {
@@ -157,7 +160,7 @@ const defaultWebsite = (slug: string): WebsiteConfig => ({
 
 export const emptyDb = (wedding: Wedding): Db => ({
   wedding,
-  guests: [], budget: [], tasks: [], vendors: [], tables: [], registry: [],
+  guests: [], budget: [], tasks: [], vendors: [], tables: [], venueObjects: [], registry: [],
   plan: "essential",
   invitation: defaultInvitation(wedding.names, [wedding.venue, wedding.location].filter(Boolean).join(" · ")),
   website: defaultWebsite(wedding.slug),
@@ -199,12 +202,20 @@ function readCache(uid: string): Db | null {
     const raw = localStorage.getItem(cacheKey(uid));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Db;
-    return parsed && parsed.wedding && Array.isArray(parsed.guests) ? parsed : null;
+    if (!parsed || !parsed.wedding || !Array.isArray(parsed.guests)) return null;
+    // A cache written before a collection existed comes back without it.
+    // Backfill rather than reject, so a returning couple keeps their offline
+    // copy instead of it being silently dropped.
+    return { ...parsed, venueObjects: parsed.venueObjects ?? [] };
   } catch { return null; }
 }
 
 function writeCache(uid: string, db: Db) {
   try { localStorage.setItem(cacheKey(uid), JSON.stringify(db)); } catch { /* full — Supabase still has it */ }
+}
+
+function clearCache(uid: string) {
+  try { localStorage.removeItem(cacheKey(uid)); } catch { /* nothing to clear */ }
 }
 
 /* ------------------------------ context ------------------------------ */
@@ -317,6 +328,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     diffRows("guests", prev.guests, next.guests, guestToRow);
     diffRows("tables", prev.tables, next.tables, tableToRow);
+    diffRows("venueObjects", prev.venueObjects ?? [], next.venueObjects ?? [], venueObjectToRow);
     diffRows("budget", prev.budget, next.budget, budgetToRow);
     diffRows("tasks", prev.tasks, next.tasks, taskToRow);
     diffRows("vendors", prev.vendors, next.vendors, (v) => v);
@@ -471,8 +483,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   /* ------------------------------ auth surface ------------------------------ */
 
+  /**
+   * Reset the workspace here rather than waiting on the onAuthChange callback:
+   * authApi.signOut() can reject (swallowed below), and the previous couple's
+   * guests, budget and plan must not survive a failed sign-out. onAuthChange
+   * performs the same reset when it does fire, which is harmless.
+   */
   const signOut = useCallback(() => {
-    if (mode === "cloud") void authApi.signOut().catch(() => {});
+    if (mode === "cloud") {
+      void authApi.signOut().catch(() => {});
+      // Drop the queued write-behind batch and its timer first: a pending
+      // flush fires ~700ms later and would rewrite the cache entry we clear.
+      if (flushTimer.current) { window.clearTimeout(flushTimer.current); flushTimer.current = null; }
+      pendingRef.current = new Map();
+      const email = userRef.current?.email;
+      if (email) clearCache(email);
+      setWeddingId(null);
+      setNeedsOnboarding(false);
+      setDbState(placeholderDb());
+      setSync({ status: "saved", lastSaved: null, pending: 0 });
+    }
+    // demo mode keeps its seeded workspace — there is no account to leave
     setUser(null);
   }, [mode]);
 

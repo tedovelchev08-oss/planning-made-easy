@@ -139,19 +139,9 @@ export default function Shell() {
         </NavLink>
       ))}
 
-      <div className="mt-auto rounded-2xl border border-gold/35 bg-gold-soft/50 p-4">
-        <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.18em] text-gold-deep">Your plan</p>
-        <p className="mt-1 font-display text-lg leading-tight text-ink">{planLabel(db.plan)}</p>
-        <p className="mt-1 text-[0.7rem] leading-relaxed text-ink-2">One purchase, yours forever.</p>
-        {db.plan !== "luxe" && (
-          <button
-            onClick={() => setDrawerLike("/planner/page")}
-            className="mt-3 w-full rounded-full bg-ink py-2 text-[0.72rem] font-bold text-cream transition hover:bg-ink/85 cursor-pointer"
-          >
-            Explore Luxe
-          </button>
-        )}
-      </div>
+      {/* The "Your plan" panel sat here: three lines of static text plus an
+          "Explore Luxe" button that opened the Wedding Page editor rather than
+          any upgrade. The plan is already named in the account menu. */}
     </nav>
   );
 
@@ -245,7 +235,7 @@ export default function Shell() {
                 aria-label="Account menu" aria-expanded={accountOpen}
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-blush text-[0.66rem] font-extrabold text-ink shadow-sm ring-2 ring-white transition hover:scale-105 cursor-pointer"
               >
-                {user ? initials(user.name) : "M·T"}
+                {user ? initials(user.name) : mode === "demo" ? "M·T" : "··"}
               </button>
               <AnimatePresence>
                 {accountOpen && (
@@ -258,8 +248,8 @@ export default function Shell() {
                       role="menu" aria-label="Account"
                     >
                       <div className="px-4 py-4">
-                        <p className="text-[0.92rem] font-extrabold text-ink">{user?.name ?? "Maya & Theo"}</p>
-                        <p className="mt-0.5 truncate text-[0.72rem] font-semibold text-ink-mute">{user?.email ?? "demo couple session"}</p>
+                        <p className="text-[0.92rem] font-extrabold text-ink">{user?.name ?? (mode === "demo" ? "Maya & Theo" : "Not signed in")}</p>
+                        <p className="mt-0.5 truncate text-[0.72rem] font-semibold text-ink-mute">{user?.email ?? (mode === "demo" ? "demo couple session" : "Sign in to sync your plan")}</p>
                         <span className="mt-2.5 inline-block"><Pill tone="gold">{planLabel(db.plan)}</Pill></span>
                       </div>
 

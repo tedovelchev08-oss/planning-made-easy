@@ -58,10 +58,6 @@ export default function Overview() {
 
   const weekTasks = useMemo(() => db.tasks.filter((t) => t.week), [db.tasks]);
   const weekDone = weekTasks.filter((t) => t.done).length;
-  const weekYes = useMemo(
-    () => db.rsvpLog.filter((e) => e.answer === "yes" && Date.now() - e.at < 7 * 864e5).length,
-    [db.rsvpLog],
-  );
   const nextVendor = db.vendors.find((v) => v.status === "Proposal");
 
   const toggleWeek = (id: string) => {
@@ -138,22 +134,12 @@ export default function Overview() {
             <motion.span initial={{ width: 0 }} animate={{ width: `${(stats.confirmed / stats.total) * 100}%` }} transition={{ duration: 1.3 }} className="bg-sage" />
             <motion.span initial={{ width: 0 }} animate={{ width: `${(stats.pending / stats.total) * 100}%` }} transition={{ duration: 1.3, delay: 0.15 }} className="bg-blush" />
           </div>
-          <p className="mt-2 flex flex-wrap items-center gap-2 text-[0.72rem] font-semibold text-ink-mute">
+          {/* The plus-one and "yes this week" pills lived here. Both were real
+              numbers with nowhere to go — no click-through, no action — so they
+              read as decoration. The counts that matter are already in the line
+              below and on the guest list. */}
+          <p className="mt-2 text-[0.72rem] font-semibold text-ink-mute">
             {stats.pending} pending · {stats.declined} with love, no
-            {stats.plusOnes > 0 && (
-              <span className="inline-flex items-center rounded-full bg-gold-soft px-2 py-0.5 font-extrabold text-gold-deep">
-                +{stats.plusOnes} plus-ones counted
-              </span>
-            )}
-            {weekYes > 0 && (
-              <motion.span
-                initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 320, damping: 18, delay: 0.4 }}
-                className="inline-flex items-center gap-1 rounded-full bg-sage-soft px-2 py-0.5 font-extrabold text-sage-deep"
-              >
-                <Heart size={9} fill="#74996B" className="text-sage-deep" /> +{weekYes} yes this week
-              </motion.span>
-            )}
           </p>
         </StatCard>
 
@@ -163,10 +149,7 @@ export default function Overview() {
             <p className="font-display text-[2rem] leading-none text-ink">{daysShown}</p>
             <span className="text-sm font-bold text-ink-mute">days</span>
           </div>
-          <div className="mt-4 flex items-center gap-2 rounded-2xl bg-ink px-4 py-3 text-cream">
-            <Heart size={14} className="text-blush" fill="#FFB5C2" />
-            <p className="text-[0.74rem] font-semibold">Every day closer is a good day.</p>
-          </div>
+
         </StatCard>
       </div>
 

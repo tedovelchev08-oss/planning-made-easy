@@ -1,10 +1,14 @@
 import React, { useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
-import { Armchair, Leaf, Plus, Search, Settings2, Trash2, Wheat } from "lucide-react";
-import { SeatTable, TableShape, initials } from "../../lib/data";
+import { motion, useMotionValue } from "framer-motion";
+import { AlertTriangle, Armchair, Leaf, Lock, Plus, Printer, Search, Settings2, Trash2, Wheat } from "lucide-react";
+import {
+  FloorObject, FloorObjectKind, SeatTable, TableShape, TableSkin,
+  TABLE_SKINS, VENUE_KINDS, initials, venueKind,
+} from "../../lib/data";
 import { useApp } from "../../lib/store";
 import { playChime } from "../../lib/sound";
 import { Field, Modal, Pill, btn, inputCls, selectCls } from "../ui";
+import SeatingSheet from "./SeatingSheet";
 
 const SHAPES: { id: TableShape; label: string }[] = [
   { id: "round", label: "Round" },
@@ -13,11 +17,305 @@ const SHAPES: { id: TableShape; label: string }[] = [
   { id: "sweetheart", label: "Sweetheart" },
 ];
 
+/**
+ * How each surface paints.
+ *
+ * Pure CSS gradients rather than images: the floor can hold twenty of these and
+ * they cost nothing to download. The old tables were white with a dashed gold
+ * outline, which reads as a wireframe placeholder rather than a laid table.
+ */
+const SKIN: Record<TableSkin, { surface: string; ring: string; ink: string; sub: string }> = {
+  linen: {
+    surface:
+      "linear-gradient(145deg,#FFFDFA 0%,#FBF4EA 55%,#F6EBDC 100%)",
+    ring: "rgb(212 175 55 / 0.30)",
+    ink: "#332B31",
+    sub: "#96868D",
+  },
+  marble: {
+    surface:
+      "linear-gradient(140deg,#FDFDFC 0%,#F2F1EE 40%,#FAFAF8 62%,#ECEBE7 100%)",
+    ring: "rgb(120 120 130 / 0.26)",
+    ink: "#2E2E33",
+    sub: "#8C8C95",
+  },
+  oak: {
+    surface:
+      "linear-gradient(135deg,#C89B6A 0%,#B98A58 30%,#C49466 52%,#AE7E4D 100%)",
+    ring: "rgb(90 58 28 / 0.35)",
+    ink: "#3A2614",
+    sub: "#6B4F31",
+  },
+  noir: {
+    surface:
+      "linear-gradient(145deg,#3B333A 0%,#2C262C 55%,#231E23 100%)",
+    ring: "rgb(212 175 55 / 0.45)",
+    ink: "#FFF8F0",
+    sub: "rgb(255 248 240 / 0.55)",
+  },
+};
+
+const skinOf = (t: SeatTable): TableSkin => t.skin ?? "linen";
+
+/** Snap a percentage to the same 1% grid dragging commits to. */
+export const snapPct = (v: number) => Math.round(v * 100) / 100;
+
+/**
+ * Clamp a centre position so the whole element stays on the floor, measuring
+ * the element rather than assuming a size. Shared by dragging and by the
+ * keyboard nudge so both land in exactly the same place.
+ */
+function clampToFloor(
+  el: HTMLElement | null,
+  canvas: HTMLElement | null,
+  xPct: number,
+  yPct: number,
+): { x: number; y: number } | null {
+  if (!el || !canvas) return null;
+  const c = canvas.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  if (!c.width || !c.height) return null;
+  const halfW = (r.width / 2 / c.width) * 100;
+  const halfH = (r.height / 2 / c.height) * 100;
+  return {
+    x: snapPct(Math.min(100 - halfW, Math.max(halfW, xPct))),
+    y: snapPct(Math.min(100 - halfH, Math.max(halfH, yPct))),
+  };
+}
+
+/**
+ * Arrow keys move whatever is focused; Shift jumps five times as far.
+ *
+ * WCAG 2.2 AA (Dragging Movements) requires a single-pointer alternative to any
+ * author-controlled drag. Until this, dragging was the only way to position a
+ * table or a venue object, which also made the floor unusable with a keyboard,
+ * a trackpad-averse hand, or assistive tech.
+ */
+export function arrowDelta(key: string, shift: boolean): { dx: number; dy: number } | null {
+  const step = shift ? 5 : 1;
+  if (key === "ArrowLeft") return { dx: -step, dy: 0 };
+  if (key === "ArrowRight") return { dx: step, dy: 0 };
+  if (key === "ArrowUp") return { dx: 0, dy: -step };
+  if (key === "ArrowDown") return { dx: 0, dy: step };
+  return null;
+}
+
+/**
+ * How each venue object paints. Deliberately flatter and quieter than the
+ * tables: these are the room, not the furniture, so they sit underneath and
+ * must never compete with a table for attention.
+ */
+const VENUE_STYLE: Record<FloorObjectKind, { fill: string; edge: string; ink: string; dashed?: boolean }> = {
+  dance: { fill: "repeating-linear-gradient(45deg,rgb(212 175 55 / 0.10) 0 14px,rgb(212 175 55 / 0.04) 14px 28px)", edge: "rgb(212 175 55 / 0.40)", ink: "#A8891F" },
+  stage: { fill: "linear-gradient(160deg,rgb(51 43 49 / 0.10),rgb(51 43 49 / 0.05))", edge: "rgb(51 43 49 / 0.28)", ink: "#5C4F55" },
+  bar: { fill: "linear-gradient(160deg,rgb(169 139 212 / 0.16),rgb(169 139 212 / 0.07))", edge: "rgb(167 139 212 / 0.42)", ink: "#7E5FB0" },
+  entrance: { fill: "transparent", edge: "rgb(51 43 49 / 0.30)", ink: "#96868D", dashed: true },
+  cake: { fill: "linear-gradient(160deg,rgb(255 181 194 / 0.22),rgb(255 181 194 / 0.10))", edge: "rgb(233 139 160 / 0.45)", ink: "#E98BA0" },
+  photo: { fill: "linear-gradient(160deg,rgb(168 197 160 / 0.20),rgb(168 197 160 / 0.08))", edge: "rgb(116 153 107 / 0.42)", ink: "#74996B" },
+};
+
+/**
+ * A venue object on the floor.
+ *
+ * Same commit-from-the-element-rect approach as TableNode — see the note there
+ * for why the pointer position cannot be used.
+ */
+function VenueNode({
+  obj,
+  canvasRef,
+  onMove,
+  onOpen,
+  announce,
+}: {
+  obj: FloorObject;
+  canvasRef: React.RefObject<HTMLDivElement | null>;
+  onMove: (x: number, y: number) => void;
+  onOpen: () => void;
+  announce: (msg: string) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const style = VENUE_STYLE[obj.kind];
+  const meta = venueKind(obj.kind);
+
+  const name = obj.label || meta.label;
+
+  const commit = () => {
+    const canvas = canvasRef.current;
+    const el = ref.current;
+    if (!canvas || !el) return;
+    const c = canvas.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const next = clampToFloor(el, canvas, ((r.left + r.width / 2 - c.left) / c.width) * 100, ((r.top + r.height / 2 - c.top) / c.height) * 100);
+    if (next) onMove(next.x, next.y);
+    x.set(0);
+    y.set(0);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const d = arrowDelta(e.key, e.shiftKey);
+    if (!d) return;
+    e.preventDefault();
+    const next = clampToFloor(ref.current, canvasRef.current, obj.x + d.dx, obj.y + d.dy);
+    if (!next) return;
+    onMove(next.x, next.y);
+    announce(`${name} moved to ${Math.round(next.x)} percent across, ${Math.round(next.y)} percent down`);
+  };
+
+  return (
+    <motion.div
+      drag
+      dragMomentum={false}
+      dragElastic={0.06}
+      onDragEnd={commit}
+      onKeyDown={onKeyDown}
+      tabIndex={0}
+      role="group"
+      aria-label={`${name}. Arrow keys to move, shift for larger steps. Enter to edit.`}
+      /* Size lives on the positioned element so the percentages resolve against
+         the floor. On the inner div they would resolve against a shrink-to-fit
+         parent and collapse to nothing. */
+      style={{ left: `${obj.x}%`, top: `${obj.y}%`, width: `${obj.w}%`, height: `${obj.h}%`, x, y }}
+      /* z-0: the room sits under the furniture, always */
+      className="absolute z-0 cursor-grab focus-visible:z-30 active:cursor-grabbing"
+    >
+      <div ref={ref} className="h-full w-full -translate-x-1/2 -translate-y-1/2">
+        <button
+          onClick={onOpen}
+          aria-label={`${obj.label || meta.label} — edit or remove`}
+          className={`flex h-full w-full items-center justify-center rounded-2xl text-center transition hover:brightness-95 ${
+            style.dashed ? "border-2 border-dashed" : "border"
+          }`}
+          style={{ background: style.fill, borderColor: style.edge }}
+        >
+          <span
+            className="px-2 font-display text-[0.9rem] tracking-tight"
+            style={{ color: style.ink }}
+          >
+            {obj.label || meta.label}
+          </span>
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+/** Rough table width as a share of the floor, for keeping new tables apart. */
+const widthPct = (shape: TableShape) =>
+  shape === "head" ? 25 : shape === "rect" ? 23 : shape === "sweetheart" ? 13 : 15;
+
+/**
+ * First spot on a loose grid that does not collide with an existing table.
+ *
+ * New tables used to be dropped at `20 + Math.random() * 60`, which is why a
+ * populated floor ended up with tables sitting on top of one another.
+ */
+function freeSpot(shape: TableShape, existing: SeatTable[]): { x: number; y: number } {
+  const need = widthPct(shape);
+  for (const y of [26, 48, 70, 86]) {
+    for (const x of [18, 36, 54, 72, 90]) {
+      const clash = existing.some((t) => {
+        const gap = (need + widthPct(t.shape)) / 2 + 2;
+        return Math.abs(t.x - x) < gap && Math.abs(t.y - y) < 12;
+      });
+      if (!clash) return { x, y };
+    }
+  }
+  return { x: 50, y: 50 }; // floor is full — drop it in the middle to be moved
+}
+
+/**
+ * One draggable table.
+ *
+ * Its own component so each table owns motion values. The previous version
+ * dragged inside a .map() and committed `info.point` — framer-motion's POINTER
+ * position — as the table's centre, so grabbing a table anywhere but dead
+ * centre threw it by the grab offset. The drag transform was never cleared
+ * either, so the movement landed twice.
+ */
+function TableNode({
+  table,
+  canvasRef,
+  onMove,
+  announce,
+  children,
+}: {
+  table: SeatTable;
+  canvasRef: React.RefObject<HTMLDivElement | null>;
+  onMove: (x: number, y: number) => void;
+  announce: (msg: string) => void;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const commit = () => {
+    const canvas = canvasRef.current;
+    const el = ref.current;
+    if (!canvas || !el) return;
+    const c = canvas.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    // Measure the element, so where it was grabbed is irrelevant.
+    const halfW = r.width / 2;
+    const halfH = r.height / 2;
+    const cx = r.left + halfW - c.left;
+    const cy = r.top + halfH - c.top;
+    // Clamp on the table's real size rather than a fixed percentage margin,
+    // which is what let wide tables hang off the edge of the floor.
+    const px = Math.min(c.width - halfW, Math.max(halfW, cx));
+    const py = Math.min(c.height - halfH, Math.max(halfH, cy));
+    // Snap to a 1% grid — see snapPct. Fine enough that a deliberate nudge
+    // lands where it was aimed, coarse enough that a row of tables ends up
+    // genuinely aligned rather than a pixel out.
+    onMove(snapPct((px / c.width) * 100), snapPct((py / c.height) * 100));
+    // left/top now carries the position — drop the drag transform so it is not
+    // applied a second time on top of it.
+    x.set(0);
+    y.set(0);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const d = arrowDelta(e.key, e.shiftKey);
+    if (!d) return;
+    e.preventDefault();
+    const next = clampToFloor(ref.current, canvasRef.current, table.x + d.dx, table.y + d.dy);
+    if (!next) return;
+    onMove(next.x, next.y);
+    announce(`${table.name} moved to ${Math.round(next.x)} percent across, ${Math.round(next.y)} percent down`);
+  };
+
+  return (
+    <motion.div
+      drag
+      dragMomentum={false}
+      dragElastic={0.08}
+      onDragEnd={commit}
+      onKeyDown={onKeyDown}
+      tabIndex={0}
+      role="group"
+      aria-label={`${table.name}. Arrow keys to move, shift for larger steps.`}
+      style={{ left: `${table.x}%`, top: `${table.y}%`, x, y }}
+      className="absolute z-10 cursor-grab focus-visible:z-30 active:z-30 active:cursor-grabbing"
+    >
+      {/* Centring lives on an inner element: framer writes its own transform on
+          the drag target, which would override a Tailwind -translate. */}
+      <div ref={ref} className="-translate-x-1/2 -translate-y-1/2">
+        {children}
+      </div>
+    </motion.div>
+  );
+}
+
 export default function Seating() {
   const { db, setDb, toast } = useApp();
   const canvasRef = useRef<HTMLDivElement>(null);
   const [q, setQ] = useState("");
   const [seatPicker, setSeatPicker] = useState<{ tableId: string; seat: number } | null>(null);
+  const [venueEdit, setVenueEdit] = useState<FloorObject | null>(null);
+  /** Spoken after a keyboard nudge — a sighted user sees the move, others need telling. */
+  const [liveMsg, setLiveMsg] = useState("");
   const [pickerQ, setPickerQ] = useState("");
   const [settings, setSettings] = useState<SeatTable | null>(null);
 
@@ -67,24 +365,31 @@ export default function Seating() {
       name: shape === "round" || shape === "rect" ? `Table ${n}` : shape === "head" ? "Head Table" : "Sweetheart",
       shape,
       capacity: shape === "sweetheart" ? 2 : shape === "head" ? 8 : 8,
-      x: 20 + Math.random() * 60,
-      y: 20 + Math.random() * 55,
+      ...freeSpot(shape, db.tables),
     };
     setDb((d) => ({ ...d, tables: [...d.tables, t] }));
     toast(`${t.name} added`, "Drag it anywhere on the floor.");
   };
 
-  const endDrag = (id: string) => (_e: unknown, info: { point: { x: number; y: number } }) => {
-    const canvas = canvasRef.current;
-    const table = db.tables.find((t) => t.id === id);
-    if (!canvas || !table) return;
-    // wide tables need wider margins so they never hang off the floor edge
-    const mx = table.shape === "head" ? 17 : table.shape === "rect" ? 15 : table.shape === "sweetheart" ? 7 : 9;
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.min(100 - mx, Math.max(mx, ((info.point.x - rect.left) / rect.width) * 100));
-    const y = Math.min(92, Math.max(9, ((info.point.y - rect.top) / rect.height) * 100));
-    setDb((d) => ({ ...d, tables: d.tables.map((t) => (t.id === id ? { ...t, x, y } : t)) }));
+  const addVenueObject = (kind: FloorObjectKind) => {
+    const meta = venueKind(kind);
+    const o: FloorObject = {
+      id: `vo-${Date.now()}`,
+      kind,
+      label: "",
+      ...freeSpot(kind === "dance" ? "round" : "rect", db.tables),
+      w: meta.w,
+      h: meta.h,
+    };
+    setDb((d) => ({ ...d, venueObjects: [...(d.venueObjects ?? []), o] }));
+    toast(`${meta.label} added`, "Drag it into place.");
   };
+
+  const moveVenueObject = (id: string) => (x: number, y: number) =>
+    setDb((d) => ({ ...d, venueObjects: d.venueObjects.map((o) => (o.id === id ? { ...o, x, y } : o)) }));
+
+  const moveTable = (id: string) => (x: number, y: number) =>
+    setDb((d) => ({ ...d, tables: d.tables.map((t) => (t.id === id ? { ...t, x, y } : t)) }));
 
   const seatPositions = (t: SeatTable, size: { w: number; h: number }) => {
     const pts: { x: number; y: number }[] = [];
@@ -161,8 +466,34 @@ export default function Seating() {
               </button>
             ))}
           </div>
+          <button
+            onClick={() => window.print()}
+            className={`${btn.outline} mt-5 w-full !py-2.5`}
+          >
+            <Printer size={14} /> Export seating chart
+          </button>
+          <p className="mt-2 text-[0.7rem] leading-relaxed text-ink-mute">
+            Opens your print dialog — choose <strong>Save as PDF</strong> to send it to the venue.
+          </p>
+
+          <h3 className="mt-6 text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-ink-mute">Add to the room</h3>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {VENUE_KINDS.map((v) => (
+              <button
+                key={v.id}
+                onClick={() => addVenueObject(v.id)}
+                title={v.hint}
+                className="rounded-xl border border-ink/12 bg-white/80 px-3 py-2.5 text-[0.78rem] font-bold text-ink-2 transition hover:border-gold/60 hover:text-ink hover:shadow-sm cursor-pointer"
+              >
+                + {v.label}
+              </button>
+            ))}
+          </div>
+
           <p className="mt-4 text-[0.72rem] leading-relaxed text-ink-mute">
-            Drag tables around the floor. Drag guests onto a table, or click any seat to choose who sits there.
+            Drag anything around the floor, or select it and use the arrow keys
+            — hold shift for larger steps. Drag guests onto a table, or click any
+            seat to choose who sits there.
           </p>
         </div>
       </div>
@@ -171,12 +502,29 @@ export default function Seating() {
       <div className="overflow-x-auto overscroll-x-contain rounded-[1.8rem] lg:h-full lg:min-h-0">
       <div
         ref={canvasRef}
-        className="dotted-canvas relative h-[560px] min-w-[1080px] rounded-[1.8rem] border border-white/70 bg-[#FDF6EA]/70 shadow-inner sm:h-[640px] lg:h-full"
+        className="dotted-canvas relative h-[560px] min-w-[1280px] rounded-[1.8rem] border border-white/70 bg-[#FDF6EA]/70 shadow-inner sm:h-[640px] lg:h-full"
         aria-label="Seating floor — scroll horizontally on smaller screens"
       >
-        <div className="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-ink/90 px-4 py-1.5 text-[0.7rem] font-bold text-cream">
+        {/* Keyboard moves are silent to anyone not watching the floor. */}
+        <p className="sr-only" role="status" aria-live="polite">{liveMsg}</p>
+
+        {/* Top-left, not centred: the sweetheart table sits at x:50 y:7 and was
+            sitting on top of this counter. */}
+        <div className="pointer-events-none absolute left-4 top-4 z-20 rounded-full bg-ink/85 px-4 py-1.5 text-[0.7rem] font-bold text-cream backdrop-blur-sm">
           {seated.length} seated · {db.tables.length} tables
         </div>
+
+        {/* The room, painted under the furniture. */}
+        {(db.venueObjects ?? []).map((o) => (
+          <VenueNode
+            key={o.id}
+            obj={o}
+            canvasRef={canvasRef}
+            onMove={moveVenueObject(o.id)}
+            onOpen={() => setVenueEdit({ ...o })}
+            announce={setLiveMsg}
+          />
+        ))}
 
         {db.tables.map((t) => {
           const at = guestsAt(t.id);
@@ -184,27 +532,46 @@ export default function Seating() {
           const seats = seatPositions(t, size);
           const isSweet = t.shape === "sweetheart";
           return (
-            <motion.div
-              key={t.id}
-              drag
-              dragMomentum={false}
-              dragElastic={0.08}
-              onDragEnd={endDrag(t.id)}
-              className="absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-grab active:z-30 active:cursor-grabbing"
-              style={{ left: `${t.x}%`, top: `${t.y}%` }}
-            >
+            <TableNode key={t.id} table={t} canvasRef={canvasRef} onMove={moveTable(t.id)} announce={setLiveMsg}>
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) assign(id, t.id); }}
-                className={`relative shadow-card transition-shadow hover:shadow-lift ${t.shape === "round" ? "rounded-full border-2 border-dashed border-gold/60 bg-white/85" : isSweet ? "rounded-[2rem] border-2 border-blush-deep/50 bg-blush-soft/80" : "rounded-[1.4rem] border-2 border-dashed border-gold/60 bg-white/85"}`}
-                style={{ width: size.w, height: size.h }}
+                className={`relative shadow-card transition-shadow duration-300 hover:shadow-lift ${
+                  t.shape === "round" ? "rounded-full" : isSweet ? "rounded-[2rem]" : "rounded-[1.4rem]"
+                }`}
+                style={{
+                  width: size.w,
+                  height: size.h,
+                  background: isSweet
+                    ? "linear-gradient(145deg,#FFF1F4 0%,#FFE4EA 100%)"
+                    : SKIN[skinOf(t)].surface,
+                  // a single hairline ring plus an inner highlight reads as a
+                  // laid surface; the old 2px dashed outline read as a wireframe
+                  boxShadow: `0 0 0 1px ${isSweet ? "rgb(233 139 160 / 0.45)" : SKIN[skinOf(t)].ring}, inset 0 1px 0 rgb(255 255 255 / 0.55)`,
+                }}
               >
                 <button onClick={() => setSettings({ ...t })} aria-label={`Settings for ${t.name}`} className="absolute -right-2 -top-2 z-10 rounded-full bg-ink p-1.5 text-cream opacity-70 shadow-card transition hover:bg-gold-deep hover:opacity-100 cursor-pointer">
                   <Settings2 size={12} />
                 </button>
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <p className="max-w-[80%] truncate font-display text-[0.95rem] text-ink">{t.name}</p>
-                  <p className={`text-[0.62rem] font-extrabold ${at.length >= t.capacity ? "text-blush-deep" : "text-ink-mute"}`}>{at.length}/{t.capacity}</p>
+                  <p
+                    className="max-w-[80%] truncate font-display text-[1rem] tracking-tight"
+                    style={{ color: isSweet ? "#332B31" : SKIN[skinOf(t)].ink }}
+                  >
+                    {t.name}
+                  </p>
+                  <p
+                    className="flex items-center gap-1 text-[0.62rem] font-extrabold"
+                    style={{ color: at.length > t.capacity ? "#E98BA0" : isSweet ? "#96868D" : SKIN[skinOf(t)].sub }}
+                  >
+                    {/* Over capacity carried an icon and a word, not just a tint —
+                        colour alone is not an accessible signal, and 12 people at an
+                        8-seat table is a planning error worth stating. */}
+                    {at.length > t.capacity && <AlertTriangle size={10} aria-hidden="true" />}
+                    {at.length}/{t.capacity}
+                    {at.length > t.capacity && <span className="sr-only"> — over capacity</span>}
+                    {at.length > t.capacity && <span aria-hidden="true">over</span>}
+                  </p>
                   {isSweet && <span className="mt-0.5 font-display text-[0.68rem] italic text-blush-deep">just the two of us</span>}
                 </div>
 
@@ -219,7 +586,7 @@ export default function Seating() {
                       className={`absolute z-10 flex h-7 w-7 items-center justify-center rounded-full text-[0.56rem] font-extrabold transition-all duration-200 hover:scale-110 cursor-pointer ${
                         g
                           ? `${g.party === "A" ? "bg-blush text-ink" : "bg-sage text-ink"} ${g.plusOneOf ? "ring-2 ring-gold" : "ring-2 ring-white"} shadow-sm`
-                          : "border-2 border-dashed border-ink/25 bg-cream/60 text-ink-mute/70 hover:border-gold"
+                          : "border border-ink/15 bg-cream/70 text-ink-mute/50 shadow-sm hover:border-gold hover:text-gold-deep"
                       }`}
                       style={{ left: pos.x, top: pos.y }}
                     >
@@ -232,7 +599,7 @@ export default function Seating() {
                   );
                 })}
               </div>
-            </motion.div>
+            </TableNode>
           );
         })}
 
@@ -305,6 +672,80 @@ export default function Seating() {
 
       {/* table settings modal */}
       <Modal open={!!settings} onClose={() => setSettings(null)} label="Table settings">
+        {venueEdit && (
+          <div className="p-7 sm:p-8">
+            <h2 className="font-display text-2xl text-ink">{venueEdit.label || venueKind(venueEdit.kind).label}</h2>
+            <p className="mt-1 text-[0.8rem] text-ink-mute">{venueKind(venueEdit.kind).hint}</p>
+
+            <div className="mt-6">
+              <Field label="Label">
+                <input
+                  className={inputCls}
+                  placeholder={venueKind(venueEdit.kind).label}
+                  value={venueEdit.label}
+                  onChange={(e) => setVenueEdit({ ...venueEdit, label: e.target.value })}
+                />
+              </Field>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-4">
+              <Field label="Across (%)">
+                <input
+                  type="number" min={0} max={100} step={1} className={inputCls}
+                  value={Math.round(venueEdit.x)}
+                  onChange={(e) => setVenueEdit({ ...venueEdit, x: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })}
+                />
+              </Field>
+              <Field label="Down (%)">
+                <input
+                  type="number" min={0} max={100} step={1} className={inputCls}
+                  value={Math.round(venueEdit.y)}
+                  onChange={(e) => setVenueEdit({ ...venueEdit, y: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })}
+                />
+              </Field>
+              <Field label="Width">
+                <input
+                  type="range" min={6} max={60} step={1} className="w-full accent-gold-deep"
+                  value={venueEdit.w}
+                  onChange={(e) => setVenueEdit({ ...venueEdit, w: Number(e.target.value) })}
+                />
+              </Field>
+              <Field label="Depth">
+                <input
+                  type="range" min={5} max={50} step={1} className="w-full accent-gold-deep"
+                  value={venueEdit.h}
+                  onChange={(e) => setVenueEdit({ ...venueEdit, h: Number(e.target.value) })}
+                />
+              </Field>
+            </div>
+
+            <div className="mt-7 flex justify-between">
+              <button
+                onClick={() => {
+                  setDb((d) => ({ ...d, venueObjects: d.venueObjects.filter((o) => o.id !== venueEdit.id) }));
+                  toast(`${venueEdit.label || venueKind(venueEdit.kind).label} removed`, undefined, "info");
+                  setVenueEdit(null);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[0.8rem] font-bold text-blush-deep transition hover:bg-blush-soft cursor-pointer"
+              >
+                <Trash2 size={13} /> Remove
+              </button>
+              <div className="flex gap-3">
+                <button onClick={() => setVenueEdit(null)} className={btn.ghost}>Cancel</button>
+                <button
+                  onClick={() => {
+                    setDb((d) => ({ ...d, venueObjects: d.venueObjects.map((o) => (o.id === venueEdit.id ? venueEdit : o)) }));
+                    setVenueEdit(null);
+                  }}
+                  className={btn.ink}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {settings && (
           <div className="p-7 sm:p-8">
             <h2 className="flex items-center gap-2.5 font-display text-2xl text-ink"><Armchair size={20} className="text-gold-deep" /> {settings.name}</h2>
@@ -324,7 +765,63 @@ export default function Seating() {
                   <button onClick={() => setSettings({ ...settings, capacity: Math.min(14, settings.capacity + 1) })} className="h-10 w-10 rounded-full border border-ink/15 text-lg font-bold text-ink transition hover:border-ink/40 cursor-pointer">+</button>
                 </div>
               </Field>
+              {/* Typing a position is the non-pointer route WCAG 2.2 asks for,
+                  and it is the only way to place two tables at exactly the
+                  same height. */}
+              <Field label="Across (%)">
+                <input
+                  type="number" min={0} max={100} step={1} className={inputCls}
+                  value={Math.round(settings.x)}
+                  onChange={(e) => setSettings({ ...settings, x: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })}
+                />
+              </Field>
+              <Field label="Down (%)">
+                <input
+                  type="number" min={0} max={100} step={1} className={inputCls}
+                  value={Math.round(settings.y)}
+                  onChange={(e) => setSettings({ ...settings, y: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })}
+                />
+              </Field>
             </div>
+
+            <div className="mt-7">
+              <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-ink-mute">Surface</p>
+              <div className="mt-3 grid grid-cols-4 gap-2.5">
+                {TABLE_SKINS.map((sk) => {
+                  const locked = !!sk.lockedBy && db.plan !== sk.lockedBy;
+                  const active = skinOf(settings) === sk.id;
+                  return (
+                    <button
+                      key={sk.id}
+                      type="button"
+                      disabled={locked}
+                      aria-pressed={active}
+                      title={locked ? `${sk.label} — part of Premium Luxe` : sk.note}
+                      onClick={() => setSettings({ ...settings, skin: sk.id })}
+                      className={`group relative overflow-hidden rounded-2xl p-1.5 text-left transition ${
+                        active ? "ring-2 ring-gold" : "ring-1 ring-ink/10 hover:ring-ink/30"
+                      } ${locked ? "cursor-not-allowed" : "cursor-pointer"}`}
+                    >
+                      <span
+                        className={`block h-12 w-full rounded-xl transition ${locked ? "opacity-45 saturate-50" : ""}`}
+                        style={{ background: SKIN[sk.id].surface, boxShadow: `inset 0 0 0 1px ${SKIN[sk.id].ring}` }}
+                      />
+                      <span className="mt-1.5 flex items-center gap-1 px-0.5 text-[0.66rem] font-bold text-ink-2">
+                        {locked && <Lock size={9} className="shrink-0 text-gold-deep" aria-hidden="true" />}
+                        {sk.label}
+                      </span>
+                      {locked && <span className="sr-only"> — locked, part of Premium Luxe</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              {TABLE_SKINS.some((sk) => sk.lockedBy && db.plan !== sk.lockedBy) && (
+                <p className="mt-2.5 text-[0.72rem] font-semibold text-ink-mute">
+                  Marble, oak and noir come with <span className="font-extrabold text-gold-deep">Premium Luxe</span>.
+                </p>
+              )}
+            </div>
+
             <div className="mt-7 flex justify-between">
               <button
                 onClick={() => {
@@ -363,6 +860,9 @@ export default function Seating() {
           </div>
         )}
       </Modal>
+
+      {/* Hidden on screen; @media print swaps the app out for this. */}
+      <SeatingSheet />
     </div>
   );
 }

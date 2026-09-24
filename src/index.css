@@ -1,5 +1,59 @@
 @import "tailwindcss";
 
+/* ---------- brand typefaces ----------
+   Self-hosted so no third-party request sits on the critical path and
+   font-src 'self' in vercel.json already covers them. Variable fonts:
+   one file per style spans the whole weight range. font-display: swap
+   renders fallback text immediately rather than leaving it invisible. */
+@font-face {
+  font-family: 'Nunito Sans';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('/fonts/nunito-sans-normal-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Nunito Sans';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('/fonts/nunito-sans-normal-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/playfair-display-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/playfair-display-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/playfair-display-normal-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/playfair-display-normal-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @theme {
   --font-display: "Playfair Display", "Georgia", serif;
   --font-body: "Nunito Sans", "Avenir Next", "Segoe UI", sans-serif;
@@ -21,6 +75,35 @@
   --color-ink: #332b31;
   --color-ink-2: #5c4f55;
   --color-ink-mute: #96868d;
+
+  /* ---------- marketing type scale ----------
+     The marketing surface had grown 35 distinct font sizes across 75 uses,
+     with steps as fine as 0.02rem (0.32px) — differences nobody can see and
+     nobody chose. These 14 steps replace them. Deliberately named for their
+     role rather than reusing Tailwind's --text-sm / --tracking-wide, which
+     the dashboard relies on and which is out of scope for this pass. */
+  --text-eyebrow: 0.65rem;
+  --text-caption: 0.74rem;
+  --text-small: 0.85rem;
+  --text-body: 0.94rem;
+  --text-lead: 1.05rem;
+  --text-title: 1.4rem;
+  --text-title-lg: 1.62rem;
+  --text-heading: 1.85rem;
+  --text-display-xs: 2.4rem;
+  --text-display-sm: 2.9rem;
+  --text-display: 3.3rem;
+  --text-display-lg: 4.6rem;
+  --text-display-xl: 5.2rem;
+  --text-ornament: 6.75rem;
+
+  --tracking-label: 0.16em;
+  --tracking-label-wide: 0.22em;
+  --tracking-label-x: 0.28em;
+
+  --radius-card: 1.25rem;
+  --radius-panel: 2rem;
+  --radius-hero: 3rem;
 
   --shadow-card: 0 10px 40px -18px rgb(51 43 49 / 0.22);
   --shadow-lift: 0 28px 70px -28px rgb(51 43 49 / 0.32);
@@ -72,13 +155,12 @@ body {
     radial-gradient(40% 40% at 70% 84%, rgb(233 139 160 / 0.16), transparent 70%),
     radial-gradient(30% 30% at 22% 78%, rgb(255 231 236 / 0.6), transparent 70%),
     var(--color-cream);
-  animation: mesh-drift 26s ease-in-out infinite alternate;
 }
 
-@keyframes mesh-drift {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
-  100% { transform: translate3d(-2.5%, 2%, 0) scale(1.06); }
-}
+/* The mesh used to run `mesh-drift` infinitely. It is decorative, fixed, and
+   inset -20% (~140% of the viewport), so it kept a full-screen composited
+   layer scaling for the entire session on every page. The gradient carries
+   the atmosphere on its own; the drift was not load-bearing. */
 
 .grain-overlay {
   position: fixed;
@@ -177,6 +259,15 @@ body {
   box-shadow: 0 1px 0 0 rgb(51 43 49 / 0.18), 0 6px 14px -10px rgb(51 43 49 / 0.2);
 }
 
+/* Decorative loops are parked while their section is off screen; see
+   useIdleWhenOffscreen(). Paint state is untouched, so nothing moves or
+   reflows when a section is parked or released. */
+.motion-idle [class*="anim-"],
+.motion-idle .inv-petal,
+.motion-idle .shimmer-text {
+  animation-play-state: paused;
+}
+
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -230,3 +321,74 @@ body {
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }
+
+/* ---------- printable seating chart ----------
+   SeatingSheet lives in the DOM but is hidden on screen. Printing hides the
+   app and reveals it, so "Save as PDF" produces real vector text rather than
+   a screenshot. Black on white on purpose: this gets printed in a venue
+   office, and ink is not free. */
+
+#seating-sheet { display: none; }
+
+@media print {
+  @page { margin: 14mm; }
+
+  /* Hide the app, show the sheet.
+     visibility rather than display: the sheet renders INSIDE #root, and a
+     display:none ancestor would hide it no matter what it sets itself. */
+  body * { visibility: hidden !important; }
+  #seating-sheet, #seating-sheet * { visibility: visible !important; }
+  #seating-sheet {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    color: #000;
+    background: #fff;
+    font-family: "Nunito Sans", "Avenir Next", sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+
+  #seating-sheet .sheet-head { border-bottom: 1.5pt solid #000; padding-bottom: 6pt; margin-bottom: 12pt; }
+  #seating-sheet h1 { font-family: "Playfair Display", Georgia, serif; font-size: 22pt; margin: 0 0 2pt; }
+  #seating-sheet .sheet-head p { margin: 0; font-size: 10pt; }
+  #seating-sheet .sheet-sub { margin-top: 3pt !important; font-weight: 700; }
+
+  #seating-sheet h2 {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 14pt; margin: 0 0 6pt;
+    border-bottom: 0.5pt solid #999; padding-bottom: 3pt;
+  }
+  #seating-sheet .sheet-block { margin-bottom: 14pt; break-inside: avoid; }
+
+  #seating-sheet .sheet-inline { list-style: none; padding: 0; margin: 0 0 8pt; }
+  #seating-sheet .sheet-inline li { display: inline-block; margin: 0 14pt 3pt 0; }
+
+  #seating-sheet .sheet-table { width: 100%; border-collapse: collapse; }
+  #seating-sheet .sheet-table th { text-align: left; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 0.5pt solid #999; padding: 2pt 4pt; }
+  #seating-sheet .sheet-table td { vertical-align: top; padding: 3pt 4pt; border-bottom: 0.25pt solid #ddd; }
+  #seating-sheet .nowrap { white-space: nowrap; }
+
+  /* two columns of tables, each kept whole across a page break */
+  #seating-sheet .sheet-tables { columns: 2; column-gap: 10mm; }
+  #seating-sheet .sheet-card { break-inside: avoid; margin-bottom: 9pt; }
+  #seating-sheet .sheet-card h3 {
+    font-size: 11pt; margin: 0 0 2pt;
+    border-bottom: 0.5pt solid #000; padding-bottom: 1pt;
+    display: flex; justify-content: space-between; gap: 8pt;
+  }
+  #seating-sheet .sheet-count { font-weight: 400; font-size: 9pt; white-space: nowrap; }
+  #seating-sheet .sheet-card ol { margin: 0; padding-left: 14pt; }
+  #seating-sheet .sheet-card li { margin-bottom: 0.5pt; }
+  #seating-sheet .sheet-empty { margin: 0; font-style: italic; color: #666; }
+  #seating-sheet .sheet-tag { font-size: 8pt; border: 0.5pt solid #000; border-radius: 3pt; padding: 0 2pt; margin-left: 3pt; }
+  #seating-sheet .sheet-meal,
+  #seating-sheet .sheet-diet { font-size: 9pt; color: #444; }
+  #seating-sheet .sheet-diet { font-weight: 700; color: #000; }
+
+  #seating-sheet .sheet-note { margin: 0 0 4pt; font-size: 9pt; color: #555; }
+  #seating-sheet .sheet-names { margin: 0; }
+  #seating-sheet .sheet-foot { margin-top: 12pt; padding-top: 4pt; border-top: 0.5pt solid #999; font-size: 8.5pt; color: #555; }
+}

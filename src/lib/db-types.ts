@@ -53,6 +53,18 @@ export interface GuestRow {
   sort: number;
 }
 
+export interface VenueObjectRow {
+  id: string;
+  wedding_id: string;
+  kind: "dance" | "stage" | "bar" | "entrance" | "cake" | "photo";
+  label: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  sort: number;
+}
+
 export interface TableRow {
   id: string;
   wedding_id: string;
@@ -61,6 +73,8 @@ export interface TableRow {
   capacity: number;
   x: number;
   y: number;
+  /** Added in 0006; rows written before it default to 'linen'. */
+  skin: "linen" | "marble" | "oak" | "noir";
   sort: number;
 }
 
@@ -196,6 +210,7 @@ export interface Database {
       wedding_members: T<{ wedding_id: string; user_id: string; role: "owner" | "partner" }>;
       wedding_invites: T<{ id: string; wedding_id: string; email: string; invited_by: string; accepted_at: string | null; created_at: string }>;
       tables: T<TableRow>;
+      venue_objects: T<VenueObjectRow>;
       guests: T<GuestRow>;
       budget_categories: T<BudgetRow>;
       tasks: T<TaskRow>;

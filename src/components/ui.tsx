@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import { ArrowRight, Check, Heart, Loader2, Lock, Mail, RefreshCw, Sparkles, X } from "lucide-react";
-import { TIERS, Plan, fmtMoney } from "../lib/data";
+import { TIERS, Plan, planRank, fmtMoney } from "../lib/data";
 import { useApp, usePrefersReducedMotion, useStats } from "../lib/store";
 import { authApi, createCheckoutSession } from "../lib/api";
 import { I18nProvider, LOCALES, useT, type Locale } from "../lib/i18n";
@@ -234,8 +234,6 @@ export function ToastHost() {
 
 /* ------------------------------ checkout (real Stripe · one-time) ------------------------------ */
 
-const rankOf = (p: Plan | null): number => (p ? TIERS.findIndex((t) => t.id === p) : -1);
-
 /** Stashed before redirecting to Stripe so the return gate knows what to wait for. */
 const PENDING_TIER_KEY = "luma:pendingTier";
 
@@ -253,8 +251,8 @@ export function CheckoutModal() {
     if (!tier) return;
     // Monotonic guard — a UX affordance only. The webhook is the real authority
     // on entitlements; the client can never grant itself a plan.
-    if (rankOf(tier.id) <= rankOf(db.plan)) {
-      const owned = TIERS[rankOf(db.plan)];
+    if (planRank(tier.id) <= planRank(db.plan)) {
+      const owned = TIERS[planRank(db.plan)];
       toast(
         db.plan === tier.id ? "You already own this plan" : "You already have more",
         `${owned.name} covers everything here — no need to buy twice.`,
@@ -391,7 +389,7 @@ export function CheckoutReturnGate() {
 
     const pendingTier = sessionStorage.getItem(PENDING_TIER_KEY);
     // If we don't know what was bought (stale param), any entitlement counts.
-    const targetRank = pendingTier ? rankOf(pendingTier as Plan) : 0;
+    const targetRank = pendingTier ? planRank(pendingTier as Plan) : 0;
     const delays = [800, 1600, 3200, 4800, 6400]; // ~16.8s total
     let attempt = 0;
     let cancelled = false;
@@ -399,7 +397,7 @@ export function CheckoutReturnGate() {
     const tryOnce = async () => {
       if (cancelled) return;
       const plan = await refreshEntitlement().catch(() => null);
-      if (!cancelled && plan && rankOf(plan) >= targetRank) {
+      if (!cancelled && plan && planRank(plan) >= targetRank) {
         sessionStorage.removeItem(PENDING_TIER_KEY);
         stripParam();
         setPhase("success");
@@ -427,7 +425,7 @@ export function CheckoutReturnGate() {
   const recheck = async () => {
     setPhase("confirming");
     const plan = await refreshEntitlement().catch(() => null);
-    if (plan && rankOf(plan) >= 0) setPhase("success");
+    if (plan && planRank(plan) >= 0) setPhase("success");
     else setPhase("waiting");
     timerRef.current = window.setTimeout(() => setPhase("idle"), 2400);
   };

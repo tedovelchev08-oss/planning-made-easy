@@ -9,6 +9,15 @@ export type Plan = "essential" | "celebration" | "luxe";
 
 export const planLabel = (p: Plan) =>
   p === "essential" ? "Essential Planner" : p === "celebration" ? "Celebration Suite" : "Premium Luxe";
+
+/**
+ * Position of a plan in the upgrade ladder; -1 when there is no plan.
+ *
+ * The checkout gate compares ranks to block buying the same tier twice or
+ * downgrading, so this is only correct while TIERS stays in ascending price
+ * order — asserted in the tests.
+ */
+export const planRank = (p: Plan | null): number => (p ? TIERS.findIndex((t) => t.id === p) : -1);
 /** A = partner one · T = partner two · B = both */
 export type Assignee = "A" | "T" | "B";
 
@@ -125,6 +134,21 @@ export const paidSum = (v: Vendor) =>
 
 export type TableShape = "round" | "rect" | "head" | "sweetheart";
 
+/** Surface treatment for a table on the floor plan. */
+export type TableSkin = "linen" | "marble" | "oak" | "noir";
+
+/**
+ * Table surfaces. Linen is the house default and always available; the rest
+ * are part of Premium Luxe and render locked for everyone else, so the choice
+ * is visible before it is bought rather than hidden behind an upsell.
+ */
+export const TABLE_SKINS: { id: TableSkin; label: string; note: string; lockedBy?: Plan }[] = [
+  { id: "linen", label: "Linen", note: "Soft, warm, classic" },
+  { id: "marble", label: "Marble", note: "Pale stone, faint vein", lockedBy: "luxe" },
+  { id: "oak", label: "Oak", note: "Warm wood, banquet hall", lockedBy: "luxe" },
+  { id: "noir", label: "Noir", note: "Deep ink, candlelit", lockedBy: "luxe" },
+];
+
 export interface SeatTable {
   id: string;
   name: string;
@@ -132,7 +156,53 @@ export interface SeatTable {
   capacity: number;
   x: number; // % of canvas
   y: number;
+  /** Optional so rows written before skins existed still load as linen. */
+  skin?: TableSkin;
 }
+
+/* ------------------------------ venue objects ------------------------------ */
+
+/** Things on the floor that are not tables: nobody sits at them. */
+export type FloorObjectKind = "dance" | "stage" | "bar" | "entrance" | "cake" | "photo";
+
+export interface FloorObject {
+  id: string;
+  kind: FloorObjectKind;
+  /** Blank falls back to the kind's default name. */
+  label: string;
+  x: number; // centre, % of floor
+  y: number;
+  w: number; // size, % of floor
+  h: number;
+}
+
+/**
+ * The palette of objects, with the footprint each one starts at. Sizes are
+ * percentages so an object keeps its proportion of the room on any screen.
+ */
+export const VENUE_KINDS: {
+  id: FloorObjectKind; label: string; w: number; h: number; hint: string;
+}[] = [
+  { id: "dance", label: "Dance floor", w: 26, h: 26, hint: "Where the night actually happens" },
+  { id: "stage", label: "Stage", w: 24, h: 11, hint: "Band, DJ or speeches" },
+  { id: "bar", label: "Bar", w: 20, h: 9, hint: "Keep it away from the top table" },
+  { id: "entrance", label: "Entrance", w: 14, h: 7, hint: "How guests arrive" },
+  { id: "cake", label: "Cake table", w: 11, h: 8, hint: "Somewhere everyone can see" },
+  { id: "photo", label: "Photo corner", w: 15, h: 12, hint: "Backdrop and props" },
+];
+
+export const venueKind = (k: FloorObjectKind) => VENUE_KINDS.find((v) => v.id === k)!;
+
+/** A plausible room, so the demo floor reads as a venue rather than a grid. */
+export const seedVenueObjects: FloorObject[] = [
+  // Placed in the margins the seeded tables leave free. A dance floor is the
+  // most striking object but the demo floor is already full of tables, and a
+  // dance floor rendered under table seven would read as a bug rather than a
+  // room — so it ships as a button rather than a seed.
+  { id: "vo-stage", kind: "stage", label: "", x: 22, y: 13, w: 22, h: 10 },
+  { id: "vo-bar", kind: "bar", label: "", x: 82, y: 13, w: 19, h: 9 },
+  { id: "vo-entrance", kind: "entrance", label: "", x: 93, y: 95, w: 13, h: 7 },
+];
 
 export interface RegistryItem {
   id: string;
@@ -694,12 +764,18 @@ export const TIERS: {
 
 /* ------------------------------ testimonials ---------------------------- */
 
-export const TESTIMONIALS = [
-  { quote: "It made planning feel like part of our engagement, not a second job.", names: "Maya & Theo", city: "Brooklyn", stars: 5 },
-  { quote: "The seating studio alone saved our sanity. We dragged, dropped, and finally exhaled.", names: "Sofia & Erik", city: "Copenhagen", stars: 5 },
-  { quote: "Our guests are still talking about the invitation. It felt like the first scene of the wedding.", names: "Priya & Dev", city: "London", stars: 5 },
-  { quote: "We watched the budget bar instead of arguing about it. Calm is a feature, apparently.", names: "Camila & Rafael", city: "Lisbon", stars: 5 },
-];
+/**
+ * Real customer quotes only.
+ *
+ * This held four invented testimonials — fictional couples, fictional cities,
+ * five stars each — presented as genuine reviews on a page that takes payment.
+ * Fabricated reviews are deceptive advertising, so they have been removed
+ * rather than reworded.
+ *
+ * The Stories section and its nav link render only when this is non-empty, so
+ * adding real quotes here brings the whole section back with no other change.
+ */
+export const TESTIMONIALS: { quote: string; names: string; city: string; stars: number }[] = [];
 
 /* ------------------------------ features ---------------------------- */
 

@@ -71,9 +71,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!jwt) return res.status(401).json({ error: "Missing authorization" });
 
   const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
-  const { data: authed, error: authErr } = await admin.auth.getUser(jwt);
-  if (authErr || !authed?.user) return res.status(401).json({ error: "Invalid session" });
-  const userId = authed.user.id;
+
+  // getUser RETURNS { error } for a token it simply rejects, but THROWS for one
+  // it cannot parse at all. Unguarded, a single curl with a junk bearer token
+  // took the function down with a 500 FUNCTION_INVOCATION_FAILED — which is
+  // also the exact signature of the Node-version outage in the handoff, so it
+  // would send the next person reading these logs after entirely the wrong bug.
+  let userId: string;
+  try {
+    const { data: authed, error: authErr } = await admin.auth.getUser(jwt);
+    if (authErr || !authed?.user) return res.status(401).json({ error: "Invalid session" });
+    userId = authed.user.id;
+  } catch {
+    // Unparseable token. Same answer as a rejected one: the caller is not
+    // authenticated, and which of the two it was is not their business.
+    return res.status(401).json({ error: "Invalid session" });
+  }
 
   // Verify the user is a member of this wedding (server-side check)
   const { data: membership, error: membershipErr } = await admin
