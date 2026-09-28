@@ -8,6 +8,7 @@ import { useApp, usePrefersReducedMotion, useStats } from "../lib/store";
 import { authApi, createCheckoutSession } from "../lib/api";
 import { I18nProvider, LOCALES, useT, type Locale } from "../lib/i18n";
 import { captureError } from "../lib/report";
+import { SUPPORT_EMAIL } from "../lib/links";
 
 /* ------------------------------ logo ------------------------------ */
 
@@ -1167,7 +1168,7 @@ export class ErrorBoundary extends React.Component<BoundaryProps, BoundaryState>
           </div>
 
           <p className="mt-8 text-[0.7rem] font-semibold text-ink-mute">
-            If this keeps happening, write to <span className="text-gold-deep">care@luma.love</span> — we answer fast.
+            If this keeps happening, write to <a href={`mailto:${SUPPORT_EMAIL}`} className="text-gold-deep underline underline-offset-2">{SUPPORT_EMAIL}</a> — we answer fast.
           </p>
         </div>
       </div>
