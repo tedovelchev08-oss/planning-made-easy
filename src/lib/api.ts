@@ -481,16 +481,30 @@ export async function createCheckoutSession(tier: Plan, weddingId: string): Prom
 }
 
 /**
- * Re-reads the signed-in user's entitlement row — the ONLY path by which the
- * client's plan changes. Returns null when there is no entitlement (or user).
+ * Re-reads the server's view after a checkout.
+ *  · plan      — the wedding's plan, the one the planner shows. Authoritative,
+ *                and how a partner's purchase reaches the owner.
+ *  · purchased — the caller's own entitlement row, or null. Only the webhook
+ *                writes it, so it is the signal that THIS purchase arrived.
  */
-export async function refreshEntitlement(weddingId: string): Promise<Plan | null> {
-  // Poll the wedding's plan (authoritative), not the user's entitlement.
-  // This ensures partner purchases are visible to the owner.
+export async function refreshEntitlement(
+  weddingId: string,
+): Promise<{ plan: Plan | null; purchased: Plan | null }> {
   const s = requireSb();
-  const { data, error } = await s.from("weddings").select("plan").eq("id", weddingId).maybeSingle();
-  if (error) throw error;
-  return (data?.plan as Plan | undefined) ?? null;
+  const { data: session } = await s.auth.getSession();
+  const uid = session.session?.user?.id;
+  const [wedding, own] = await Promise.all([
+    s.from("weddings").select("plan").eq("id", weddingId).maybeSingle(),
+    uid
+      ? s.from("entitlements").select("plan").eq("user_id", uid).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+  if (wedding.error) throw wedding.error;
+  if (own.error) throw own.error;
+  return {
+    plan: (wedding.data?.plan as Plan | undefined) ?? null,
+    purchased: (own.data?.plan as Plan | undefined) ?? null,
+  };
 }
 
 /* ------------------------------ partner invites ------------------------------ */

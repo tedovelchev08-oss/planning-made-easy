@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import { ArrowRight, Check, Heart, Loader2, Lock, Mail, RefreshCw, Sparkles, X } from "lucide-react";
 import { TIERS, Plan, planRank, fmtMoney } from "../lib/data";
+import { purchaseArrived } from "../lib/checkout";
 import { useApp, usePrefersReducedMotion, useStats } from "../lib/store";
 import { authApi, createCheckoutSession } from "../lib/api";
 import { I18nProvider, LOCALES, useT, type Locale } from "../lib/i18n";
@@ -387,9 +388,8 @@ export function CheckoutReturnGate() {
     startedRef.current = true;
     setPhase("confirming");
 
-    const pendingTier = sessionStorage.getItem(PENDING_TIER_KEY);
-    // If we don't know what was bought (stale param), any entitlement counts.
-    const targetRank = pendingTier ? planRank(pendingTier as Plan) : 0;
+    // If we don't know what was bought (stale param), any purchase counts.
+    const pendingTier = sessionStorage.getItem(PENDING_TIER_KEY) as Plan | null;
     const delays = [800, 1600, 3200, 4800, 6400]; // ~16.8s total
     let attempt = 0;
     let cancelled = false;
@@ -397,7 +397,7 @@ export function CheckoutReturnGate() {
     const tryOnce = async () => {
       if (cancelled) return;
       const plan = await refreshEntitlement().catch(() => null);
-      if (!cancelled && plan && planRank(plan) >= targetRank) {
+      if (!cancelled && purchaseArrived(plan, pendingTier)) {
         sessionStorage.removeItem(PENDING_TIER_KEY);
         stripParam();
         setPhase("success");
@@ -425,7 +425,7 @@ export function CheckoutReturnGate() {
   const recheck = async () => {
     setPhase("confirming");
     const plan = await refreshEntitlement().catch(() => null);
-    if (plan && planRank(plan) >= 0) setPhase("success");
+    if (purchaseArrived(plan, null)) setPhase("success");
     else setPhase("waiting");
     timerRef.current = window.setTimeout(() => setPhase("idle"), 2400);
   };
