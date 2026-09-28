@@ -107,11 +107,14 @@ select throws_ok(
 );
 
 -- burn the 6-per-hour token budget, then hit the wall
-select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
-select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
-select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
-select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
-select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+do $$
+begin
+  perform public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+  perform public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+  perform public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+  perform public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+  perform public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+end $$;
 
 select throws_ok(
   $$ select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text) $$,
