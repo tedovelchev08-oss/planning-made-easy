@@ -539,17 +539,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [toast]);
 
   /**
-   * Server-authoritative plan refresh. Reads the entitlement row and applies
-   * whatever the server says — never an optimistic local write. Returns the
-   * resolved plan (or null when there is no entitlement / not in cloud mode).
+   * Server-authoritative plan refresh. Applies the wedding's plan as the
+   * server has it — never an optimistic local write — and returns the
+   * caller's own purchased tier (null when there is none / not in cloud mode),
+   * which is what tells the checkout-return screen the payment has landed.
    */
   const refreshEntitlement = useCallback(async (): Promise<Plan | null> => {
     if (modeRef.current !== "cloud") return null;
-    const plan = await apiRefreshEntitlement();
+    const wid = weddingIdRef.current;
+    if (!wid) return null;
+    const { plan, purchased } = await apiRefreshEntitlement(wid);
     if (plan) {
       setDbState((d) => (d.plan === plan ? d : { ...d, plan }));
     }
-    return plan;
+    return purchased;
   }, []);
 
   /* ------------------------------ value ------------------------------ */

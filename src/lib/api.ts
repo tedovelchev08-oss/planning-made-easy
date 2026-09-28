@@ -189,7 +189,7 @@ export async function fetchWorkspace(weddingId: string, userId: string): Promise
     registry: (registry.data ?? []).map((r) => ({
       id: r.id, name: r.name, store: r.store, price: Number(r.price), url: r.url, purchased: r.purchased,
     })),
-    plan: (entitlement.data?.plan ?? wedding.data.plan ?? "essential") as Plan,
+    plan: wedding.data.plan as Plan,
     invitation: {
       templateId: inv?.template_id ?? "tp13",
       names: w.names,
@@ -247,7 +247,7 @@ export async function createWedding(input: {
       names: input.names, date: input.date, venue: input.venue, location: "",
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
       locale: input.locale || (typeof navigator !== "undefined" && navigator.language) || "en-US",
-      currency: input.currency || "USD", plan: "essential",
+      currency: input.currency || "USD",
     }).select().single();
     if (res.error) {
       if (res.error.code === "23505") continue; // slug taken — try the next
@@ -457,7 +457,7 @@ export async function submitRsvp(p: {
  * The server verifies the caller's JWT, mints the session and returns only
  * `{ url }` — the client redirects and NEVER writes entitlements itself.
  */
-export async function createCheckoutSession(tier: Plan): Promise<string> {
+export async function createCheckoutSession(tier: Plan, weddingId: string): Promise<string> {
   const s = requireSb();
   const { data: session } = await s.auth.getSession();
   const token = session.session?.access_token;
@@ -465,7 +465,7 @@ export async function createCheckoutSession(tier: Plan): Promise<string> {
   const res = await fetch("/api/create-checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ tier }),
+    body: JSON.stringify({ tier, wedding_id: weddingId }),
   });
   if (!res.ok) {
     let msg = "Checkout could not be started.";
@@ -481,17 +481,30 @@ export async function createCheckoutSession(tier: Plan): Promise<string> {
 }
 
 /**
- * Re-reads the signed-in user's entitlement row — the ONLY path by which the
- * client's plan changes. Returns null when there is no entitlement (or user).
+ * Re-reads the server's view after a checkout.
+ *  · plan      — the wedding's plan, the one the planner shows. Authoritative,
+ *                and how a partner's purchase reaches the owner.
+ *  · purchased — the caller's own entitlement row, or null. Only the webhook
+ *                writes it, so it is the signal that THIS purchase arrived.
  */
-export async function refreshEntitlement(): Promise<Plan | null> {
+export async function refreshEntitlement(
+  weddingId: string,
+): Promise<{ plan: Plan | null; purchased: Plan | null }> {
   const s = requireSb();
   const { data: session } = await s.auth.getSession();
   const uid = session.session?.user?.id;
-  if (!uid) return null;
-  const { data, error } = await s.from("entitlements").select("plan").eq("user_id", uid).maybeSingle();
-  if (error) throw error;
-  return (data?.plan as Plan | undefined) ?? null;
+  const [wedding, own] = await Promise.all([
+    s.from("weddings").select("plan").eq("id", weddingId).maybeSingle(),
+    uid
+      ? s.from("entitlements").select("plan").eq("user_id", uid).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+  if (wedding.error) throw wedding.error;
+  if (own.error) throw own.error;
+  return {
+    plan: (wedding.data?.plan as Plan | undefined) ?? null,
+    purchased: (own.data?.plan as Plan | undefined) ?? null,
+  };
 }
 
 /* ------------------------------ partner invites ------------------------------ */

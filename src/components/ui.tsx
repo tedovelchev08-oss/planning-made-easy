@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import { ArrowRight, Check, Heart, Loader2, Lock, Mail, RefreshCw, Sparkles, X } from "lucide-react";
 import { TIERS, Plan, planRank, fmtMoney } from "../lib/data";
+import { purchaseArrived } from "../lib/checkout";
 import { useApp, usePrefersReducedMotion, useStats } from "../lib/store";
 import { authApi, createCheckoutSession } from "../lib/api";
 import { I18nProvider, LOCALES, useT, type Locale } from "../lib/i18n";
@@ -238,7 +239,7 @@ export function ToastHost() {
 const PENDING_TIER_KEY = "luma:pendingTier";
 
 export function CheckoutModal() {
-  const { checkout, closeCheckout, toast, db, mode } = useApp();
+  const { checkout, closeCheckout, toast, db, mode, weddingId } = useApp();
   const [step, setStep] = useState<"review" | "starting" | "error">("review");
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const tier = TIERS.find((t) => t.id === checkout);
@@ -273,7 +274,8 @@ export function CheckoutModal() {
     setErrMsg(null);
     try {
       sessionStorage.setItem(PENDING_TIER_KEY, tier.id);
-      const url = await createCheckoutSession(tier.id);
+      if (!weddingId) throw new Error("No wedding found. Please complete onboarding first.");
+      const url = await createCheckoutSession(tier.id, weddingId);
       // Top-level navigation to Stripe Checkout. The entitlement is granted by
       // the webhook; on return, CheckoutReturnGate confirms it (see below).
       window.location.assign(url);
@@ -386,9 +388,8 @@ export function CheckoutReturnGate() {
     startedRef.current = true;
     setPhase("confirming");
 
-    const pendingTier = sessionStorage.getItem(PENDING_TIER_KEY);
-    // If we don't know what was bought (stale param), any entitlement counts.
-    const targetRank = pendingTier ? planRank(pendingTier as Plan) : 0;
+    // If we don't know what was bought (stale param), any purchase counts.
+    const pendingTier = sessionStorage.getItem(PENDING_TIER_KEY) as Plan | null;
     const delays = [800, 1600, 3200, 4800, 6400]; // ~16.8s total
     let attempt = 0;
     let cancelled = false;
@@ -396,7 +397,7 @@ export function CheckoutReturnGate() {
     const tryOnce = async () => {
       if (cancelled) return;
       const plan = await refreshEntitlement().catch(() => null);
-      if (!cancelled && plan && planRank(plan) >= targetRank) {
+      if (!cancelled && purchaseArrived(plan, pendingTier)) {
         sessionStorage.removeItem(PENDING_TIER_KEY);
         stripParam();
         setPhase("success");
@@ -424,7 +425,7 @@ export function CheckoutReturnGate() {
   const recheck = async () => {
     setPhase("confirming");
     const plan = await refreshEntitlement().catch(() => null);
-    if (plan && planRank(plan) >= 0) setPhase("success");
+    if (purchaseArrived(plan, null)) setPhase("success");
     else setPhase("waiting");
     timerRef.current = window.setTimeout(() => setPhase("idle"), 2400);
   };
