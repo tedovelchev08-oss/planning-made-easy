@@ -156,6 +156,29 @@ async function grantFromCheckout(supabase: ReturnType<typeof admin>, session: St
   console.log(`[webhook] granted ${tier} to ${userId} for wedding ${targetWeddingId ?? "none"} (pi ${paymentIntent ?? "n/a"})`);
 }
 
+/**
+ * Who and which wedding a refund applies to.
+ *
+ * Sessions created since per-wedding plans carry both ids in the
+ * PaymentIntent metadata. Older ones carry only user_id, and the oldest may
+ * carry neither — for those the purchase is found the way it always was, by
+ * the payment intent stamped on the entitlement row. Skipping them instead
+ * would let every pre-existing customer keep a plan they were refunded for.
+ */
+export async function resolveRefundTarget(
+  piId: string,
+  metadata: Record<string, string | undefined>,
+  lookup: {
+    ownerOfPaymentIntent: (piId: string) => Promise<string | null>;
+    weddingOf: (userId: string) => Promise<string | null>;
+  },
+): Promise<{ userId: string; weddingId: string | null } | null> {
+  const userId = metadata.user_id || (await lookup.ownerOfPaymentIntent(piId));
+  if (!userId) return null;
+  const weddingId = metadata.wedding_id || (await lookup.weddingOf(userId));
+  return { userId, weddingId };
+}
+
 async function revokeFromRefund(supabase: ReturnType<typeof admin>, charge: Stripe.Charge) {
   const piId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
   if (!piId) {
@@ -172,17 +195,34 @@ async function revokeFromRefund(supabase: ReturnType<typeof admin>, charge: Stri
     throw new Error(`failed to retrieve payment intent ${piId}: ${(err as Error).message}`);
   }
 
-  const weddingId = paymentIntent.metadata?.wedding_id;
-  const userId = paymentIntent.metadata?.user_id;
-
-  if (!weddingId || !userId) {
-    console.warn(`[webhook] refund for payment_intent ${piId} missing metadata — skipped`);
+  const target = await resolveRefundTarget(piId, paymentIntent.metadata ?? {}, {
+    async ownerOfPaymentIntent(id) {
+      const { data, error } = await supabase
+        .from("entitlements").select("user_id").eq("stripe_payment_intent_id", id).maybeSingle();
+      if (error) throw new Error(`entitlement lookup failed: ${error.message}`);
+      return data?.user_id ?? null;
+    },
+    async weddingOf(uid) {
+      const { data, error } = await supabase
+        .from("wedding_members").select("wedding_id").eq("user_id", uid).limit(1).maybeSingle();
+      if (error) throw new Error(`membership lookup failed: ${error.message}`);
+      return data?.wedding_id ?? null;
+    },
+  });
+  if (!target) {
+    console.log(`[webhook] refund for unknown payment_intent ${piId} — nothing to revoke`);
     return;
   }
+  const { userId, weddingId } = target;
 
   // Delete the entitlement
   const { error: deleteError } = await supabase.from("entitlements").delete().eq("user_id", userId);
   if (deleteError) throw new Error(`entitlement revoke failed: ${deleteError.message}`);
+
+  if (!weddingId) {
+    console.warn(`[webhook] revoked entitlement for ${userId}, who belongs to no wedding (refund ${charge.id})`);
+    return;
+  }
 
   // Find all members of this wedding
   const { data: members, error: membersError } = await supabase
