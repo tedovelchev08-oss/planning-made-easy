@@ -6,7 +6,8 @@ import {
 } from "lucide-react";
 import { Guest, MEALS, MUSIC_TRACKS, RsvpEntry, TEMPLATE_CATS, Template, bestGuestMatch, fmtDate, seedTemplates, timeAgo } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
-import { inviteLink, useApp, usePrefersReducedMotion } from "../../lib/store";
+import { useApp, usePrefersReducedMotion } from "../../lib/store";
+import { guestLink } from "../../lib/links";
 import { playChime, useChimeLoop } from "../../lib/sound";
 import { DesignFrame, Field, Modal, Pill, SafeImg, btn, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
@@ -711,22 +712,16 @@ export default function Invitations() {
 
 /* ------------------------------ share link card ------------------------------ */
 
-/** The link that actually resolves to the couple's guest page on this deployment. */
-export const pageLink = (slug: string, params?: Record<string, string>) => {
-  const base = `${window.location.origin}${window.location.pathname}#/invite`;
-  const q = new URLSearchParams(params ?? (slug ? { slug } : {})).toString();
-  return q ? `${base}?${q}` : base;
-};
-
 export function ShareCard() {
   const { db, toast } = useApp();
   const [copied, setCopied] = useState(false);
   // cloud links carry the real slug so any device lands on this couple's page;
-  // demo keeps the canonical luma.love vanity link
-  const link = db.wedding.slug ? pageLink(db.wedding.slug) : inviteLink(db.wedding.names);
+  // demo has no slug, so its link opens the local sample guest page
+  const slug = db.wedding.slug;
+  const link = guestLink({ slug });
   const dateStr = fmtDate(db.wedding.date, { month: "long", day: "numeric", year: "numeric" });
   const messageFor = (src: string) =>
-    `${db.wedding.names} are getting married — ${dateStr} at ${db.wedding.venue}. RSVP in one tap: ${link}${db.wedding.slug ? `&src=${src}` : ""}`;
+    `${db.wedding.names} are getting married — ${dateStr} at ${db.wedding.venue}. RSVP in one tap: ${guestLink({ slug, src })}`;
   const message = messageFor("link");
 
   const copy = async () => {
@@ -750,7 +745,7 @@ export function ShareCard() {
   const channels = [
     { label: "WhatsApp", icon: MessageCircle, href: `https://wa.me/?text=${encodeURIComponent(messageFor("whatsapp"))}`, tint: "hover:border-[#25D366]/70 hover:text-[#128C4A]" },
     { label: "Instagram", icon: Instagram, href: "https://www.instagram.com/", copyFirst: true, tint: "hover:border-blush-deep/70 hover:text-blush-deep" },
-    { label: "Messenger", icon: Send, href: `https://www.facebook.com/dialog/send?link=${encodeURIComponent(link + (db.wedding.slug ? "&src=messenger" : ""))}&app_id=140586622674265&redirect_uri=${encodeURIComponent(link)}`, tint: "hover:border-lav-deep/70 hover:text-lav-deep" },
+    { label: "Messenger", icon: Send, href: `https://www.facebook.com/dialog/send?link=${encodeURIComponent(guestLink({ slug, src: "messenger" }))}&app_id=140586622674265&redirect_uri=${encodeURIComponent(link)}`, tint: "hover:border-lav-deep/70 hover:text-lav-deep" },
     { label: "Text", icon: MessageCircle, href: `sms:?&body=${encodeURIComponent(messageFor("link"))}`, tint: "hover:border-sage-deep/70 hover:text-sage-deep" },
     { label: "Email", icon: Mail, href: `mailto:?subject=${encodeURIComponent(`${db.wedding.names} — you're invited ♥`)}&body=${encodeURIComponent(messageFor("email"))}`, tint: "hover:border-gold-deep/70 hover:text-gold-deep" },
   ];
@@ -823,7 +818,7 @@ function PersonalLinkButton({ guest, token }: { guest: string; token: string }) 
   return (
     <button
       onClick={async () => {
-        const url = pageLink("", { token });
+        const url = guestLink({ token });
         try {
           await navigator.clipboard.writeText(url);
           setCopied(true);

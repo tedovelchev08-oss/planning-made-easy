@@ -4,6 +4,7 @@ import { FEATURES } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
 import { FeatureIcon, Reveal } from "../ui";
 import { useIdleWhenOffscreen } from "../../lib/useIdleWhenOffscreen";
+import { siteHost } from "../../lib/links";
 
 /* ------------------------------ marquee band ------------------------------ */
 
@@ -170,7 +171,7 @@ export function Features() {
                 <div className="overflow-hidden rounded-2xl border border-white/80 bg-white/80 shadow-card transition-transform duration-700 group-hover:rotate-1 group-hover:scale-[1.02]">
                   <div className="flex items-center gap-1.5 border-b border-ink/8 px-4 py-2.5">
                     <span className="h-2.5 w-2.5 rounded-full bg-blush" /><span className="h-2.5 w-2.5 rounded-full bg-blush-deep/60" /><span className="h-2.5 w-2.5 rounded-full bg-ink/15" />
-                    <span className="ml-3 rounded-full bg-ink/5 px-2.5 py-0.5 text-eyebrow font-bold text-ink-mute">maya-theo.luma.love</span>
+                    <span className="ml-3 min-w-0 truncate rounded-full bg-ink/5 px-2.5 py-0.5 text-eyebrow font-bold text-ink-mute">{siteHost()}/#/invite?slug=maya-theo</span>
                   </div>
                   <div className="relative h-40 overflow-hidden">
                     <img src={IMAGES.hands} alt="Maya and Theo's wedding website hero" className="h-full w-full object-cover transition-transform duration-[2.5s] group-hover:scale-110" loading="lazy" />

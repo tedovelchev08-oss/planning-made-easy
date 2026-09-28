@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, Heart, Send } from "lucide-react";
 import { Reveal, Logo } from "../ui";
 import { useApp } from "../../lib/store";
+import { SUPPORT_EMAIL } from "../../lib/links";
 import { useIdleWhenOffscreen } from "../../lib/useIdleWhenOffscreen";
 
 /* ------------------------------ final CTA ------------------------------ */
@@ -119,7 +120,7 @@ export function Footer() {
   const links: { label: string; onClick: () => void }[] = [
     { label: "Features", onClick: () => go("features") },
     { label: "Pricing", onClick: () => go("pricing") },
-    { label: "Support", onClick: () => toast("We're here", "support@luma.love. Replies within a day, usually faster.", "info") },
+    { label: "Support", onClick: () => toast("We're here", `${SUPPORT_EMAIL}. Replies within a day, usually faster.`, "info") },
     { label: "Privacy", onClick: () => toast("Privacy, plainly", "Your data is yours. Export or erase anytime.", "info") },
     { label: "Terms", onClick: () => toast("Terms, kindly", "Fair terms, written for humans. Available in-app.", "info") },
   ];

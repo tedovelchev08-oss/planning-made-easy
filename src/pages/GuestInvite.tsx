@@ -3,9 +3,10 @@ import { Link, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Heart, Loader2, Play, Sparkles, StopCircle } from "lucide-react";
 import { MEALS, RsvpSource, configureFormat, fmtDate, seedTemplates } from "../lib/data";
-import { inviteLink, useApp, usePrefersReducedMotion, type Db, type InvitationConfig } from "../lib/store";
+import { useApp, usePrefersReducedMotion, type Db, type InvitationConfig } from "../lib/store";
 import { getGuestByToken, getPublicInvitation, submitRsvp, type PublicInvitation } from "../lib/api";
 import { playChime, useChimeLoop } from "../lib/sound";
+import { siteHost } from "../lib/links";
 import { InviteArt } from "../components/dashboard/Invitations";
 import { SiteBody } from "../components/dashboard/Website";
 import { DesignFrame, Logo, SafeImg } from "../components/ui";
@@ -226,8 +227,6 @@ export default function GuestInvite() {
     playChime(answer === "yes" ? "sparkle" : "undo");
     setDone(answer);
   };
-
-  const link = pub ? inviteLink(pub.slug) : inviteLink(db.wedding.names);
 
   if (mode === "cloud" && loadState === "loading") return <PageSkeleton />;
   if (mode === "cloud" && loadState === "missing") return <MissingInvite />;
@@ -470,7 +469,7 @@ export default function GuestInvite() {
         )}
 
         <p className="mt-8 flex items-center justify-center gap-2 text-center text-eyebrow font-bold uppercase tracking-label-x opacity-45">
-          <Sparkles size={11} /> Made with Luma · {link.replace("https://", "")}
+          <Sparkles size={11} /> Made with Luma · {siteHost()}
         </p>
       </main>
     </div>
