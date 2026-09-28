@@ -151,13 +151,15 @@ select is_empty(
 
 -- ---------- 1d. accept_pending_invite email verification ----------
 
--- Insert invites for both partner and outsider
+-- Owner invites both partner and outsider
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000001", "role": "authenticated", "email": "owner@example.com", "email_verified": true}';
-insert into wedding_invites (wedding_id, email, invited_by)
-values 
-  (test_uuid('100'), 'partner@example.com', test_uuid('1')),
-  (test_uuid('100'), 'outsider@example.com', test_uuid('1'));
+-- through the real path: there is no client insert policy on wedding_invites
+do $$
+begin
+  perform invite_partner(test_uuid('100'), 'partner@example.com');
+  perform invite_partner(test_uuid('100'), 'outsider@example.com');
+end $$;
 
 -- Test 11: Unverified email cannot claim invite
 -- Use outsider (test_uuid('3')) who has email_confirmed_at = null in database

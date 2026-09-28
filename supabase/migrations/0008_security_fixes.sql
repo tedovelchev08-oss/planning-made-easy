@@ -78,17 +78,6 @@ alter table webhook_events enable row level security;
 -- No policies: service role bypasses RLS, which is exactly what the webhook needs.
 -- Anon and authenticated cannot read or write.
 
--- ---------- Fix: wedding_invites INSERT policy ----------
--- Migration 0002 forgot to add an INSERT policy for wedding_invites.
--- The owner must be able to invite partners.
-
-drop policy if exists invites_insert on wedding_invites;
-
-create policy invites_insert on wedding_invites for insert
-  with check (exists (
-    select 1 from weddings w where w.id = wedding_id and w.owner_id = auth.uid()
-  ));
-
 -- ---------- Fix: remove duplicate submit_rsvp function ----------
 -- Migration 0002 created a 7-parameter version, migration 0003 created a 9-parameter version.
 -- This caused ambiguity in function calls. Drop the old 7-parameter version.
