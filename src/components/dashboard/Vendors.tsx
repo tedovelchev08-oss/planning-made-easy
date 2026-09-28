@@ -111,7 +111,7 @@ export default function Vendors() {
                       <AnimatePresence>
                         {menuFor === v.id && (
                           <>
-                            <button className="fixed inset-0 z-20 cursor-default" aria-label="Close menu" onClick={() => setMenuFor(null)} />
+                            <motion.button className="fixed inset-0 z-20 cursor-default" exit={{ pointerEvents: "none" }} aria-label="Close menu" onClick={() => setMenuFor(null)} />
                             <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
                               className="absolute right-0 z-30 mt-2 w-36 overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-lift">
                               {STATUSES.map((s) => (

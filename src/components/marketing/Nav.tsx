@@ -102,7 +102,7 @@ export default function Nav() {
         {open && (
           <motion.div
             className="fixed inset-0 z-[70] flex flex-col bg-ink px-8 py-7 md:hidden"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, pointerEvents: "none" }}
           >
             <div className="flex items-center justify-between">
               <Logo dark />

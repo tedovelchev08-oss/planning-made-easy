@@ -137,7 +137,7 @@ export default function CmdK({ open, onClose }: { open: boolean; onClose: () => 
   return createPortal(
     <AnimatePresence>
       {open && (
-        <motion.div className="fixed inset-0 z-[85]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <motion.div className="fixed inset-0 z-[85]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, pointerEvents: "none" }}>
           <button className="absolute inset-0 cursor-default bg-ink/40 backdrop-blur-[3px]" onClick={onClose} aria-label="Close search" />
           <motion.div
             initial={{ opacity: 0, y: -18, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -12, scale: 0.98 }}

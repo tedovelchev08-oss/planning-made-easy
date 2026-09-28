@@ -184,7 +184,7 @@ export default function Shell() {
           <>
             <motion.div
               className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-sm lg:hidden"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, pointerEvents: "none" }}
               onClick={() => setDrawerOpen(false)}
             />
             <motion.aside
@@ -252,7 +252,7 @@ export default function Shell() {
               <AnimatePresence>
                 {accountOpen && (
                   <>
-                    <button className="fixed inset-0 z-40 cursor-default" onClick={() => setAccountOpen(false)} aria-label="Close account menu" />
+                    <motion.button className="fixed inset-0 z-40 cursor-default" exit={{ pointerEvents: "none" }} onClick={() => setAccountOpen(false)} aria-label="Close account menu" />
                     <motion.div
                       initial={{ opacity: 0, y: 8, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.98 }}
                       transition={{ duration: 0.18 }}
@@ -347,7 +347,7 @@ export default function Shell() {
 
       <AnimatePresence>
         {dockOpen && (
-          <motion.div className="fixed inset-0 z-[72] lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div className="fixed inset-0 z-[72] lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, pointerEvents: "none" }}>
             <button className="absolute inset-0 cursor-default bg-ink/45 backdrop-blur-[2px]" onClick={() => setDockOpen(false)} aria-label="Close quick actions" />
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}

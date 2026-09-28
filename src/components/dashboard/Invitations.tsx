@@ -205,7 +205,7 @@ function LivePreview({ onClose }: { onClose: () => void }) {
   return (
     <motion.div
       className="fixed inset-0 z-[85] overflow-y-auto bg-ink/80 backdrop-blur-md"
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, pointerEvents: "none" }}
       role="dialog" aria-modal="true" aria-label="Live invitation preview"
     >
       <div className="sticky top-0 z-20 flex items-center justify-center gap-2 border-b border-cream/10 bg-ink/85 px-4 py-3 backdrop-blur">
