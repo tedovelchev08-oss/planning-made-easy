@@ -147,7 +147,7 @@ export default function GuestInvite() {
     ? {
         ...db,
         wedding: { ...db.wedding, names: pub.names, partnerA: pub.partnerA, partnerB: pub.partnerB, date: pub.date, venue: pub.venue, location: pub.location },
-        registry: pub.registry.map((r, i) => ({ id: `pr-${i}`, name: r.name, store: r.store, price: 0, url: "#", purchased: false })),
+        registry: (pub.registry ?? []).map((r, i) => ({ id: `pr-${i}`, name: r.name, store: r.store, price: 0, url: "#", purchased: false })),
       }
     : db;
 

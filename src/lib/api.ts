@@ -410,7 +410,9 @@ export interface PublicInvitation {
     hero_photo: string; animations: boolean; published: boolean; domain: string;
   };
   custom: { id: string; name: string; dataUrl: string | null; html: string | null } | null;
-  registry: { name: string; store: string }[];
+  /** Absent until the site is published: get_public_wedding drops the key
+   *  (and reduces `website` to { published: false }) for unpublished sites. */
+  registry?: { name: string; store: string }[];
 }
 
 export async function getPublicInvitation(slug: string): Promise<PublicInvitation | null> {
