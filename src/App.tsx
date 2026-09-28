@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import GuestInvite from "./pages/GuestInvite";
 import NotFound from "./pages/NotFound";
 import Shell from "./components/dashboard/Shell";
+import PlannerGate from "./components/dashboard/PlannerGate";
 import Overview from "./components/dashboard/Overview";
 import Guests from "./components/dashboard/Guests";
 import Budget from "./components/dashboard/Budget";
@@ -73,7 +74,7 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/invite" element={<GuestInvite />} />
               <Route path="/demo" element={<DemoGate />} />
-              <Route path="/planner" element={<Shell />}>
+              <Route path="/planner" element={<PlannerGate />}>
                 <Route index element={<Overview />} />
                 <Route path="guests" element={<Guests />} />
                 <Route path="budget" element={<Budget />} />
