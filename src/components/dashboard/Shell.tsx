@@ -96,6 +96,15 @@ export default function Shell() {
     return () => window.removeEventListener("keydown", on);
   }, []);
 
+  // The demo has no account to sign out of: its "Sign out" used to toast
+  // "Signed out" and leave Maya & Theo on screen. There it leaves the demo.
+  const leaveLabel = mode === "demo" ? "Leave demo" : "Sign out";
+  const leave = (farewell: string) => {
+    signOut();
+    if (mode === "demo") { window.location.hash = "#/"; return; }
+    toast("Signed out", farewell, "info");
+  };
+
   const glows = useMemo(() => plannerGlows(), []);
   const pct = stats.progressPct;
   const link = guestLink({ slug: db.wedding.slug });
@@ -179,7 +188,7 @@ export default function Shell() {
               onClick={() => setDrawerOpen(false)}
             />
             <motion.aside
-              className="fixed inset-y-0 left-0 z-50 w-[280px] bg-cream shadow-glass lg:hidden"
+              className="fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col bg-cream shadow-glass lg:hidden"
               initial={{ x: -300 }} animate={{ x: 0 }} exit={{ x: -300 }}
               transition={{ type: "spring", stiffness: 300, damping: 32 }}
               aria-label="Planner navigation"
@@ -188,13 +197,15 @@ export default function Shell() {
                 <Logo />
                 <button onClick={() => setDrawerOpen(false)} aria-label="Close menu" className="rounded-full bg-ink/5 p-2 text-ink-2 cursor-pointer"><X size={16} /></button>
               </div>
-              {sidebar}
+              {/* the nav fills the drawer's height; without this wrapper it pushed
+                  the sign-out button below the screen, where it could not be reached */}
+              <div className="min-h-0 flex-1 overflow-y-auto">{sidebar}</div>
               <div className="px-4 pb-6">
                 <button
-                  onClick={() => { signOut(); setDrawerOpen(false); toast("Signed out", "See you at the next planning session.", "info"); }}
+                  onClick={() => { setDrawerOpen(false); leave("See you at the next planning session."); }}
                   className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-[0.9rem] font-bold text-blush-deep transition hover:bg-blush-soft cursor-pointer"
                 >
-                  <LogOut size={16} /> Sign out
+                  <LogOut size={16} /> {leaveLabel}
                 </button>
               </div>
             </motion.aside>
@@ -283,11 +294,11 @@ export default function Shell() {
 
                       <div className="border-t border-ink/8 p-2">
                         <button
-                          onClick={() => { signOut(); setAccountOpen(false); toast("Signed out", "Your plan is saved — see you soon.", "info"); }}
+                          onClick={() => { setAccountOpen(false); leave("Your plan is saved — see you soon."); }}
                           className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.84rem] font-bold text-ink transition hover:bg-blush-soft hover:text-blush-deep cursor-pointer"
                           role="menuitem"
                         >
-                          <LogOut size={15} /> Sign out
+                          <LogOut size={15} /> {leaveLabel}
                         </button>
                       </div>
                     </motion.div>
