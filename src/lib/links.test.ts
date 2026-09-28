@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { guestLink, siteHost, siteUrl, SUPPORT_EMAIL } from "./links";
+import { guestLink, siteHost, siteUrl } from "./links";
 
 afterEach(() => vi.unstubAllEnvs());
 
