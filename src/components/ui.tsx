@@ -107,12 +107,16 @@ export function Modal({
     return () => { window.clearTimeout(t); trigger?.focus?.(); };
   }, [open]);
 
+  // A closing layer stops taking clicks the moment its exit starts. The
+  // sign-in modal once finished fading out without ever unmounting, leaving an
+  // invisible full-screen overlay that swallowed every click on the page.
+  // pointer-events is not animatable, so framer applies it instantly.
   return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
           className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center p-0 sm:p-6"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, pointerEvents: "none" }}
         >
           <button aria-label="Close dialog" className="absolute inset-0 bg-ink/45 backdrop-blur-[3px] cursor-default" onClick={onClose} />
           <motion.div
@@ -149,7 +153,7 @@ export function Drawer({ open, onClose, children, label }: { open: boolean; onCl
   return createPortal(
     <AnimatePresence>
       {open && (
-        <motion.div className="fixed inset-0 z-[75]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <motion.div className="fixed inset-0 z-[75]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, pointerEvents: "none" }}>
           <button aria-label="Close menu" className="absolute inset-0 bg-ink/45 backdrop-blur-[2px] cursor-default" onClick={onClose} />
           <motion.aside
             role="dialog" aria-modal="true" aria-label={label}
