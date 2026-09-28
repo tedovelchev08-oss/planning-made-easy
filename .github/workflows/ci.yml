@@ -57,13 +57,33 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # pinned: `latest` let a CLI release change the local stack under us
+          version: 2.118.0
 
       - name: Start Supabase
         run: supabase start
 
       - name: Run database tests
-        run: supabase test db
+        run: |
+          set -o pipefail
+          supabase test db 2>&1 | tee pgtap.log
+
+      # CI logs are not readable from where the fixes get written, so a failure
+      # has to surface as annotations and a summary, or it gets fixed blind.
+      - name: Surface pgTAP failures
+        if: failure()
+        run: |
+          [ -f pgtap.log ] || exit 0   # failed before the tests ran
+          grep -nE 'not ok|ERROR|Bad plan' pgtap.log | while IFS= read -r line; do
+            echo "::error title=pgTAP::${line}"
+          done || true
+          {
+            echo '## pgTAP failures'
+            echo
+            echo '```'
+            tail -n 200 pgtap.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Stop Supabase
         if: always()
