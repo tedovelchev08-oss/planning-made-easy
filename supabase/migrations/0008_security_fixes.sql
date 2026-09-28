@@ -135,7 +135,10 @@ begin
     'custom', (
       select jsonb_build_object('id', id, 'name', name, 'html', html, 'dataUrl', data_url)
         from custom_templates
-       where wedding_id = w.id and id = (select template_id::uuid from invitation_config where wedding_id = w.id)
+       where wedding_id = w.id
+         -- built-in designs use ids like 'tp13', which crash a ::uuid cast;
+         -- compare as text so they simply match no custom template
+         and id::text = (select template_id from invitation_config where wedding_id = w.id)
     ),
     'website', (
       select jsonb_build_object(

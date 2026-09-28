@@ -12,7 +12,7 @@
 
 begin;
 
-select plan(21);
+select plan(22);
 
 -- ---------- helpers ----------
 
@@ -30,6 +30,12 @@ values
   (test_uuid('1'), 'owner@example.com', 'hashed', now()),
   (test_uuid('2'), 'partner@example.com', 'hashed', now()),
   (test_uuid('3'), 'outsider@example.com', 'hashed', null);  -- unverified
+
+-- A wedding on a built-in design ('tp13' is the invitation_config default).
+-- Created here, as postgres, because authenticated cannot create fixtures.
+insert into weddings (id, owner_id, slug, names, date)
+values (test_uuid('102'), test_uuid('1'), 'builtin-design', 'Built & In', now() + interval '1 year');
+insert into invitation_config (wedding_id, template_id) values (test_uuid('102'), 'tp13');
 
 -- ---------- 1a. weddings.plan authority ----------
 
@@ -278,6 +284,16 @@ select results_eq(
   $$select plan from weddings where id = test_uuid('100')$$,
   $$values ('celebration'::plan_t)$$,
   'Wedding plan reflects highest member entitlement'
+);
+
+-- ---------- get_public_wedding with a built-in design ----------
+
+-- Test 21: 0004 cast template_id to uuid, so 'tp13' crashed the whole lookup
+set local role anon;
+
+select ok(
+  get_public_wedding('builtin-design') is not null,
+  'get_public_wedding works for a wedding using a built-in design (tp13)'
 );
 
 -- ---------- cleanup ----------
