@@ -6,6 +6,7 @@ import {
   Link2, LogOut, Menu, Plus, Search, Store, Users, Wallet, X,
 } from "lucide-react";
 import { useApp, useStats, type SyncStatus } from "../../lib/store";
+import { guestLink } from "../../lib/links";
 import { initials, planLabel } from "../../lib/data";
 import { useT } from "../../lib/i18n";
 import { Logo, Pill } from "../ui";
@@ -97,7 +98,7 @@ export default function Shell() {
 
   const glows = useMemo(() => plannerGlows(), []);
   const pct = stats.progressPct;
-  const link = `https://luma.love/i/${db.wedding.names.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  const link = guestLink({ slug: db.wedding.slug });
 
   const copyLink = () => {
     navigator.clipboard?.writeText(link).then(

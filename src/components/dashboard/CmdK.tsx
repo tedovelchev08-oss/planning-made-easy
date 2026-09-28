@@ -6,7 +6,8 @@ import {
   Armchair, BellRing, Check, Clock3, CornerDownLeft, ExternalLink, Gift, Globe,
   LayoutDashboard, Link2, Search, Store, Users, Wallet,
 } from "lucide-react";
-import { inviteLink, useApp } from "../../lib/store";
+import { useApp } from "../../lib/store";
+import { guestLink } from "../../lib/links";
 import { playChime } from "../../lib/sound";
 
 interface Item {
@@ -57,7 +58,7 @@ export default function CmdK({ open, onClose }: { open: boolean; onClose: () => 
 
   const items = useMemo<Item[]>(() => {
     const nav = (to: string) => () => { navigate(to); onClose(); };
-    const link = inviteLink(db.wedding.names);
+    const link = guestLink({ slug: db.wedding.slug });
     const out: Item[] = [];
 
     // quick actions — always useful

@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import {
   BudgetCategory, CustomTemplate, Guest, Plan, RegistryItem, RsvpEntry, SeatTable, Task, Vendor, Wedding,
   catCommitted, catPaid, configureFormat,
-  seedBudget, seedGuests, seedRegistry, seedRsvpLog, seedTables, seedTasks, seedVendors, seedWedding, slugify,
+  seedBudget, seedGuests, seedRegistry, seedRsvpLog, seedTables, seedTasks, seedVendors, seedWedding,
   FloorObject, seedVenueObjects,
 } from "./data";
 import { isSupabaseConfigured } from "./supabase";
@@ -135,7 +135,7 @@ const seedDb: Db = {
     serif: true,
     heroPhoto: "https://image.qwenlm.ai/generated-images/491b8b3f-233c-48cf-a774-26c3db982f5f/_result.png",
     animations: true,
-    domain: "maya-theo.luma.love",
+    domain: "",
     published: true,
   },
   customTemplates: [],
@@ -151,11 +151,11 @@ const defaultInvitation = (names: string, venue: string): InvitationConfig => ({
   music: { track: "serene", uploadName: null, uploadData: null },
 });
 
-const defaultWebsite = (slug: string): WebsiteConfig => ({
+const defaultWebsite = (): WebsiteConfig => ({
   template: "serene",
   sections: { hero: true, story: true, details: true, schedule: true, venue: true, travel: true, registry: true, gallery: true, rsvp: true, music: false },
   bg: "#FFF8F0", ink: "#332B31", accent: "#D4AF37", serif: true, heroPhoto: "",
-  animations: true, domain: `${slug}.luma.love`, published: false,
+  animations: true, domain: "", published: false,
 });
 
 export const emptyDb = (wedding: Wedding): Db => ({
@@ -163,7 +163,7 @@ export const emptyDb = (wedding: Wedding): Db => ({
   guests: [], budget: [], tasks: [], vendors: [], tables: [], venueObjects: [], registry: [],
   plan: "essential",
   invitation: defaultInvitation(wedding.names, [wedding.venue, wedding.location].filter(Boolean).join(" · ")),
-  website: defaultWebsite(wedding.slug),
+  website: defaultWebsite(),
   customTemplates: [],
   rsvpLog: [],
 });
@@ -176,9 +176,6 @@ const placeholderDb = (): Db =>
     locale: typeof navigator !== "undefined" && navigator.language ? navigator.language : "en-US",
     currency: "USD", slug: "",
   });
-
-/** Public share link for the couple's invitation page. */
-export const inviteLink = (slugOrNames: string) => `https://luma.love/i/${slugify(slugOrNames)}`;
 
 /* ------------------------------ boot mode ------------------------------ */
 
@@ -230,7 +227,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [db, setDbState] = useState<Db>(() => (mode === "demo" ? seedDb : placeholderDb()));
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [user, setUser] = useState<User | null>(() =>
-    mode === "demo" ? { name: "Maya & Theo", email: "demo@luma.love" } : null);
+    mode === "demo" ? { name: "Maya & Theo", email: "demo@example.com" } : null);
   const [authOpen, setAuthOpen] = useState(false);
   const [checkout, setCheckout] = useState<Plan | null>(null);
   const [sync, setSync] = useState<SyncState>({ status: mode === "demo" ? "demo" : "booting", lastSaved: null, pending: 0 });

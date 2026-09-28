@@ -216,7 +216,7 @@ export async function fetchWorkspace(weddingId: string, userId: string): Promise
       serif: web?.serif ?? true,
       heroPhoto: web?.hero_photo ?? "",
       animations: web?.animations ?? true,
-      domain: web?.domain || `${w.slug}.luma.love`,
+      domain: web?.domain ?? "",
       published: web?.published ?? false,
     },
     customTemplates: (custom.data ?? []).map((c) => ({
@@ -275,7 +275,7 @@ export async function createWedding(input: {
       template: "serene",
       sections: { hero: true, story: true, details: true, schedule: true, venue: true, travel: true, registry: true, gallery: true, rsvp: true, music: false },
       bg: "#FFF8F0", ink: "#332B31", accent: "#D4AF37", serif: true, heroPhoto: "",
-      animations: true, domain: `${w.slug}.luma.love`, published: false,
+      animations: true, domain: "", published: false,
     }, weddingId)),
   ]);
 

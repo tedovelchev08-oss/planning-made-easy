@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Check, Copy, ExternalLink, Globe, Heart, Lock, MapPin, Monitor, Music2, Smartphone, Sparkles, Tablet } from "lucide-react";
 import { SITE_SECTIONS, fmtDate, fmtDateShort } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
+import { guestLink } from "../../lib/links";
 import type { Db } from "../../lib/store";
-import { Field, Modal, Pill, SafeImg, btn, inputCls } from "../ui";
+import { Modal, Pill, SafeImg, btn } from "../ui";
 
 const SITE_TEMPLATES = {
   serene: { label: "Serene", bg: "#FFF8F0", ink: "#332B31", accent: "#D4AF37", serif: true },
@@ -227,13 +227,18 @@ export default function Website() {
     setW({ sections: { ...w.sections, [id]: !w.sections[id] } });
   };
 
+  // The site lives on the guest page, so its address is the invitation link.
+  // (Custom domains were offered here, but nothing served them.)
+  const link = guestLink({ slug: db.wedding.slug });
+  const shown = link.replace(/^https?:\/\//, "");
+
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(`https://${w.domain}`);
+      await navigator.clipboard.writeText(link);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      toast("Copy manually", w.domain, "info");
+      toast("Copy manually", link, "info");
     }
   };
 
@@ -311,21 +316,12 @@ export default function Website() {
         </section>
 
         <section className="rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md">
-          <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">Domain & motion</h3>
+          <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">Address & motion</h3>
           <div className="mt-4 space-y-3">
-            {isLuxe ? (
-              <Field label="Custom domain">
-                <input className={inputCls} value={w.domain} onChange={(e) => setW({ domain: e.target.value.replace(/\s/g, "") })} />
-              </Field>
-            ) : (
-              <div className="flex items-center justify-between rounded-2xl border border-ink/10 bg-white/70 px-4 py-3">
-                <div>
-                  <p className="text-[0.78rem] font-bold text-ink">maya-theo.luma.love</p>
-                  <p className="text-[0.64rem] font-semibold text-ink-mute">Free subdomain · custom domains are Luxe</p>
-                </div>
-                <Lock size={14} className="text-ink-mute" />
-              </div>
-            )}
+            <div className="rounded-2xl border border-ink/10 bg-white/70 px-4 py-3">
+              <p className="break-all text-[0.78rem] font-bold text-ink">{shown}</p>
+              <p className="mt-0.5 text-[0.64rem] font-semibold text-ink-mute">Your site shares its address with your invitation</p>
+            </div>
             <button onClick={() => {
               if (!isLuxe) { toast("Animations are Luxe", "Scroll reveals and motion unlock with Premium Luxe.", "info"); return; }
               setW({ animations: !w.animations });
@@ -358,11 +354,11 @@ export default function Website() {
             {w.published && (
               <>
                 <button onClick={copyLink} className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white/70 px-4 py-2 text-[0.78rem] font-bold text-ink transition hover:border-gold/60 cursor-pointer">
-                  {copied ? <Check size={13} className="text-sage-deep" /> : <Copy size={13} />} {w.domain}
+                  {copied ? <Check size={13} className="text-sage-deep" /> : <Copy size={13} />} {copied ? "Copied" : "Copy link"}
                 </button>
-                <Link to="/site" className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white/70 px-4 py-2 text-[0.78rem] font-bold text-ink transition hover:border-gold/60">
+                <a href={link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white/70 px-4 py-2 text-[0.78rem] font-bold text-ink transition hover:border-gold/60">
                   <ExternalLink size={12} /> Visit live site
-                </Link>
+                </a>
               </>
             )}
             <button onClick={() => setPublishing(true)} className={`${btn.ink} !py-2.5`}>{w.published ? "Republish" : "Publish"}</button>
@@ -373,7 +369,7 @@ export default function Website() {
           <div className={`mx-auto overflow-hidden rounded-[1.2rem] border border-ink/10 shadow-lift transition-all duration-500 ${device === "mobile" ? "max-w-[340px]" : device === "tablet" ? "max-w-[560px]" : "max-w-full"}`}>
             <div className="flex items-center gap-1.5 border-b border-ink/8 bg-white px-4 py-2.5">
               <span className="h-2.5 w-2.5 rounded-full bg-blush" /><span className="h-2.5 w-2.5 rounded-full bg-gold" /><span className="h-2.5 w-2.5 rounded-full bg-sage" />
-              <span className="ml-3 flex-1 truncate rounded-full bg-ink/5 px-2.5 py-0.5 text-[0.62rem] font-bold text-ink-mute">https://{isLuxe ? w.domain : "maya-theo.luma.love"}</span>
+              <span className="ml-3 flex-1 truncate rounded-full bg-ink/5 px-2.5 py-0.5 text-[0.62rem] font-bold text-ink-mute">{shown}</span>
             </div>
 
             <div className="max-h-[600px] overflow-y-auto" style={{ fontFamily }}>
@@ -387,7 +383,7 @@ export default function Website() {
       <Modal open={publishing} onClose={() => setPublishing(false)} label="Publish website">
         <div className="p-7 sm:p-8">
           <h2 className="flex items-center gap-2.5 font-display text-2xl text-ink"><Globe size={20} className="text-sage-deep" /> Publish your site</h2>
-          <p className="mt-2 text-[0.88rem] font-semibold text-ink-2">Guests will visit <strong className="text-ink">{isLuxe ? w.domain : "maya-theo.luma.love"}</strong> and find everything in one calm page.</p>
+          <p className="mt-2 text-[0.88rem] font-semibold text-ink-2">Guests will visit <strong className="break-all text-ink">{shown}</strong> and find everything in one calm page.</p>
           <div className="mt-5 space-y-2 rounded-2xl border border-ink/10 bg-white/70 p-4 text-[0.84rem] font-semibold text-ink-2">
             <p className="flex items-center gap-2"><Check size={13} className="text-sage-deep" /> {Object.values(w.sections).filter(Boolean).length} sections live</p>
             <p className="flex items-center gap-2"><Check size={13} className="text-sage-deep" /> RSVPs flow into Guest List</p>
@@ -396,7 +392,7 @@ export default function Website() {
           <div className="mt-6 flex justify-end gap-3">
             <button onClick={() => setPublishing(false)} className={btn.ghost}>Not yet</button>
             <button
-              onClick={() => { setW({ published: true }); setPublishing(false); toast("Your site is live", `https://${isLuxe ? w.domain : "maya-theo.luma.love"} — share it proudly.`); }}
+              onClick={() => { setW({ published: true }); setPublishing(false); toast("Your site is live", `${link} — share it proudly.`); }}
               className={btn.ink}
             >
               <Globe size={14} /> Publish now
