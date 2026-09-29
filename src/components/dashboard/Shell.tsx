@@ -23,26 +23,44 @@ const MODULES = [
   { path: "page", key: "nav.page", icon: Globe },
 ];
 
-/** saving / saved / offline — the write-behind pulse, always visible */
+/**
+ * saving / saved / offline — the write-behind pulse, on every screen size.
+ * It used to be desktop-only, so phones showed no save status at all, and
+ * "Offline — queued" implied edits were safe when they lived only in memory.
+ */
 function SyncChip() {
   const { sync } = useApp();
-  const meta: Record<SyncStatus, { label: string; dot: string; cls: string }> = {
-    demo: { label: "Demo · in-memory", dot: "bg-lav-deep", cls: "border-lav/60 bg-lav-soft/70 text-lav-deep" },
-    booting: { label: "Loading plan", dot: "bg-ink-mute anim-pulse-soft", cls: "border-ink/10 bg-white/60 text-ink-mute" },
-    saving: { label: sync.pending > 0 ? `Saving · ${sync.pending}` : "Saving", dot: "bg-gold anim-pulse-soft", cls: "border-gold/40 bg-gold-soft/70 text-gold-deep" },
-    saved: { label: "Saved", dot: "bg-sage-deep", cls: "border-sage/50 bg-sage-soft/70 text-sage-deep" },
-    offline: { label: "Offline — queued", dot: "bg-blush-deep", cls: "border-blush/60 bg-blush-soft/70 text-blush-deep" },
-    error: { label: "Sync issue", dot: "bg-blush-deep anim-pulse-soft", cls: "border-blush/60 bg-blush-soft/70 text-blush-deep" },
+  const kept = sync.durable !== false;
+  const meta: Record<SyncStatus, { label: string; short: string; dot: string; cls: string }> = {
+    demo: { label: "Demo · in-memory", short: "Demo", dot: "bg-lav-deep", cls: "border-lav/60 bg-lav-soft/70 text-lav-deep" },
+    booting: { label: "Loading plan", short: "Loading", dot: "bg-ink-mute anim-pulse-soft", cls: "border-ink/10 bg-white/60 text-ink-mute" },
+    saving: { label: sync.pending > 0 ? `Saving · ${sync.pending}` : "Saving", short: "Saving", dot: "bg-gold anim-pulse-soft", cls: "border-gold/40 bg-gold-soft/70 text-gold-deep" },
+    saved: { label: "Saved", short: "Saved", dot: "bg-sage-deep", cls: "border-sage/50 bg-sage-soft/70 text-sage-deep" },
+    offline: {
+      label: kept ? "Offline · kept on this device" : "Offline · not saved yet",
+      short: kept ? "Offline" : "Not saved",
+      dot: "bg-blush-deep", cls: "border-blush/60 bg-blush-soft/70 text-blush-deep",
+    },
+    error: {
+      label: sync.problem ? "A change can't be saved" : "Not saved · retrying",
+      short: sync.problem ? "Can't save" : "Retrying",
+      dot: "bg-blush-deep anim-pulse-soft", cls: "border-blush/60 bg-blush-soft/70 text-blush-deep",
+    },
   };
   const m = meta[sync.status];
+  const detail = sync.problem
+    ?? (sync.status === "offline" && !kept ? "This device couldn't store your edits. Keep this tab open until you're back online."
+      : sync.lastSaved ? `Last saved ${new Date(sync.lastSaved).toLocaleTimeString()}` : "Nothing saved yet");
   return (
     <span
       role="status" aria-live="polite"
-      title={sync.lastSaved ? `Last saved ${new Date(sync.lastSaved).toLocaleTimeString()}` : "Nothing saved yet"}
-      className={`hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.64rem] font-extrabold uppercase tracking-[0.12em] md:flex ${m.cls}`}
+      title={detail}
+      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[0.62rem] font-extrabold uppercase tracking-[0.1em] md:px-3 md:text-[0.64rem] md:tracking-[0.12em] ${m.cls}`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />
-      {m.label}
+      <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} aria-hidden="true" />
+      <span className="md:hidden">{m.short}</span>
+      <span className="hidden md:inline">{m.label}</span>
+      <span className="sr-only">{`. ${detail}`}</span>
     </span>
   );
 }
