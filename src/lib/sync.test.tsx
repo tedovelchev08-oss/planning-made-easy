@@ -159,3 +159,36 @@ describe("one rejected row does not block every other save", () => {
     expect(result.current.sync.problem).toBeNull();
   });
 });
+
+describe("coming back to a tab that was away", () => {
+  const setVisibility = (v: "hidden" | "visible") => {
+    Object.defineProperty(document, "visibilityState", { value: v, configurable: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+  };
+
+  it("reloads the workspace after more than two minutes away, without writing it back", async () => {
+    const { result } = await boot();
+    const now = Date.now();
+    const spy = vi.spyOn(Date, "now");
+    spy.mockReturnValue(now);
+    act(() => setVisibility("hidden"));
+    fetchWorkspace.mockImplementation(async () => workspace("Priya (edited by partner)"));
+    spy.mockReturnValue(now + 3 * 60 * 1000);
+    act(() => setVisibility("visible"));
+    spy.mockRestore();
+
+    await waitFor(() => expect(result.current.db.guests[0].name).toBe("Priya (edited by partner)"));
+    // the raw setter was used: the refetch did not queue itself as writes
+    expect(syncEntity).not.toHaveBeenCalled();
+    expect(result.current.sync.pending).toBe(0);
+  });
+
+  it("does not reload after a short look away", async () => {
+    await boot();
+    const calls = fetchWorkspace.mock.calls.length;
+    act(() => setVisibility("hidden"));
+    act(() => setVisibility("visible"));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(fetchWorkspace.mock.calls.length).toBe(calls);
+  });
+});

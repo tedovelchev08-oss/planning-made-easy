@@ -568,6 +568,47 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
+  /*
+   * Partners each work on the copy they loaded, and every save is a full-row
+   * write, so a tab left open for hours writes stale rows over the other
+   * partner's changes. Minimal mitigation until real versioning (Phase 2):
+   * coming back to a tab that was hidden for a while sends our own edits
+   * first, then reloads the workspace from the server.
+   */
+  const refreshFromServer = useCallback(async () => {
+    const wid = weddingIdRef.current;
+    const owner = ownerRef.current;
+    if (modeRef.current !== "cloud" || !wid || !owner) return;
+    await flush();
+    if (countPending() > 0) return; // couldn't save ours: never replace them
+    const seq = editSeq.current;
+    try {
+      const fresh = await fetchWorkspace(wid, owner.uid);
+      // an edit made while we were fetching wins; try again next time
+      if (editSeq.current !== seq || countPending() > 0) return;
+      const changed = JSON.stringify(fresh) !== JSON.stringify(dbRef.current);
+      // raw setter on purpose: the diffing setDb would queue the whole
+      // refetch back up as writes
+      setDbState(fresh);
+      writeCache(owner.email, fresh);
+      lastRsvpPull.current = Date.now();
+      if (changed) toast("Updated with the latest changes", "Your partner's edits are in.", "info");
+    } catch { /* offline — the next return will try again */ }
+  }, [flush, toast, countPending]);
+
+  useEffect(() => {
+    if (mode !== "cloud") return;
+    const AWAY_MS = 2 * 60 * 1000;
+    let hiddenAt: number | null = null;
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") { hiddenAt = Date.now(); return; }
+      if (hiddenAt !== null && Date.now() - hiddenAt > AWAY_MS) void refreshFromServer();
+      hiddenAt = null;
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [mode, refreshFromServer]);
+
   /* ------------------------------ auth surface ------------------------------ */
 
   /**
