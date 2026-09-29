@@ -7,6 +7,9 @@ import {
 } from "./data";
 import { isSupabaseConfigured } from "./supabase";
 import {
+  type Queue, bucketOf, clearQueue, countQueue, emptyQueue, loadQueue, mergeUnder, persistQueue, retryDelay, sendQueue,
+} from "./syncQueue";
+import {
   EntityKey, acceptPendingInvites, authApi, budgetToRow, createWedding, customTplToRow, fetchFreshRsvps,
   fetchWorkspace, guestToRow, invitationToRow, invitePartner as apiInvitePartner, isUuid, myWeddingId, newId,
   refreshEntitlement as apiRefreshEntitlement, registryToRow, rsvpToRow, syncEntity, tableToRow, taskToRow, venueObjectToRow, websiteToRow,
@@ -69,7 +72,15 @@ export interface Toast {
 export interface User { name: string; email: string }
 
 export type SyncStatus = "demo" | "booting" | "saved" | "saving" | "offline" | "error";
-export interface SyncState { status: SyncStatus; lastSaved: number | null; pending: number }
+export interface SyncState {
+  status: SyncStatus;
+  lastSaved: number | null;
+  pending: number;
+  /** false when unsaved edits exist only in memory (storage full or blocked) */
+  durable?: boolean;
+  /** a change the server keeps rejecting — shown until it saves or is undone */
+  problem?: string | null;
+}
 
 export type Mode = "demo" | "cloud";
 
@@ -219,8 +230,6 @@ function clearCache(uid: string) {
 
 const Ctx = createContext<AppCtx | null>(null);
 
-interface Bucket { upserts: Map<string, unknown>; deletes: Set<string> }
-
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const mode = useMemo(bootMode, []);
 
@@ -235,8 +244,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [weddingId, setWeddingId] = useState<string | null>(null);
 
-  const pendingRef = useRef<Map<EntityKey, Bucket>>(new Map());
+  const pendingRef = useRef<Queue>(emptyQueue());
+  /** the batch currently on the wire — still unsaved, so still persisted */
+  const inflightRef = useRef<Queue | null>(null);
   const flushTimer = useRef<number | null>(null);
+  const retryTimer = useRef<number | null>(null);
+  const retryAttempt = useRef(0);
+  const flushAgain = useRef(false);
+  /** consecutive server rejections per row, to tell a bad row from a blip */
+  const rejections = useRef<Map<string, number>>(new Map());
+  /** bumped on every local edit, so a background refresh never clobbers one */
+  const editSeq = useRef(0);
+  /** whose queue this is: the signed-in account, set when their workspace boots */
+  const ownerRef = useRef<{ uid: string; email: string } | null>(null);
   const lastRsvpPull = useRef<number>(Date.now());
   const dbRef = useRef(db); dbRef.current = db;
   const weddingIdRef = useRef(weddingId); weddingIdRef.current = weddingId;
@@ -257,47 +277,87 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   /* ------------------------------ write-behind sync ------------------------------ */
 
-  const getBucket = (key: EntityKey): Bucket => {
-    let b = pendingRef.current.get(key);
-    if (!b) { b = { upserts: new Map(), deletes: new Set() }; pendingRef.current.set(key, b); }
-    return b;
-  };
+  // these read refs only, so they are stable for the provider's lifetime
+  const getBucket = useCallback((key: EntityKey) => bucketOf(pendingRef.current, key), []);
 
-  const countPending = () => {
-    let n = 0;
-    pendingRef.current.forEach((b) => { n += b.upserts.size + b.deletes.size; });
-    return n;
-  };
-
-  const flush = useCallback(async () => {
-    const wid = weddingIdRef.current;
-    if (modeRef.current !== "cloud" || !wid || pendingRef.current.size === 0) return;
-    setSync((s) => ({ ...s, status: "saving", pending: countPending() }));
-    const batch = pendingRef.current;
-    pendingRef.current = new Map();
-    try {
-      for (const [key, b] of batch) {
-        await syncEntity(key, wid, [...b.upserts.values()], [...b.deletes]);
-      }
-      setSync({ status: "saved", lastSaved: Date.now(), pending: countPending() });
-      const uid = userRef.current?.email;
-      if (uid) writeCache(uid, dbRef.current);
-    } catch {
-      // merge the failed batch back underneath anything queued since
-      for (const [key, b] of batch) {
-        const live = getBucket(key);
-        for (const [id, row] of b.upserts) if (!live.upserts.has(id)) live.upserts.set(id, row);
-        for (const id of b.deletes) live.deletes.add(id);
-      }
-      setSync((s) => ({ ...s, status: navigator.onLine ? "error" : "offline", pending: countPending() }));
-    }
+  /** everything not yet saved: queued edits plus the batch in flight */
+  const unsaved = useCallback((): Queue => {
+    const all = emptyQueue();
+    mergeUnder(all, pendingRef.current);
+    if (inflightRef.current) mergeUnder(all, inflightRef.current);
+    return all;
   }, []);
+  const countPending = useCallback(() => countQueue(unsaved()), [unsaved]);
+
+  /** write the unsaved queue (and the workspace it produced) to this device */
+  const persist = useCallback((snapshot: Db = dbRef.current): boolean => {
+    const owner = ownerRef.current;
+    const wid = weddingIdRef.current;
+    if (!owner || !wid) return false;
+    return persistQueue(owner.email, wid, unsaved(), snapshot);
+  }, [unsaved]);
+
+  const flush = useCallback(async (): Promise<void> => {
+    const wid = weddingIdRef.current;
+    if (modeRef.current !== "cloud" || !wid) return;
+    if (inflightRef.current) { flushAgain.current = true; return; }
+    if (retryTimer.current) { window.clearTimeout(retryTimer.current); retryTimer.current = null; }
+    if (pendingRef.current.size === 0) return;
+
+    const batch = pendingRef.current;
+    pendingRef.current = emptyQueue();
+    inflightRef.current = batch;
+    setSync((s) => ({ ...s, status: "saving", pending: countPending() }));
+
+    const online = navigator.onLine;
+    const { failed, failures } = await sendQueue(
+      batch, (key, upserts, deletes) => syncEntity(key, wid, upserts, deletes), online,
+    );
+    inflightRef.current = null;
+    mergeUnder(pendingRef.current, failed);
+
+    // A row the server rejects three times running while we are online is
+    // not a network blip: name it, rather than retrying behind a vague chip.
+    for (const [key, b] of batch) {
+      for (const id of [...b.upserts.keys(), ...b.deletes]) {
+        const k = `${key}:${id}`;
+        if (!failures.some((f) => f.key === key && (f.id === id || f.id === "*"))) rejections.current.delete(k);
+      }
+    }
+    let problem: string | null = null;
+    if (online) {
+      for (const f of failures) {
+        const k = `${f.key}:${f.id}`;
+        const n = (rejections.current.get(k) ?? 0) + 1;
+        rejections.current.set(k, n);
+        if (n >= 3 && !problem) problem = `A change to ${f.key} keeps being refused: ${f.message}`;
+      }
+    }
+
+    const durable = persist();
+    if (failures.length === 0) {
+      retryAttempt.current = 0;
+      const left = countPending();
+      setSync({ status: left ? "saving" : "saved", lastSaved: Date.now(), pending: left, durable, problem: null });
+      if (!left) {
+        const email = ownerRef.current?.email;
+        if (email) writeCache(email, dbRef.current);
+      }
+    } else {
+      setSync((s) => ({ ...s, status: online ? "error" : "offline", pending: countPending(), durable, problem }));
+      // keep trying on our own: 2s, 5s, 15s, then every 30s
+      const delay = retryDelay(retryAttempt.current++);
+      retryTimer.current = window.setTimeout(() => { retryTimer.current = null; void flush(); }, delay);
+    }
+
+    if (flushAgain.current) { flushAgain.current = false; if (pendingRef.current.size) void flush(); }
+  }, [countPending, persist]);
 
   const scheduleFlush = useCallback(() => {
     setSync((s) => ({ ...s, status: "saving", pending: countPending() }));
     if (flushTimer.current) window.clearTimeout(flushTimer.current);
     flushTimer.current = window.setTimeout(() => void flush(), 700);
-  }, [flush]);
+  }, [flush, countPending]);
 
   /**
    * Diff prev→next per entity and queue write-behind ops. Ids are normalised
@@ -344,8 +404,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       getBucket("website").upserts.set("website", websiteToRow(next.website, wid));
     }
 
+    // durable before the debounce: a refresh inside those 700 ms used to drop it
+    editSeq.current++;
+    const durable = persist(next);
+    setSync((s) => (s.durable === durable ? s : { ...s, durable }));
     scheduleFlush();
-  }, [scheduleFlush]);
+  }, [scheduleFlush, getBucket, persist]);
 
   /** ensures every locally-created row carries a server-legal id (+ guest token) */
   const normalize = useCallback((d: Db): Db => {
@@ -397,8 +461,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       setWeddingId(wid);
+      weddingIdRef.current = wid;
+      if (email) ownerRef.current = { uid, email };
       const cache = email ? readCache(email) : null;
       if (cache && cache.wedding.slug) setDbState(cache);
+
+      // Edits left unsaved last time (tab closed offline, refresh inside the
+      // debounce): show them, and send them BEFORE loading server data, or
+      // the fresh fetch would paint over them.
+      const saved = email ? loadQueue<Db>(email, wid) : null;
+      if (saved) {
+        pendingRef.current = saved.queue;
+        if (saved.snapshot) setDbState(saved.snapshot);
+        await flush();
+        if (countPending() > 0) return; // still unsaved: keep the local copy, retries continue
+      }
       const fresh = await fetchWorkspace(wid, uid);
       setDbState(fresh);
       if (email) writeCache(email, fresh);
@@ -409,7 +486,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setBooting(false);
     }
-  }, []);
+  }, [flush, countPending]);
 
   useEffect(() => {
     if (mode !== "cloud") return;
@@ -478,6 +555,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, [mode, flush, pullFreshRsvps]);
 
+  /* warn before closing the tab while anything is still unsaved */
+  useEffect(() => {
+    if (mode !== "cloud") return;
+    const onUnload = (e: BeforeUnloadEvent) => {
+      if (countPending() === 0) return;
+      e.preventDefault();
+      e.returnValue = ""; // older browsers need this to show the prompt
+    };
+    window.addEventListener("beforeunload", onUnload);
+    return () => window.removeEventListener("beforeunload", onUnload);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
   /* ------------------------------ auth surface ------------------------------ */
 
   /**
@@ -492,7 +582,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // Drop the queued write-behind batch and its timer first: a pending
       // flush fires ~700ms later and would rewrite the cache entry we clear.
       if (flushTimer.current) { window.clearTimeout(flushTimer.current); flushTimer.current = null; }
-      pendingRef.current = new Map();
+      if (retryTimer.current) { window.clearTimeout(retryTimer.current); retryTimer.current = null; }
+      pendingRef.current = emptyQueue();
+      rejections.current.clear();
+      // Unsaved edits go with the account, like the offline cache: this device
+      // may be shared, so nothing of theirs is left behind.
+      const owner = ownerRef.current?.email ?? userRef.current?.email;
+      if (owner) clearQueue(owner);
+      ownerRef.current = null;
       const email = userRef.current?.email;
       if (email) clearCache(email);
       setWeddingId(null);
