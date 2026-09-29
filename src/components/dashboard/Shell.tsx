@@ -75,7 +75,7 @@ function plannerGlows() {
 }
 
 export default function Shell() {
-  const { db, user, signOut, toast, mode, weddingId, invitePartner } = useApp();
+  const { db, user, signOut, toast, mode, weddingId, invitePartner, saveNow } = useApp();
   const { t } = useT();
   const stats = useStats();
   const location = useLocation();
@@ -117,9 +117,16 @@ export default function Shell() {
   // The demo has no account to sign out of: its "Sign out" used to toast
   // "Signed out" and leave Maya & Theo on screen. There it leaves the demo.
   const leaveLabel = mode === "demo" ? "Leave demo" : "Sign out";
-  const leave = (farewell: string) => {
+  const leave = async (farewell: string) => {
+    if (mode === "demo") { signOut(); window.location.hash = "#/"; return; }
+    // Signing out clears unsaved edits from this device (it may be shared),
+    // so send them first, and ask before throwing away any that won't go.
+    const left = await saveNow();
+    if (left > 0 && !window.confirm(
+      `${left} ${left === 1 ? "change hasn't" : "changes haven't"} saved yet — you look to be offline. ` +
+      "Sign out anyway and lose them? Choose Cancel to stay signed in; they'll save when you're back online.",
+    )) return;
     signOut();
-    if (mode === "demo") { window.location.hash = "#/"; return; }
     toast("Signed out", farewell, "info");
   };
 
@@ -220,7 +227,7 @@ export default function Shell() {
               <div className="min-h-0 flex-1 overflow-y-auto">{sidebar}</div>
               <div className="px-4 pb-6">
                 <button
-                  onClick={() => { setDrawerOpen(false); leave("See you at the next planning session."); }}
+                  onClick={() => { setDrawerOpen(false); void leave("See you at the next planning session."); }}
                   className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-[0.9rem] font-bold text-blush-deep transition hover:bg-blush-soft cursor-pointer"
                 >
                   <LogOut size={16} /> {leaveLabel}
@@ -312,7 +319,7 @@ export default function Shell() {
 
                       <div className="border-t border-ink/8 p-2">
                         <button
-                          onClick={() => { setAccountOpen(false); leave("Your plan is saved — see you soon."); }}
+                          onClick={() => { setAccountOpen(false); void leave("Your plan is saved — see you soon."); }}
                           className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.84rem] font-bold text-ink transition hover:bg-blush-soft hover:text-blush-deep cursor-pointer"
                           role="menuitem"
                         >

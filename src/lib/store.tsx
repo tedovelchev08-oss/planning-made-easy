@@ -107,6 +107,8 @@ interface AppCtx {
   invitePartner: (email: string) => Promise<void>;
   /** Re-reads the server entitlement and applies it. The client never writes plans. */
   refreshEntitlement: () => Promise<Plan | null>;
+  /** Try to send every queued edit now. Resolves to how many are still unsaved. */
+  saveNow: () => Promise<number>;
 }
 
 /* ------------------------------ seeds & factories ------------------------------ */
@@ -690,6 +692,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return purchased;
   }, []);
 
+  const saveNow = useCallback(async (): Promise<number> => {
+    if (modeRef.current !== "cloud") return 0;
+    if (flushTimer.current) { window.clearTimeout(flushTimer.current); flushTimer.current = null; }
+    await flush();
+    return countPending();
+  }, [flush, countPending]);
+
   /* ------------------------------ value ------------------------------ */
 
   const value = useMemo<AppCtx>(() => ({
@@ -698,8 +707,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     authOpen, setAuthOpen,
     checkout, openCheckout, closeCheckout,
     mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner,
-    refreshEntitlement,
-  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, authOpen, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement]);
+    refreshEntitlement, saveNow,
+  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, authOpen, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement, saveNow]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

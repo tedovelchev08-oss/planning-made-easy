@@ -192,3 +192,23 @@ describe("coming back to a tab that was away", () => {
     expect(fetchWorkspace.mock.calls.length).toBe(calls);
   });
 });
+
+describe("saveNow — what sign-out checks before clearing unsaved edits", () => {
+  it("sends queued edits immediately and reports nothing left", async () => {
+    const { result } = await boot();
+    act(() => result.current.setDb(rename("Priya D.")));
+    let left = -1;
+    await act(async () => { left = await result.current.saveNow(); });
+    expect(left).toBe(0);
+    expect(sentRows("guests").map((r) => r.name)).toContain("Priya D.");
+  });
+
+  it("reports what is still unsaved when it can't be sent", async () => {
+    const { result } = await boot();
+    syncEntity.mockRejectedValue(new Error("Failed to fetch"));
+    act(() => result.current.setDb(rename("Priya D.")));
+    let left = -1;
+    await act(async () => { left = await result.current.saveNow(); });
+    expect(left).toBe(1);
+  });
+});
