@@ -23,26 +23,44 @@ const MODULES = [
   { path: "page", key: "nav.page", icon: Globe },
 ];
 
-/** saving / saved / offline — the write-behind pulse, always visible */
+/**
+ * saving / saved / offline — the write-behind pulse, on every screen size.
+ * It used to be desktop-only, so phones showed no save status at all, and
+ * "Offline — queued" implied edits were safe when they lived only in memory.
+ */
 function SyncChip() {
   const { sync } = useApp();
-  const meta: Record<SyncStatus, { label: string; dot: string; cls: string }> = {
-    demo: { label: "Demo · in-memory", dot: "bg-lav-deep", cls: "border-lav/60 bg-lav-soft/70 text-lav-deep" },
-    booting: { label: "Loading plan", dot: "bg-ink-mute anim-pulse-soft", cls: "border-ink/10 bg-white/60 text-ink-mute" },
-    saving: { label: sync.pending > 0 ? `Saving · ${sync.pending}` : "Saving", dot: "bg-gold anim-pulse-soft", cls: "border-gold/40 bg-gold-soft/70 text-gold-deep" },
-    saved: { label: "Saved", dot: "bg-sage-deep", cls: "border-sage/50 bg-sage-soft/70 text-sage-deep" },
-    offline: { label: "Offline — queued", dot: "bg-blush-deep", cls: "border-blush/60 bg-blush-soft/70 text-blush-deep" },
-    error: { label: "Sync issue", dot: "bg-blush-deep anim-pulse-soft", cls: "border-blush/60 bg-blush-soft/70 text-blush-deep" },
+  const kept = sync.durable !== false;
+  const meta: Record<SyncStatus, { label: string; short: string; dot: string; cls: string }> = {
+    demo: { label: "Demo · in-memory", short: "Demo", dot: "bg-lav-deep", cls: "border-lav/60 bg-lav-soft/70 text-lav-deep" },
+    booting: { label: "Loading plan", short: "Loading", dot: "bg-ink-mute anim-pulse-soft", cls: "border-ink/10 bg-white/60 text-ink-mute" },
+    saving: { label: sync.pending > 0 ? `Saving · ${sync.pending}` : "Saving", short: "Saving", dot: "bg-gold anim-pulse-soft", cls: "border-gold/40 bg-gold-soft/70 text-gold-deep" },
+    saved: { label: "Saved", short: "Saved", dot: "bg-sage-deep", cls: "border-sage/50 bg-sage-soft/70 text-sage-deep" },
+    offline: {
+      label: kept ? "Offline · kept on this device" : "Offline · not saved yet",
+      short: kept ? "Offline" : "Not saved",
+      dot: "bg-blush-deep", cls: "border-blush/60 bg-blush-soft/70 text-blush-deep",
+    },
+    error: {
+      label: sync.problem ? "A change can't be saved" : "Not saved · retrying",
+      short: sync.problem ? "Can't save" : "Retrying",
+      dot: "bg-blush-deep anim-pulse-soft", cls: "border-blush/60 bg-blush-soft/70 text-blush-deep",
+    },
   };
   const m = meta[sync.status];
+  const detail = sync.problem
+    ?? (sync.status === "offline" && !kept ? "This device couldn't store your edits. Keep this tab open until you're back online."
+      : sync.lastSaved ? `Last saved ${new Date(sync.lastSaved).toLocaleTimeString()}` : "Nothing saved yet");
   return (
     <span
       role="status" aria-live="polite"
-      title={sync.lastSaved ? `Last saved ${new Date(sync.lastSaved).toLocaleTimeString()}` : "Nothing saved yet"}
-      className={`hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.64rem] font-extrabold uppercase tracking-[0.12em] md:flex ${m.cls}`}
+      title={detail}
+      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[0.62rem] font-extrabold uppercase tracking-[0.1em] md:px-3 md:text-[0.64rem] md:tracking-[0.12em] ${m.cls}`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />
-      {m.label}
+      <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} aria-hidden="true" />
+      <span className="md:hidden">{m.short}</span>
+      <span className="hidden md:inline">{m.label}</span>
+      <span className="sr-only">{`. ${detail}`}</span>
     </span>
   );
 }
@@ -57,7 +75,7 @@ function plannerGlows() {
 }
 
 export default function Shell() {
-  const { db, user, signOut, toast, mode, weddingId, invitePartner } = useApp();
+  const { db, user, signOut, toast, mode, weddingId, invitePartner, saveNow } = useApp();
   const { t } = useT();
   const stats = useStats();
   const location = useLocation();
@@ -99,9 +117,16 @@ export default function Shell() {
   // The demo has no account to sign out of: its "Sign out" used to toast
   // "Signed out" and leave Maya & Theo on screen. There it leaves the demo.
   const leaveLabel = mode === "demo" ? "Leave demo" : "Sign out";
-  const leave = (farewell: string) => {
+  const leave = async (farewell: string) => {
+    if (mode === "demo") { signOut(); window.location.hash = "#/"; return; }
+    // Signing out clears unsaved edits from this device (it may be shared),
+    // so send them first, and ask before throwing away any that won't go.
+    const left = await saveNow();
+    if (left > 0 && !window.confirm(
+      `${left} ${left === 1 ? "change hasn't" : "changes haven't"} saved yet — you look to be offline. ` +
+      "Sign out anyway and lose them? Choose Cancel to stay signed in; they'll save when you're back online.",
+    )) return;
     signOut();
-    if (mode === "demo") { window.location.hash = "#/"; return; }
     toast("Signed out", farewell, "info");
   };
 
@@ -202,7 +227,7 @@ export default function Shell() {
               <div className="min-h-0 flex-1 overflow-y-auto">{sidebar}</div>
               <div className="px-4 pb-6">
                 <button
-                  onClick={() => { setDrawerOpen(false); leave("See you at the next planning session."); }}
+                  onClick={() => { setDrawerOpen(false); void leave("See you at the next planning session."); }}
                   className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-[0.9rem] font-bold text-blush-deep transition hover:bg-blush-soft cursor-pointer"
                 >
                   <LogOut size={16} /> {leaveLabel}
@@ -294,7 +319,7 @@ export default function Shell() {
 
                       <div className="border-t border-ink/8 p-2">
                         <button
-                          onClick={() => { setAccountOpen(false); leave("Your plan is saved — see you soon."); }}
+                          onClick={() => { setAccountOpen(false); void leave("Your plan is saved — see you soon."); }}
                           className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.84rem] font-bold text-ink transition hover:bg-blush-soft hover:text-blush-deep cursor-pointer"
                           role="menuitem"
                         >
