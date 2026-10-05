@@ -7,9 +7,11 @@ import {
 import { Guest, MEALS, MUSIC_TRACKS, RsvpEntry, TEMPLATE_CATS, Template, bestGuestMatch, fmtDate, seedTemplates, timeAgo } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
+import { FREE_DESIGN_ID, PLANS, can, formatPrice, guestLimit, type Feature } from "../../lib/plans";
+import { useCurrency } from "../../lib/currency";
 import { guestLink } from "../../lib/links";
 import { playChime, useChimeLoop } from "../../lib/sound";
-import { DesignFrame, Field, Modal, Pill, SafeImg, btn, inputCls } from "../ui";
+import { DesignFrame, Field, Modal, Pill, PlanTag, SafeImg, btn, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
 
 /* ------------------------------ palette & font presets ------------------------------ */
@@ -351,7 +353,7 @@ function LivePreview({ onClose }: { onClose: () => void }) {
 /* ------------------------------ main module ------------------------------ */
 
 export default function Invitations() {
-  const { db, patch, toast, openCheckout } = useApp();
+  const { db, patch, toast, openUpgrade } = useApp();
   const [cat, setCat] = useState<string>("all");
   const [device, setDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [live, setLive] = useState(false);
@@ -367,19 +369,23 @@ export default function Invitations() {
   const colors = resolveColors(template, cfg.colors);
   const serif = cfg.fontSerif ?? template.serif;
   const isLuxeTemplate = !!template.luxe;
-  const luxeUnlocked = db.plan === "luxe";
+  const luxeUnlocked = can(db.plan, "premiumDesigns");
   const animated = isLuxeTemplate && luxeUnlocked;
+  /** whether a design can be chosen on this plan */
+  const designLocked = (t: Template) =>
+    t.luxe ? !can(db.plan, "premiumDesigns") : t.id !== FREE_DESIGN_ID && !can(db.plan, "allDesigns");
 
   const confirmedCount = db.guests.filter((g) => g.rsvp === "confirmed").length;
 
   const setCfg = (p: Partial<typeof cfg>) => patch({ invitation: { ...cfg, ...p } });
+  /** a change only paid plans make: applies it, or explains the upgrade */
+  const setPaid = (feature: Feature, p: Partial<typeof cfg>) => (can(db.plan, feature) ? setCfg(p) : openUpgrade(feature));
 
   const templates = useMemo(() => seedTemplates.filter((t) => cat === "all" || t.cat === cat), [cat]);
 
   const choose = (t: Template) => {
-    if (t.luxe && db.plan !== "luxe") {
-      openCheckout("luxe");
-      toast("That's a Luxe design", "Animated invitations unlock with Premium Luxe.", "info");
+    if (designLocked(t)) {
+      openUpgrade(t.luxe ? "premiumDesigns" : "allDesigns");
       return;
     }
     setCfg({ templateId: t.id, colors: null, fontSerif: null, photo: t.photo ? cfg.photo ?? t.photo : null });
@@ -398,25 +404,13 @@ export default function Invitations() {
     }, 1600);
   };
 
-  /* essential plan → locked */
-  if (db.plan === "essential") {
-    return (
-      <div className="mx-auto max-w-xl rounded-[2rem] border border-white/70 bg-white/60 p-10 text-center backdrop-blur-md">
-        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold-soft text-gold-deep"><Mail size={24} /></span>
-        <h2 className="mt-5 font-display text-3xl text-ink">Invitations live in the <em className="text-blush-deep">Celebration Suite.</em></h2>
-        <p className="mt-3 text-[0.95rem] leading-relaxed text-ink-2">Digital invitations, RSVP tracking, 20+ templates and guest messaging unlock with one upgrade — still no subscription.</p>
-        <button onClick={() => openCheckout("celebration")} className={`${btn.gold} mt-7`}><Crown size={15} /> Unlock for {`$99`} one-time</button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {isLuxeTemplate && !luxeUnlocked && (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-gold/40 bg-gold-soft/50 px-5 py-3.5">
           <Lock size={15} className="text-gold-deep" />
           <p className="text-[0.85rem] font-bold text-ink">This Luxe design previews statically — upgrade to set its petals, shimmer and motion loose.</p>
-          <button onClick={() => openCheckout("luxe")} className="ml-auto rounded-full bg-ink px-4 py-2 text-[0.78rem] font-bold text-cream transition hover:bg-ink/85 cursor-pointer">Upgrade to Luxe</button>
+          <button onClick={() => openUpgrade("premiumDesigns")} className="ml-auto rounded-full bg-ink px-4 py-2 text-[0.78rem] font-bold text-cream transition hover:bg-ink/85 cursor-pointer">Upgrade to {PLANS.luxe.name}</button>
         </div>
       )}
 
@@ -500,18 +494,20 @@ export default function Invitations() {
           </section>
 
           <section className="rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md">
-            <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">Colors & type</h3>
+            <h3 className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">
+              Colors & type {!can(db.plan, "customize") && <PlanTag plan="celebration" />}
+            </h3>
             <div className="mt-4 flex flex-wrap gap-2.5">
-              <button onClick={() => setCfg({ colors: null })} aria-label="Template default colors" className={`h-9 w-9 rounded-full border-2 transition cursor-pointer ${cfg.colors === null ? "border-ink scale-110" : "border-white shadow-sm"}`} style={{ background: `linear-gradient(135deg, ${template.bg} 50%, ${template.accent} 50%)` }} />
+              <button onClick={() => setPaid("customize", { colors: null })} aria-label="Template default colors" className={`h-9 w-9 rounded-full border-2 transition cursor-pointer ${cfg.colors === null ? "border-ink scale-110" : "border-white shadow-sm"}`} style={{ background: `linear-gradient(135deg, ${template.bg} 50%, ${template.accent} 50%)` }} />
               {PALETTES.map((p) => (
-                <button key={p.name} onClick={() => setCfg({ colors: p })} aria-label={`${p.name} palette`} title={p.name}
+                <button key={p.name} onClick={() => setPaid("customize", { colors: p })} aria-label={`${p.name} palette`} title={p.name}
                   className={`h-9 w-9 rounded-full border-2 transition cursor-pointer ${cfg.colors && cfg.colors.bg === p.bg && cfg.colors.accent === p.accent ? "border-ink scale-110" : "border-white shadow-sm hover:scale-105"}`}
                   style={{ background: `linear-gradient(135deg, ${p.bg} 45%, ${p.accent} 45%)` }} />
               ))}
             </div>
             <div className="mt-4 flex rounded-full bg-ink/5 p-1 text-[0.78rem] font-bold">
-              <button onClick={() => setCfg({ fontSerif: true })} className={`flex-1 rounded-full py-2 transition cursor-pointer ${serif ? "bg-white shadow-sm text-ink" : "text-ink-mute"}`}>Classic serif</button>
-              <button onClick={() => setCfg({ fontSerif: false })} className={`flex-1 rounded-full py-2 transition cursor-pointer ${!serif ? "bg-white shadow-sm text-ink" : "text-ink-mute"}`}>Modern sans</button>
+              <button onClick={() => setPaid("customize", { fontSerif: true })} className={`flex-1 rounded-full py-2 transition cursor-pointer ${serif ? "bg-white shadow-sm text-ink" : "text-ink-mute"}`}>Classic serif</button>
+              <button onClick={() => setPaid("customize", { fontSerif: false })} className={`flex-1 rounded-full py-2 transition cursor-pointer ${!serif ? "bg-white shadow-sm text-ink" : "text-ink-mute"}`}>Modern sans</button>
             </div>
           </section>
           </>
@@ -520,15 +516,22 @@ export default function Invitations() {
           <section className="rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md">
             <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">RSVP options</h3>
             <div className="mt-4 space-y-2.5">
-              {([["rsvp", "RSVP button"], ["meal", "Meal selection"], ["notes", "Guest notes"]] as const).map(([key, label]) => (
-                <button key={key} onClick={() => setCfg({ [key]: !cfg[key] } as Partial<typeof cfg>)} aria-pressed={cfg[key]}
-                  className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-[0.85rem] font-bold transition cursor-pointer ${cfg[key] ? "border-sage/60 bg-sage-soft/60 text-ink" : "border-ink/12 text-ink-mute hover:border-ink/30"}`}>
-                  {label}
-                  <span className={`flex h-5 w-9 items-center rounded-full p-0.5 transition-colors ${cfg[key] ? "bg-sage-deep" : "bg-ink/15"}`}>
-                    <span className={`h-4 w-4 rounded-full bg-white shadow transition-transform ${cfg[key] ? "translate-x-4" : ""}`} />
-                  </span>
-                </button>
-              ))}
+              {([["rsvp", "RSVP button"], ["meal", "Meal selection"], ["notes", "Guest notes"]] as const).map(([key, label]) => {
+                // what guests will actually see: meal and notes need Celebration
+                const paid = key !== "rsvp";
+                const on = cfg[key] && (!paid || can(db.plan, "rsvpDetails"));
+                return (
+                  <button key={key}
+                    onClick={() => (paid ? setPaid("rsvpDetails", { [key]: !on } as Partial<typeof cfg>) : setCfg({ rsvp: !cfg.rsvp }))}
+                    aria-pressed={on}
+                    className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-[0.85rem] font-bold transition cursor-pointer ${on ? "border-sage/60 bg-sage-soft/60 text-ink" : "border-ink/12 text-ink-mute hover:border-ink/30"}`}>
+                    <span className="flex items-center gap-2">{label} {paid && !can(db.plan, "rsvpDetails") && <PlanTag plan="celebration" />}</span>
+                    <span className={`flex h-5 w-9 items-center rounded-full p-0.5 transition-colors ${on ? "bg-sage-deep" : "bg-ink/15"}`}>
+                      <span className={`h-4 w-4 rounded-full bg-white shadow transition-transform ${on ? "translate-x-4" : ""}`} />
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </section>
 
@@ -539,7 +542,7 @@ export default function Invitations() {
               <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">Photo</h3>
               <div className="mt-4 grid grid-cols-3 gap-2">
                 {PHOTO_CHOICES.map((p) => (
-                  <button key={p.label} onClick={() => setCfg({ photo: p.src })} aria-label={`Use ${p.label}`} title={p.label}
+                  <button key={p.label} onClick={() => setPaid("customize", { photo: p.src })} aria-label={`Use ${p.label}`} title={p.label}
                     className={`overflow-hidden rounded-xl border-2 transition cursor-pointer ${cfg.photo === p.src ? "border-gold" : "border-transparent opacity-80 hover:opacity-100"}`}>
                     <img src={p.src} alt={p.label} className="h-14 w-full object-cover" loading="lazy" />
                   </button>
@@ -560,7 +563,7 @@ export default function Invitations() {
             </button>
           ))}
           <Pill tone="gold">{seedTemplates.length + db.customTemplates.length} designs</Pill>
-          <button onClick={() => setImportOpen(true)} className={`${btn.outline} ml-auto !px-4 !py-2 text-[0.78rem]`}>
+          <button onClick={() => (can(db.plan, "customDesigns") ? setImportOpen(true) : openUpgrade("customDesigns"))} className={`${btn.outline} ml-auto !px-4 !py-2 text-[0.78rem]`}>
             <UploadCloud size={14} /> Add Luxe designs
           </button>
         </div>
@@ -571,21 +574,17 @@ export default function Invitations() {
               <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
                 <Crown size={12} /> Luxe collection · {db.customTemplates.length}
               </p>
-              <p className="text-[0.68rem] font-semibold text-ink-mute">Owner-curated originals · bundled with Premium Luxe{!luxeUnlocked && " · locked on your plan"}</p>
+              <p className="text-[0.68rem] font-semibold text-ink-mute">Your own designs · part of {PLANS.luxe.name}{!luxeUnlocked && " · locked on your plan"}</p>
             </div>
             <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto pb-1">
               {db.customTemplates.map((c) => {
                 const active = c.id === cfg.templateId;
-                const locked = !luxeUnlocked;
+                const locked = !can(db.plan, "customDesigns");
                 return (
                   <div key={c.id} className={`group relative w-36 shrink-0 overflow-hidden rounded-[1.1rem] border-2 transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${active ? "border-gold shadow-card" : "border-transparent"}`}>
                     <button
                       onClick={() => {
-                        if (locked) {
-                          openCheckout("luxe");
-                          toast("A Luxe original", `${c.name} unlocks with Premium Luxe.`, "info");
-                          return;
-                        }
+                        if (locked) { openUpgrade("customDesigns"); return; }
                         setCfg({ templateId: c.id, colors: null, fontSerif: null });
                         playChime("place");
                         toast(`Design — ${c.name}`, "Your original, front and center.");
@@ -638,7 +637,7 @@ export default function Invitations() {
           {templates.map((t) => {
             const c = resolveColors(t, null);
             const active = t.id === cfg.templateId;
-            const locked = t.luxe && !luxeUnlocked;
+            const locked = designLocked(t);
             return (
               <button
                 key={t.id}
@@ -659,7 +658,9 @@ export default function Invitations() {
                 </div>
                 <div className="flex items-center justify-between bg-white/90 px-3 py-2 backdrop-blur">
                   <span className="text-[0.7rem] font-extrabold text-ink">{t.name}</span>
-                  {t.luxe && <span className="text-gold-deep">{locked ? <Lock size={11} /> : <Crown size={11} />}</span>}
+                  {locked ? (
+                    <span className="flex items-center gap-1 text-gold-deep"><Lock size={11} aria-hidden="true" /><span className="sr-only">{t.luxe ? PLANS.luxe.name : PLANS.celebration.name}</span></span>
+                  ) : t.luxe ? <span className="text-gold-deep"><Crown size={11} /></span> : null}
                 </div>
                 {active && (
                   <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-ink shadow-card"><Check size={11} strokeWidth={3.5} /></span>
@@ -713,7 +714,8 @@ export default function Invitations() {
 /* ------------------------------ share link card ------------------------------ */
 
 export function ShareCard() {
-  const { db, toast } = useApp();
+  const { db, toast, openUpgrade } = useApp();
+  const shareKit = can(db.plan, "shareKit");
   const [copied, setCopied] = useState(false);
   // cloud links carry the real slug so any device lands on this couple's page;
   // demo has no slug, so its link opens the local sample guest page
@@ -773,7 +775,11 @@ export function ShareCard() {
                 href={c.href}
                 target={c.href.startsWith("http") ? "_blank" : undefined}
                 rel="noreferrer"
-                onClick={() => { if (c.copyFirst) copy(); }}
+                onClick={(e) => {
+                  // the copy-link button stays free; channel sharing is the share kit
+                  if (!shareKit) { e.preventDefault(); openUpgrade("shareKit"); return; }
+                  if (c.copyFirst) copy();
+                }}
                 className={`inline-flex items-center gap-1.5 rounded-full border border-cream/20 px-3.5 py-2 text-[0.74rem] font-bold text-cream/85 transition-all duration-300 hover:bg-cream/10 ${c.tint}`}
               >
                 <c.icon size={13} /> {c.label}
@@ -813,11 +819,12 @@ const SOURCE_META: Record<string, { icon: typeof Link2; label: string; cls: stri
 
 /** Copies a guest's personal invite link — their name arrives pre-filled. */
 function PersonalLinkButton({ guest, token }: { guest: string; token: string }) {
-  const { toast } = useApp();
+  const { toast, db, openUpgrade } = useApp();
   const [copied, setCopied] = useState(false);
   return (
     <button
       onClick={async () => {
+        if (!can(db.plan, "personalLinks")) { openUpgrade("personalLinks"); return; }
         const url = guestLink({ token });
         try {
           await navigator.clipboard.writeText(url);
@@ -838,7 +845,13 @@ function PersonalLinkButton({ guest, token }: { guest: string; token: string }) 
 }
 
 export function RsvpTracker() {
-  const { db, patch, toast } = useApp();
+  const { db, patch, toast, openUpgrade } = useApp();
+  /** an RSVP that would push the list past the plan's guest limit waits, unsynced */
+  const fits = (next: Guest[]) => {
+    if (next.length <= db.guests.length || next.length <= guestLimit(db.plan)) return true;
+    openUpgrade("unlimitedGuests");
+    return false;
+  };
   const [reminding, setReminding] = useState(false);
   const log = [...db.rsvpLog].sort((a, b) => b.at - a.at);
   const confirmed = db.guests.filter((g) => g.rsvp === "confirmed").length;
@@ -885,8 +898,10 @@ export function RsvpTracker() {
     if (!entry) return;
     const host = targetId ? db.guests.find((g) => g.id === targetId) : matchFor(entry).guest;
     if (!host) return;
+    const next = buildSync(db.guests, entry, host);
+    if (!fits(next)) return;
     patch({
-      guests: buildSync(db.guests, entry, host),
+      guests: next,
       rsvpLog: db.rsvpLog.map((e) => (e.id === entryId ? { ...e, synced: true } : e)),
     });
     playChime("done");
@@ -915,6 +930,7 @@ export function RsvpTracker() {
         notes: `Plus-one of ${host.name.split(" ")[0]}`,
       }, ...guests];
     }
+    if (!fits(guests)) return;
     patch({
       guests,
       rsvpLog: db.rsvpLog.map((e) => (e.id === entryId ? { ...e, synced: true } : e)),
@@ -940,6 +956,7 @@ export function RsvpTracker() {
       toast("Nothing auto-synced", "The rest need a glance — they're fuzzy matches or new guests.", "info");
       return;
     }
+    if (!fits(guests)) return;
     patch({ guests, rsvpLog: db.rsvpLog.map((e) => (syncedIds.includes(e.id) ? { ...e, synced: true } : e)) });
     playChime("sparkle");
     toast("Confident RSVPs synced", `${applied} merged — fuzzy ones are below for a quick yes/no.`);
@@ -1070,7 +1087,8 @@ function LuxeStudio({ cfg, setCfg, unlocked }: {
   setCfg: (p: Partial<ReturnType<typeof useApp>["db"]["invitation"]>) => void;
   unlocked: boolean;
 }) {
-  const { toast, openCheckout, db } = useApp();
+  const { toast, openUpgrade, db } = useApp();
+  const [currency] = useCurrency();
   const fileRef = useRef<HTMLInputElement>(null);
   const motion = cfg.motion;
   const music = cfg.music;
@@ -1154,8 +1172,8 @@ function LuxeStudio({ cfg, setCfg, unlocked }: {
       {!unlocked && (
         <div className="mt-4 rounded-2xl bg-ink p-4 text-cream">
           <p className="text-[0.8rem] font-bold leading-snug">Motion, petals and music are the Luxe difference — animated invitations guests actually gasp at.</p>
-          <button onClick={() => openCheckout("luxe")} className="mt-3 w-full rounded-full bg-gold py-2.5 text-[0.8rem] font-extrabold text-ink transition hover:brightness-110 cursor-pointer">
-            Unlock with Premium Luxe · $199
+          <button onClick={() => openUpgrade("motion")} className="mt-3 w-full rounded-full bg-gold py-2.5 text-[0.8rem] font-extrabold text-ink transition hover:brightness-110 cursor-pointer">
+            Unlock with {PLANS.luxe.name} · {formatPrice(PLANS.luxe.price, currency)} one-time
           </button>
         </div>
       )}
@@ -1236,17 +1254,16 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
   };
 
   return (
-    <Modal open={open} onClose={onClose} label="Add designs to the Luxe bundle">
+    <Modal open={open} onClose={onClose} label="Add your own invitation design">
       <div className="p-7 sm:p-8">
         <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
-          <Crown size={13} /> Site owner · Luxe curation
+          <Crown size={13} /> {PLANS.luxe.name} · your own design
         </p>
-        <h2 className="mt-2 font-display text-[1.7rem] text-ink">Bundle your designs with Premium Luxe</h2>
+        <h2 className="mt-2 font-display text-[1.7rem] text-ink">Use your own invitation design</h2>
         <p className="mt-2 text-[0.85rem] leading-relaxed text-ink-2">
-          Add your own invitations to the <strong className="text-ink">Luxe collection</strong> — the premium originals
-          couples unlock with the $199 tier. Drop in <strong className="text-ink">complete HTML invitations</strong> (they
-          run live and interactive, exactly as you built them) or flat PNG/JPG artwork. Everything appears crown-gated:
-          free to preview, locked until Luxe. RSVPs, meals and notes still collect on the guest page beneath each design.
+          Bring an invitation you made yourself: a <strong className="text-ink">complete HTML design</strong> (it runs live
+          and interactive, exactly as you built it) or flat PNG/JPG artwork. Your guests still RSVP beneath it, with meal
+          choices and notes, just like any Luma design.
         </p>
 
         <button

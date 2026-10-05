@@ -11,6 +11,7 @@ import {
   Vendor, Wedding, slugify, toDayKey,
 } from "./data";
 import type { Db, InvitationConfig, WebsiteConfig } from "./store";
+import type { Currency } from "./plans";
 
 export const isUuid = (s: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
@@ -459,7 +460,7 @@ export async function submitRsvp(p: {
  * The server verifies the caller's JWT, mints the session and returns only
  * `{ url }` — the client redirects and NEVER writes entitlements itself.
  */
-export async function createCheckoutSession(tier: Plan, weddingId: string): Promise<string> {
+export async function createCheckoutSession(tier: Plan, weddingId: string, currency: Currency): Promise<string> {
   const s = requireSb();
   const { data: session } = await s.auth.getSession();
   const token = session.session?.access_token;
@@ -467,7 +468,7 @@ export async function createCheckoutSession(tier: Plan, weddingId: string): Prom
   const res = await fetch("/api/create-checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ tier, wedding_id: weddingId }),
+    body: JSON.stringify({ tier, wedding_id: weddingId, currency }),
   });
   if (!res.ok) {
     let msg = "Checkout could not be started.";
