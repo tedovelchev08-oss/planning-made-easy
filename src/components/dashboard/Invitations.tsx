@@ -7,7 +7,7 @@ import {
 import { Guest, MEALS, MUSIC_TRACKS, RsvpEntry, TEMPLATE_CATS, Template, bestGuestMatch, fmtDate, seedTemplates, timeAgo } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
-import { FREE_DESIGN_ID, PLANS, can, formatPrice, guestLimit, type Feature } from "../../lib/plans";
+import { FEATURES, FREE_DESIGN_ID, PLANS, can, formatPrice, guestLimit, type Feature } from "../../lib/plans";
 import { useCurrency } from "../../lib/currency";
 import { guestLink } from "../../lib/links";
 import { playChime, useChimeLoop } from "../../lib/sound";
@@ -574,7 +574,7 @@ export default function Invitations() {
               <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
                 <Crown size={12} /> Luxe collection · {db.customTemplates.length}
               </p>
-              <p className="text-[0.68rem] font-semibold text-ink-mute">Your own designs · part of {PLANS.luxe.name}{!luxeUnlocked && " · locked on your plan"}</p>
+              <p className="text-[0.68rem] font-semibold text-ink-mute">Your own designs · part of {PLANS[FEATURES.customDesigns.plan].name}{!can(db.plan, "customDesigns") && " · locked on your plan"}</p>
             </div>
             <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto pb-1">
               {db.customTemplates.map((c) => {
@@ -1257,7 +1257,7 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
     <Modal open={open} onClose={onClose} label="Add your own invitation design">
       <div className="p-7 sm:p-8">
         <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
-          <Crown size={13} /> {PLANS.luxe.name} · your own design
+          <Crown size={13} /> {PLANS[FEATURES.customDesigns.plan].name} · your own design
         </p>
         <h2 className="mt-2 font-display text-[1.7rem] text-ink">Use your own invitation design</h2>
         <p className="mt-2 text-[0.85rem] leading-relaxed text-ink-2">

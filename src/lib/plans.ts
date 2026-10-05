@@ -106,6 +106,7 @@ export const PLANS: Record<Plan, PlanInfo> = {
       "Your wedding website",
       "Printable seating chart & guest export",
       "Share by WhatsApp, Messenger, text & email",
+      "Use your own invitation design",
     ],
   },
   luxe: {
@@ -122,7 +123,6 @@ export const PLANS: Record<Plan, PlanInfo> = {
       "Music on your invitation",
       "Website scroll animations",
       "Marble, oak & noir table finishes",
-      "Use your own invitation design",
     ],
   },
 };
@@ -179,7 +179,7 @@ export const FEATURES: Record<Feature, { plan: Plan; title: string; body: string
   motion: { plan: "luxe", title: "Petals, shimmer & animated type", body: "Falling petals, gold shimmer and type that writes itself across the invitation." },
   music: { plan: "luxe", title: "Music on your invitation", body: "A song plays softly when guests open your invitation." },
   premiumSkins: { plan: "luxe", title: "Premium table finishes", body: "Marble, oak and noir finishes for your seating chart." },
-  customDesigns: { plan: "luxe", title: "Your own invitation design", body: "Bring a design you made yourself and use it as your invitation, RSVP and all." },
+  customDesigns: { plan: "celebration", title: "Your own invitation design", body: "Bring a design you made yourself and use it as your invitation, RSVP and all." },
   websiteMotion: { plan: "luxe", title: "Website scroll animations", body: "Sections that drift in as your guests scroll." },
 };
 

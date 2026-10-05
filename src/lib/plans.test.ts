@@ -85,3 +85,15 @@ describe("currency", () => {
     expect(Object.keys(CURRENCIES)).toEqual(CURRENCY_ORDER);
   });
 });
+
+describe("the founder's decisions", () => {
+  // 2026-10-05: "the three to be in Celebration" — personal RSVP links, the
+  // printable seating chart, and using your own invitation design
+  it("puts personal links, exports and your own design in Celebration", () => {
+    expect(FEATURES.personalLinks.plan).toBe("celebration");
+    expect(FEATURES.exports.plan).toBe("celebration");
+    expect(FEATURES.customDesigns.plan).toBe("celebration");
+    expect(PLANS.celebration.features).toContain("Use your own invitation design");
+    expect(PLANS.luxe.features).not.toContain("Use your own invitation design");
+  });
+});
