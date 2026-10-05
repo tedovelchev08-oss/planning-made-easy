@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Check, Heart, Send } from "lucide-react";
+import { ArrowRight, Heart, Send } from "lucide-react";
 import { Reveal, Logo } from "../ui";
 import { useApp } from "../../lib/store";
 import { SUPPORT_EMAIL } from "../../lib/links";
@@ -11,9 +11,8 @@ import { useIdleWhenOffscreen } from "../../lib/useIdleWhenOffscreen";
 
 export function FinalCta() {
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useApp();
+  const { startSignup } = useApp();
   const motionRef = useIdleWhenOffscreen<HTMLDivElement>();
 
   const submit = (e: React.FormEvent) => {
@@ -23,8 +22,9 @@ export function FinalCta() {
       return;
     }
     setError(null);
-    setSent(true);
-    toast("You're on the list", "A warm welcome is on its way to your inbox.");
+    // This box used to say "you're on the list — a welcome is on its way",
+    // but the address went nowhere. Now it starts a real account with it.
+    startSignup(email.trim());
   };
 
   return (
@@ -56,7 +56,6 @@ export function FinalCta() {
 
           <div className="relative mx-auto mt-10 max-w-lg" aria-live="polite">
             <AnimatePresence mode="wait">
-              {!sent ? (
                 <motion.form
                   key="form" onSubmit={submit}
                   initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
@@ -78,19 +77,8 @@ export function FinalCta() {
                     <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
                   </button>
                 </motion.form>
-              ) : (
-                <motion.div
-                  key="done"
-                  initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 22 }}
-                  className="flex items-center justify-center gap-3 rounded-full border border-white/80 bg-white/70 px-7 py-4 shadow-card backdrop-blur-md"
-                >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blush-deep text-cream"><Check size={15} strokeWidth={3} /></span>
-                  <p className="text-body font-bold text-ink">You're on the list. See you at <em className="font-display italic">organized.</em></p>
-                </motion.div>
-              )}
             </AnimatePresence>
-            {error && !sent && (
+            {error && (
               <p id="cta-email-error" role="alert" className="mt-3 text-caption font-bold text-blush-deep">
                 {error}
               </p>

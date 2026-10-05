@@ -355,8 +355,6 @@ export default function Invitations() {
   const [cat, setCat] = useState<string>("all");
   const [device, setDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [live, setLive] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [sendStep, setSendStep] = useState<"compose" | "sending" | "done">("compose");
   const [importOpen, setImportOpen] = useState(false);
   const reduced = usePrefersReducedMotion();
 
@@ -370,7 +368,12 @@ export default function Invitations() {
   const luxeUnlocked = db.plan === "luxe";
   const animated = isLuxeTemplate && luxeUnlocked;
 
-  const confirmedCount = db.guests.filter((g) => g.rsvp === "confirmed").length;
+  /** take the couple to the share card, whose links really reach guests */
+  const shareWithGuests = () => {
+    const card = document.querySelector<HTMLElement>('[aria-label="Share your wedding page"]');
+    card?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+    card?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
+  };
 
   const setCfg = (p: Partial<typeof cfg>) => patch({ invitation: { ...cfg, ...p } });
 
@@ -386,17 +389,6 @@ export default function Invitations() {
     toast(`Template — ${t.name}`, "Make it yours on the right.");
   };
 
-  const send = () => {
-    setSendStep("sending");
-    setTimeout(() => {
-      setSendStep("done");
-      setTimeout(() => {
-        setSending(false);
-        setSendStep("compose");
-        toast("Invitations sent", `${confirmedCount} guests will find Luma in their inbox via Resend.`);
-      }, 1400);
-    }, 1600);
-  };
 
   /* essential plan → locked */
   if (db.plan === "essential") {
@@ -471,7 +463,10 @@ export default function Invitations() {
           <div className="flex flex-wrap gap-3">
             <button onClick={() => setLive(true)} className={`${btn.ink} !py-3`}><Play size={14} /> Live preview</button>
             <a href="#/invite" target="_blank" rel="noreferrer" className={`${btn.outline} !py-3`}><Link2 size={14} /> Guest page</a>
-            <button onClick={() => { setSending(true); setSendStep("compose"); }} className={`${btn.blush} !py-3`}><Mail size={14} /> Send to {confirmedCount} guests</button>
+            {/* Luma does not email guests. This used to fake a "Send to N guests"
+                run ("Invitations sent… via Resend") while nothing left the app.
+                It now leads to the share card, whose links really work. */}
+            <button onClick={shareWithGuests} className={`${btn.blush} !py-3`}><Send size={14} /> Share with guests</button>
           </div>
         </div>
 
@@ -670,39 +665,6 @@ export default function Invitations() {
         </div>
       </section>
 
-      {/* send modal */}
-      <Modal open={sending} onClose={() => sendStep !== "sending" && setSending(false)} label="Send invitations">
-        <div className="p-7 sm:p-8">
-          {sendStep === "compose" && (
-            <>
-              <h2 className="flex items-center gap-2.5 font-display text-2xl text-ink"><Mail size={20} className="text-blush-deep" /> Send "{template.name}"</h2>
-              <p className="mt-2 text-[0.85rem] font-semibold text-ink-2">Delivered by email via Resend to every confirmed guest, with RSVP tracking wired in.</p>
-              <div className="mt-5 rounded-2xl border border-ink/10 bg-white/70 p-4 text-[0.85rem]">
-                <p className="font-bold text-ink">{confirmedCount} recipients</p>
-                <p className="mt-1 text-ink-mute">Subject: "Maya & Theo — you're invited ♥"</p>
-              </div>
-              <div className="mt-6 flex justify-end gap-3">
-                <button onClick={() => setSending(false)} className={btn.ghost}>Cancel</button>
-                <button onClick={send} className={btn.ink}><Mail size={14} /> Send invitations</button>
-              </div>
-            </>
-          )}
-          {sendStep === "sending" && (
-            <div className="flex flex-col items-center py-8 text-ink-2">
-              <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }} className="h-10 w-10 rounded-full border-2 border-gold border-t-transparent" />
-              <p className="mt-4 text-sm font-bold">Sealing {confirmedCount} envelopes…</p>
-            </div>
-          )}
-          {sendStep === "done" && (
-            <div className="flex flex-col items-center py-8">
-              <motion.span initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 300, damping: 18 }} className="flex h-14 w-14 items-center justify-center rounded-full bg-sage-soft text-sage-deep">
-                <Check size={26} strokeWidth={3} />
-              </motion.span>
-              <p className="mt-4 font-display text-xl text-ink">On their way</p>
-            </div>
-          )}
-        </div>
-      </Modal>
 
       <ImportDesignsModal open={importOpen} onClose={() => setImportOpen(false)} />
       <AnimatePresence>{live && <LivePreview onClose={() => setLive(false)} />}</AnimatePresence>
@@ -839,7 +801,6 @@ function PersonalLinkButton({ guest, token }: { guest: string; token: string }) 
 
 export function RsvpTracker() {
   const { db, patch, toast } = useApp();
-  const [reminding, setReminding] = useState(false);
   const log = [...db.rsvpLog].sort((a, b) => b.at - a.at);
   const confirmed = db.guests.filter((g) => g.rsvp === "confirmed").length;
   const declined = db.guests.filter((g) => g.rsvp === "declined").length;
@@ -945,12 +906,16 @@ export function RsvpTracker() {
     toast("Confident RSVPs synced", `${applied} merged — fuzzy ones are below for a quick yes/no.`);
   };
 
-  const remind = () => {
-    setReminding(true);
-    setTimeout(() => {
-      setReminding(false);
-      toast("Reminders on their way", `${waiting} pending guests will get a gentle nudge via Resend and SMS.`);
-    }, 1100);
+  /** a ready-to-paste reminder — Luma doesn't send it, the couple does */
+  const remind = async () => {
+    const when = fmtDate(db.wedding.date, { month: "long", day: "numeric", year: "numeric" });
+    const text = `A gentle reminder: ${db.wedding.names} would love to know if you can join them on ${when}. You can RSVP in one tap here: ${guestLink({ slug: db.wedding.slug, src: "link" })}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("Reminder copied", `Paste it into your group chat, messages or email — ${waiting} ${waiting === 1 ? "guest hasn't" : "guests haven't"} replied yet.`);
+    } catch {
+      toast("Copy this reminder", text, "info");
+    }
   };
 
   return (
@@ -962,8 +927,8 @@ export function RsvpTracker() {
           <p className="text-[0.8rem] font-semibold text-ink-mute">Every answer from your link, messages and emails — as it happens.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={remind} disabled={reminding || waiting === 0} className="rounded-full border border-ink/15 px-4 py-2 text-[0.76rem] font-bold text-ink-2 transition hover:border-blush-deep hover:text-blush-deep disabled:opacity-40 cursor-pointer">
-            {reminding ? "Sending…" : `Remind ${waiting} pending`}
+          <button onClick={() => void remind()} disabled={waiting === 0} className="rounded-full border border-ink/15 px-4 py-2 text-[0.76rem] font-bold text-ink-2 transition hover:border-blush-deep hover:text-blush-deep disabled:opacity-40 cursor-pointer">
+            Copy a reminder · {waiting} pending
           </button>
           {unsynced.length > 0 && (
             <button onClick={syncAll} className="rounded-full bg-ink px-4 py-2 text-[0.76rem] font-bold text-cream transition hover:bg-ink/85 cursor-pointer">

@@ -558,7 +558,7 @@ const STRENGTH = [
 ];
 
 export function AuthModal() {
-  const { authOpen, setAuthOpen, toast, db, mode: appMode } = useApp();
+  const { authOpen, setAuthOpen, toast, db, mode: appMode, signupEmail } = useApp();
   const stats = useStats();
   const reduced = usePrefersReducedMotion();
   const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
@@ -570,7 +570,9 @@ export function AuthModal() {
 
   useEffect(() => {
     if (authOpen) { setFlow("form"); setError(null); setBusy(false); }
-  }, [authOpen]);
+    // arriving from the homepage's "Get started" box: sign up, email filled in
+    if (authOpen && signupEmail) { setMode("signup"); setEmail(signupEmail); }
+  }, [authOpen, signupEmail]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -661,8 +663,10 @@ export function AuthModal() {
                 <p className="mt-1 text-[0.66rem] font-bold uppercase tracking-[0.16em] text-cream/45">until {db.wedding.names} say “I do”</p>
               </div>
             </div>
+            {/* This said "Loved by 4,200+ couples" under five stars: an invented
+                figure, like the testimonials removed earlier. Only true things here. */}
             <div className="flex items-center gap-2 text-[0.72rem] font-semibold text-cream/45">
-              <Stars /> Loved by 4,200+ couples
+              <Check size={13} className="text-blush" aria-hidden="true" /> Free to start · no card needed
             </div>
           </div>
         </aside>
