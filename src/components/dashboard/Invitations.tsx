@@ -814,8 +814,6 @@ export function RsvpTracker() {
     openUpgrade("unlimitedGuests");
     return false;
   };
-  const [reminding, setReminding] = useState(false);
-  const { db, patch, toast } = useApp();
   const log = [...db.rsvpLog].sort((a, b) => b.at - a.at);
   const confirmed = db.guests.filter((g) => g.rsvp === "confirmed").length;
   const declined = db.guests.filter((g) => g.rsvp === "declined").length;

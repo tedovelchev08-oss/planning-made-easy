@@ -726,17 +726,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AppCtx>(() => ({
     db, setDb, patch, toast, toasts, dismissToast,
     user, signOut,
-    authOpen, setAuthOpen,
+    authOpen, setAuthOpen, startSignup, signupEmail,
     upgrade, openUpgrade, closeUpgrade,
     checkout, openCheckout, closeCheckout,
     mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner,
     refreshEntitlement, saveNow,
-  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, authOpen, upgrade, openUpgrade, closeUpgrade, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement, saveNow]);
-    authOpen, setAuthOpen, startSignup, signupEmail,
-    checkout, openCheckout, closeCheckout,
-    mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner,
-    refreshEntitlement, saveNow,
-  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, authOpen, startSignup, signupEmail, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement, saveNow]);
+  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, authOpen, startSignup, signupEmail, upgrade, openUpgrade, closeUpgrade, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement, saveNow]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
