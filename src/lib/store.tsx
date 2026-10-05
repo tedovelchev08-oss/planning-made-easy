@@ -95,6 +95,10 @@ interface AppCtx {
   signOut: () => void;
   authOpen: boolean;
   setAuthOpen: (v: boolean) => void;
+  /** opens the sign-up form with this email already filled in */
+  startSignup: (email: string) => void;
+  /** consumed by the auth form when it opens */
+  signupEmail: string | null;
   checkout: Plan | null;
   openCheckout: (p: Plan) => void;
   closeCheckout: () => void;
@@ -240,6 +244,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() =>
     mode === "demo" ? { name: "Maya & Theo", email: "demo@example.com" } : null);
   const [authOpen, setAuthOpen] = useState(false);
+  const [signupEmail, setSignupEmail] = useState<string | null>(null);
+  const startSignup = useCallback((email: string) => { setSignupEmail(email); setAuthOpen(true); }, []);
   const [checkout, setCheckout] = useState<Plan | null>(null);
   const [sync, setSync] = useState<SyncState>({ status: mode === "demo" ? "demo" : "booting", lastSaved: null, pending: 0 });
   const [booting, setBooting] = useState(mode === "cloud");
@@ -704,11 +710,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AppCtx>(() => ({
     db, setDb, patch, toast, toasts, dismissToast,
     user, signOut,
-    authOpen, setAuthOpen,
+    authOpen, setAuthOpen, startSignup, signupEmail,
     checkout, openCheckout, closeCheckout,
     mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner,
     refreshEntitlement, saveNow,
-  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, authOpen, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement, saveNow]);
+  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, authOpen, startSignup, signupEmail, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement, saveNow]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
