@@ -26,6 +26,19 @@ import { createClient } from "@supabase/supabase-js";
 
 const PLAN_RANK: Record<string, number> = { essential: 0, celebration: 1, luxe: 2 };
 
+export interface PurchaseLike { tier: string; amount: number; amount_refunded: number }
+
+/** A purchase is revoked only once it is refunded in full; a goodwill partial refund keeps the plan. */
+export const isFullyRefunded = (p: Pick<PurchaseLike, "amount" | "amount_refunded">) =>
+  p.amount > 0 && p.amount_refunded >= p.amount;
+
+/** A wedding's plan: the highest tier among its purchases still standing, else essential. */
+export function planFromPurchases(purchases: PurchaseLike[]): string {
+  return purchases
+    .filter((p) => !isFullyRefunded(p) && p.tier in PLAN_RANK)
+    .reduce((best, p) => (PLAN_RANK[p.tier] > PLAN_RANK[best] ? p.tier : best), "essential");
+}
+
 const stripe = () => {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY is not set");
@@ -107,6 +120,25 @@ async function grantFromCheckout(supabase: ReturnType<typeof admin>, session: St
     // Still record the entitlement, just don't update any wedding
   }
 
+  // Record the payment in the ledger first, idempotent on the payment
+  // intent: Stripe retries, and a replay must not create a second row.
+  if (paymentIntent) {
+    const { error: ledgerError } = await supabase.from("purchases").upsert(
+      {
+        wedding_id: targetWeddingId,
+        user_id: userId,
+        tier,
+        stripe_payment_intent_id: paymentIntent,
+        amount: session.amount_total ?? 0,
+        currency: session.currency ?? "usd",
+      },
+      { onConflict: "stripe_payment_intent_id", ignoreDuplicates: true },
+    );
+    if (ledgerError) throw new Error(`purchase insert failed: ${ledgerError.message}`);
+  } else {
+    console.warn("[webhook] checkout session without a payment intent — not recorded in purchases", session.id);
+  }
+
   // Update the wedding's plan (authoritative, per-wedding)
   // This happens regardless of the user's existing entitlements
   if (targetWeddingId) {
@@ -179,87 +211,116 @@ export async function resolveRefundTarget(
   return { userId, weddingId };
 }
 
-async function revokeFromRefund(supabase: ReturnType<typeof admin>, charge: Stripe.Charge) {
+type Admin = ReturnType<typeof admin>;
+
+/** The ledger row a refund applies to, creating it for payments made before the ledger existed. */
+async function purchaseForRefund(supabase: Admin, piId: string, charge: Stripe.Charge) {
+  const { data: row, error } = await supabase
+    .from("purchases").select("id, wedding_id, user_id, tier").eq("stripe_payment_intent_id", piId).maybeSingle();
+  if (error) throw new Error(`purchase lookup failed: ${error.message}`);
+  if (row) return row;
+
+  // Not in the ledger (or the backfill): rebuild it from the PaymentIntent,
+  // whose metadata create-checkout always stamped with the tier.
+  let paymentIntent: Stripe.PaymentIntent;
+  try {
+    paymentIntent = await stripe().paymentIntents.retrieve(piId);
+  } catch (err) {
+    // eslint-disable-next-line preserve-caught-error -- api targets ES2020, no Error cause
+    throw new Error(`failed to retrieve payment intent ${piId}: ${(err as Error).message}`);
+  }
+  const tier = paymentIntent.metadata?.tier;
+  if (!tier || !(tier in PLAN_RANK)) return null;
+
+  const target = await resolveRefundTarget(piId, paymentIntent.metadata ?? {}, {
+    async ownerOfPaymentIntent(id) {
+      const { data, error: e } = await supabase
+        .from("entitlements").select("user_id").eq("stripe_payment_intent_id", id).maybeSingle();
+      if (e) throw new Error(`entitlement lookup failed: ${e.message}`);
+      return data?.user_id ?? null;
+    },
+    async weddingOf(uid) {
+      const { data, error: e } = await supabase
+        .from("wedding_members").select("wedding_id").eq("user_id", uid).limit(1).maybeSingle();
+      if (e) throw new Error(`membership lookup failed: ${e.message}`);
+      return data?.wedding_id ?? null;
+    },
+  });
+  if (!target) return null;
+
+  const { data: created, error: insertError } = await supabase
+    .from("purchases")
+    .upsert(
+      {
+        wedding_id: target.weddingId, user_id: target.userId, tier,
+        stripe_payment_intent_id: piId, amount: charge.amount, currency: charge.currency,
+      },
+      { onConflict: "stripe_payment_intent_id" },
+    )
+    .select("id, wedding_id, user_id, tier")
+    .single();
+  if (insertError) throw new Error(`purchase insert failed: ${insertError.message}`);
+  return created;
+}
+
+/**
+ * charge.refunded fires for partial refunds too, each time with the running
+ * total in amount_refunded. Record it; only a FULL refund revokes anything,
+ * and then the plan falls back to whatever else was paid for — an upgrade
+ * refunded in full returns the wedding to the tier bought before it.
+ */
+async function revokeFromRefund(supabase: Admin, charge: Stripe.Charge) {
   const piId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
   if (!piId) {
     console.warn("[webhook] charge.refunded without payment_intent — skipped", charge.id);
     return;
   }
 
-  // Retrieve the PaymentIntent to get wedding_id from metadata
-  let paymentIntent: Stripe.PaymentIntent;
-  try {
-    paymentIntent = await stripe().paymentIntents.retrieve(piId);
-  } catch (err) {
-    // eslint-disable-next-line preserve-caught-error
-    throw new Error(`failed to retrieve payment intent ${piId}: ${(err as Error).message}`);
-  }
-
-  const target = await resolveRefundTarget(piId, paymentIntent.metadata ?? {}, {
-    async ownerOfPaymentIntent(id) {
-      const { data, error } = await supabase
-        .from("entitlements").select("user_id").eq("stripe_payment_intent_id", id).maybeSingle();
-      if (error) throw new Error(`entitlement lookup failed: ${error.message}`);
-      return data?.user_id ?? null;
-    },
-    async weddingOf(uid) {
-      const { data, error } = await supabase
-        .from("wedding_members").select("wedding_id").eq("user_id", uid).limit(1).maybeSingle();
-      if (error) throw new Error(`membership lookup failed: ${error.message}`);
-      return data?.wedding_id ?? null;
-    },
-  });
-  if (!target) {
+  const purchase = await purchaseForRefund(supabase, piId, charge);
+  if (!purchase) {
     console.log(`[webhook] refund for unknown payment_intent ${piId} — nothing to revoke`);
     return;
   }
-  const { userId, weddingId } = target;
 
-  // Delete the entitlement
-  const { error: deleteError } = await supabase.from("entitlements").delete().eq("user_id", userId);
-  if (deleteError) throw new Error(`entitlement revoke failed: ${deleteError.message}`);
+  const full = charge.refunded === true || isFullyRefunded({ amount: charge.amount, amount_refunded: charge.amount_refunded });
+  const { error: updateError } = await supabase
+    .from("purchases")
+    .update({
+      amount: charge.amount,
+      amount_refunded: charge.amount_refunded,
+      status: full ? "refunded" : charge.amount_refunded > 0 ? "partially_refunded" : "paid",
+    })
+    .eq("id", purchase.id);
+  if (updateError) throw new Error(`purchase refund update failed: ${updateError.message}`);
 
-  if (!weddingId) {
-    console.warn(`[webhook] revoked entitlement for ${userId}, who belongs to no wedding (refund ${charge.id})`);
+  if (!full) {
+    console.log(`[webhook] partial refund on ${piId} (${charge.amount_refunded}/${charge.amount}) — plan unchanged`);
     return;
   }
 
-  // Find all members of this wedding
-  const { data: members, error: membersError } = await supabase
-    .from("wedding_members")
-    .select("user_id")
-    .eq("wedding_id", weddingId);
-  
-  if (membersError) throw new Error(`failed to query wedding members: ${membersError.message}`);
-
-  // Find the highest entitlement among OTHER members (excluding the refunded user)
-  const otherUserIds = members?.map(m => m.user_id).filter(id => id !== userId) ?? [];
-  
-  let highestPlan = 'essential';
-  if (otherUserIds.length > 0) {
-    const { data: otherEntitlements, error: entitlementsError } = await supabase
-      .from("entitlements")
-      .select("plan")
-      .in("user_id", otherUserIds);
-    
-    if (entitlementsError) throw new Error(`failed to query entitlements: ${entitlementsError.message}`);
-
-    highestPlan = otherEntitlements?.reduce((best, e) => 
-      PLAN_RANK[e.plan] > PLAN_RANK[best] ? e.plan : best, 'essential' as string
-    ) ?? 'essential';
+  // The wedding's plan, recomputed from everything still paid for.
+  if (purchase.wedding_id) {
+    const { data: rows, error } = await supabase
+      .from("purchases").select("tier, amount, amount_refunded").eq("wedding_id", purchase.wedding_id);
+    if (error) throw new Error(`purchase list failed: ${error.message}`);
+    const plan = planFromPurchases(rows ?? []);
+    const { error: planError } = await supabase.from("weddings").update({ plan }).eq("id", purchase.wedding_id);
+    if (planError) throw new Error(`wedding plan update failed: ${planError.message}`);
+    console.log(`[webhook] full refund on ${piId}: wedding ${purchase.wedding_id} now ${plan}`);
   }
 
-  // Update the wedding's plan
-  const { error: updateError } = await supabase
-    .from("weddings")
-    .update({ plan: highestPlan })
-    .eq("id", weddingId);
-  
-  if (updateError) {
-    throw new Error(`wedding plan update failed: ${updateError.message}`);
+  // The purchaser's entitlement row (their purchase record, which the
+  // checkout-return screen reads) follows their own remaining purchases.
+  if (purchase.user_id) {
+    const { data: mine, error } = await supabase
+      .from("purchases").select("tier, amount, amount_refunded").eq("user_id", purchase.user_id);
+    if (error) throw new Error(`purchase list failed: ${error.message}`);
+    const standing = (mine ?? []).filter((p) => !isFullyRefunded(p));
+    const result = standing.length
+      ? await supabase.from("entitlements").update({ plan: planFromPurchases(standing) }).eq("user_id", purchase.user_id)
+      : await supabase.from("entitlements").delete().eq("user_id", purchase.user_id);
+    if (result.error) throw new Error(`entitlement update failed: ${result.error.message}`);
   }
-
-  console.log(`[webhook] revoked entitlement for ${userId}, wedding ${weddingId} now at ${highestPlan} (refund ${charge.id})`);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
