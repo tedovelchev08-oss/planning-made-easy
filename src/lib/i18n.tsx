@@ -42,7 +42,7 @@ const en: Dict = {
   "onboard.currency": "Currency",
   "onboard.submit": "Create our plan",
   "onboard.welcome": "Welcome to Luma",
-  "onboard.essential": "You'll start on Essential — upgrade any time, one purchase, yours forever.",
+  "onboard.essential": "You'll start on Engaged, free — upgrade any time with one payment, no subscription.",
 };
 
 const fr: Dict = {
@@ -66,7 +66,7 @@ const fr: Dict = {
   "onboard.currency": "Devise",
   "onboard.submit": "Créer notre plan",
   "onboard.welcome": "Bienvenue sur Luma",
-  "onboard.essential": "Vous commencez avec Essential — évoluez quand vous voulez, un seul achat, pour toujours.",
+  "onboard.essential": "Vous commencez avec Engaged, gratuit — évoluez quand vous voulez, en un seul paiement, sans abonnement.",
 };
 
 const es: Dict = {
@@ -90,7 +90,7 @@ const es: Dict = {
   "onboard.currency": "Moneda",
   "onboard.submit": "Crear nuestro plan",
   "onboard.welcome": "Bienvenidos a Luma",
-  "onboard.essential": "Empezáis con Essential — mejorad cuando queráis, una compra, para siempre.",
+  "onboard.essential": "Empezáis con Engaged, gratis — mejorad cuando queráis con un solo pago, sin suscripción.",
 };
 
 const de: Dict = {
@@ -114,7 +114,7 @@ const de: Dict = {
   "onboard.currency": "Währung",
   "onboard.submit": "Unseren Plan erstellen",
   "onboard.welcome": "Willkommen bei Luma",
-  "onboard.essential": "Ihr startet mit Essential — upgradet jederzeit, ein Kauf, für immer.",
+  "onboard.essential": "Ihr startet mit Engaged, kostenlos — upgradet jederzeit mit einer einzigen Zahlung, ohne Abo.",
 };
 
 const it: Dict = {
@@ -138,7 +138,7 @@ const it: Dict = {
   "onboard.currency": "Valuta",
   "onboard.submit": "Crea il nostro piano",
   "onboard.welcome": "Benvenuti su Luma",
-  "onboard.essential": "Iniziate con Essential — aggiornate quando volete, un acquisto, per sempre.",
+  "onboard.essential": "Iniziate con Engaged, gratis — aggiornate quando volete con un unico pagamento, senza abbonamento.",
 };
 
 const dictionaries: Record<Locale, Dict> = { "en-US": en, "fr-FR": fr, "es-ES": es, "de-DE": de, "it-IT": it };

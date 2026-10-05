@@ -1,23 +1,14 @@
 import { IMAGES } from "./images";
+import { PLANS, PLAN_ORDER, type Plan } from "./plans";
 
 /* ------------------------------------------------------------------ */
 /* Luma — types & seed data                                            */
 /* ------------------------------------------------------------------ */
 
 export type Rsvp = "confirmed" | "pending" | "declined";
-export type Plan = "essential" | "celebration" | "luxe";
-
-export const planLabel = (p: Plan) =>
-  p === "essential" ? "Essential Planner" : p === "celebration" ? "Celebration Suite" : "Premium Luxe";
-
-/**
- * Position of a plan in the upgrade ladder; -1 when there is no plan.
- *
- * The checkout gate compares ranks to block buying the same tier twice or
- * downgrading, so this is only correct while TIERS stays in ascending price
- * order — asserted in the tests.
- */
-export const planRank = (p: Plan | null): number => (p ? TIERS.findIndex((t) => t.id === p) : -1);
+// Plans, prices and feature gates live in ./plans — re-exported here so the
+// existing imports keep working.
+export { planLabel, planRank, type Plan } from "./plans";
 /** A = partner one · T = partner two · B = both */
 export type Assignee = "A" | "T" | "B";
 
@@ -139,7 +130,7 @@ export type TableSkin = "linen" | "marble" | "oak" | "noir";
 
 /**
  * Table surfaces. Linen is the house default and always available; the rest
- * are part of Premium Luxe and render locked for everyone else, so the choice
+ * are part of Luxe and render locked for everyone else, so the choice
  * is visible before it is bought rather than hidden behind an upsell.
  */
 export const TABLE_SKINS: { id: TableSkin; label: string; note: string; lockedBy?: Plan }[] = [
@@ -741,26 +732,14 @@ export const seedTemplates: Template[] = [
 
 /* ------------------------------ pricing ---------------------------- */
 
+/** The plans in ascending order, shaped for the pricing and checkout UI. */
 export const TIERS: {
   id: Plan; name: string; price: number; blurb: string;
-  features: string[]; featured?: boolean; lockedBy?: Plan;
-}[] = [
-  {
-    id: "essential", name: "Essential Planner", price: 49,
-    blurb: "Every core tool to plan calmly from day one.",
-    features: ["All core planning tools", "Unlimited guests", "Budget, timeline & vendors", "Basic support", "No invitations", "No wedding website"],
-  },
-  {
-    id: "celebration", name: "Celebration Suite", price: 99, featured: true,
-    blurb: "The full planning suite plus invitations that feel like you.",
-    features: ["Everything in Essential", "Digital invitations", "RSVP tracking", "20+ templates", "Colors, fonts & photo customization", "Guest messaging", "Basic wedding website"],
-  },
-  {
-    id: "luxe", name: "Premium Luxe", price: 199,
-    blurb: "Animated invitations and a website guests will re-watch.",
-    features: ["Everything in Celebration", "Animated invitations", "Music integration", "Premium animated designs", "Custom domain", "Full website customization", "Advanced animations", "Priority support", "Multiple events", "Photo gallery", "Website playlist"],
-  },
-];
+  features: string[]; featured?: boolean;
+}[] = PLAN_ORDER.map((id) => {
+  const p = PLANS[id];
+  return { id, name: p.name, price: p.price, blurb: p.tagline, features: p.features, featured: p.featured };
+});
 
 /* ------------------------------ testimonials ---------------------------- */
 
