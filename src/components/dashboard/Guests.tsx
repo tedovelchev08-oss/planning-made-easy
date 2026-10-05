@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Download, Mail, MessageSquare, Pencil, Plus, Search, Trash2, Upload, Users, X } from "lucide-react";
+import { Copy, Download, Mail, MessageSquare, Pencil, Plus, Search, Trash2, Upload, Users, X } from "lucide-react";
 import { Guest, MEALS, Rsvp, initials } from "../../lib/data";
 import { useApp } from "../../lib/store";
 import { parseCsvLine, toCsvRow } from "../../lib/csv";
@@ -456,18 +456,36 @@ export default function Guests() {
         {messaging && (
           <div className="p-7 sm:p-8">
             <h2 className="flex items-center gap-2.5 font-display text-2xl text-ink"><Mail size={20} className="text-lav-deep" /> Message {messaging.name.split(" ")[0]}</h2>
-            <p className="mt-1 text-[0.82rem] font-semibold text-ink-mute">Delivered by email via Resend — warm, on-brand, trackable.</p>
+            {/* Luma has no email sending — this used to say "Delivered by email via
+                Resend" and toast "Message queued" while nothing was sent. */}
+            <p className="mt-1 text-[0.82rem] font-semibold text-ink-mute">Write it here, then send it the way you usually reach {messaging.name.split(" ")[0]} — Luma doesn't send it for you.</p>
             <textarea
               className={`${inputCls} mt-5 min-h-[130px]`} value={msgBody} onChange={(e) => setMsgBody(e.target.value)}
               placeholder={`Hi ${messaging.name.split(" ")[0]}, we can't wait to celebrate with you…`} autoFocus
             />
             <div className="mt-6 flex justify-end gap-3">
               <button onClick={() => setMessaging(null)} className={btn.ghost}>Cancel</button>
+              <a
+                href={`mailto:?body=${encodeURIComponent(msgBody)}`}
+                onClick={(e) => { if (!msgBody.trim()) { e.preventDefault(); toast("Write a line or two first", undefined, "warn"); } }}
+                className={btn.outline}
+              >
+                <Mail size={14} /> Open in email
+              </a>
               <button
-                onClick={() => { if (!msgBody.trim()) { toast("Write a line or two first", undefined, "warn"); return; } setMessaging(null); toast("Message queued", `On its way to ${messaging.name}.`); }}
+                onClick={async () => {
+                  if (!msgBody.trim()) { toast("Write a line or two first", undefined, "warn"); return; }
+                  try {
+                    await navigator.clipboard.writeText(msgBody);
+                    toast("Message copied", `Paste it wherever you talk to ${messaging.name.split(" ")[0]}.`);
+                  } catch {
+                    toast("Copy your message", msgBody, "info");
+                  }
+                  setMessaging(null);
+                }}
                 className={btn.ink}
               >
-                <Mail size={14} /> Send message
+                <Copy size={14} /> Copy message
               </button>
             </div>
           </div>
