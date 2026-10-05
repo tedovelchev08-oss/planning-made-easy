@@ -6,6 +6,7 @@ import {
   TABLE_SKINS, VENUE_KINDS, initials, venueKind,
 } from "../../lib/data";
 import { useApp } from "../../lib/store";
+import { PLANS, can } from "../../lib/plans";
 import { playChime } from "../../lib/sound";
 import { Field, Modal, Pill, btn, inputCls, selectCls } from "../ui";
 import SeatingSheet from "./SeatingSheet";
@@ -309,7 +310,7 @@ function TableNode({
 }
 
 export default function Seating() {
-  const { db, setDb, toast } = useApp();
+  const { db, setDb, toast, openUpgrade } = useApp();
   const canvasRef = useRef<HTMLDivElement>(null);
   const [q, setQ] = useState("");
   const [seatPicker, setSeatPicker] = useState<{ tableId: string; seat: number } | null>(null);
@@ -467,7 +468,7 @@ export default function Seating() {
             ))}
           </div>
           <button
-            onClick={() => window.print()}
+            onClick={() => (can(db.plan, "exports") ? window.print() : openUpgrade("exports"))}
             className={`${btn.outline} mt-5 w-full !py-2.5`}
           >
             <Printer size={14} /> Export seating chart
@@ -788,19 +789,19 @@ export default function Seating() {
               <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-ink-mute">Surface</p>
               <div className="mt-3 grid grid-cols-4 gap-2.5">
                 {TABLE_SKINS.map((sk) => {
-                  const locked = !!sk.lockedBy && db.plan !== sk.lockedBy;
+                  const locked = !!sk.lockedBy && !can(db.plan, "premiumSkins");
                   const active = skinOf(settings) === sk.id;
                   return (
                     <button
                       key={sk.id}
                       type="button"
-                      disabled={locked}
                       aria-pressed={active}
-                      title={locked ? `${sk.label} — part of Premium Luxe` : sk.note}
-                      onClick={() => setSettings({ ...settings, skin: sk.id })}
+                      title={locked ? `${sk.label} — part of ${PLANS.luxe.name}` : sk.note}
+                      // locked finishes explain themselves instead of doing nothing
+                      onClick={() => (locked ? openUpgrade("premiumSkins") : setSettings({ ...settings, skin: sk.id }))}
                       className={`group relative overflow-hidden rounded-2xl p-1.5 text-left transition ${
                         active ? "ring-2 ring-gold" : "ring-1 ring-ink/10 hover:ring-ink/30"
-                      } ${locked ? "cursor-not-allowed" : "cursor-pointer"}`}
+                      } cursor-pointer`}
                     >
                       <span
                         className={`block h-12 w-full rounded-xl transition ${locked ? "opacity-45 saturate-50" : ""}`}
@@ -810,14 +811,14 @@ export default function Seating() {
                         {locked && <Lock size={9} className="shrink-0 text-gold-deep" aria-hidden="true" />}
                         {sk.label}
                       </span>
-                      {locked && <span className="sr-only"> — locked, part of Premium Luxe</span>}
+                      {locked && <span className="sr-only"> — part of {PLANS.luxe.name}</span>}
                     </button>
                   );
                 })}
               </div>
-              {TABLE_SKINS.some((sk) => sk.lockedBy && db.plan !== sk.lockedBy) && (
+              {!can(db.plan, "premiumSkins") && (
                 <p className="mt-2.5 text-[0.72rem] font-semibold text-ink-mute">
-                  Marble, oak and noir come with <span className="font-extrabold text-gold-deep">Premium Luxe</span>.
+                  Marble, oak and noir come with <span className="font-extrabold text-gold-deep">{PLANS.luxe.name}</span>.
                 </p>
               )}
             </div>

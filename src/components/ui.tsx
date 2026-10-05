@@ -2,7 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import { ArrowRight, Check, Heart, Loader2, Lock, Mail, RefreshCw, Sparkles, X } from "lucide-react";
-import { TIERS, Plan, planRank, fmtMoney } from "../lib/data";
+import { TIERS, Plan, planRank } from "../lib/data";
+import { FEATURES, PLANS, PLAN_ORDER, CURRENCIES, CURRENCY_ORDER, FREE_GUEST_LIMIT, formatPrice, upgradePrice, type Currency } from "../lib/plans";
+import { useCurrency } from "../lib/currency";
 import { purchaseArrived } from "../lib/checkout";
 import { useApp, usePrefersReducedMotion, useStats } from "../lib/store";
 import { authApi, createCheckoutSession } from "../lib/api";
@@ -238,6 +240,125 @@ export function ToastHost() {
   );
 }
 
+/* ------------------------------ plan tag ------------------------------ */
+
+/** A small "Celebration" / "Luxe" marker on a control the current plan doesn't include. */
+export function PlanTag({ plan }: { plan: Plan }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-gold-soft px-2 py-0.5 text-[0.58rem] font-extrabold uppercase tracking-[0.12em] text-gold-deep">
+      <Lock size={8} aria-hidden="true" /> {PLANS[plan].name}
+    </span>
+  );
+}
+
+/* ------------------------------ currency ------------------------------ */
+
+/** A small, quiet currency picker: prices are the same number in each. */
+export function CurrencySelect({ value, onChange, className = "", tone = "light" }: {
+  value: Currency; onChange: (c: Currency) => void; className?: string; tone?: "light" | "dark";
+}) {
+  return (
+    <label className={`inline-flex items-center gap-2 text-[0.72rem] font-bold ${tone === "dark" ? "text-cream/70" : "text-ink-mute"} ${className}`}>
+      Currency
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as Currency)}
+        className={`cursor-pointer rounded-full border px-3 py-1.5 text-[0.75rem] font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
+          tone === "dark" ? "border-cream/25 bg-transparent text-cream" : "border-ink/15 bg-white/80 text-ink"
+        }`}
+      >
+        {CURRENCY_ORDER.map((c) => <option key={c} value={c}>{CURRENCIES[c].label}</option>)}
+      </select>
+    </label>
+  );
+}
+
+/* ------------------------------ upgrade prompt ------------------------------ */
+
+/**
+ * Shown when someone on a plan reaches a feature it doesn't include. It
+ * explains rather than blocks: what the feature does, which plan has it and
+ * the one-time price — never a bare error or a disabled control.
+ */
+export function UpgradeModal() {
+  const { upgrade, closeUpgrade, openCheckout, db } = useApp();
+  const [currency, setCurrency] = useCurrency();
+  const [compare, setCompare] = useState(false);
+  const feature = upgrade ? FEATURES[upgrade] : null;
+
+  useEffect(() => { if (upgrade) setCompare(false); }, [upgrade]);
+
+  const go = (plan: Plan) => { closeUpgrade(); openCheckout(plan); };
+  const atLimit = upgrade === "unlimitedGuests";
+  const plan = feature ? PLANS[feature.plan] : null;
+
+  return (
+    <Modal open={!!upgrade} onClose={closeUpgrade} label="Upgrade">
+      {feature && plan && (
+        <div className="p-7 sm:p-9">
+          <p className="flex items-center gap-2 text-[0.7rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
+            <Sparkles size={13} /> {atLimit ? "Your celebration is growing" : "A premium Luma feature"}
+          </p>
+          <h2 className="mt-3 font-display text-[1.9rem] leading-tight text-ink">
+            {atLimit ? `You've reached the ${PLANS.essential.name} guest limit.` : feature.title}
+          </h2>
+          <p className="mt-3 text-[0.95rem] leading-relaxed text-ink-2">
+            {atLimit
+              ? `${PLANS.essential.name} includes up to ${FREE_GUEST_LIMIT} guests. Every guest you've added stays exactly as it is — upgrading simply lifts the limit.`
+              : feature.body}
+          </p>
+
+          <div className="mt-6 rounded-2xl border border-gold/40 bg-gold-soft/40 p-5">
+            <p className="text-[0.9rem] font-bold text-ink">
+              {atLimit ? "Unlimited guests are" : `${feature.title} ${/s$/.test(feature.title) ? "are" : "is"}`} included with {plan.name}.
+            </p>
+            <p className="mt-1 text-[0.85rem] text-ink-2">
+              Upgrade for <strong className="text-ink">{formatPrice(upgradePrice(plan.id, db.plan) ?? plan.price, currency)}</strong> — one-time payment, no subscription.
+              {db.plan !== "essential" && <> You only pay the difference from {PLANS[db.plan].name}.</>}
+            </p>
+            <CurrencySelect value={currency} onChange={setCurrency} className="mt-3" />
+          </div>
+
+          {!compare ? (
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button className={`${btn.ink} flex-1`} onClick={() => go(feature.plan)}>
+                Upgrade to {plan.name}
+              </button>
+              <button className={`${btn.outline} flex-1`} onClick={() => setCompare(true)}>See all plans</button>
+            </div>
+          ) : (
+            <ul className="mt-6 space-y-2.5" aria-label="All plans">
+              {PLAN_ORDER.map((id) => {
+                const p = PLANS[id];
+                const current = db.plan === id;
+                const owned = planRank(id) <= planRank(db.plan);
+                return (
+                  <li key={id} className={`flex items-center gap-4 rounded-2xl border px-4 py-3.5 ${p.featured ? "border-blush-deep/50 bg-blush-soft/40" : "border-ink/10 bg-white/70"}`}>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-display text-lg text-ink">
+                        {p.name}{" "}
+                        <span className="font-sans text-[0.8rem] font-extrabold text-ink-2">
+                          {p.price === 0 ? "Free" : owned ? "" : `${formatPrice(upgradePrice(id, db.plan) ?? p.price, currency)} one-time`}
+                        </span>
+                      </p>
+                      <p className="mt-0.5 text-[0.78rem] leading-snug text-ink-2">{p.tagline}</p>
+                    </div>
+                    {current ? (
+                      <span className="shrink-0 text-[0.72rem] font-extrabold uppercase tracking-[0.12em] text-sage-deep">Your plan</span>
+                    ) : owned ? null : (
+                      <button className={`${btn.sm} shrink-0 bg-ink text-cream hover:bg-ink/85`} onClick={() => go(id)}>Choose</button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
 /* ------------------------------ checkout (real Stripe · one-time) ------------------------------ */
 
 /** Stashed before redirecting to Stripe so the return gate knows what to wait for. */
@@ -245,9 +366,12 @@ const PENDING_TIER_KEY = "luma:pendingTier";
 
 export function CheckoutModal() {
   const { checkout, closeCheckout, toast, db, mode, weddingId } = useApp();
+  const [currency, setCurrency] = useCurrency();
   const [step, setStep] = useState<"review" | "starting" | "error">("review");
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const tier = TIERS.find((t) => t.id === checkout);
+  // what this wedding actually pays: the difference when upgrading
+  const charge = tier ? upgradePrice(tier.id, db.plan) ?? tier.price : 0;
 
   useEffect(() => {
     if (checkout) { setStep("review"); setErrMsg(null); }
@@ -280,7 +404,7 @@ export function CheckoutModal() {
     try {
       sessionStorage.setItem(PENDING_TIER_KEY, tier.id);
       if (!weddingId) throw new Error("No wedding found. Please complete onboarding first.");
-      const url = await createCheckoutSession(tier.id, weddingId);
+      const url = await createCheckoutSession(tier.id, weddingId, currency);
       // Top-level navigation to Stripe Checkout. The entitlement is granted by
       // the webhook; on return, CheckoutReturnGate confirms it (see below).
       window.location.assign(url);
@@ -301,13 +425,14 @@ export function CheckoutModal() {
 
           <div className="mt-6 rounded-2xl border border-ink/10 bg-white/70 p-5">
             <div className="flex items-baseline justify-between">
-              <span className="text-sm font-semibold text-ink-2">One-time purchase</span>
-              <span className="font-display text-3xl text-ink">{fmtMoney(tier.price)}</span>
+              <span className="text-sm font-semibold text-ink-2">One-time payment</span>
+              <span className="font-display text-3xl text-ink">{formatPrice(charge, currency)}</span>
             </div>
-            <p className="mt-1 text-xs text-ink-mute">No monthly subscription. One beautiful purchase — yours forever.</p>
+            <p className="mt-1 text-xs text-ink-mute">No subscription, no recurring fees. Yours for your whole celebration.</p>
+            <CurrencySelect value={currency} onChange={setCurrency} className="mt-3" />
             {db.plan !== "essential" && step === "review" && (
               <div className="mt-4 border-t border-dashed border-ink/10 pt-3 text-xs text-ink-2">
-                Current plan: <span className="font-bold capitalize text-ink">{db.plan}</span> — you'll be upgraded when payment clears.
+                Current plan: <span className="font-bold text-ink">{PLANS[db.plan].name}</span> — you pay only the difference, and you're upgraded the moment payment clears.
               </div>
             )}
           </div>
@@ -315,7 +440,7 @@ export function CheckoutModal() {
           {step === "review" && (
             <div className="mt-6 space-y-3">
               <button className={`${btn.ink} w-full`} onClick={() => void startPayment()}>
-                <Lock size={14} /> Pay {fmtMoney(tier.price)} securely
+                <Lock size={14} /> Pay {formatPrice(charge, currency)} securely
               </button>
               <p className="text-center text-[0.7rem] text-ink-mute">
                 {mode === "cloud"

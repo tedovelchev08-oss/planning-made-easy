@@ -4,6 +4,8 @@ import { Check, Copy, ExternalLink, Globe, Heart, Lock, MapPin, Monitor, Music2,
 import { SITE_SECTIONS, fmtDate, fmtDateShort } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
+import { FEATURES, PLANS, can, formatPrice } from "../../lib/plans";
+import { useCurrency } from "../../lib/currency";
 import { guestLink } from "../../lib/links";
 import type { Db } from "../../lib/store";
 import { Modal, Pill, SafeImg, btn } from "../ui";
@@ -205,7 +207,8 @@ export function SiteBody({ w, db, anim, onRsvp, footer = true }: {
 /* ------------------------------------------------------------------ */
 
 export default function Website() {
-  const { db, patch, toast, openCheckout } = useApp();
+  const { db, patch, toast, openCheckout, openUpgrade } = useApp();
+  const [currency] = useCurrency();
   const w = db.website;
   const [device, setDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [publishing, setPublishing] = useState(false);
@@ -245,13 +248,14 @@ export default function Website() {
   const on = (id: string) => !!w.sections[id];
   const anim = isLuxe && w.animations && !reduced;
 
-  if (db.plan === "essential") {
+  if (!can(db.plan, "website")) {
     return (
       <div className="mx-auto max-w-xl rounded-[2rem] border border-white/70 bg-white/60 p-10 text-center backdrop-blur-md">
         <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-lav-soft text-lav-deep"><Globe size={24} /></span>
-        <h2 className="mt-5 font-display text-3xl text-ink">Your website lives in the <em className="text-blush-deep">Celebration Suite.</em></h2>
-        <p className="mt-3 text-[0.95rem] leading-relaxed text-ink-2">A beautiful one-page wedding site with RSVPs, schedule, travel and registry — yours for the one-time Suite price.</p>
-        <button onClick={() => openCheckout("celebration")} className={`${btn.blush} mt-7`}>Unlock the website — $99 one-time</button>
+        <h2 className="mt-5 font-display text-3xl text-ink">Your website comes with <em className="text-blush-deep">{PLANS.celebration.name}.</em></h2>
+        <p className="mt-3 text-[0.95rem] leading-relaxed text-ink-2">{FEATURES.website.body}</p>
+        <button onClick={() => openCheckout("celebration")} className={`${btn.blush} mt-7`}>Unlock the website — {formatPrice(PLANS.celebration.price, currency)} one-time</button>
+        <p className="mt-3 text-[0.75rem] font-semibold text-ink-mute">One-time payment. No subscription.</p>
       </div>
     );
   }
@@ -323,7 +327,7 @@ export default function Website() {
               <p className="mt-0.5 text-[0.64rem] font-semibold text-ink-mute">Your site shares its address with your invitation</p>
             </div>
             <button onClick={() => {
-              if (!isLuxe) { toast("Animations are Luxe", "Scroll reveals and motion unlock with Premium Luxe.", "info"); return; }
+              if (!can(db.plan, "websiteMotion")) { openUpgrade("websiteMotion"); return; }
               setW({ animations: !w.animations });
             }} aria-pressed={w.animations}
               className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-[0.85rem] font-bold transition cursor-pointer ${w.animations && isLuxe ? "border-sage/60 bg-sage-soft/60 text-ink" : "border-ink/12 text-ink-mute"}`}>

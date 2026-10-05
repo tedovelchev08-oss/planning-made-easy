@@ -7,6 +7,7 @@ import { useApp, usePrefersReducedMotion, type Db, type InvitationConfig } from 
 import { getGuestByToken, getPublicInvitation, submitRsvp, type PublicInvitation } from "../lib/api";
 import { playChime, useChimeLoop } from "../lib/sound";
 import { siteHost } from "../lib/links";
+import { can } from "../lib/plans";
 import { InviteArt } from "../components/dashboard/Invitations";
 import { SiteBody } from "../components/dashboard/Website";
 import { DesignFrame, Logo, SafeImg } from "../components/ui";
@@ -118,7 +119,8 @@ export default function GuestInvite() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, token]);
 
-  const cfg: InvitationConfig = pub
+  const plan = pub ? pub.plan : db.plan;
+  const savedCfg: InvitationConfig = pub
     ? {
         templateId: pub.invitation.template_id,
         names: pub.names,
@@ -135,10 +137,17 @@ export default function GuestInvite() {
         music: pub.invitation.music,
       }
     : db.invitation;
+  // Meal choices and notes are a Celebration feature. The free plan's
+  // invitation defaults to having them switched on, so honour the plan here
+  // rather than trusting the saved toggles.
+  const cfg: InvitationConfig = {
+    ...savedCfg,
+    meal: savedCfg.meal && can(plan, "rsvpDetails"),
+    notes: savedCfg.notes && can(plan, "rsvpDetails"),
+  };
   const custom: PublicCustom = pub ? pub.custom : db.customTemplates.find((c) => c.id === cfg.templateId) ?? null;
   const names = pub ? pub.names : db.wedding.names;
   const dateIso = pub ? pub.date : db.wedding.date;
-  const plan = pub ? pub.plan : db.plan;
   const website = pub
     ? { ...pub.website, heroPhoto: pub.website.hero_photo }
     : db.website;

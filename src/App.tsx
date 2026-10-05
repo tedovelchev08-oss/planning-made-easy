@@ -16,7 +16,7 @@ import Seating from "./components/dashboard/Seating";
 import Registry from "./components/dashboard/Registry";
 import PageHub from "./components/dashboard/PageHub";
 import {
-  AuthModal, CheckoutModal, CheckoutReturnGate, ErrorBoundary, OnboardingModal, ToastHost,
+  AuthModal, CheckoutModal, CheckoutReturnGate, ErrorBoundary, OnboardingModal, ToastHost, UpgradeModal,
 } from "./components/ui";
 
 function ScrollToTop() {
@@ -92,6 +92,7 @@ export default function App() {
         <ToastHost />
         <AuthModal />
         <CheckoutModal />
+        <UpgradeModal />
         {/* confirms the entitlement after returning from Stripe (B2) */}
         <CheckoutReturnGate />
         <OnboardingModal />

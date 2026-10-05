@@ -1,14 +1,38 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronLeft, ChevronRight, Lock, X } from "lucide-react";
-import { TESTIMONIALS, TIERS, fmtMoney } from "../../lib/data";
+import { Check, ChevronLeft, ChevronRight, Lock } from "lucide-react";
+import { TESTIMONIALS } from "../../lib/data";
+import { PLANS, PLAN_ORDER, formatPrice, type Plan } from "../../lib/plans";
+import { useCurrency } from "../../lib/currency";
+import { useNavigate } from "react-router-dom";
 import { useApp, useMediaQuery } from "../../lib/store";
-import { Pill, Reveal, Stars } from "../ui";
+import { CurrencySelect, Pill, Reveal, Stars } from "../ui";
 
 /* ------------------------------ pricing ------------------------------ */
 
+/**
+ * Free to start, two one-time upgrades. Plans, prices and feature lists all
+ * come from lib/plans.ts; the currency is the visitor's to choose, and the
+ * number is the same in each (€49 / $49 / £49) — never a conversion.
+ */
 export function Pricing() {
-  const { openCheckout } = useApp();
+  const { openCheckout, setAuthOpen, user, mode } = useApp();
+  const navigate = useNavigate();
+  const [currency, setCurrency] = useCurrency();
+
+  const choose = (plan: Plan) => {
+    if (plan === "essential") {
+      // the free plan is not bought: it starts the planner
+      if (mode === "demo") navigate("/demo");
+      else if (user) navigate("/planner");
+      else setAuthOpen(true);
+      return;
+    }
+    // a purchase attaches to a wedding, so it needs an account first
+    if (mode === "cloud" && !user) { setAuthOpen(true); return; }
+    openCheckout(plan);
+  };
+
   return (
     <section id="pricing" className="relative scroll-mt-28 overflow-hidden px-5 py-24 sm:px-8 sm:py-32">
       <div className="pointer-events-none absolute right-[-10%] top-10 h-96 w-96 rounded-full bg-blush/20 blur-3xl" aria-hidden="true" />
@@ -21,75 +45,83 @@ export function Pricing() {
               <span className="h-px w-9 bg-blush-deep/60" /> Pricing
             </p>
             <h2 className="mt-5 font-display text-4xl leading-[1.08] tracking-tight text-ink sm:text-5xl">
-              One beautiful <em className="text-blush-deep">purchase.</em>
+              Start free. <em className="text-blush-deep">Upgrade once,</em> if you love it.
             </h2>
           </Reveal>
           <Reveal delay={0.12}>
             <p className="max-w-md text-lead leading-relaxed text-ink-2 lg:ml-auto">
-              <strong className="text-ink">No monthly subscription. Ever.</strong> Pay once and every
-              tool is yours for the whole journey: engagement to thank-you notes.
+              Plan your whole wedding on {PLANS.essential.name} for free. When you want every guest, every design
+              and your own website, upgrade with <strong className="text-ink">one payment — no subscription, no recurring fees.</strong>
             </p>
+            <CurrencySelect value={currency} onChange={setCurrency} className="mt-5 lg:ml-auto lg:flex lg:w-fit" />
           </Reveal>
         </div>
 
         <div className="mt-16 grid items-stretch gap-6 lg:grid-cols-3">
-          {TIERS.map((tier, i) => {
-            const featured = !!tier.featured;
+          {PLAN_ORDER.map((id, i) => {
+            const plan = PLANS[id];
+            const featured = !!plan.featured;
+            const free = plan.price === 0;
             return (
-              <Reveal key={tier.id} delay={i * 0.1} className={featured ? "lg:-translate-y-5" : ""}>
+              <Reveal key={id} delay={i * 0.1} className={featured ? "lg:-translate-y-5" : ""}>
                 {/* The badge straddles the card's top edge, so it lives on this
                     wrapper rather than inside the card — the card clips its own
                     overflow to keep the 2rem radius, which cut the badge in half. */}
                 <div className="relative h-full">
                 {featured && (
                   <span className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-blush-deep px-4 py-1.5 text-eyebrow font-extrabold uppercase tracking-label-wide text-cream shadow-card">
-                    Most loved
+                    Recommended
                   </span>
                 )}
                 <article
+                  aria-label={`${plan.name}, ${free ? "free" : `${formatPrice(plan.price, currency)} one-time`}`}
                   className={`relative flex h-full flex-col overflow-hidden rounded-panel p-8 transition-all duration-500 hover:-translate-y-2 ${
                     featured
                       ? "border border-blush-deep/50 bg-ink text-cream shadow-glass"
                       : "border border-white/70 bg-white/55 backdrop-blur-md hover:shadow-lift hover:bg-white/80"
                   }`}
                 >
-                  {tier.id === "luxe" && (
-                    <span className="absolute right-6 top-6"><Pill tone="pending">Luxe</Pill></span>
+                  {id === "luxe" && (
+                    <span className="absolute right-6 top-6"><Pill tone="pending">Premium</Pill></span>
                   )}
 
-                  <h3 className={`font-display text-title-lg ${featured ? "text-cream" : "text-ink"}`}>{tier.name}</h3>
-                  <p className={`mt-1.5 text-small leading-relaxed ${featured ? "text-cream/60" : "text-ink-2"}`}>{tier.blurb}</p>
+                  <h3 className={`font-display text-title-lg ${featured ? "text-cream" : "text-ink"}`}>{plan.name}</h3>
+                  <p className={`mt-1.5 text-small font-semibold leading-relaxed ${featured ? "text-cream/75" : "text-ink-2"}`}>{plan.tagline}</p>
 
                   <div className="mt-7 flex items-baseline gap-2">
-                    <span className={`font-display text-display leading-none ${featured ? "text-cream" : "text-ink"}`}>{fmtMoney(tier.price)}</span>
-                    <span className={`text-small font-bold ${featured ? "text-blush" : "text-ink-mute"}`}>one-time</span>
+                    <span className={`font-display text-display leading-none ${featured ? "text-cream" : "text-ink"}`}>
+                      {formatPrice(plan.price, currency)}
+                    </span>
+                    <span className={`text-small font-bold ${featured ? "text-blush" : "text-ink-mute"}`}>{free ? "Free forever" : "one-time"}</span>
                   </div>
+                  {!free && (
+                    <p className={`mt-1.5 text-caption font-semibold ${featured ? "text-cream/55" : "text-ink-mute"}`}>No subscription · no recurring fees</p>
+                  )}
+
+                  <p className={`mt-6 text-small leading-relaxed ${featured ? "text-cream/70" : "text-ink-2"}`}>{plan.value}</p>
 
                   <div className={`hairline my-6 ${featured ? "opacity-60" : ""}`} />
 
                   <ul className="flex-1 space-y-3">
-                    {tier.features.map((f) => {
-                      const excluded = f.startsWith("No ");
-                      return (
-                        <li key={f} className={`flex items-start gap-2.5 text-body ${excluded ? (featured ? "text-cream/35 line-through" : "text-ink-mute/70 line-through") : featured ? "text-cream/85" : "text-ink-2"}`}>
-                          <span className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full ${excluded ? "bg-transparent border border-current opacity-50" : featured ? "bg-blush-deep text-cream" : "bg-blush-soft text-blush-deep"}`}>
-                            {excluded ? <X size={10} strokeWidth={3} /> : <Check size={10} strokeWidth={3.4} />}
-                          </span>
-                          {f}
-                        </li>
-                      );
-                    })}
+                    {plan.features.map((f) => (
+                      <li key={f} className={`flex items-start gap-2.5 text-body ${featured ? "text-cream/85" : "text-ink-2"}`}>
+                        <span className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full ${featured ? "bg-blush-deep text-cream" : "bg-blush-soft text-blush-deep"}`}>
+                          <Check size={10} strokeWidth={3.4} />
+                        </span>
+                        {f}
+                      </li>
+                    ))}
                   </ul>
 
                   <button
-                    onClick={() => openCheckout(tier.id)}
+                    onClick={() => choose(id)}
                     className={`mt-8 w-full cursor-pointer rounded-full py-3.5 text-body font-bold transition-all duration-300 active:scale-[0.97] ${
                       featured
                         ? "bg-blush-deep text-cream hover:brightness-110 hover:shadow-lift"
                         : "border border-ink/20 text-ink hover:border-ink/50 hover:bg-ink hover:text-cream"
                     }`}
                   >
-                    Choose {tier.id === "essential" ? "Essential" : tier.id === "celebration" ? "Celebration" : "Luxe"}
+                    {free ? "Start planning free" : `Choose ${plan.name}`}
                   </button>
                 </article>
                 </div>
@@ -101,7 +133,7 @@ export function Pricing() {
         <Reveal delay={0.2}>
           <p className="mt-10 flex flex-wrap items-center justify-center gap-2 text-center text-caption font-semibold text-ink-mute">
             <Lock size={13} className="text-blush-deep" />
-            Secure checkout via Stripe · entitlement granted server-side · lifetime access
+            Secure checkout via Stripe · one-time payment · no recurring fees
           </p>
         </Reveal>
       </div>

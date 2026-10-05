@@ -6,6 +6,7 @@ import {
   FloorObject, seedVenueObjects,
 } from "./data";
 import { isSupabaseConfigured } from "./supabase";
+import { guestLimit, type Feature } from "./plans";
 import {
   type Queue, bucketOf, clearQueue, countQueue, emptyQueue, loadQueue, mergeUnder, persistQueue, retryDelay, sendQueue,
 } from "./syncQueue";
@@ -95,6 +96,10 @@ interface AppCtx {
   signOut: () => void;
   authOpen: boolean;
   setAuthOpen: (v: boolean) => void;
+  /** the paid feature the upgrade prompt is explaining, or null when closed */
+  upgrade: Feature | null;
+  openUpgrade: (f: Feature) => void;
+  closeUpgrade: () => void;
   /** opens the sign-up form with this email already filled in */
   startSignup: (email: string) => void;
   /** consumed by the auth form when it opens */
@@ -244,6 +249,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() =>
     mode === "demo" ? { name: "Maya & Theo", email: "demo@example.com" } : null);
   const [authOpen, setAuthOpen] = useState(false);
+  const [upgrade, setUpgrade] = useState<Feature | null>(null);
+  const openUpgrade = useCallback((f: Feature) => setUpgrade(f), []);
+  const closeUpgrade = useCallback(() => setUpgrade(null), []);
   const [signupEmail, setSignupEmail] = useState<string | null>(null);
   const startSignup = useCallback((email: string) => { setSignupEmail(email); setAuthOpen(true); }, []);
   const [checkout, setCheckout] = useState<Plan | null>(null);
@@ -443,6 +451,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setDb = useCallback<React.Dispatch<React.SetStateAction<Db>>>((action) => {
     setDbState((prev) => {
       const raw = typeof action === "function" ? (action as (d: Db) => Db)(prev) : action;
+      // The free plan's guest limit, enforced here so that every way of adding
+      // a guest — the form, plus-ones, CSV import, accepting an RSVP — hits it.
+      // Only growth past the limit is refused: guests already on the list are
+      // never hidden or removed, and edits to them still save.
+      if (raw.guests.length > prev.guests.length && raw.guests.length > guestLimit(prev.plan)) {
+        queueMicrotask(() => setUpgrade("unlimitedGuests"));
+        return prev;
+      }
       if (modeRef.current === "cloud") {
         const next = normalize(raw);
         scheduleDiff(prev, next);
@@ -711,10 +727,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     db, setDb, patch, toast, toasts, dismissToast,
     user, signOut,
     authOpen, setAuthOpen, startSignup, signupEmail,
+    upgrade, openUpgrade, closeUpgrade,
     checkout, openCheckout, closeCheckout,
     mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner,
     refreshEntitlement, saveNow,
-  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, authOpen, startSignup, signupEmail, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement, saveNow]);
+  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, authOpen, startSignup, signupEmail, upgrade, openUpgrade, closeUpgrade, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement, saveNow]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
