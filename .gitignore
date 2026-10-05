@@ -3,3 +3,6 @@ node_modules/
 dist/
 build/
 *.log
+
+# founder strategy notes (/founder: skills) — private business numbers, not part of the app
+founder/
