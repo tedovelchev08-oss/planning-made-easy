@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { AppProvider, useApp, useStats } from "./store";
 import type { Db } from "./store";
 import type { Guest } from "./data";
@@ -232,5 +232,49 @@ describe("venue objects", () => {
       expect(o.w).toBeGreaterThan(0);
       expect(o.h).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("the free plan's guest limit", () => {
+  const fifty = Array.from({ length: 50 }, (_, i) => guest(`Guest ${i + 1}`));
+
+  /** a free-plan workspace with 50 guests (the demo seeds a paid plan) */
+  function freeAtLimit() {
+    const hook = renderHook(() => useApp(), { wrapper });
+    act(() => hook.result.current.setDb((d) => ({ ...d, plan: "essential", guests: fifty })));
+    return hook;
+  }
+
+  it("refuses a 51st guest and opens the upgrade prompt", async () => {
+    const { result } = freeAtLimit();
+    act(() => result.current.setDb((d) => ({ ...d, guests: [...d.guests, guest("One too many")] })));
+    expect(result.current.db.guests).toHaveLength(50);
+    await waitFor(() => expect(result.current.upgrade).toBe("unlimitedGuests"));
+  });
+
+  it("never removes or hides guests already on the list", () => {
+    const { result } = freeAtLimit();
+    act(() => result.current.setDb((d) => ({ ...d, guests: [...d.guests, guest("One too many")] })));
+    expect(result.current.db.guests.map((g) => g.name)).toEqual(fifty.map((g) => g.name));
+  });
+
+  it("still saves edits to existing guests at the limit", () => {
+    const { result } = freeAtLimit();
+    act(() => result.current.setDb((d) => ({ ...d, guests: d.guests.map((g, i) => (i === 0 ? { ...g, rsvp: "confirmed" } : g)) })));
+    expect(result.current.db.guests[0].rsvp).toBe("confirmed");
+  });
+
+  it("lets a guest be removed, and the freed place be used", () => {
+    const { result } = freeAtLimit();
+    act(() => result.current.setDb((d) => ({ ...d, guests: d.guests.slice(1) })));
+    act(() => result.current.setDb((d) => ({ ...d, guests: [...d.guests, guest("New friend")] })));
+    expect(result.current.db.guests).toHaveLength(50);
+    expect(result.current.upgrade).toBeNull();
+  });
+
+  it("does not limit a paid plan", () => {
+    const { result } = renderHook(() => useApp(), { wrapper });
+    act(() => result.current.setDb((d) => ({ ...d, plan: "celebration", guests: [...fifty, guest("Fifty-one"), guest("Fifty-two")] })));
+    expect(result.current.db.guests).toHaveLength(52);
   });
 });

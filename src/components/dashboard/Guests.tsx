@@ -4,6 +4,8 @@ import { Download, Mail, MessageSquare, Pencil, Plus, Search, Trash2, Upload, Us
 import { Guest, MEALS, Rsvp, initials } from "../../lib/data";
 import { useApp } from "../../lib/store";
 import { parseCsvLine, toCsvRow } from "../../lib/csv";
+import { FREE_GUEST_WARN_AT, PLANS, can, formatPrice, guestLimit } from "../../lib/plans";
+import { useCurrency } from "../../lib/currency";
 import { EmptyState, Field, Modal, Pill, btn, inputCls, selectCls } from "../ui";
 
 const RSVPS: Rsvp[] = ["confirmed", "pending", "declined"];
@@ -13,7 +15,11 @@ const emptyForm = (): Guest => ({
 });
 
 export default function Guests() {
-  const { db, setDb, toast } = useApp();
+  const { db, setDb, toast, openUpgrade } = useApp();
+  const [currency] = useCurrency();
+  // room left on the free plan's guest list (Infinity once paid)
+  const limit = guestLimit(db.plan);
+  const room = limit - db.guests.length;
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | Rsvp>("all");
   const [selected, setSelected] = useState<string[]>([]);
@@ -121,6 +127,10 @@ export default function Guests() {
   const saveEditing = () => {
     if (!editing) return;
     if (!editing.name.trim()) { toast("A name makes it real", "Add the guest's name to save.", "warn"); return; }
+    // new rows this save would create: the guest, and/or a plus-one not yet on the list
+    const addsPlusOne = !!plusOneDraft.name.trim() && !db.guests.some((x) => x.plusOneOf === editing.id);
+    const needed = (isNew ? 1 : 0) + (addsPlusOne ? 1 : 0);
+    if (needed > room) { openUpgrade("unlimitedGuests"); return; } // the form stays open; nothing typed is lost
     if (isNew) {
       const id = `g-${Date.now()}`;
       const host = { ...editing, id };
@@ -193,6 +203,16 @@ export default function Guests() {
       });
     }
     if (!added.length) { toast("Nothing to import", "Check that the first column holds guest names.", "warn"); return; }
+    if (added.length > room) {
+      // all or nothing: half an import is harder to untangle than none
+      toast(
+        "This file is bigger than your guest list",
+        `It has ${added.length} guests and ${PLANS.essential.name} has room for ${Math.max(0, room)} more. Nothing was imported.`,
+        "warn",
+      );
+      openUpgrade("unlimitedGuests");
+      return;
+    }
     setDb((d) => ({ ...d, guests: [...d.guests, ...added] }));
     toast("Guests imported", `${added.length} names joined the list.`);
   };
@@ -210,12 +230,29 @@ export default function Guests() {
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-mute" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search guests, notes, plus-ones…" className={`${inputCls} pl-10`} aria-label="Search guests" />
         </div>
-        <button onClick={() => openEdit(emptyForm(), true)} className={`${btn.ink} !py-2.5`}><Plus size={15} /> Add guest</button>
-        <button onClick={exportCsv} className={`${btn.outline} !py-2.5`}><Download size={14} /> Export</button>
+        <button onClick={() => (room > 0 ? openEdit(emptyForm(), true) : openUpgrade("unlimitedGuests"))} className={`${btn.ink} !py-2.5`}><Plus size={15} /> Add guest</button>
+        <button onClick={() => (can(db.plan, "exports") ? exportCsv() : openUpgrade("exports"))} className={`${btn.outline} !py-2.5`}><Download size={14} /> Export</button>
         <button onClick={() => fileRef.current?.click()} className={`${btn.outline} !py-2.5`}><Upload size={14} /> Import CSV</button>
         <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" aria-label="Import CSV file"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) importCsv(f); e.target.value = ""; }} />
       </div>
+
+      {/* the free plan's guest limit — mentioned kindly before it's reached */}
+      {limit !== Infinity && db.guests.length >= FREE_GUEST_WARN_AT && (
+        <div role="status" className={`flex flex-wrap items-center gap-3 rounded-2xl border px-5 py-3.5 ${room > 0 ? "border-gold/40 bg-gold-soft/45" : "border-blush-deep/40 bg-blush-soft/60"}`}>
+          <Users size={16} className={room > 0 ? "text-gold-deep" : "text-blush-deep"} aria-hidden="true" />
+          <p className="min-w-0 flex-1 text-[0.85rem] font-semibold text-ink-2">
+            {room > 0 ? (
+              <><strong className="text-ink">Your celebration is growing!</strong> {PLANS.essential.name} includes up to {limit} guests — {room} {room === 1 ? "place" : "places"} left.</>
+            ) : (
+              <><strong className="text-ink">You've reached the {PLANS.essential.name} guest limit.</strong> Everyone on your list stays; upgrading lifts the limit.</>
+            )}
+          </p>
+          <button onClick={() => openUpgrade("unlimitedGuests")} className={`${room > 0 ? btn.outline : btn.ink} !px-4 !py-2 text-[0.78rem]`}>
+            {room > 0 ? "About Celebration" : `Upgrade to ${PLANS.celebration.name} — ${formatPrice(PLANS.celebration.price, currency)} one-time`}
+          </button>
+        </div>
+      )}
 
       {/* filter chips */}
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter by RSVP">
