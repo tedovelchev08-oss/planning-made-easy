@@ -36,6 +36,9 @@ function loadTurnstile(): Promise<TurnstileApi> {
   return loading;
 }
 
+/** below this width the 300px widget doesn't fit, so the compact one is used */
+export const COMPACT_BELOW = 300;
+
 export const turnstileSiteKey = (): string | null =>
   ((import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined) ?? "").trim() || null;
 
@@ -69,6 +72,9 @@ export const Turnstile = forwardRef<TurnstileHandle, {
           sitekey,
           action: "rsvp",
           theme: "light",
+          // the normal widget is 300px wide; the RSVP card on a 375px phone
+          // leaves 277px, so it stuck out of the card. Compact is 150px wide.
+          size: box.current.clientWidth < COMPACT_BELOW ? "compact" : "normal",
           callback: (token: string) => cb.current.onToken(token),
           "expired-callback": () => cb.current.onToken(null),
           "error-callback": () => cb.current.onToken(null),
@@ -82,5 +88,6 @@ export const Turnstile = forwardRef<TurnstileHandle, {
     };
   }, []);
 
-  return <div ref={box} className="flex min-h-[65px] justify-center" />;
+  // w-full so clientWidth measures the space the form gives it, not the widget
+  return <div ref={box} className="flex min-h-[65px] w-full justify-center" />;
 });
