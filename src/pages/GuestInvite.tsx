@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Heart, Loader2, Play, Sparkles, StopCircle } from "lucide-react";
@@ -8,6 +8,7 @@ import { getGuestByToken, getPublicInvitation, submitRsvp, type PublicInvitation
 import { playChime, useChimeLoop } from "../lib/sound";
 import { siteHost } from "../lib/links";
 import { can } from "../lib/plans";
+import { Turnstile, type TurnstileHandle } from "../components/Turnstile";
 import { InviteArt } from "../components/dashboard/Invitations";
 import { SiteBody } from "../components/dashboard/Website";
 import { DesignFrame, Logo, SafeImg } from "../components/ui";
@@ -53,6 +54,28 @@ function MissingInvite() {
   );
 }
 
+/** The couple hasn't opened their invitation yet (0011): say so, show nothing else. */
+function ClosedInvite() {
+  return (
+    <div className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-cream px-6 text-center">
+      <span className="inv-petal" style={{ left: "30%", animationDuration: "13s" }} aria-hidden="true" />
+      <span className="flex h-16 w-16 items-center justify-center rounded-full border border-blush/50 bg-white/70 shadow-card">
+        <Heart size={22} className="text-blush-deep" />
+      </span>
+      <h1 className="mt-6 font-display text-4xl tracking-tight text-ink">This invitation isn't open yet</h1>
+      <p className="mt-3 max-w-sm text-body leading-relaxed text-ink-2">
+        The couple is still putting the finishing touches on it. Try this link again soon.
+      </p>
+      <p className="mt-6 max-w-sm text-caption font-semibold text-ink-mute">
+        If this is your wedding, open your planner and switch on “Open to guests”.
+      </p>
+      <Link to="/" className="mt-8 inline-flex items-center gap-2 rounded-full bg-ink px-7 py-3.5 text-small font-bold text-cream transition hover:bg-ink/85 active:scale-[0.97]">
+        Back to Luma
+      </Link>
+    </div>
+  );
+}
+
 function useCountdown(target: number) {
   const [c, setC] = useState({ d: 0, h: 0, m: 0, s: 0 });
   useEffect(() => {
@@ -88,7 +111,7 @@ export default function GuestInvite() {
    */
   const [pub, setPub] = useState<PublicInvitation | null>(null);
   const [knownGuest, setKnownGuest] = useState<{ id: string; name: string } | null>(null);
-  const [loadState, setLoadState] = useState<"loading" | "ready" | "missing">(mode === "cloud" ? "loading" : "ready");
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "missing" | "closed">(mode === "cloud" ? "loading" : "ready");
 
   useEffect(() => {
     if (mode !== "cloud") return;
@@ -107,6 +130,7 @@ export default function GuestInvite() {
         const p = await getPublicInvitation(slug);
         if (!live) return;
         if (!p) { setLoadState("missing"); return; }
+        if (p.live === false) { setLoadState("closed"); return; }
         // show dates & money the way the couple set them, not the visitor's defaults
         configureFormat({ locale: p.locale, currency: p.currency, timeZone: p.timezone });
         setPub(p);
@@ -135,6 +159,7 @@ export default function GuestInvite() {
         fontSerif: pub.invitation.font_serif,
         motion: pub.invitation.motion,
         music: pub.invitation.music,
+        live: true, // only live invitations return a full payload
       }
     : db.invitation;
   // Meal choices and notes are a Celebration feature. The free plan's
@@ -196,6 +221,10 @@ export default function GuestInvite() {
   const [plusOneMeal, setPlusOneMeal] = useState<string | null>(null);
   const [done, setDone] = useState<null | "yes" | "no">(null);
   const [sending, setSending] = useState(false);
+  // proof a person is answering; single-use, so reset after every attempt
+  const turnstile = useRef<TurnstileHandle>(null);
+  const [human, setHuman] = useState<string | null>(null);
+  const [checkUnavailable, setCheckUnavailable] = useState(false);
 
   // personal links pre-fill the invited guest's name
   useEffect(() => { if (knownGuest) setName(knownGuest.name); }, [knownGuest]);
@@ -214,15 +243,21 @@ export default function GuestInvite() {
     const poMeal = po ? (plusOneMeal ?? meal) : null;
 
     if (pub) {
-      // real submission — the anonymous insert policy verifies token/slug.
-      // The guest list is NEVER mutated from here; the couple reviews and syncs.
+      // real submission through api/rsvp.ts: Turnstile, a per-visitor limit,
+      // then the database. The guest list is NEVER mutated from here; the
+      // couple reviews and syncs.
+      if (!human) {
+        toast("One quick check", "Tick the box above the button so we know you're not a robot.", "warn");
+        return;
+      }
       setSending(true);
       try {
-        await submitRsvp({ token, slug: pub.slug, name: name.trim(), answer, meal: answer === "yes" ? meal : null, note: note.trim() || null, source, plusOne: po, plusOneMeal: poMeal });
+        await submitRsvp({ token, slug: pub.slug, name: name.trim(), answer, meal: answer === "yes" ? meal : null, note: note.trim() || null, source, plusOne: po, plusOneMeal: poMeal, turnstile: human });
         playChime(answer === "yes" ? "sparkle" : "undo");
         setDone(answer);
-      } catch {
-        toast("Couldn't send your RSVP", "Check your connection and try again. Nothing was lost.", "warn");
+      } catch (err) {
+        toast("Couldn't send your RSVP", `${err instanceof Error ? err.message : "Please try again."} Nothing you wrote was lost.`, "warn");
+        turnstile.current?.reset();
       } finally {
         setSending(false);
       }
@@ -239,6 +274,7 @@ export default function GuestInvite() {
 
   if (mode === "cloud" && loadState === "loading") return <PageSkeleton />;
   if (mode === "cloud" && loadState === "missing") return <MissingInvite />;
+  if (mode === "cloud" && loadState === "closed") return <ClosedInvite />;
 
   return (
     <div className="relative min-h-[100svh] overflow-hidden" style={{ background: colors.bg, color: colors.ink, fontFamily }}>
@@ -412,6 +448,17 @@ export default function GuestInvite() {
                       className="w-full rounded-xl border bg-transparent px-4 py-3 text-body placeholder:opacity-40 focus:outline-none focus:ring-2"
                       style={{ borderColor: `${colors.accent}55` }} />
                   </label>
+                )}
+
+                {pub && (
+                  <div className="mt-6">
+                    <Turnstile ref={turnstile} onToken={setHuman} onUnavailable={() => setCheckUnavailable(true)} />
+                    {checkUnavailable && (
+                      <p role="alert" className="mt-2 text-center text-caption font-semibold opacity-70">
+                        The quick check couldn't load. Refresh the page, or try again on another connection.
+                      </p>
+                    )}
+                  </div>
                 )}
 
                 <button

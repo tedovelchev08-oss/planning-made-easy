@@ -1,0 +1,86 @@
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+
+/**
+ * Cloudflare Turnstile: proves a person is answering the RSVP, so one
+ * visitor can't flood a wedding with junk. The token is verified by
+ * api/rsvp.ts; tokens are single-use and expire after five minutes, so the
+ * widget is reset after every attempt.
+ *
+ * The site key is public (VITE_TURNSTILE_SITE_KEY). Preview and local builds
+ * use Cloudflare's always-passing test key, set in their environment — never
+ * hardcoded here.
+ */
+
+type TurnstileApi = {
+  render: (el: HTMLElement, opts: Record<string, unknown>) => string;
+  reset: (id: string) => void;
+  remove: (id: string) => void;
+};
+declare global { interface Window { turnstile?: TurnstileApi } }
+
+const SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+let loading: Promise<TurnstileApi> | null = null;
+
+function loadTurnstile(): Promise<TurnstileApi> {
+  if (window.turnstile) return Promise.resolve(window.turnstile);
+  if (!loading) {
+    loading = new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = SCRIPT;
+      s.async = true;
+      s.onload = () => (window.turnstile ? resolve(window.turnstile) : reject(new Error("Turnstile did not load")));
+      s.onerror = () => { loading = null; reject(new Error("Turnstile did not load")); };
+      document.head.appendChild(s);
+    });
+  }
+  return loading;
+}
+
+export const turnstileSiteKey = (): string | null =>
+  ((import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined) ?? "").trim() || null;
+
+export interface TurnstileHandle { reset: () => void }
+
+export const Turnstile = forwardRef<TurnstileHandle, {
+  onToken: (token: string | null) => void;
+  onUnavailable?: () => void;
+}>(function Turnstile({ onToken, onUnavailable }, ref) {
+  const box = useRef<HTMLDivElement>(null);
+  const widget = useRef<string | null>(null);
+  // the latest callbacks, without re-rendering the widget when they change
+  const cb = useRef({ onToken, onUnavailable });
+  cb.current = { onToken, onUnavailable };
+
+  useImperativeHandle(ref, () => ({
+    reset: () => {
+      cb.current.onToken(null);
+      if (widget.current && window.turnstile) window.turnstile.reset(widget.current);
+    },
+  }), []);
+
+  useEffect(() => {
+    const sitekey = turnstileSiteKey();
+    if (!sitekey) { cb.current.onUnavailable?.(); return; }
+    let alive = true;
+    loadTurnstile()
+      .then((t) => {
+        if (!alive || !box.current) return;
+        widget.current = t.render(box.current, {
+          sitekey,
+          action: "rsvp",
+          theme: "light",
+          callback: (token: string) => cb.current.onToken(token),
+          "expired-callback": () => cb.current.onToken(null),
+          "error-callback": () => cb.current.onToken(null),
+        });
+      })
+      .catch(() => cb.current.onUnavailable?.());
+    return () => {
+      alive = false;
+      if (widget.current && window.turnstile) window.turnstile.remove(widget.current);
+      widget.current = null;
+    };
+  }, []);
+
+  return <div ref={box} className="flex min-h-[65px] justify-center" />;
+});

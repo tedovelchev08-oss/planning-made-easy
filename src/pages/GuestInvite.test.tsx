@@ -24,8 +24,10 @@ const unpublished = {
   website: { published: false },
 } as unknown as PublicInvitation;
 
+let payload: unknown = unpublished;
+
 vi.mock("../lib/api", () => ({
-  getPublicInvitation: vi.fn(async () => unpublished),
+  getPublicInvitation: vi.fn(async () => payload),
   getGuestByToken: vi.fn(async () => null),
   submitRsvp: vi.fn(),
 }));
@@ -58,5 +60,21 @@ describe("GuestInvite — a wedding whose site is not published yet", () => {
     expect(screen.getByText("Will you join us?")).toBeTruthy();
     expect(screen.queryByText(/can't be found/i)).toBeNull();
     expect(screen.queryByText(/hiccuped/i)).toBeNull();
+  });
+});
+
+describe("GuestInvite — an invitation the couple hasn't opened yet (0011)", () => {
+  it("says it isn't open, and shows none of the wedding's details", async () => {
+    payload = { slug: "ana-and-ben-7k3q", live: false };
+    render(
+      <MemoryRouter initialEntries={["/invite?slug=ana-and-ben-7k3q"]}>
+        <GuestInvite />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole("heading", { name: /isn't open yet/i })).toBeTruthy();
+    expect(screen.queryByText(/Ana/)).toBeNull();
+    expect(screen.queryByText(/The Old Mill/)).toBeNull();
+    expect(screen.queryByText("Will you join us?")).toBeNull();
+    payload = unpublished;
   });
 });

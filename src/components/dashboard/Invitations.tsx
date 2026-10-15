@@ -466,6 +466,34 @@ export default function Invitations() {
 
         {/* controls */}
         <div className="space-y-5">
+          {/* 0011: an invitation is closed until the couple opens it, so a
+              guessed address shows nothing of a wedding not yet shared */}
+          <section className={`rounded-[1.6rem] border p-6 backdrop-blur-md ${cfg.live ? "border-sage/60 bg-sage-soft/50" : "border-gold/40 bg-gold-soft/40"}`}>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={cfg.live}
+              onClick={() => {
+                setCfg({ live: !cfg.live });
+                toast(cfg.live ? "Invitation closed" : "Invitation open to guests",
+                  cfg.live ? "Guests opening your link now see “not open yet”." : "Anyone with your link can see it and RSVP.");
+              }}
+              className="flex w-full items-center justify-between gap-4 text-left cursor-pointer"
+            >
+              <span>
+                <span className="block text-[0.95rem] font-extrabold text-ink">Open to guests</span>
+                <span className="mt-1 block text-[0.78rem] font-semibold leading-snug text-ink-2">
+                  {cfg.live
+                    ? "On. Anyone with your link sees your invitation and can RSVP."
+                    : "Off. Only you can see it. Guests opening your link see “not open yet” — your names, date and venue stay private."}
+                </span>
+              </span>
+              <span className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${cfg.live ? "bg-sage-deep" : "bg-ink/20"}`}>
+                <span className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${cfg.live ? "translate-x-5" : ""}`} />
+              </span>
+            </button>
+          </section>
+
           {isHtmlDesign ? (
             <section className="rounded-[1.6rem] border border-gold/40 bg-gold-soft/40 p-6 backdrop-blur-md">
               <h3 className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
@@ -730,6 +758,11 @@ export function ShareCard() {
             Guests land on your page — the invitation, your story, the schedule, the registry — and RSVP right there.
             Drop the link in WhatsApp, an Instagram DM, a family group chat; every answer lands in the RSVPs tab.
           </p>
+          {!db.invitation.live && (
+            <p role="status" className="mt-3 max-w-md rounded-2xl border border-gold/50 bg-gold/15 px-4 py-2.5 text-[0.8rem] font-bold text-cream">
+              Your invitation isn't open yet — guests with this link will see “not open yet”. Switch on “Open to guests” in the editor below before you share it.
+            </p>
+          )}
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {channels.map((c) => (
               <a
