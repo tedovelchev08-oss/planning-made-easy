@@ -31,6 +31,11 @@ values
   (test_uuid('701'), 'tp13', false, '{"track": "upload", "uploadName": "Secret song"}',
    'https://example.supabase.co/storage/v1/object/public/media/00000000-0000-0000-0000-000000000701/music/secret.mp3');
 
+-- Storage blocks raw SQL deletes with a guard trigger; the Storage API
+-- clears it per request with this setting. Setting it here, for this test
+-- transaction only, lets the delete POLICIES (the thing under test) decide.
+set local storage.allow_delete_query = 'true';
+
 -- a song already stored for the couple's wedding
 insert into storage.objects (bucket_id, name)
 values ('media', '00000000-0000-0000-0000-000000000700/music/existing.mp3');
