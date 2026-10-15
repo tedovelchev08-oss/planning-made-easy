@@ -88,7 +88,7 @@ vi.mock("./api", async () => {
         colors: null,
         fontSerif: null,
         motion: { petals: "gentle", shimmer: true, type: true },
-        music: { track: "serene", uploadName: null, uploadData: null },
+        music: { track: "serene", uploadName: null, uploadUrl: null },
       },
       website: { template: "serene", sections: {}, bg: "#FFF8F0" },
       customTemplates: [],

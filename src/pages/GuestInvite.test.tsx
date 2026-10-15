@@ -18,7 +18,7 @@ const unpublished = {
     venue_line: "The Old Mill · Sofia", collect_rsvp: true, collect_meal: true, collect_notes: true,
     photo: null, colors: null, font_serif: null,
     motion: { petals: "gentle", shimmer: true, type: true },
-    music: { track: "serene", uploadName: null, uploadData: null },
+    music: { track: "serene", uploadName: null, uploadUrl: null },
   },
   custom: null,
   website: { published: false },
@@ -75,6 +75,38 @@ describe("GuestInvite — an invitation the couple hasn't opened yet (0011)", ()
     expect(screen.queryByText(/Ana/)).toBeNull();
     expect(screen.queryByText(/The Old Mill/)).toBeNull();
     expect(screen.queryByText("Will you join us?")).toBeNull();
+    payload = unpublished;
+  });
+});
+
+describe("GuestInvite — the couple's uploaded song (Block 6)", () => {
+  const withSong = (plan: string) => ({
+    ...(unpublished as object),
+    plan,
+    invitation: {
+      ...((unpublished as { invitation: object }).invitation),
+      music: { track: "upload", uploadName: "Our first dance", url: "https://abc.supabase.co/storage/v1/object/public/media/w/music/song.mp3" },
+    },
+  });
+
+  it("plays it from storage on a Luxe wedding", async () => {
+    payload = withSong("luxe");
+    const { container } = render(
+      <MemoryRouter initialEntries={["/invite?slug=ana-and-ben"]}><GuestInvite /></MemoryRouter>,
+    );
+    await screen.findByText("Will you join us?");
+    expect(container.querySelector("audio")?.getAttribute("src")).toBe("https://abc.supabase.co/storage/v1/object/public/media/w/music/song.mp3");
+    expect(screen.getByRole("button", { name: /play music/i }).textContent).toMatch(/Our first dance/);
+    payload = unpublished;
+  });
+
+  it("doesn't play it once the wedding's plan no longer includes music", async () => {
+    payload = withSong("celebration");
+    const { container } = render(
+      <MemoryRouter initialEntries={["/invite?slug=ana-and-ben"]}><GuestInvite /></MemoryRouter>,
+    );
+    await screen.findByText("Will you join us?");
+    expect(container.querySelector("audio")).toBeNull();
     payload = unpublished;
   });
 });

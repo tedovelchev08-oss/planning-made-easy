@@ -158,7 +158,11 @@ export default function GuestInvite() {
         colors: pub.invitation.colors,
         fontSerif: pub.invitation.font_serif,
         motion: pub.invitation.motion,
-        music: pub.invitation.music,
+        music: {
+          track: pub.invitation.music.track,
+          uploadName: pub.invitation.music.uploadName ?? null,
+          uploadUrl: pub.invitation.music.url ?? null,
+        },
         live: true, // only live invitations return a full payload
       }
     : db.invitation;
@@ -197,7 +201,8 @@ export default function GuestInvite() {
   const countdown = useCountdown(new Date(dateIso).getTime());
 
   const musicCfg = cfg.music;
-  const hasUpload = musicCfg.track === "upload" && !!musicCfg.uploadData;
+  // an uploaded song is a Luxe feature: it plays only while the plan includes music
+  const hasUpload = musicCfg.track === "upload" && !!musicCfg.uploadUrl && can(plan, "music");
   const { playing, start, stop } = useChimeLoop(musicCfg.track === "upload" ? "serene" : musicCfg.track);
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const rsvpRef = React.useRef<HTMLElement | null>(null);
@@ -303,7 +308,7 @@ export default function GuestInvite() {
           {playing || uploadPlaying ? "Playing" : hasUpload ? musicCfg.uploadName : "Music"}
         </button>
       </div>
-      {hasUpload && <audio ref={audioRef} src={musicCfg.uploadData ?? undefined} loop onEnded={() => setUploadPlaying(false)} className="hidden" />}
+      {hasUpload && <audio ref={audioRef} src={musicCfg.uploadUrl ?? undefined} loop onEnded={() => setUploadPlaying(false)} className="hidden" />}
 
       <main className="relative z-10 mx-auto max-w-3xl px-5 pb-20">
         {/* the invitation itself */}

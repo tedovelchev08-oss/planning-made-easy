@@ -125,7 +125,9 @@ export const invitationToRow = (c: InvitationConfig, weddingId: string) => ({
   wedding_id: weddingId, template_id: c.templateId, line1: c.line1, line2: c.line2,
   venue_line: c.venueLine, collect_rsvp: c.rsvp, collect_meal: c.meal, collect_notes: c.notes,
   photo: c.photo, colors: c.colors as unknown as null, font_serif: c.fontSerif,
-  motion: c.motion as never, music: { ...c.music, uploadData: null } as never,
+  // the song's address lives in its own column; the music blob keeps only what to play and its name
+  motion: c.motion as never, music: { track: c.music.track, uploadName: c.music.uploadName } as never,
+  music_url: c.music.uploadUrl,
   is_live: c.live,
 });
 
@@ -205,9 +207,12 @@ export async function fetchWorkspace(weddingId: string, userId: string): Promise
       colors,
       fontSerif: inv?.font_serif ?? null,
       motion: motion ?? { petals: "gentle", shimmer: true, type: true },
-      // uploaded song data is never fetched into the workspace (kept server-side
-      // for the guest page); the couple re-uploads to change it.
-      music: music ? { ...music, uploadData: null } : { track: "serene", uploadName: null, uploadData: null },
+      // an uploaded song is a file in storage; music_url is its public address
+      music: {
+        track: music?.track ?? "serene",
+        uploadName: music?.uploadName ?? null,
+        uploadUrl: inv?.music_url ?? null,
+      },
       // rows from before 0011 have no flag to read: they were live, as is any wedding without a row
       live: inv?.is_live ?? true,
     },
@@ -275,7 +280,7 @@ export async function createWedding(input: {
       venueLine: `${w.venue} · ${w.location}`.replace(/ · $/, ""), rsvp: true, meal: true, notes: true,
       photo: null, colors: null, fontSerif: null,
       motion: { petals: "gentle", shimmer: true, type: true },
-      music: { track: "serene", uploadName: null, uploadData: null },
+      music: { track: "serene", uploadName: null, uploadUrl: null },
       live: false, // closed until the couple chooses to share it
     }, weddingId)),
     s.from("website_config").insert(websiteToRow({
@@ -410,7 +415,8 @@ export interface PublicInvitation {
     colors: { bg: string; ink: string; accent: string } | null;
     font_serif: boolean | null;
     motion: { petals: "off" | "gentle" | "lush"; shimmer: boolean; type: boolean };
-    music: { track: "serene" | "golden" | "dance" | "upload"; uploadName: string | null; uploadData: string | null };
+    /** url: the uploaded song's public address (0013), present only when one was uploaded */
+    music: { track: "serene" | "golden" | "dance" | "upload"; uploadName?: string | null; url?: string | null };
   };
   website: {
     template: "serene" | "editorial" | "garden";
@@ -536,6 +542,55 @@ export async function refreshEntitlement(
     plan: (wedding.data?.plan as Plan | undefined) ?? null,
     purchased: (own.data?.plan as Plan | undefined) ?? null,
   };
+}
+
+/* ------------------------------ uploaded music ------------------------------ */
+
+/** What the media bucket accepts for songs (0008 sets the same list on the bucket). */
+export const MUSIC_TYPES: Record<string, string> = {
+  "audio/mpeg": "mp3", "audio/mp3": "mp3", "audio/mp4": "m4a", "audio/x-m4a": "m4a",
+  "audio/aac": "aac", "audio/wav": "wav", "audio/ogg": "ogg",
+};
+/** under the bucket's 10 MB cap, and small enough to start playing quickly */
+export const MUSIC_MAX_BYTES = 8 * 1024 * 1024;
+
+/** Why a song can't be uploaded, or null when it can. */
+export function musicFileProblem(file: { type: string; size: number }): string | null {
+  if (!(file.type in MUSIC_TYPES)) return "That isn't a song we can play. MP3, M4A, AAC, WAV or OGG work.";
+  if (file.size > MUSIC_MAX_BYTES) return "That song is over 8 MB. Try an MP3 of it.";
+  return null;
+}
+
+/** media/<wedding>/music/<random>.<ext>: the only folder shape the storage policies (0008) allow. */
+export const musicPath = (weddingId: string, type: string, id: string = crypto.randomUUID()) =>
+  `${weddingId}/music/${id}.${MUSIC_TYPES[type] ?? "mp3"}`;
+
+/** The storage path inside the media bucket for a public URL, if it is one of this wedding's songs. */
+export function musicPathFromUrl(url: string | null | undefined, weddingId: string): string | null {
+  const marker = "/storage/v1/object/public/media/";
+  const i = url ? url.indexOf(marker) : -1;
+  if (!url || i < 0) return null;
+  const path = decodeURIComponent(url.slice(i + marker.length).split("?")[0]);
+  return path.startsWith(`${weddingId}/music/`) ? path : null;
+}
+
+/** Upload a song for the guest page and return its public address. */
+export async function uploadMusic(weddingId: string, file: File): Promise<string> {
+  const problem = musicFileProblem(file);
+  if (problem) throw new Error(problem);
+  const s = requireSb();
+  const path = musicPath(weddingId, file.type);
+  const { error } = await s.storage.from("media").upload(path, file, { contentType: file.type, upsert: false });
+  if (error) throw new Error(error.message);
+  return s.storage.from("media").getPublicUrl(path).data.publicUrl;
+}
+
+/** Delete a song this wedding uploaded, so replaced and removed songs don't pile up. */
+export async function deleteMusic(weddingId: string, url: string | null | undefined): Promise<void> {
+  const path = musicPathFromUrl(url, weddingId);
+  if (!path) return; // not one of ours: nothing to delete
+  const { error } = await requireSb().storage.from("media").remove([path]);
+  if (error) throw new Error(error.message);
 }
 
 /* ------------------------------ partner invites ------------------------------ */
