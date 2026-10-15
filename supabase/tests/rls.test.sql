@@ -3,7 +3,7 @@
 -- ============================================================
 
 begin;
-select plan(22);
+select plan(23);
 
 -- helpers ----------------------------------------------------
 create or replace function test_uuid(suffix text)
@@ -15,7 +15,7 @@ $$;
 
 -- Create test_tokens table as postgres (before any role switches)
 create table test_tokens (rsvp_token uuid);
-grant select, insert on test_tokens to anon, authenticated;
+grant select, insert on test_tokens to anon, authenticated, service_role;
 
 -- fixtures ---------------------------------------------------
 insert into auth.users (id, email, encrypted_password, email_confirmed_at)
@@ -93,31 +93,40 @@ select is(
 );
 select ok(public.get_public_wedding('does-not-exist') is null, 'unknown slug returns null');
 
-select lives_ok(
+-- 0012: the direct path is closed to anon; answers go through api/rsvp.ts,
+-- which calls submit_rsvp_verified with the service role
+select throws_ok(
   $$ select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text) $$,
-  'anon can submit an RSVP with a valid guest token'
+  '42501', null, 'anon can no longer call submit_rsvp directly'
+);
+
+set local role service_role;
+
+select lives_ok(
+  $$ select public.submit_rsvp_verified((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text) $$,
+  'the server submits an RSVP with a valid guest token'
 );
 select throws_ok(
-  $$ select public.submit_rsvp(null::uuid, 'nope'::text, 'x'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text) $$,
+  $$ select public.submit_rsvp_verified(null::uuid, 'nope'::text, 'x'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text) $$,
   'P0001', null, 'open-link submission against an unknown slug is rejected'
 );
 select throws_ok(
-  $$ select public.submit_rsvp('00000000-0000-0000-0000-000000000000'::uuid, null::text, 'x'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text) $$,
+  $$ select public.submit_rsvp_verified('00000000-0000-0000-0000-000000000000'::uuid, null::text, 'x'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text) $$,
   'P0001', null, 'a forged token is rejected'
 );
 
 -- burn the 6-per-hour token budget, then hit the wall
 do $$
 begin
-  perform public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
-  perform public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
-  perform public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
-  perform public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
-  perform public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+  perform public.submit_rsvp_verified((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+  perform public.submit_rsvp_verified((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+  perform public.submit_rsvp_verified((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+  perform public.submit_rsvp_verified((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
+  perform public.submit_rsvp_verified((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text);
 end $$;
 
 select throws_ok(
-  $$ select public.submit_rsvp((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text) $$,
+  $$ select public.submit_rsvp_verified((select rsvp_token from test_tokens)::uuid, null::text, 'Amara'::text, 'yes'::answer_t, null::text, null::text, 'link'::text, null::text, null::text) $$,
   'P0002', null, 'rate limit kicks in after 6 submissions per token per hour'
 );
 
