@@ -154,6 +154,8 @@ export interface InvitationConfigRow {
   motion: Json;
   music: Json;
   music_url: string | null;
+  /** 0011: guests see the invitation only while this is true */
+  is_live: boolean;
 }
 
 export interface WebsiteConfigRow {

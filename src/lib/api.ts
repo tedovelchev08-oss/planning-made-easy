@@ -126,6 +126,7 @@ export const invitationToRow = (c: InvitationConfig, weddingId: string) => ({
   venue_line: c.venueLine, collect_rsvp: c.rsvp, collect_meal: c.meal, collect_notes: c.notes,
   photo: c.photo, colors: c.colors as unknown as null, font_serif: c.fontSerif,
   motion: c.motion as never, music: { ...c.music, uploadData: null } as never,
+  is_live: c.live,
 });
 
 export const websiteToRow = (w: WebsiteConfig, weddingId: string) => ({
@@ -207,6 +208,8 @@ export async function fetchWorkspace(weddingId: string, userId: string): Promise
       // uploaded song data is never fetched into the workspace (kept server-side
       // for the guest page); the couple re-uploads to change it.
       music: music ? { ...music, uploadData: null } : { track: "serene", uploadName: null, uploadData: null },
+      // rows from before 0011 have no flag to read: they were live, as is any wedding without a row
+      live: inv?.is_live ?? true,
     },
     website: {
       template: (web?.template ?? "serene") as WebsiteConfig["template"],
@@ -242,7 +245,9 @@ export async function createWedding(input: {
   let weddingRow: WeddingRow | null = null;
 
   for (let attempt = 0; attempt < 4 && !weddingId; attempt++) {
-    const candidate = attempt === 0 ? slug : `${slug}-${attempt + 1}`;
+    // A random ending: "maya-theo" alone could be guessed from first names.
+    // Existing addresses are never changed — guests already have them.
+    const candidate = `${slug}-${slugSuffix()}`;
     const res = await s.from("weddings").insert({
       owner_id: userId, slug: candidate, partner_a: input.partnerA, partner_b: input.partnerB,
       names: input.names, date: input.date, venue: input.venue, location: "",
@@ -271,6 +276,7 @@ export async function createWedding(input: {
       photo: null, colors: null, fontSerif: null,
       motion: { petals: "gentle", shimmer: true, type: true },
       music: { track: "serene", uploadName: null, uploadData: null },
+      live: false, // closed until the couple chooses to share it
     }, weddingId)),
     s.from("website_config").insert(websiteToRow({
       template: "serene",
@@ -385,6 +391,8 @@ export async function fetchFreshRsvps(weddingId: string, since: number): Promise
 
 export interface PublicInvitation {
   slug: string;
+  /** 0011: always true here; a closed invitation comes back as ClosedInvitation */
+  live?: true;
   names: string;
   partnerA: string;
   partnerB: string;
@@ -416,10 +424,13 @@ export interface PublicInvitation {
   registry?: { name: string; store: string }[];
 }
 
-export async function getPublicInvitation(slug: string): Promise<PublicInvitation | null> {
+/** What get_public_wedding returns for an invitation the couple hasn't opened yet (0011). */
+export interface ClosedInvitation { slug: string; live: false }
+
+export async function getPublicInvitation(slug: string): Promise<PublicInvitation | ClosedInvitation | null> {
   const { data, error } = await requireSb().rpc("get_public_wedding", { p_slug: slug });
   if (error) throw error;
-  return (data as PublicInvitation | null) ?? null;
+  return (data as PublicInvitation | ClosedInvitation | null) ?? null;
 }
 
 export async function getGuestByToken(token: string): Promise<{ id: string; name: string; slug: string } | null> {
@@ -428,6 +439,19 @@ export async function getGuestByToken(token: string): Promise<{ id: string; name
   return (data as { id: string; name: string; slug: string } | null) ?? null;
 }
 
+/** four characters from a 32-letter alphabet without look-alikes (no i, l, o, u): about a million endings */
+export function slugSuffix(random: () => number = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32): string {
+  const alphabet = "abcdefghjkmnpqrstvwxyz0123456789";
+  let out = "";
+  for (let i = 0; i < 4; i++) out += alphabet[Math.floor(random() * alphabet.length)];
+  return out;
+}
+
+/**
+ * Sends a guest's answer through api/rsvp.ts, which checks the Turnstile
+ * token and a per-visitor limit before it reaches the database. The direct
+ * anonymous RPC is being retired: one visitor could exhaust it for everyone.
+ */
 export async function submitRsvp(p: {
   token: string | null;
   slug: string;
@@ -438,19 +462,23 @@ export async function submitRsvp(p: {
   source?: string;
   plusOne?: string | null;
   plusOneMeal?: string | null;
+  turnstile: string;
 }): Promise<void> {
-  const { error } = await requireSb().rpc("submit_rsvp", {
-    p_token: p.token,
-    p_slug: p.slug,
-    p_name: p.name,
-    p_answer: p.answer,
-    p_meal: p.meal ?? null,
-    p_note: p.note ?? null,
-    p_source: p.source ?? "link",
-    p_plus_one: p.plusOne ?? null,
-    p_plus_one_meal: p.plusOneMeal ?? null,
+  const res = await fetch("/api/rsvp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      token: p.token, slug: p.slug, name: p.name, answer: p.answer,
+      meal: p.meal ?? null, note: p.note ?? null, source: p.source ?? "link",
+      plusOne: p.plusOne ?? null, plusOneMeal: p.plusOneMeal ?? null,
+      turnstile: p.turnstile,
+    }),
   });
-  if (error) throw new Error(error.message);
+  if (!res.ok) {
+    let msg = "Your RSVP couldn't be sent. Please try again.";
+    try { const j = (await res.json()) as { error?: string }; if (j.error) msg = j.error; } catch { /* keep the default */ }
+    throw new Error(msg);
+  }
 }
 
 /* ------------------------------ checkout & entitlements ------------------------------ */

@@ -32,6 +32,8 @@ export interface InvitationConfig {
   fontSerif: boolean | null;
   motion: { petals: "off" | "gentle" | "lush"; shimmer: boolean; type: boolean };
   music: { track: "serene" | "golden" | "dance" | "upload"; uploadName: string | null; uploadData: string | null };
+  /** open to guests. New invitations start closed: guests see "not open yet" until the couple shares it */
+  live: boolean;
 }
 
 export interface WebsiteConfig {
@@ -147,6 +149,7 @@ const seedDb: Db = {
     fontSerif: null,
     motion: { petals: "gentle", shimmer: true, type: true },
     music: { track: "serene", uploadName: null, uploadData: null },
+    live: true,
   },
   website: {
     template: "serene",
@@ -171,6 +174,7 @@ const defaultInvitation = (names: string, venue: string): InvitationConfig => ({
   photo: null, colors: null, fontSerif: null,
   motion: { petals: "gentle", shimmer: true, type: true },
   music: { track: "serene", uploadName: null, uploadData: null },
+  live: false,
 });
 
 const defaultWebsite = (): WebsiteConfig => ({
