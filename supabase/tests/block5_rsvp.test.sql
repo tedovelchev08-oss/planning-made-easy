@@ -4,7 +4,7 @@
 -- ============================================================
 
 begin;
-select plan(19);
+select plan(21);
 
 create or replace function test_uuid(suffix text)
 returns uuid
@@ -42,40 +42,11 @@ select is(get_public_wedding('b5-live') ->> 'names', 'Live & Couple', 'a live we
 select is((get_public_wedding('b5-live') ->> 'live')::boolean, true, 'and says it is live');
 select is(get_public_wedding('b5-legacy') ->> 'names', 'Legacy & Couple', 'a wedding with no invitation row still loads');
 
--- the old anonymous path: limits and rules ---------------------------------
+-- 0012: the direct path is closed -----------------------------------------
 select throws_ok(
-  $$ select submit_rsvp(null, 'b5-closed', 'Guest', 'yes', null, null, 'link') $$,
-  'P0006', null,
-  'a closed wedding refuses RSVPs'
-);
-select throws_ok(
-  $$ select submit_rsvp(null, 'b5-live', repeat('x', 121), 'yes', null, null, 'link') $$,
-  'P0003', null,
-  'a 121-character name is refused'
-);
-select throws_ok(
-  $$ select submit_rsvp(null, 'b5-live', 'Guest', 'yes', null, repeat('x', 1001), 'link') $$,
-  'P0003', null,
-  'a 1001-character note is refused'
-);
-select throws_ok(
-  $$ select submit_rsvp(null, 'b5-live', 'Guest', 'yes', repeat('x', 81), null, 'link') $$,
-  'P0003', null,
-  'an 81-character meal is refused'
-);
-select throws_ok(
-  $$ select submit_rsvp(null, 'b5-live', 'Guest', 'yes', null, null, 'link', repeat('x', 121)) $$,
-  'P0003', null,
-  'a 121-character plus-one is refused'
-);
-select throws_ok(
-  $$ select submit_rsvp(null, 'b5-live', 'Guest', 'yes', null, null, 'tiktok') $$,
-  'P0003', null,
-  'a source outside the allowlist is refused'
-);
-select lives_ok(
-  $$ select submit_rsvp(null, 'b5-live', repeat('x', 120), 'yes', repeat('m', 80), repeat('n', 1000), 'whatsapp') $$,
-  'answers exactly at every limit are accepted'
+  $$ select submit_rsvp(null, 'b5-live', 'Guest', 'yes', null, null, 'link') $$,
+  '42501', null,
+  'anon can no longer call submit_rsvp directly'
 );
 
 -- server-only functions -------------------------------------------------------
@@ -102,11 +73,50 @@ select throws_ok(
   '42501', null,
   'a signed-in user cannot call the verified path either'
 );
+select throws_ok(
+  $$ select submit_rsvp(null, 'b5-live', 'Guest', 'yes', null, null, 'link') $$,
+  '42501', null,
+  'nor the closed direct path'
+);
 
--- the server's path --------------------------------------------------------------
+-- the server's path: limits and rules -------------------------------------------
 set local role service_role;
 set local request.jwt.claims = '{"role": "service_role"}';
 
+select throws_ok(
+  $$ select submit_rsvp_verified(null, 'b5-closed', 'Guest', 'yes', null, null, 'link') $$,
+  'P0006', null,
+  'a closed wedding refuses RSVPs'
+);
+select throws_ok(
+  $$ select submit_rsvp_verified(null, 'b5-live', repeat('x', 121), 'yes', null, null, 'link') $$,
+  'P0003', null,
+  'a 121-character name is refused'
+);
+select throws_ok(
+  $$ select submit_rsvp_verified(null, 'b5-live', 'Guest', 'yes', null, repeat('x', 1001), 'link') $$,
+  'P0003', null,
+  'a 1001-character note is refused'
+);
+select throws_ok(
+  $$ select submit_rsvp_verified(null, 'b5-live', 'Guest', 'yes', repeat('x', 81), null, 'link') $$,
+  'P0003', null,
+  'an 81-character meal is refused'
+);
+select throws_ok(
+  $$ select submit_rsvp_verified(null, 'b5-live', 'Guest', 'yes', null, null, 'link', repeat('x', 121)) $$,
+  'P0003', null,
+  'a 121-character plus-one is refused'
+);
+select throws_ok(
+  $$ select submit_rsvp_verified(null, 'b5-live', 'Guest', 'yes', null, null, 'tiktok') $$,
+  'P0003', null,
+  'a source outside the allowlist is refused'
+);
+select lives_ok(
+  $$ select submit_rsvp_verified(null, 'b5-live', repeat('x', 120), 'yes', repeat('m', 80), repeat('n', 1000), 'whatsapp') $$,
+  'answers exactly at every limit are accepted'
+);
 select lives_ok(
   $$ select submit_rsvp_verified(null, 'b5-live', 'Verified guest', 'yes', null, null, 'link') $$,
   'the service role submits through the verified path'
