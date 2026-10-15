@@ -35,7 +35,8 @@ values
 -- Created here, as postgres, because authenticated cannot create fixtures.
 insert into weddings (id, owner_id, slug, names, date)
 values (test_uuid('102'), test_uuid('1'), 'builtin-design', 'Built & In', now() + interval '1 year');
-insert into invitation_config (wedding_id, template_id) values (test_uuid('102'), 'tp13');
+-- live, so the full payload (and the template join under test) is returned
+insert into invitation_config (wedding_id, template_id, is_live) values (test_uuid('102'), 'tp13', true);
 
 -- ---------- 1a. weddings.plan authority ----------
 
