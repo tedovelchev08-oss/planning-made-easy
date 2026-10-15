@@ -47,6 +47,24 @@ jobs:
       - name: Build
         run: npm run build
 
+  # Placeholder legal text must never ship. This stays red until the owner
+  # replaces src/legal/*.md with reviewed text (see src/legal/README.md); its
+  # own job so a red mark here is plainly about the policies, not the code.
+  legal-pages:
+    name: Legal pages ready
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check legal pages
+        run: npm run check:legal
+
   rls-tests:
     name: Supabase RLS Tests
     runs-on: ubuntu-latest

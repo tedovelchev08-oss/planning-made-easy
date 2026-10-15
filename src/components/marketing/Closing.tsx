@@ -109,10 +109,9 @@ export function Footer() {
     { label: "Features", onClick: () => go("features") },
     { label: "Pricing", onClick: () => go("pricing") },
     { label: "Support", onClick: () => toast("We're here", `${SUPPORT_EMAIL}. Replies within a day, usually faster.`, "info") },
-    // These toasts promised "Export or erase anytime" and terms "available in-app"; neither was
-    // true. Until the reviewed policies are published (Block 7), say where things actually stand.
-    { label: "Privacy", onClick: () => toast("Our privacy policy is being finalised", `Until it's published, ask us anything at ${SUPPORT_EMAIL}. Signed-in couples can export their data from the account menu.`, "info") },
-    { label: "Terms", onClick: () => toast("Our terms are being finalised", `Until they're published, questions go to ${SUPPORT_EMAIL}.`, "info") },
+    { label: "Privacy", onClick: () => navigate("/privacy") },
+    { label: "Terms", onClick: () => navigate("/terms") },
+    { label: "Refunds", onClick: () => navigate("/refunds") },
   ];
 
   return (

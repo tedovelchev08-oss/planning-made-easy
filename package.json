@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit && tsc -p api/tsconfig.json",
     "lint": "eslint .",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "check:legal": "node scripts/check-legal.mjs"
   },
   "dependencies": {
     "@eslint/js": "^10.0.1",
