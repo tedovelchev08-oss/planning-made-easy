@@ -31,7 +31,8 @@ export interface InvitationConfig {
   colors: { bg: string; ink: string; accent: string } | null;
   fontSerif: boolean | null;
   motion: { petals: "off" | "gentle" | "lush"; shimmer: boolean; type: boolean };
-  music: { track: "serene" | "golden" | "dance" | "upload"; uploadName: string | null; uploadData: string | null };
+  /** uploadUrl: the song's public address in storage (media/<wedding>/music/…), saved as invitation_config.music_url */
+  music: { track: "serene" | "golden" | "dance" | "upload"; uploadName: string | null; uploadUrl: string | null };
   /** open to guests. New invitations start closed: guests see "not open yet" until the couple shares it */
   live: boolean;
 }
@@ -148,7 +149,7 @@ const seedDb: Db = {
     colors: null,
     fontSerif: null,
     motion: { petals: "gentle", shimmer: true, type: true },
-    music: { track: "serene", uploadName: null, uploadData: null },
+    music: { track: "serene", uploadName: null, uploadUrl: null },
     live: true,
   },
   website: {
@@ -173,7 +174,7 @@ const defaultInvitation = (names: string, venue: string): InvitationConfig => ({
   venueLine: venue, rsvp: true, meal: true, notes: true,
   photo: null, colors: null, fontSerif: null,
   motion: { petals: "gentle", shimmer: true, type: true },
-  music: { track: "serene", uploadName: null, uploadData: null },
+  music: { track: "serene", uploadName: null, uploadUrl: null },
   live: false,
 });
 
@@ -417,7 +418,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (JSON.stringify({ ...prev.invitation, music: null }) !== JSON.stringify({ ...next.invitation, music: null }) ||
         prev.invitation.music.track !== next.invitation.music.track ||
         prev.invitation.music.uploadName !== next.invitation.music.uploadName ||
-        Boolean(prev.invitation.music.uploadData) !== Boolean(next.invitation.music.uploadData)) {
+        prev.invitation.music.uploadUrl !== next.invitation.music.uploadUrl) {
       getBucket("invitation").upserts.set("invitation", invitationToRow(next.invitation, wid));
     }
     if (JSON.stringify(prev.website) !== JSON.stringify(next.website)) {

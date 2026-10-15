@@ -10,6 +10,7 @@ import { useApp, usePrefersReducedMotion } from "../../lib/store";
 import { FEATURES, FREE_DESIGN_ID, PLANS, can, formatPrice, guestLimit, type Feature } from "../../lib/plans";
 import { useCurrency } from "../../lib/currency";
 import { guestLink } from "../../lib/links";
+import { MUSIC_TYPES, deleteMusic, musicFileProblem, uploadMusic } from "../../lib/api";
 import { playChime, useChimeLoop } from "../../lib/sound";
 import { DesignFrame, Field, Modal, Pill, PlanTag, SafeImg, btn, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
@@ -163,7 +164,7 @@ function LivePreview({ onClose }: { onClose: () => void }) {
   const [countdown, setCountdown] = useState({ d: 0, h: 0, m: 0, s: 0 });
   const activeCustom = db.customTemplates.find((c) => c.id === db.invitation.templateId) ?? null;
   const musicCfg = db.invitation.music;
-  const hasUpload = musicCfg.track === "upload" && !!musicCfg.uploadData;
+  const hasUpload = musicCfg.track === "upload" && !!musicCfg.uploadUrl;
   const { playing, start, stop } = useChimeLoop(musicCfg.track === "upload" ? "serene" : musicCfg.track);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [uploadPlaying, setUploadPlaying] = useState(false);
@@ -345,7 +346,7 @@ function LivePreview({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       </div>
-      {hasUpload && <audio ref={audioRef} src={musicCfg.uploadData ?? undefined} loop onEnded={() => setUploadPlaying(false)} className="hidden" />}
+      {hasUpload && <audio ref={audioRef} src={musicCfg.uploadUrl ?? undefined} loop onEnded={() => setUploadPlaying(false)} className="hidden" />}
     </motion.div>
   );
 }
@@ -1085,25 +1086,56 @@ function LuxeStudio({ cfg, setCfg, unlocked }: {
   setCfg: (p: Partial<ReturnType<typeof useApp>["db"]["invitation"]>) => void;
   unlocked: boolean;
 }) {
-  const { toast, openUpgrade, db } = useApp();
+  const { toast, openUpgrade, db, mode, weddingId } = useApp();
   const [currency] = useCurrency();
   const fileRef = useRef<HTMLInputElement>(null);
   const motion = cfg.motion;
   const music = cfg.music;
 
+  const [uploading, setUploading] = useState(false);
+  const songName = (file: File) => file.name.replace(/\.[^.]+$/, "");
+
+  /**
+   * The song is stored as a file: media/<wedding>/music/<random>.<ext>. It used
+   * to be held as a data URL and dropped on save (uploadUrl: null), so couples
+   * heard it in preview and their guests never did.
+   */
   const uploadTrack = async (file: File) => {
-    if (!file.type.startsWith("audio/")) { toast("That's not audio", "MP3, WAV or M4A work best.", "warn"); return; }
-    if (file.size > 2.5 * 1024 * 1024) { toast("A touch too big", "Keep tracks under 2.5 MB so invitations load instantly.", "warn"); return; }
-    const dataUrl = await new Promise<string>((res, rej) => {
-      const r = new FileReader();
-      r.onload = () => res(String(r.result));
-      r.onerror = rej;
-      r.readAsDataURL(file);
-    }).catch(() => null);
-    if (!dataUrl) return;
-    setCfg({ music: { track: "upload", uploadName: file.name.replace(/\.[^.]+$/, ""), uploadData: dataUrl } });
-    playChime("sparkle");
-    toast("Your song is in", `“${file.name.replace(/\.[^.]+$/, "")}” will play on the invitation.`);
+    const problem = musicFileProblem(file);
+    if (problem) { toast("We can't use that file", problem, "warn"); return; }
+
+    if (mode !== "cloud" || !weddingId) {
+      // demo: nothing to store it in; play it here, and say it won't last
+      setCfg({ music: { track: "upload", uploadName: songName(file), uploadUrl: URL.createObjectURL(file) } });
+      toast("Playing in the demo", "Uploaded songs are saved for real weddings; this one lasts until you leave.", "info");
+      return;
+    }
+
+    setUploading(true);
+    const previous = music.uploadUrl;
+    try {
+      const url = await uploadMusic(weddingId, file);
+      setCfg({ music: { track: "upload", uploadName: songName(file), uploadUrl: url } });
+      playChime("sparkle");
+      toast("Your song is in", `“${songName(file)}” will play when guests open your invitation.`);
+      // the replaced song is no longer referenced anywhere: remove it
+      if (previous && previous !== url) void deleteMusic(weddingId, previous).catch(() => {});
+    } catch (err) {
+      toast("Your song didn't upload", err instanceof Error ? err.message : "Please try again.", "warn");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeTrack = async () => {
+    const previous = music.uploadUrl;
+    setCfg({ music: { track: "serene", uploadName: null, uploadUrl: null } });
+    toast("Song removed", "Your invitation plays “Serene” again.", "info");
+    if (mode === "cloud" && weddingId && previous) {
+      await deleteMusic(weddingId, previous).catch(() => {
+        toast("The old file is still stored", "It's no longer played. We'll try again next time.", "warn");
+      });
+    }
   };
 
   const body = (
@@ -1143,15 +1175,25 @@ function LuxeStudio({ cfg, setCfg, unlocked }: {
               {music.track === t.id && <Check size={13} strokeWidth={3.4} className="text-gold-deep" />}
             </button>
           ))}
-          <button disabled={!unlocked} onClick={() => fileRef.current?.click()}
+          <button disabled={!unlocked || uploading} aria-busy={uploading} onClick={() => fileRef.current?.click()}
             className={`flex w-full items-center gap-3 rounded-xl border border-dashed px-3.5 py-2.5 text-left transition disabled:cursor-not-allowed ${music.track === "upload" ? "border-gold/60 bg-gold-soft/50" : "border-ink/20 hover:border-gold/60"}`}>
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blush-soft text-blush-deep"><UploadCloud size={13} /></span>
             <span className="flex-1">
-              <span className="block text-[0.8rem] font-extrabold text-ink">{music.track === "upload" && music.uploadName ? `“${music.uploadName}”` : "Upload your song"}</span>
-              <span className="text-[0.66rem] font-semibold text-ink-mute">your first dance track, under 2.5 MB</span>
+              <span className="block text-[0.8rem] font-extrabold text-ink">
+                {uploading ? "Uploading…" : music.uploadUrl && music.uploadName ? `“${music.uploadName}”` : "Upload your song"}
+              </span>
+              <span className="text-[0.66rem] font-semibold text-ink-mute">
+                {music.uploadUrl ? "tap to replace it" : "your first dance track · MP3, M4A, WAV or OGG, up to 8 MB"}
+              </span>
             </span>
           </button>
-          <input ref={fileRef} type="file" accept="audio/*" className="hidden" aria-label="Upload music track"
+          {music.uploadUrl && (
+            <button disabled={!unlocked || uploading} onClick={() => void removeTrack()}
+              className="w-full rounded-xl px-3.5 py-2 text-left text-[0.72rem] font-bold text-ink-mute transition hover:text-blush-deep disabled:cursor-not-allowed cursor-pointer">
+              Remove this song
+            </button>
+          )}
+          <input ref={fileRef} type="file" accept={Object.keys(MUSIC_TYPES).join(",")} className="hidden" aria-label="Upload music track"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadTrack(f); e.target.value = ""; }} />
         </div>
       </div>
