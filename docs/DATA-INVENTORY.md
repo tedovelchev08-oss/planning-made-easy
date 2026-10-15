@@ -33,9 +33,7 @@ wedding's members (row-level security, `is_wedding_member()`).
 | `webhook_events` · `id`, `type` | Stripe event ids | system | No personal data beyond ids. Service role only. |
 | **Storage** bucket `media` · `<wedding_id>/music/<uuid>.<ext>` | uploaded songs | couple | **Public URLs**: anyone with the address can fetch the file. Deleting removes it from storage, but Supabase's CDN can keep serving a cached copy for up to an hour. |
 
-**On the visitor's own device** (browser `localStorage`, cleared on sign-out):
-`luma.cache.<email>` (a copy of the whole workspace for offline use), `luma.pending.<email>`
-(unsaved edits), `luma.currency` (chosen currency), the Supabase session.
+**On the visitor's own device:** see section 2a.
 
 ## 2. Who receives it (processors and third parties)
 
@@ -51,6 +49,33 @@ wedding's members (row-level security, `is_wedding_member()`).
 
 Not used: Google Fonts (fonts are self-hosted from `/fonts`; the CSP still lists
 `fonts.googleapis.com` and can drop it), analytics, advertising trackers.
+
+## 2a. Cookies and storage on the visitor's device
+
+**Luma sets no cookies.** Nothing in `src/` reads or writes `document.cookie`, and no
+`api/` route sends `Set-Cookie`. It does use browser storage, which EU rules (ePrivacy)
+treat the same way as cookies. Everything below is strictly necessary for a feature the
+visitor asked for, so it needs no consent banner. The policy author should confirm that.
+
+| Key | Storage | Purpose | Lifetime |
+|---|---|---|---|
+| `sb-<project>-auth-token` | localStorage | Supabase sign-in session | until sign-out |
+| `luma.cache.<email>` | localStorage | a copy of the couple's workspace for offline use | removed on sign-out |
+| `luma.pending.<email>` | localStorage | edits not yet saved to the server | removed on sign-out |
+| `luma.currency` | localStorage | the currency the visitor picked on the pricing page | kept until browser data is cleared |
+| `luma:pendingTier` | sessionStorage | the plan clicked before signing in, so checkout can resume | removed after checkout or when the tab closes |
+
+**Set by third parties, in their own frames or on their own pages:**
+- **Cloudflare Turnstile** (an iframe on the guest RSVP page from `challenges.cloudflare.com`).
+  Cloudflare states that Turnstile doesn't use cookies for tracking. Check that against
+  Cloudflare's privacy terms.
+- **Stripe Checkout** (Stripe's own page). Stripe sets its own cookies there for fraud
+  prevention, covered by Stripe's cookie policy.
+
+**Dormant analytics code.** `src/lib/report.ts` has a `track()` funnel (sign-up, first guest,
+share link, first RSVP, purchase). It would store `luma:funnel` in localStorage and send
+each step to `/api/report` (or Sentry). **Nothing in the app calls it today**, so nothing is
+stored or sent. Switching it on is analytics, so it would need consent or a legal review first.
 
 Luma **does not send email or SMS** to guests: invitations go out through the couple's own
 WhatsApp, Messenger, SMS or email via share links.
