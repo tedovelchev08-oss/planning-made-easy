@@ -15,6 +15,7 @@ import {
   EntityKey, acceptPendingInvites, authApi, budgetToRow, createWedding, customTplToRow, fetchFreshRsvps,
   fetchWorkspace, guestToRow, invitationToRow, invitePartner as apiInvitePartner, isUuid, myWeddingId, newId,
   refreshEntitlement as apiRefreshEntitlement, registryToRow, rsvpToRow, syncEntity, tableToRow, taskToRow, venueObjectToRow, websiteToRow,
+  versionKey, type Versions,
 } from "./api";
 
 /* ------------------------------------------------------------------ */
@@ -281,6 +282,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const flushAgain = useRef(false);
   /** consecutive server rejections per row, to tell a bad row from a blip */
   const rejections = useRef<Map<string, number>>(new Map());
+  /** the version of every row this tab last loaded or saved (0018) */
+  const versionsRef = useRef<Versions>(new Map());
+  /** set below, once refreshFromServer exists: reload after a conflict */
+  const conflictReload = useRef<() => void>(() => {});
   /** bumped on every local edit, so a background refresh never clobbers one */
   const editSeq = useRef(0);
   /** whose queue this is: the signed-in account, set when their workspace boots */
@@ -338,10 +343,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSync((s) => ({ ...s, status: "saving", pending: countPending() }));
 
     const online = navigator.onLine;
-    const { failed, failures } = await sendQueue(
+    const result = await sendQueue(
       batch, (key, upserts, deletes) => syncEntity(key, wid, upserts, deletes), online,
     );
     inflightRef.current = null;
+    const { failed } = result;
+    // what we just saved has new versions; an edit made to the same row
+    // while this batch was on the wire was based on the version we replaced
+    for (const [k, v] of result.versions) versionsRef.current.set(k, v);
+    for (const [key, b] of pendingRef.current) {
+      for (const [id, row] of b.upserts) {
+        const v = result.versions.get(versionKey(key, id));
+        if (v && row && typeof row === "object") b.upserts.set(id, { ...(row as object), updated_at: v });
+      }
+    }
+    // a partner changed or deleted these since we loaded them: retrying
+    // can't succeed, so they were not requeued; reload and say so
+    const conflicts = result.failures.filter((f) => f.conflict);
+    const failures = result.failures.filter((f) => !f.conflict);
     mergeUnder(pendingRef.current, failed);
 
     // A row the server rejects three times running while we are online is
@@ -378,8 +397,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       retryTimer.current = window.setTimeout(() => { retryTimer.current = null; void flush(); }, delay);
     }
 
+    if (conflicts.length) {
+      toast("Your partner changed this", "We've loaded their latest version. Your last edit to it wasn't saved.", "info");
+      window.setTimeout(() => conflictReload.current(), 0);
+    }
+
     if (flushAgain.current) { flushAgain.current = false; if (pendingRef.current.size) void flush(); }
-  }, [countPending, persist]);
+  }, [countPending, persist, toast]);
 
   const scheduleFlush = useCallback(() => {
     setSync((s) => ({ ...s, status: "saving", pending: countPending() }));
@@ -395,6 +419,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const scheduleDiff = useCallback((prev: Db, next: Db) => {
     const wid = weddingIdRef.current;
     if (!wid) return;
+    const seen = (key: EntityKey, id: string) => versionsRef.current.get(versionKey(key, id)) ?? null;
 
     const diffRows = <T extends { id: string }>(
       key: EntityKey,
@@ -406,7 +431,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const after = new Set(nextRows.map((r) => r.id));
       const bucket = getBucket(key);
       nextRows.forEach((r, i) => {
-        if (before.get(r.id) !== JSON.stringify(r)) bucket.upserts.set(r.id, toRow(r, wid, i));
+        if (before.get(r.id) === JSON.stringify(r)) return;
+        const row = toRow(r, wid, i);
+        // the version this edit was made from, so a stale copy is refused (0018)
+        bucket.upserts.set(r.id, key === "rsvpLog" ? row : { ...(row as object), updated_at: seen(key, r.id) });
       });
       prevRows.forEach((r) => { if (!after.has(r.id)) bucket.deletes.add(r.id); });
     };
@@ -421,15 +449,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     diffRows("customTemplates", prev.customTemplates, next.customTemplates, customTplToRow);
     diffRows("rsvpLog", prev.rsvpLog, next.rsvpLog, rsvpToRow);
 
-    if (JSON.stringify(prev.wedding) !== JSON.stringify(next.wedding)) getBucket("wedding").upserts.set("wedding", next.wedding);
+    if (JSON.stringify(prev.wedding) !== JSON.stringify(next.wedding)) {
+      getBucket("wedding").upserts.set("wedding", { ...next.wedding, updated_at: seen("wedding", "wedding") });
+    }
     if (JSON.stringify({ ...prev.invitation, music: null }) !== JSON.stringify({ ...next.invitation, music: null }) ||
         prev.invitation.music.track !== next.invitation.music.track ||
         prev.invitation.music.uploadName !== next.invitation.music.uploadName ||
         prev.invitation.music.uploadUrl !== next.invitation.music.uploadUrl) {
-      getBucket("invitation").upserts.set("invitation", invitationToRow(next.invitation, wid));
+      getBucket("invitation").upserts.set("invitation", { ...invitationToRow(next.invitation, wid), updated_at: seen("invitation", "invitation") });
     }
     if (JSON.stringify(prev.website) !== JSON.stringify(next.website)) {
-      getBucket("website").upserts.set("website", websiteToRow(next.website, wid));
+      getBucket("website").upserts.set("website", { ...websiteToRow(next.website, wid), updated_at: seen("website", "website") });
     }
 
     // durable before the debounce: a refresh inside those 700 ms used to drop it
@@ -512,7 +542,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         await flush();
         if (countPending() > 0) return; // still unsaved: keep the local copy, retries continue
       }
-      const fresh = await fetchWorkspace(wid, uid);
+      const versions: Versions = new Map();
+      const fresh = await fetchWorkspace(wid, uid, versions);
+      versionsRef.current = versions;
       setDbState(fresh);
       if (email) writeCache(email, fresh);
       lastRsvpPull.current = Date.now();
@@ -619,9 +651,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (countPending() > 0) return; // couldn't save ours: never replace them
     const seq = editSeq.current;
     try {
-      const fresh = await fetchWorkspace(wid, owner.uid);
+      const versions: Versions = new Map();
+      const fresh = await fetchWorkspace(wid, owner.uid, versions);
       // an edit made while we were fetching wins; try again next time
       if (editSeq.current !== seq || countPending() > 0) return;
+      versionsRef.current = versions;
       const changed = JSON.stringify(fresh) !== JSON.stringify(dbRef.current);
       // raw setter on purpose: the diffing setDb would queue the whole
       // refetch back up as writes
@@ -631,6 +665,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (changed) toast("Updated with the latest changes", "Your partner's edits are in.", "info");
     } catch { /* offline — the next return will try again */ }
   }, [flush, toast, countPending]);
+  conflictReload.current = () => void refreshFromServer();
 
   useEffect(() => {
     if (mode !== "cloud") return;
@@ -662,6 +697,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (retryTimer.current) { window.clearTimeout(retryTimer.current); retryTimer.current = null; }
       pendingRef.current = emptyQueue();
       rejections.current.clear();
+      versionsRef.current = new Map();
       // Unsaved edits go with the account, like the offline cache: this device
       // may be shared, so nothing of theirs is left behind.
       const owner = ownerRef.current?.email ?? userRef.current?.email;
