@@ -5,6 +5,7 @@ import { I18nProvider } from "./lib/i18n";
 import Home from "./pages/Home";
 import GuestInvite from "./pages/GuestInvite";
 import NotFound from "./pages/NotFound";
+import LegalPage from "./pages/LegalPage";
 import Shell from "./components/dashboard/Shell";
 import PlannerGate from "./components/dashboard/PlannerGate";
 import Overview from "./components/dashboard/Overview";
@@ -73,6 +74,10 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/invite" element={<GuestInvite />} />
+              <Route path="/privacy" element={<LegalPage doc="privacy" />} />
+              <Route path="/terms" element={<LegalPage doc="terms" />} />
+              <Route path="/refunds" element={<LegalPage doc="refunds" />} />
+              <Route path="/cookies" element={<LegalPage doc="cookies" />} />
               <Route path="/demo" element={<DemoGate />} />
               <Route path="/planner" element={<PlannerGate />}>
                 <Route index element={<Overview />} />
