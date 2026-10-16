@@ -17,6 +17,17 @@ export type FunnelEvent = "signup" | "first_guest" | "share_link" | "first_rsvp"
 type Props = Record<string, string | number | boolean | null | undefined>;
 
 const FUNNEL_KEY = "luma:funnel";
+
+/**
+ * A guest's personal link is #/invite?token=<uuid>, and that token is the
+ * only thing needed to read and answer their invitation. Anything that
+ * leaves the browser (the route, Sentry URLs and breadcrumbs) goes through
+ * this first, so logs never hold a working token.
+ */
+export const redactToken = (text: string): string => text.replace(/([?&#]token=)[^&#\s"]*/gi, "$1[redacted]");
+
+/** Where the visitor is, safe to log. */
+const currentRoute = () => redactToken(window.location.hash || "/");
 const dsn = (import.meta.env.VITE_SENTRY_DSN as string | undefined)?.trim();
 
 let sentryOn = false;
@@ -35,6 +46,13 @@ export function initReporting() {
         tracesSampleRate: 0,
         environment: window.location.hostname === "localhost" ? "development" : "production",
         beforeSend(event) {
+          if (event.request?.url) event.request.url = redactToken(event.request.url);
+          for (const crumb of event.breadcrumbs ?? []) {
+            for (const k of ["url", "from", "to"]) {
+              const v = crumb.data?.[k];
+              if (typeof v === "string") crumb.data![k] = redactToken(v);
+            }
+          }
           return event;
         },
       });
@@ -74,7 +92,7 @@ export function captureError(error: unknown, ctx: Props = {}) {
   if (sentryOn) {
     Sentry.withScope((scope) => {
       Object.entries(ctx).forEach(([k, v]) => v != null && scope.setExtra(k, v));
-      scope.setTag("route", window.location.hash || "/");
+      scope.setTag("route", currentRoute());
       Sentry.captureException(err);
     });
     return;
@@ -95,7 +113,7 @@ export function captureError(error: unknown, ctx: Props = {}) {
       message: err.message.slice(0, 2000),
       stack: (err.stack ?? "").slice(0, 8000),
       ctx,
-      route: window.location.hash || "/",
+      route: currentRoute(),
       ua: navigator.userAgent.slice(0, 200),
       at: new Date().toISOString(),
     }),
@@ -122,7 +140,7 @@ export function track(event: FunnelEvent, props: Props = {}) {
   done.add(event);
   try { localStorage.setItem(FUNNEL_KEY, JSON.stringify([...done])); } catch { /* private mode */ }
 
-  const payload = { kind: "event", event, props, route: window.location.hash || "/", at: new Date().toISOString() };
+  const payload = { kind: "event", event, props, route: currentRoute(), at: new Date().toISOString() };
   console.info("[luma:funnel]", payload);
 
   if (sentryOn) {
