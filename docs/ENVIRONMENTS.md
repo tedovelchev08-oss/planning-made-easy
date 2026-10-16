@@ -34,6 +34,7 @@ except where the table says "same".
 | `TURNSTILE_SECRET_KEY` | real secret | `1x0000000000000000000000000000000AA` (test) | `api/rsvp`. **Secret** in production |
 | `VITE_PUBLIC_SITE_URL` | `https://planning-made-easy.vercel.app` | **unset** (links then point at the preview itself) | browser |
 | `VITE_SENTRY_DSN` | unset (optional) | unset | browser |
+| `STRIPE_AUTOMATIC_TAX` | `true` once Stripe Tax is set up (VAT), else unset | unset | `api/create-checkout` |
 
 Rules:
 

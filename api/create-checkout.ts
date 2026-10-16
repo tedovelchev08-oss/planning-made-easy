@@ -89,18 +89,29 @@ const stripe = () => {
   return new Stripe(key);
 };
 
+/**
+ * VAT, once it applies (docs/GO-LIVE.md): STRIPE_AUTOMATIC_TAX=true turns on
+ * Stripe Tax. Prices are then TAX-INCLUSIVE, so €49 stays €49 for the buyer
+ * and the VAT comes out of it, as EU consumer prices must show. Those prices
+ * have their own lookup keys (_incl), so they never mix with the existing
+ * ones, whose tax behaviour can't be changed. Off unless set.
+ */
+export const automaticTax = (env: { STRIPE_AUTOMATIC_TAX?: string } = process.env) => env.STRIPE_AUTOMATIC_TAX === "true";
+
 /** Find the one-time price, creating product + price on first use. */
-async function priceFor(s: Stripe, p: NonNullable<ReturnType<typeof checkoutPrice>>): Promise<string> {
+async function priceFor(s: Stripe, p: NonNullable<ReturnType<typeof checkoutPrice>>, tax: boolean): Promise<string> {
+  const lookupKey = tax ? `${p.lookupKey}_incl` : p.lookupKey;
   // stripe-node v22 renamed the list filter to `lookup_keys` (array)
-  const existing = await s.prices.list({ lookup_keys: [p.lookupKey], limit: 1 });
+  const existing = await s.prices.list({ lookup_keys: [lookupKey], limit: 1 });
   if (existing.data.length > 0) return existing.data[0].id;
 
-  const product = await s.products.create({ name: p.name, metadata: { luma_price: p.lookupKey } });
+  const product = await s.products.create({ name: p.name, metadata: { luma_price: lookupKey } });
   const price = await s.prices.create({
     product: product.id,
     currency: p.currency,
     unit_amount: p.amount,
-    lookup_key: p.lookupKey,
+    lookup_key: lookupKey,
+    ...(tax ? { tax_behavior: "inclusive" as const } : {}),
     // two first-ever checkouts at once both get here; without this the
     // second fails on the duplicate lookup key and the buyer sees a 500
     transfer_lookup_key: true,
@@ -182,10 +193,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const origin = typeof req.headers.origin === "string" ? req.headers.origin : undefined;
     const base = checkoutBase(origin, process.env);
     const s = stripe();
+    const tax = automaticTax();
 
     const session = await s.checkout.sessions.create({
       mode: "payment", // one-time purchase — the whole pricing model
-      line_items: [{ price: await priceFor(s, price), quantity: 1 }],
+      line_items: [{ price: await priceFor(s, price, tax), quantity: 1 }],
       success_url: `${base}/#/planner?checkout=success`,
       cancel_url: `${base}/#/planner?checkout=cancelled`,
       client_reference_id: userId,
@@ -194,6 +206,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       allow_promotion_codes: true,
       // an abandoned tab can't be paid hours later, after the plan changed
       expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+      // Stripe works out the buyer's VAT from their billing country
+      ...(tax ? { automatic_tax: { enabled: true } } : {}),
     });
 
     console.log(`[checkout] session ${session.id} created for ${userId} (${tier}, ${price.amount} ${price.currency})`);
