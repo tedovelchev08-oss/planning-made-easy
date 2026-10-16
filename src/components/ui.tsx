@@ -447,6 +447,15 @@ export function CheckoutModal() {
                   ? "One-time purchase via Stripe. Your plan unlocks the moment payment clears."
                   : "Demo checkout — simulated locally, no charge."}
               </p>
+              {/* the wording of any consent belongs to the reviewed terms, not to code:
+                  this only points to them, opening a new tab so checkout isn't lost */}
+              <p className="text-center text-[0.7rem] text-ink-mute">
+                Please read our{" "}
+                <a href="#/terms" target="_blank" rel="noreferrer" className="font-bold text-ink-2 underline underline-offset-2">Terms</a>
+                {" "}and{" "}
+                <a href="#/refunds" target="_blank" rel="noreferrer" className="font-bold text-ink-2 underline underline-offset-2">Refund policy</a>
+                {" "}before you pay.
+              </p>
             </div>
           )}
 
