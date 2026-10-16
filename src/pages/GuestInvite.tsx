@@ -12,6 +12,7 @@ import { Turnstile, type TurnstileHandle } from "../components/Turnstile";
 import { InviteArt } from "../components/dashboard/Invitations";
 import { SiteBody } from "../components/dashboard/Website";
 import { DesignFrame, Logo, SafeImg } from "../components/ui";
+import { localPhoto } from "../lib/images";
 
 const VALID_SOURCES: RsvpSource[] = ["link", "whatsapp", "instagram", "messenger", "email"];
 
@@ -154,7 +155,7 @@ export default function GuestInvite() {
         rsvp: pub.invitation.collect_rsvp,
         meal: pub.invitation.collect_meal,
         notes: pub.invitation.collect_notes,
-        photo: pub.invitation.photo,
+        photo: localPhoto(pub.invitation.photo),
         colors: pub.invitation.colors,
         fontSerif: pub.invitation.font_serif,
         motion: pub.invitation.motion,
@@ -178,7 +179,7 @@ export default function GuestInvite() {
   const names = pub ? pub.names : db.wedding.names;
   const dateIso = pub ? pub.date : db.wedding.date;
   const website = pub
-    ? { ...pub.website, heroPhoto: pub.website.hero_photo }
+    ? { ...pub.website, heroPhoto: localPhoto(pub.website.hero_photo) }
     : db.website;
   /** minimal Db-shaped object so SiteBody can render the public record */
   const siteDb: Db = pub

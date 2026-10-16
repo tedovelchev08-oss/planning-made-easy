@@ -12,6 +12,7 @@ import {
 } from "./data";
 import type { Db, InvitationConfig, WebsiteConfig } from "./store";
 import type { Currency } from "./plans";
+import { localPhoto } from "./images";
 
 export const isUuid = (s: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
@@ -203,7 +204,7 @@ export async function fetchWorkspace(weddingId: string, userId: string): Promise
       rsvp: inv?.collect_rsvp ?? true,
       meal: inv?.collect_meal ?? true,
       notes: inv?.collect_notes ?? true,
-      photo: inv?.photo ?? null,
+      photo: localPhoto(inv?.photo ?? null),
       colors,
       fontSerif: inv?.font_serif ?? null,
       motion: motion ?? { petals: "gentle", shimmer: true, type: true },
@@ -223,7 +224,7 @@ export async function fetchWorkspace(weddingId: string, userId: string): Promise
       ink: web?.ink ?? "#332B31",
       accent: web?.accent ?? "#D4AF37",
       serif: web?.serif ?? true,
-      heroPhoto: web?.hero_photo ?? "",
+      heroPhoto: localPhoto(web?.hero_photo ?? ""),
       animations: web?.animations ?? true,
       domain: web?.domain ?? "",
       published: web?.published ?? false,

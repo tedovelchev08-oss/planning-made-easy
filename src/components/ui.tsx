@@ -11,6 +11,7 @@ import { authApi, createCheckoutSession } from "../lib/api";
 import { I18nProvider, LOCALES, useT, type Locale } from "../lib/i18n";
 import { captureError } from "../lib/report";
 import { SUPPORT_EMAIL } from "../lib/links";
+import { localPhoto } from "../lib/images";
 
 /* ------------------------------ logo ------------------------------ */
 
@@ -1223,7 +1224,7 @@ export function SafeImg({ src, alt, className = "" }: { src: string; alt: string
       </div>
     );
   }
-  return <img src={src} alt={alt} className={className} loading="lazy" onError={() => setFailed(true)} />;
+  return <img src={localPhoto(src)} alt={alt} className={className} loading="lazy" onError={() => setFailed(true)} />;
 }
 
 /* ------------------------------ misc ------------------------------ */
