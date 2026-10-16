@@ -29,7 +29,7 @@ describe("syncEntity — vendors", () => {
       p_wedding: "w1",
       p_vendor: {
         id: "v1", category: "Venue", company: "The Glasshouse", contact: "Ana", email: "ana@example.com",
-        phone: "", price: 12000, status: "Booked", contract: true, notes: "", budget_id: null,
+        phone: "", price: 12000, status: "Booked", contract: true, notes: "", budget_id: null, updated_at: null,
       },
       p_payments: [{ label: "Deposit", amount: 500, due: "2027-01-10", paid: true }],
     });
@@ -51,5 +51,13 @@ describe("syncEntity — vendors", () => {
   it("a failed save surfaces as an error, so the sync queue retries it", async () => {
     rpc.mockResolvedValueOnce({ error: { message: "connection lost" } } as never);
     await expect(syncEntity("vendors", "w1", [vendor("v1")], [])).rejects.toThrow("connection lost");
+  });
+
+  it("sends the version the edit was made from, and returns the new one (0018)", async () => {
+    rpc.mockResolvedValueOnce({ data: "2026-10-16T12:00:01.000001+00:00", error: null } as never);
+    const out = await syncEntity("vendors", "w1", [{ ...vendor("v1"), updated_at: "2026-10-16T12:00:00+00:00" }], []);
+    expect((rpc.mock.calls[0] as unknown as [string, { p_vendor: { updated_at: string } }])[1].p_vendor.updated_at)
+      .toBe("2026-10-16T12:00:00+00:00");
+    expect(out).toEqual({ v1: "2026-10-16T12:00:01.000001+00:00" });
   });
 });

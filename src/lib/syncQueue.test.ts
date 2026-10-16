@@ -127,3 +127,24 @@ describe("retryDelay", () => {
     expect([0, 1, 2, 3, 4, 9].map(retryDelay)).toEqual([2000, 5000, 15000, 30000, 30000, 30000]);
   });
 });
+
+describe("sendQueue — versions and conflicts (0018)", () => {
+  it("collects the new version of every row that saved", async () => {
+    const send = vi.fn(async (key: string, upserts: unknown[]) =>
+      Object.fromEntries((upserts as { id: string }[]).map((r) => [r.id, `${key}-v2`])));
+    const { versions } = await sendQueue(queueOf({ guests: ["g1", "g2"], tasks: ["t1"] }), send);
+    expect(Object.fromEntries(versions)).toEqual({ "guests:g1": "guests-v2", "guests:g2": "guests-v2", "tasks:t1": "tasks-v2" });
+  });
+
+  it("a row in conflict is reported as such and NOT requeued; the rest of its batch saves", async () => {
+    const send = vi.fn(async (_key: string, upserts: unknown[]) => {
+      const ids = (upserts as { id: string }[]).map((r) => r.id);
+      if (ids.includes("stale")) throw Object.assign(new Error("this was changed by someone else"), { code: "P0409" });
+      return Object.fromEntries(ids.map((id) => [id, "v2"]));
+    });
+    const { failed, failures, versions } = await sendQueue(queueOf({ guests: ["g1", "stale", "g3"] }), send);
+    expect(countQueue(failed)).toBe(0);
+    expect(failures).toEqual([{ key: "guests", id: "stale", message: "this was changed by someone else", conflict: true }]);
+    expect([...versions.keys()].sort()).toEqual(["guests:g1", "guests:g3"]);
+  });
+});

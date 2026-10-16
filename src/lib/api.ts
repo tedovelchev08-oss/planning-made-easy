@@ -150,8 +150,25 @@ export async function myWeddingId(): Promise<string | null> {
   return data?.wedding_id ?? null;
 }
 
-/** Loads the couple's whole plan in one round of parallel selects. */
-export async function fetchWorkspace(weddingId: string, userId: string): Promise<Db> {
+/**
+ * The version (updated_at) of every row this tab loaded, keyed
+ * "<entity>:<id>" — "wedding:wedding", "invitation:invitation" and
+ * "website:website" for the single rows. Sent back with each save so the
+ * database can refuse one based on a stale copy (0018).
+ */
+export type Versions = Map<string, string>;
+export const versionKey = (key: EntityKey, id: string) => `${key}:${id}`;
+
+/** A save refused because a partner changed or deleted the row since this tab loaded it. */
+export class ConflictError extends Error {
+  readonly code = "P0409";
+}
+
+/**
+ * Loads the couple's whole plan in one round of parallel selects. Pass a
+ * map to also receive every row's version.
+ */
+export async function fetchWorkspace(weddingId: string, userId: string, versions?: Versions): Promise<Db> {
   const s = requireSb();
   const [wedding, guests, tables, venueObjects, budget, tasks, vendors, registry, invitation, website, custom, rsvps, entitlement] =
     await Promise.all([
@@ -175,6 +192,19 @@ export async function fetchWorkspace(weddingId: string, userId: string): Promise
     if (r.error) throw r.error;
   }
   if (invitation.error || website.error) throw invitation.error ?? website.error;
+
+  if (versions) {
+    const v = (r: unknown) => (r as { updated_at?: string } | null)?.updated_at;
+    const add = (key: EntityKey, rows: unknown[] | null) =>
+      (rows ?? []).forEach((r) => { const ver = v(r); if (ver) versions.set(versionKey(key, (r as { id: string }).id), ver); });
+    add("guests", guests.data); add("tables", tables.data); add("venueObjects", venueObjects.data);
+    add("budget", budget.data); add("tasks", tasks.data); add("vendors", vendors.data);
+    add("registry", registry.data); add("customTemplates", custom.data);
+    for (const [key, row] of [["wedding", wedding.data], ["invitation", invitation.data], ["website", website.data]] as const) {
+      const ver = v(row);
+      if (ver) versions.set(versionKey(key, key), ver);
+    }
+  }
 
   const w = rowToWedding(wedding.data);
   const inv = invitation.data;
@@ -303,82 +333,90 @@ export type EntityKey =
 
 /**
  * Applies one entity's pending diff. Collection entities are upserted /
- * deleted by id; vendors also replace their payment schedule; the two config
- * tables upsert their single row keyed on wedding_id.
+ * deleted by id; vendors go through save_vendor (one transaction with their
+ * payment schedule); the two config tables upsert their single row keyed on
+ * wedding_id. Rows carry the version they were edited from (updated_at);
+ * the new versions come back keyed by id ("wedding", "invitation" and
+ * "website" for the single rows). A row a partner changed or deleted since
+ * throws ConflictError.
  */
 export async function syncEntity(
   key: EntityKey,
   weddingId: string,
   upserts: unknown[],
   deletes: string[],
-): Promise<void> {
+): Promise<Record<string, string>> {
   const s = requireSb();
+  const fail = (e: { message: string; code?: string }) =>
+    e.code === "P0409" ? new ConflictError(e.message) : Object.assign(new Error(e.message), { code: e.code });
   const run = async (p: PromiseLike<{ error: { message: string; code?: string } | null }>) => {
     const r = await p;
-    if (r.error && r.error.code !== "PGRST116") throw new Error(r.error.message);
+    if (r.error && r.error.code !== "PGRST116") throw fail(r.error);
+  };
+  const versions: Record<string, string> = {};
+  /** upsert rows by `conflict`, reading back each row's new version */
+  const upsertRows = async (table: string, rows: unknown[], conflict: "id" | "wedding_id", idOf: (r: Record<string, string>) => string) => {
+    const { data, error } = await s.from(table as never).upsert(rows as never, { onConflict: conflict }).select(`${conflict}, updated_at`);
+    if (error) throw fail(error);
+    for (const r of (data ?? []) as Record<string, string>[]) versions[idOf(r)] = r.updated_at;
+  };
+  const collection = async (table: string) => {
+    if (deletes.length) await run(s.from(table as never).delete().in("id", deletes));
+    if (upserts.length) await upsertRows(table, upserts, "id", (r) => r.id);
   };
 
   switch (key) {
-    case "wedding":
-      if (upserts[0]) await run(s.from("weddings").update(weddingToRow(upserts[0] as Wedding)).eq("id", weddingId));
-      return;
-    case "guests":
-      if (deletes.length) await run(s.from("guests").delete().in("id", deletes));
-      if (upserts.length) await run(s.from("guests").upsert(upserts as never, { onConflict: "id" }));
-      return;
-    case "tables":
-      if (deletes.length) await run(s.from("tables").delete().in("id", deletes));
-      if (upserts.length) await run(s.from("tables").upsert(upserts as never, { onConflict: "id" }));
-      return;
-    case "venueObjects":
-      if (deletes.length) await run(s.from("venue_objects").delete().in("id", deletes));
-      if (upserts.length) await run(s.from("venue_objects").upsert(upserts as never, { onConflict: "id" }));
-      return;
-    case "budget":
-      if (deletes.length) await run(s.from("budget_categories").delete().in("id", deletes));
-      if (upserts.length) await run(s.from("budget_categories").upsert(upserts as never, { onConflict: "id" }));
-      return;
-    case "tasks":
-      if (deletes.length) await run(s.from("tasks").delete().in("id", deletes));
-      if (upserts.length) await run(s.from("tasks").upsert(upserts as never, { onConflict: "id" }));
-      return;
+    case "wedding": {
+      const w = upserts[0] as (Wedding & { updated_at?: string | null }) | undefined;
+      if (w) {
+        const { data, error } = await s.from("weddings")
+          .update({ ...weddingToRow(w), updated_at: w.updated_at ?? null } as never).eq("id", weddingId).select("updated_at");
+        if (error) throw fail(error);
+        const ver = (data as { updated_at: string }[] | null)?.[0]?.updated_at;
+        if (ver) versions.wedding = ver;
+      }
+      return versions;
+    }
+    case "guests": await collection("guests"); return versions;
+    case "tables": await collection("tables"); return versions;
+    case "venueObjects": await collection("venue_objects"); return versions;
+    case "budget": await collection("budget_categories"); return versions;
+    case "tasks": await collection("tasks"); return versions;
     case "vendors": {
       if (deletes.length) await run(s.from("vendors").delete().in("id", deletes));
       // one call per vendor: the vendor and its whole payment schedule are
       // saved in a single transaction (0015), so a failure can't leave the
       // vendor with its old payments deleted and the new ones missing
-      for (const v of upserts as Vendor[]) {
-        await run(s.rpc("save_vendor", {
+      for (const v of upserts as (Vendor & { updated_at?: string | null })[]) {
+        const { data, error } = await s.rpc("save_vendor", {
           p_wedding: weddingId,
           p_vendor: {
             id: v.id, category: v.category, company: v.company, contact: v.contact, email: v.email,
             phone: v.phone, price: v.price, status: v.status, contract: v.contract, notes: v.notes,
-            budget_id: v.budgetId,
+            budget_id: v.budgetId, updated_at: v.updated_at ?? null,
           },
           p_payments: (v.payments ?? []).map((p) => ({ label: p.label, amount: p.amount, due: p.due, paid: p.paid })),
-        }));
+        });
+        if (error) throw fail(error);
+        if (typeof data === "string") versions[v.id] = data;
       }
-      return;
+      return versions;
     }
-    case "registry":
-      if (deletes.length) await run(s.from("registry_items").delete().in("id", deletes));
-      if (upserts.length) await run(s.from("registry_items").upsert(upserts as never, { onConflict: "id" }));
-      return;
-    case "customTemplates":
-      if (deletes.length) await run(s.from("custom_templates").delete().in("id", deletes));
-      if (upserts.length) await run(s.from("custom_templates").upsert(upserts as never, { onConflict: "id" }));
-      return;
+    case "registry": await collection("registry_items"); return versions;
+    case "customTemplates": await collection("custom_templates"); return versions;
     case "rsvpLog":
+      // guests' answers: not versioned (they're written by the RSVP function)
       if (deletes.length) await run(s.from("rsvps").delete().in("id", deletes));
       if (upserts.length) await run(s.from("rsvps").upsert(upserts as never, { onConflict: "id" }));
-      return;
+      return versions;
     case "invitation":
-      if (upserts[0]) await run(s.from("invitation_config").upsert(upserts[0] as never, { onConflict: "wedding_id" }));
-      return;
+      if (upserts[0]) await upsertRows("invitation_config", [upserts[0]], "wedding_id", () => "invitation");
+      return versions;
     case "website":
-      if (upserts[0]) await run(s.from("website_config").upsert(upserts[0] as never, { onConflict: "wedding_id" }));
-      return;
+      if (upserts[0]) await upsertRows("website_config", [upserts[0]], "wedding_id", () => "website");
+      return versions;
   }
+  return versions;
 }
 
 /** Rows newer than `since` that the couple hasn't seen yet. */

@@ -249,10 +249,11 @@ export interface Database {
           p_vendor: {
             id: string; category: string; company: string; contact: string; email: string; phone: string;
             price: number; status: string; contract: boolean; notes: string; budget_id: string | null;
+            updated_at: string | null;
           };
           p_payments: { label: string; amount: number; due: string; paid: boolean }[];
         };
-        Returns: undefined;
+        Returns: string;
       };
     };
     Enums: {

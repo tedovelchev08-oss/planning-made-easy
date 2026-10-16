@@ -92,31 +92,50 @@ export function clearQueue(user: string): void {
 
 /* ------------------------------ sending ------------------------------ */
 
-export type Send = (key: EntityKey, upserts: unknown[], deletes: string[]) => Promise<void>;
+/** Sends one entity's batch; may return each saved row's new version, by id. */
+export type Send = (key: EntityKey, upserts: unknown[], deletes: string[]) => Promise<Record<string, string> | void>;
 
-export interface RowFailure { key: EntityKey; id: string; message: string }
+/**
+ * conflict: the server refused the row because a partner changed or deleted
+ * it since this tab loaded it (0018). Retrying can never succeed, so such a
+ * row is NOT put back in the queue; the caller reloads instead.
+ */
+export interface RowFailure { key: EntityKey; id: string; message: string; conflict?: boolean }
+
+const isConflict = (e: unknown) => (e as { code?: string } | null)?.code === "P0409";
 
 /**
  * Send a queue, isolating failures. The old loop stopped at the first entity
  * that threw, so one row the server kept rejecting blocked every later save.
  * Now each entity is sent on its own; if its batch is rejected, it is retried
  * row by row so the good rows land and only the bad ones stay queued.
+ * Returns the new version of every row that saved, keyed "<entity>:<id>".
  */
 export async function sendQueue(
   batch: Queue,
   send: Send,
   /** false while offline: every row would fail, so don't fire them one by one */
   isolate = true,
-): Promise<{ failed: Queue; failures: RowFailure[] }> {
+): Promise<{ failed: Queue; failures: RowFailure[]; versions: Map<string, string> }> {
   const failed = emptyQueue();
   const failures: RowFailure[] = [];
+  const versions = new Map<string, string>();
   const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
+  const keep = (key: EntityKey, out: Record<string, string> | void) => {
+    if (out) for (const [id, v] of Object.entries(out)) versions.set(`${key}:${id}`, v);
+  };
+  /** one row failed: requeue it, unless the server says it's in conflict */
+  const rowFailed = (key: EntityKey, id: string, e: unknown, requeue: () => void) => {
+    if (isConflict(e)) { failures.push({ key, id, message: msg(e), conflict: true }); return; }
+    requeue();
+    failures.push({ key, id, message: msg(e) });
+  };
 
   for (const [key, b] of batch) {
     const upserts = [...b.upserts];
     const deletes = [...b.deletes];
     try {
-      await send(key, upserts.map(([, row]) => row), deletes);
+      keep(key, await send(key, upserts.map(([, row]) => row), deletes));
       continue;
     } catch (e) {
       if (!isolate || upserts.length + deletes.length === 1) {
@@ -127,22 +146,21 @@ export async function sendQueue(
           failures.push({ key, id: "*", message: msg(e) });
           continue;
         }
-        const f = bucketOf(failed, key);
-        if (deletes[0]) f.deletes.add(deletes[0]); else f.upserts.set(upserts[0][0], upserts[0][1]);
-        failures.push({ key, id: deletes[0] ?? upserts[0][0], message: msg(e) });
+        if (deletes[0]) rowFailed(key, deletes[0], e, () => bucketOf(failed, key).deletes.add(deletes[0]));
+        else rowFailed(key, upserts[0][0], e, () => bucketOf(failed, key).upserts.set(upserts[0][0], upserts[0][1]));
         continue;
       }
     }
     for (const id of deletes) {
-      try { await send(key, [], [id]); }
-      catch (e) { bucketOf(failed, key).deletes.add(id); failures.push({ key, id, message: msg(e) }); }
+      try { keep(key, await send(key, [], [id])); }
+      catch (e) { rowFailed(key, id, e, () => bucketOf(failed, key).deletes.add(id)); }
     }
     for (const [id, row] of upserts) {
-      try { await send(key, [row], []); }
-      catch (e) { bucketOf(failed, key).upserts.set(id, row); failures.push({ key, id, message: msg(e) }); }
+      try { keep(key, await send(key, [row], [])); }
+      catch (e) { rowFailed(key, id, e, () => bucketOf(failed, key).upserts.set(id, row)); }
     }
   }
-  return { failed, failures };
+  return { failed, failures, versions };
 }
 
 /** Retry delays while saving keeps failing: 2s, 5s, 15s, then every 30s. */
