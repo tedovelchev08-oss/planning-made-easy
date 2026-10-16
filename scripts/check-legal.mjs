@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import process from "node:process";
 
 const dir = process.argv[2] ?? "src/legal"; // a folder argument is only for testing the check itself
-const files = ["privacy", "terms", "refunds"].map((n) => `${dir}/${n}.md`);
+const files = ["privacy", "terms", "refunds", "cookies"].map((n) => `${dir}/${n}.md`);
 let failed = false;
 for (const f of files) {
   const text = readFileSync(f, "utf8");

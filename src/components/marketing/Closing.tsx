@@ -112,6 +112,7 @@ export function Footer() {
     { label: "Privacy", onClick: () => navigate("/privacy") },
     { label: "Terms", onClick: () => navigate("/terms") },
     { label: "Refunds", onClick: () => navigate("/refunds") },
+    { label: "Cookies", onClick: () => navigate("/cookies") },
   ];
 
   return (

@@ -6,9 +6,10 @@ import { renderMarkdown } from "../lib/markdown";
 import privacy from "../legal/privacy.md?raw";
 import terms from "../legal/terms.md?raw";
 import refunds from "../legal/refunds.md?raw";
+import cookies from "../legal/cookies.md?raw";
 
 /**
- * Privacy policy, terms and refund policy. The text lives in src/legal/*.md
+ * Privacy policy, terms, refund policy and cookie policy. The text lives in src/legal/*.md
  * and comes from the owner (a lawyer or a reviewed template), never from code
  * changes. CI fails while any file still holds its placeholder.
  */
@@ -16,6 +17,7 @@ export const LEGAL = {
   privacy: { title: "Privacy policy", source: privacy },
   terms: { title: "Terms of service", source: terms },
   refunds: { title: "Refund policy", source: refunds },
+  cookies: { title: "Cookie policy", source: cookies },
 } as const;
 export type LegalDoc = keyof typeof LEGAL;
 

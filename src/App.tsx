@@ -77,6 +77,7 @@ export default function App() {
               <Route path="/privacy" element={<LegalPage doc="privacy" />} />
               <Route path="/terms" element={<LegalPage doc="terms" />} />
               <Route path="/refunds" element={<LegalPage doc="refunds" />} />
+              <Route path="/cookies" element={<LegalPage doc="cookies" />} />
               <Route path="/demo" element={<DemoGate />} />
               <Route path="/planner" element={<PlannerGate />}>
                 <Route index element={<Overview />} />
