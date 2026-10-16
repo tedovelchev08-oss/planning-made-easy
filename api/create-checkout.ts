@@ -33,6 +33,32 @@ export const CURRENCIES = ["eur", "usd", "gbp"] as const;
 type Currency = (typeof CURRENCIES)[number];
 const RANK: Record<string, number> = { essential: 0, celebration: 1, luxe: 2 };
 
+export const SITE_URL = "https://planning-made-easy.vercel.app";
+/** This project's preview deployments: branch aliases and per-deployment URLs. */
+const PREVIEW_ORIGIN = /^https:\/\/planning-made-easy-[a-z0-9-]+-one-man-army-eaf1\.vercel\.app$/;
+const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1):\d{2,5}$/;
+
+type SiteEnv = { VERCEL_ENV?: string; VERCEL_URL?: string; VITE_PUBLIC_SITE_URL?: string };
+
+/**
+ * Where Stripe sends the buyer back to. The Origin header is whatever the
+ * caller sends, so it is only ever CHOSEN from, never trusted: our own site,
+ * and on non-production deployments this project's previews or localhost.
+ * Anything else, including a missing header, gets the deployment's own
+ * address. Before this, `curl -H "Origin: https://evil.example"` produced a
+ * genuine Luma checkout link that ended on evil.example.
+ */
+export function checkoutBase(origin: string | undefined, env: SiteEnv): string {
+  const site = (env.VITE_PUBLIC_SITE_URL || SITE_URL).replace(/\/$/, "");
+  const production = env.VERCEL_ENV === "production";
+  const self = !production && env.VERCEL_URL ? `https://${env.VERCEL_URL}` : site;
+  const o = (origin ?? "").replace(/\/$/, "");
+  if (o === site) return site;
+  if (!production && (o === self || PREVIEW_ORIGIN.test(o))) return o;
+  if (!env.VERCEL_ENV && LOCAL_ORIGIN.test(o)) return o; // `vercel dev` on a laptop
+  return self;
+}
+
 /**
  * What a checkout charges, given what the wedding already has. Upgrading
  * from Celebration to Luxe charges the difference — nobody pays twice for
@@ -133,8 +159,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!price) return res.status(409).json({ error: "This wedding already has that plan" });
 
   try {
-    const origin = req.headers.origin || req.headers.referer || "https://planning-made-easy.vercel.app";
-    const base = String(origin).replace(/\/$/, "");
+    const origin = typeof req.headers.origin === "string" ? req.headers.origin : undefined;
+    const base = checkoutBase(origin, process.env);
     const s = stripe();
 
     const session = await s.checkout.sessions.create({
