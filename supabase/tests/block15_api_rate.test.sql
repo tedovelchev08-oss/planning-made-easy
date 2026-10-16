@@ -40,11 +40,12 @@ select ok(
   and not has_function_privilege('authenticated', 'public.api_rate_hit(text, text)', 'execute'),
   'signed-out and signed-in users cannot call api_rate_hit'
 );
-select ok(
-  not has_table_privilege('anon', 'public.api_rate', 'select')
-  and not has_table_privilege('authenticated', 'public.api_rate', 'select')
-  or (select relrowsecurity from pg_class where oid = 'public.api_rate'::regclass),
-  'api_rate is not readable by visitors (no grant, or RLS with no policies)'
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000151", "role": "authenticated"}';
+select throws_ok(
+  $$ select count(*) from api_rate $$,
+  '42501', null,
+  'signed-in users cannot read api_rate'
 );
 
 select * from finish();

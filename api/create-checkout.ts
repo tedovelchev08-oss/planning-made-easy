@@ -17,6 +17,7 @@
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import Stripe from "stripe";
+import { createHmac } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
 /**
@@ -32,6 +33,9 @@ export const PRICES: Record<"celebration" | "luxe", { name: string; amount: numb
 export const CURRENCIES = ["eur", "usd", "gbp"] as const;
 type Currency = (typeof CURRENCIES)[number];
 const RANK: Record<string, number> = { essential: 0, celebration: 1, luxe: 2 };
+
+/** Checkout sessions one account may start per hour (counted in api_rate, 0016). */
+export const CHECKOUTS_PER_HOUR = 10;
 
 export const SITE_URL = "https://planning-made-easy.vercel.app";
 /** This project's preview deployments: branch aliases and per-deployment URLs. */
@@ -137,6 +141,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Unparseable token. Same answer as a rejected one: the caller is not
     // authenticated, and which of the two it was is not their business.
     return res.status(401).json({ error: "Invalid session" });
+  }
+
+  // Each call creates a Stripe session: cap them per account. Fails open, so
+  // a counter outage never blocks a real payment.
+  try {
+    const key = createHmac("sha256", serviceKey).update(userId).digest("hex");
+    const { data: hits, error: rateErr } = await admin.rpc("api_rate_hit", { p_bucket: "checkout", p_key: key });
+    if (rateErr) console.error("[checkout] rate check failed:", rateErr.message);
+    else if (typeof hits === "number" && hits > CHECKOUTS_PER_HOUR) {
+      return res.status(429).json({ error: "Too many checkout attempts. Please try again in an hour." });
+    }
+  } catch (err) {
+    console.error("[checkout] rate check failed:", (err as Error).message);
   }
 
   // Verify the user is a member of this wedding (server-side check)
