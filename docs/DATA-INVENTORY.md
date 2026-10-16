@@ -100,13 +100,15 @@ WhatsApp, Messenger, SMS or email via share links.
 | Right | Status |
 |---|---|
 | Access / portability | **"Export my data"** in the planner's account menu downloads the whole workspace as JSON. |
-| Erasure | **By request to support** (in-app explanation added). No self-service deletion yet. |
+| Erasure | **Self-service:** "Delete my account" in the account menu (type the email to confirm). Owners' uploaded files are removed from Storage first. By email to support as a fallback. |
 | Rectification | The couple can edit everything in the planner. Guests contact the couple. |
 | Guests' own data | Held by the couple's wedding. A guest asks the couple, or support. |
 
 **Deletion side effect to document.** `weddings.owner_id` is `ON DELETE CASCADE`: deleting the
 **owner's** account deletes the whole wedding, including for an active partner, along with its
-guests, RSVPs and files. Deleting a **partner's** account removes only their membership.
+guests, RSVPs and uploaded files (removed from Storage by `api/delete-account.ts`). Deleting a
+**partner's** account removes only their membership. Payment rows in `purchases` are kept with
+`wedding_id` and `user_id` set to null (0017), for accounting.
 
 ## 5. Payments and refunds: facts for the refund policy
 

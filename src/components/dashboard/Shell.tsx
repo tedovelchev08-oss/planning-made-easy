@@ -3,11 +3,12 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Armchair, BellRing, CalendarDays, Check, Clock3, ExternalLink, Gift, Globe, LayoutDashboard,
-  Download, Link2, LogOut, Menu, Plus, Search, Store, Trash2, Users, Wallet, X,
+  Download, Link2, Loader2, LogOut, Menu, Plus, Search, Store, Trash2, Users, Wallet, X,
 } from "lucide-react";
 import { useApp, useStats, type SyncStatus } from "../../lib/store";
 import { SUPPORT_EMAIL, guestLink } from "../../lib/links";
 import { downloadExport } from "../../lib/exportData";
+import { deleteAccount } from "../../lib/api";
 import { initials, planLabel } from "../../lib/data";
 import { useT } from "../../lib/i18n";
 import { Logo, Modal, Pill, btn } from "../ui";
@@ -83,6 +84,27 @@ export default function Shell() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [deleteInfo, setDeleteInfo] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deleteMatches = !!user?.email && deleteConfirm.trim().toLowerCase() === user.email.toLowerCase();
+
+  const confirmDelete = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deleteMatches) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteAccount(deleteConfirm.trim());
+      setDeleteInfo(false);
+      signOut(); // clears this device's copy of the planner and any unsaved edits
+      toast("Your account is deleted", "Thank you for planning with Luma.");
+    } catch (err) {
+      setDeleteError((err as Error).message);
+    } finally {
+      setDeleting(false);
+    }
+  };
   const [cmdOpen, setCmdOpen] = useState(false);
   const [dockOpen, setDockOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -196,32 +218,40 @@ export default function Shell() {
 
       <CmdK open={cmdOpen} onClose={() => setCmdOpen(false)} />
 
-      {/* No self-service deletion yet, so say exactly how it works instead of
-          promising "erase anytime" (which the footer used to). */}
-      <Modal open={deleteInfo} onClose={() => setDeleteInfo(false)} label="Delete my account">
-        <div className="p-7 sm:p-8">
+      <Modal open={deleteInfo} onClose={() => { if (!deleting) setDeleteInfo(false); }} label="Delete my account">
+        <form className="p-7 sm:p-8" onSubmit={confirmDelete}>
           <h2 className="flex items-center gap-2.5 font-display text-2xl text-ink"><Trash2 size={20} className="text-blush-deep" /> Delete your account</h2>
           <p className="mt-3 text-[0.9rem] leading-relaxed text-ink-2">
-            Email us from <strong className="text-ink">{user?.email ?? "the address you sign in with"}</strong> and we'll delete your account and confirm when it's done.
+            This can't be undone. Your account is deleted straight away.
           </p>
           <div className="mt-5 space-y-2.5 rounded-2xl border border-ink/10 bg-white/70 p-4 text-[0.84rem] leading-relaxed text-ink-2">
-            <p><strong className="text-ink">If you created this wedding</strong>, deleting your account deletes the whole wedding — guests, RSVPs, seating, budget and uploaded files — for your partner too.</p>
+            <p><strong className="text-ink">If you created this wedding</strong>, deleting your account deletes the whole wedding — guests, RSVPs, seating, budget and uploaded songs — for your partner too.</p>
             <p><strong className="text-ink">If you joined as a partner</strong>, only your access is removed; the wedding stays with whoever created it.</p>
-            <p>Before you ask, you can keep a copy: <strong className="text-ink">Export my data</strong> in this menu downloads everything.</p>
+            <p>Want a copy first? <strong className="text-ink">Export my data</strong> downloads everything.</p>
           </div>
+          <label className="mt-5 block text-[0.8rem] font-bold text-ink-2" htmlFor="delete-confirm">
+            Type <strong className="text-ink">{user?.email ?? "your email"}</strong> to confirm
+          </label>
+          <input
+            id="delete-confirm" type="email" autoComplete="off" value={deleteConfirm}
+            onChange={(e) => setDeleteConfirm(e.target.value)} placeholder="you@example.com"
+            className="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-[0.9rem] text-ink outline-none focus:border-blush-deep"
+          />
+          {deleteError && (
+            <p className="mt-3 rounded-xl border border-blush-deep/40 bg-blush-soft/70 px-4 py-3 text-[0.82rem] font-bold text-blush-deep" role="alert">{deleteError}</p>
+          )}
           <div className="mt-6 flex flex-wrap justify-end gap-3">
-            <button onClick={() => { downloadExport(db, user, weddingId); toast("Your data is downloading", "Everything in your planner, as one JSON file."); }} className={btn.outline}>
+            <button type="button" onClick={() => { downloadExport(db, user, weddingId); toast("Your data is downloading", "Everything in your planner, as one JSON file."); }} className={btn.outline}>
               <Download size={14} /> Export my data first
             </button>
-            <a
-              href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Delete my Luma account")}&body=${encodeURIComponent(`Please delete my Luma account (${user?.email ?? ""}).`)}`}
-              className={btn.ink}
-              onClick={() => setDeleteInfo(false)}
-            >
-              Email {SUPPORT_EMAIL}
-            </a>
+            <button type="submit" disabled={!deleteMatches || deleting} className={`${btn.ink} disabled:pointer-events-none disabled:opacity-50`}>
+              {deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={14} />} Delete my account
+            </button>
           </div>
-        </div>
+          <p className="mt-4 text-right text-[0.74rem] text-ink-mute">
+            Trouble? Email <a href={`mailto:${SUPPORT_EMAIL}`} className="font-bold underline underline-offset-2">{SUPPORT_EMAIL}</a>.
+          </p>
+        </form>
       </Modal>
 
       {/* desktop sidebar */}
@@ -362,7 +392,7 @@ export default function Shell() {
                               <Download size={15} /> Export my data
                             </button>
                             <button
-                              onClick={() => { setAccountOpen(false); setDeleteInfo(true); }}
+                              onClick={() => { setAccountOpen(false); setDeleteConfirm(""); setDeleteError(null); setDeleteInfo(true); }}
                               className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.84rem] font-bold text-ink transition hover:bg-ink/5 cursor-pointer"
                               role="menuitem"
                             >

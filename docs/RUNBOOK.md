@@ -147,13 +147,19 @@ The raw IP addresses are never stored, so you can't search by IP.
 
 ## Account deletion requests
 
-The privacy policy promises deletion **within 30 days**. Reply from the support address.
+Couples delete their own account with **Delete my account** in the account menu (they type their email to
+confirm). `api/delete-account.ts` removes an owner's uploaded files from Storage first, then deletes the
+auth user; the database cascades the rest, and payment rows stay with `wedding_id` and `user_id` cleared
+(0017). Logs: search `[delete-account]` in Vercel.
+
+If someone emails instead (the privacy policy promises **within 30 days**):
 
 1. Confirm that the request came from the account's own email address.
-2. Remind them about **Export my data** in the account menu, and that deleting an **owner** deletes the whole wedding, including for the partner.
-3. Supabase → Authentication → Users → the user → **Delete user**. This cascades: an owner's wedding and
-   everything in it go too, while a partner only loses their membership. Uploaded songs stay in
-   storage: delete the folder `media/<wedding_id>/` in Storage.
+2. Point them to **Delete my account** in the account menu (and **Export my data** first). If they can't
+   sign in, do it for them:
+3. Supabase → Storage → `media` → delete the folder `<wedding_id>/` for each wedding they **own**
+   (find them with `select id from weddings where owner_id = '<user_id>';`). Then Authentication → Users →
+   the user → **Delete user**. A partner owns no wedding: only step 3's second half.
 4. Reply to confirm it's done.
 
 ---

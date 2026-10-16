@@ -490,6 +490,29 @@ export async function submitRsvp(p: {
 /* ------------------------------ checkout & entitlements ------------------------------ */
 
 /**
+ * Deletes the signed-in account (api/delete-account.ts). `confirmEmail` is
+ * what the person typed; the server compares it with their real address.
+ */
+export async function deleteAccount(confirmEmail: string): Promise<void> {
+  const { data: session } = await requireSb().auth.getSession();
+  const token = session.session?.access_token;
+  if (!token) throw new Error("You need to be signed in to delete your account.");
+  const res = await fetch("/api/delete-account", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ confirmEmail }),
+  });
+  if (!res.ok) {
+    let msg = "Your account couldn't be deleted just now. Please try again.";
+    try {
+      const j = (await res.json()) as { error?: string };
+      if (j.error) msg = j.error;
+    } catch { /* non-JSON error body */ }
+    throw new Error(msg);
+  }
+}
+
+/**
  * Starts a one-time Stripe Checkout session for a tier.
  * The server verifies the caller's JWT, mints the session and returns only
  * `{ url }` — the client redirects and NEVER writes entitlements itself.
