@@ -10,7 +10,7 @@
 -- ============================================================
 
 begin;
-select plan(6);
+select plan(7);
 
 create or replace function test_uuid(suffix text)
 returns uuid
@@ -29,6 +29,9 @@ values (test_uuid('1400'), test_uuid('141'), 'b14-wedding', 'Delete & Me', now()
 insert into wedding_members (wedding_id, user_id, role)
 values (test_uuid('1400'), test_uuid('141'), 'owner'), (test_uuid('1400'), test_uuid('142'), 'partner');
 insert into guests (wedding_id, name) values (test_uuid('1400'), 'Priya Desai');
+-- an invite the owner sent: invited_by has no delete rule, so it must not block deletion
+insert into wedding_invites (wedding_id, email, invited_by)
+values (test_uuid('1400'), 'friend14@example.com', test_uuid('141'));
 insert into purchases (wedding_id, user_id, tier, stripe_payment_intent_id, amount, currency)
 values (test_uuid('1400'), test_uuid('141'), 'celebration', 'pi_b14_owner', 4900, 'eur');
 
@@ -48,6 +51,10 @@ select is(
 select is(
   (select count(*)::int from guests where wedding_id = test_uuid('1400')), 0,
   'and everything in it'
+);
+select is(
+  (select count(*)::int from wedding_invites where wedding_id = test_uuid('1400')), 0,
+  'including the invites the owner sent (they don''t block the deletion)'
 );
 
 -- but the payment record stays, anonymised ---------------------------------
