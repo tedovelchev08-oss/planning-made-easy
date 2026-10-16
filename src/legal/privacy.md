@@ -112,7 +112,7 @@ Cloudflare Turnstile (on the guest answer page) and Stripe (on its own payment p
 - **Information stored in your browser:** removed when you sign out. Your chosen currency stays until you clear your browser data.
 - **Spam-protection records for guest answers** (a one-way code made from the IP address, never the address itself): deleted after one day.
 - **Server and error logs:** a short period, set by our hosting provider.
-- **Payment records:** kept by Stripe, and for as long as Bulgarian accounting and tax law requires.
+- **Payment records:** kept by Stripe, and for as long as Bulgarian accounting and tax law requires. If you delete your account, Luma's own record of a payment is kept without the link to you or your wedding.
 
 When we no longer need information, we delete it or make it anonymous. Copies in backups are deleted as the backups expire.
 
@@ -139,7 +139,7 @@ Depending on where you live (for example, in the EEA, the UK, Switzerland, Canad
 
 - **Export:** use **Export my data** in the account menu to download everything in your wedding at any time.
 - **Correct:** edit your information directly in the planner.
-- **Delete your account:** email **lumaplanning.support@gmail.com** from the address you signed up with. We will confirm and complete the deletion within 30 days. If you are a wedding's **owner**, deleting your account deletes the whole wedding, including for your partner. If you are a **partner**, only your access is removed.
+- **Delete your account:** use **Delete my account** in the account menu. It takes effect straight away. If you can't, email **lumaplanning.support@gmail.com** from the address you signed up with and we will complete the deletion within 30 days. If you are a wedding's **owner**, deleting your account deletes the whole wedding, including its uploaded songs and for your partner. If you are a **partner**, only your access is removed. A record of any payment (plan, amount, date and payment reference, no longer linked to you) is kept for as long as accounting law requires.
 - **Anything else:** email **lumaplanning.support@gmail.com**. We may need to confirm your identity first, and we will reply within one month.
 
 We give these rights to every user, wherever they live, and we won't treat you differently for using them.
