@@ -45,7 +45,7 @@ Rules:
 ## Stripe
 
 - **Production** uses the main Stripe account. It is in test mode until launch. Webhook endpoint:
-  `https://planning-made-easy.vercel.app/api/stripe-webhook`, events `checkout.session.completed` and `charge.refunded`.
+  `https://planning-made-easy.vercel.app/api/stripe-webhook`, events `checkout.session.completed`, `charge.refunded` and `charge.dispute.closed`.
 - **Preview** should use a **separate Stripe sandbox**. Then test purchases on a PR never show up among
   production's test data, and the two webhook secrets can't be mixed up. Its webhook endpoint must point at a
   deployment that serves Preview env vars. A preview URL changes with every deployment, so use the

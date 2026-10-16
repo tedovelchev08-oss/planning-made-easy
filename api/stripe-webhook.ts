@@ -214,9 +214,9 @@ export async function resolveRefundTarget(
 type Admin = ReturnType<typeof admin>;
 
 /** The ledger row a refund applies to, creating it for payments made before the ledger existed. */
-async function purchaseForRefund(supabase: Admin, piId: string, charge: Stripe.Charge) {
+async function purchaseForRefund(supabase: Admin, piId: string, charge: Pick<Stripe.Charge, "amount" | "currency">) {
   const { data: row, error } = await supabase
-    .from("purchases").select("id, wedding_id, user_id, tier").eq("stripe_payment_intent_id", piId).maybeSingle();
+    .from("purchases").select("id, wedding_id, user_id, tier, amount").eq("stripe_payment_intent_id", piId).maybeSingle();
   if (error) throw new Error(`purchase lookup failed: ${error.message}`);
   if (row) return row;
 
@@ -257,7 +257,7 @@ async function purchaseForRefund(supabase: Admin, piId: string, charge: Stripe.C
       },
       { onConflict: "stripe_payment_intent_id" },
     )
-    .select("id, wedding_id, user_id, tier")
+    .select("id, wedding_id, user_id, tier, amount")
     .single();
   if (insertError) throw new Error(`purchase insert failed: ${insertError.message}`);
   return created;
@@ -298,6 +298,20 @@ async function revokeFromRefund(supabase: Admin, charge: Stripe.Charge) {
     return;
   }
 
+  await applyStandingPlans(supabase, purchase, piId, "full refund");
+}
+
+/**
+ * After a purchase stops counting (a full refund, or a card dispute we
+ * lost), the wedding and the purchaser fall back to whatever else is
+ * still paid for.
+ */
+async function applyStandingPlans(
+  supabase: Admin,
+  purchase: { wedding_id: string | null; user_id: string | null },
+  piId: string,
+  reason: string,
+) {
   // The wedding's plan, recomputed from everything still paid for.
   if (purchase.wedding_id) {
     const { data: rows, error } = await supabase
@@ -306,7 +320,7 @@ async function revokeFromRefund(supabase: Admin, charge: Stripe.Charge) {
     const plan = planFromPurchases(rows ?? []);
     const { error: planError } = await supabase.from("weddings").update({ plan }).eq("id", purchase.wedding_id);
     if (planError) throw new Error(`wedding plan update failed: ${planError.message}`);
-    console.log(`[webhook] full refund on ${piId}: wedding ${purchase.wedding_id} now ${plan}`);
+    console.log(`[webhook] ${reason} on ${piId}: wedding ${purchase.wedding_id} now ${plan}`);
   }
 
   // The purchaser's entitlement row (their purchase record, which the
@@ -321,6 +335,43 @@ async function revokeFromRefund(supabase: Admin, charge: Stripe.Charge) {
       : await supabase.from("entitlements").delete().eq("user_id", purchase.user_id);
     if (result.error) throw new Error(`entitlement update failed: ${result.error.message}`);
   }
+}
+
+/**
+ * A card dispute (chargeback) takes the money back without a refund, so
+ * charge.refunded never fires. Stripe pulls the funds when the dispute
+ * opens and returns them if we win, so only a dispute closed as LOST
+ * revokes the plan, exactly like a full refund. Opening, winning or any
+ * other outcome leaves the plan alone.
+ */
+export const disputeRevokes = (dispute: Pick<Stripe.Dispute, "status">) => dispute.status === "lost";
+
+async function revokeFromDispute(supabase: Admin, dispute: Stripe.Dispute) {
+  if (!disputeRevokes(dispute)) {
+    console.log(`[webhook] dispute ${dispute.id} closed as ${dispute.status} — plan unchanged`);
+    return;
+  }
+  const piId = typeof dispute.payment_intent === "string" ? dispute.payment_intent : dispute.payment_intent?.id;
+  if (!piId) {
+    console.warn("[webhook] lost dispute without payment_intent — skipped", dispute.id);
+    return;
+  }
+
+  const purchase = await purchaseForRefund(supabase, piId, { amount: dispute.amount, currency: dispute.currency });
+  if (!purchase) {
+    console.log(`[webhook] lost dispute for unknown payment_intent ${piId} — nothing to revoke`);
+    return;
+  }
+
+  // The money is gone as surely as after a full refund; record it that way
+  // so planFromPurchases stops counting it. Stripe keeps the dispute itself.
+  const { error } = await supabase
+    .from("purchases")
+    .update({ amount_refunded: purchase.amount, status: "refunded" })
+    .eq("id", purchase.id);
+  if (error) throw new Error(`purchase dispute update failed: ${error.message}`);
+
+  await applyStandingPlans(supabase, purchase, piId, `lost dispute ${dispute.id}`);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -359,6 +410,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         break;
       case "charge.refunded":
         await revokeFromRefund(supabase, event.data.object as Stripe.Charge);
+        break;
+      case "charge.dispute.closed":
+        await revokeFromDispute(supabase, event.data.object as Stripe.Dispute);
         break;
       default:
         console.log(`[webhook] ignored event type ${event.type}`);
