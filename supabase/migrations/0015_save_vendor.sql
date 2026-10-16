@@ -61,8 +61,9 @@ begin
 
   insert into vendor_payments (vendor_id, label, amount, due, paid, sort)
   select v_id, p.label, coalesce(p.amount, 0), coalesce(p.due, ''), coalesce(p.paid, false), (p.ord - 1)::int
-    from jsonb_to_recordset(coalesce(p_payments, '[]'::jsonb))
-         with ordinality as p(label text, amount numeric, due text, paid boolean, ord bigint);
+    from rows from (
+           jsonb_to_recordset(coalesce(p_payments, '[]'::jsonb)) as (label text, amount numeric, due text, paid boolean)
+         ) with ordinality as p(label, amount, due, paid, ord);
 end;
 $$;
 
