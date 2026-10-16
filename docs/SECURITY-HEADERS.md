@@ -15,14 +15,15 @@ The same header set is declared in **two** places, for two hosts:
 
 ```
 default-src 'self';
-script-src 'self' 'unsafe-inline';
-style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-font-src 'self' https://fonts.gstatic.com;
-img-src 'self' blob: data: https://image.qwenlm.ai https:;
-media-src 'self' blob: data:;
-connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com
-            https://yyznkxfxmwetsmivgpxu.supabase.co
-            wss://yyznkxfxmwetsmivgpxu.supabase.co;
+script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com;
+frame-src 'self' https://challenges.cloudflare.com;
+style-src 'self' 'unsafe-inline';
+font-src 'self';
+img-src 'self' blob: data: https:;
+media-src 'self' blob: data: https://yyznkxfxmwetsmivgpxu.supabase.co https://jgwombhiovdnketixpkr.supabase.co;
+connect-src 'self'
+            https://yyznkxfxmwetsmivgpxu.supabase.co wss://yyznkxfxmwetsmivgpxu.supabase.co
+            https://jgwombhiovdnketixpkr.supabase.co wss://jgwombhiovdnketixpkr.supabase.co;
 frame-ancestors 'none';
 base-uri 'self';
 form-action 'self'
@@ -31,11 +32,12 @@ form-action 'self'
 | Directive | Why it's there |
 | --- | --- |
 | `script-src 'unsafe-inline'` | `DesignFrame` renders owner-supplied HTML invitations in sandboxed `srcDoc` iframes (`allow-scripts`, no `allow-same-origin`). srcDoc documents inherit the parent CSP, so the inline `<script>` blocks inside imported `.html` invitations only run with `'unsafe-inline'`. The sandbox attribute keeps that code on an opaque origin with no access to the app. |
-| `style-src 'unsafe-inline'` + Google Fonts host | Same srcDoc reason for inline `<style>`; `fonts.googleapis.com` serves the Playfair/Nunito stylesheets. |
-| `font-src` gstatic | Where the actual font files live. |
-| `img-src data: https: image.qwenlm.ai` | `data:` — imported designs are stored as `canvas.toDataURL("image/jpeg")` strings (`Invitations.tsx`). `https:` — remote marketing/venue photography (`image.qwenlm.ai` and the guest-page images) and arbitrary CDNs referenced by owner HTML designs. |
+| `style-src 'unsafe-inline'` | Same srcDoc reason for inline `<style>`. |
+| `font-src 'self'` | Playfair Display and Nunito Sans are self-hosted from `/fonts`; no font is loaded from Google. |
+| `script-src`/`frame-src` challenges.cloudflare.com | The Turnstile spam check on the guest RSVP form. |
+| `img-src data: https:` | `data:` — imported designs are stored as `canvas.toDataURL("image/jpeg")` strings (`Invitations.tsx`). `https:` — images referenced by owner HTML designs. The built-in photos are self-hosted under `/images`. |
 | `media-src blob: data:` | `blob:` for object-URL media; `data:` — uploaded invitation tracks are stored via `FileReader.readAsDataURL()` (`Invitations.tsx`, 2.5 MB cap). |
-| `connect-src` Supabase https | **Everything the app does** — auth (magic links), workspace fetch/sync, and the anonymous RSVP insert via `submit_rsvp` — is a fetch to the project origin. Without it, the app is dead on arrival. The ref comes from `VITE_SUPABASE_URL` (see `.env.example`). |
+| `connect-src` / `media-src` Supabase (production and staging) | **Everything the app does** — auth (magic links), workspace fetch/sync, and the anonymous RSVP insert via `submit_rsvp` — is a fetch to the project origin. Without it, the app is dead on arrival. The ref comes from `VITE_SUPABASE_URL` (see `.env.example`). |
 | `connect-src` Supabase wss | Supabase Realtime socket. Not used by the app today; allowed anyway so switching Realtime on later can't be blocked by a forgotten CSP. |
 | `frame-ancestors 'none'` + `X-Frame-Options: DENY` | The app is never an iframe. (Owner invitations run in `srcDoc` iframes inside the app — that direction is unaffected.) |
 | `base-uri 'self'` / `form-action 'self'` | Blocks `<base>` hijack and form posts to third parties. |
