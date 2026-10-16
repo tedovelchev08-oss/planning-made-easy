@@ -42,7 +42,12 @@ begin
                    tg_table_schema, tg_table_name, v_key, v_key)
       into v_exists using new;
     if v_exists then
-      return new; -- an upsert of an existing row: the UPDATE branch checks it
+      -- an upsert of an existing row: the UPDATE branch checks it. NOT NULL
+      -- is checked on this proposed row before the conflict is found, so a
+      -- missing version becomes now(), which the UPDATE branch reads as
+      -- "no version sent"
+      if new.updated_at is null then new.updated_at := now(); end if;
+      return new;
     end if;
     if v_sent then
       raise exception 'this was deleted by someone else' using errcode = 'P0409';
