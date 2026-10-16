@@ -19,6 +19,9 @@ const CLAIMS = [
   /message queued/i,
   /on its way to your inbox/i,
   /sealing .* envelopes/i,
+  // the footer promised both before either existed
+  /export or erase anytime/i,
+  /available in-app/i,
 ];
 
 describe("nothing claims Luma sent a message", () => {

@@ -3,13 +3,14 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Armchair, BellRing, CalendarDays, Check, Clock3, ExternalLink, Gift, Globe, LayoutDashboard,
-  Link2, LogOut, Menu, Plus, Search, Store, Users, Wallet, X,
+  Download, Link2, LogOut, Menu, Plus, Search, Store, Trash2, Users, Wallet, X,
 } from "lucide-react";
 import { useApp, useStats, type SyncStatus } from "../../lib/store";
-import { guestLink } from "../../lib/links";
+import { SUPPORT_EMAIL, guestLink } from "../../lib/links";
+import { downloadExport } from "../../lib/exportData";
 import { initials, planLabel } from "../../lib/data";
 import { useT } from "../../lib/i18n";
-import { Logo, Pill } from "../ui";
+import { Logo, Modal, Pill, btn } from "../ui";
 import CmdK from "./CmdK";
 
 const MODULES = [
@@ -81,6 +82,7 @@ export default function Shell() {
   const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [deleteInfo, setDeleteInfo] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [dockOpen, setDockOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -193,6 +195,34 @@ export default function Shell() {
       </div>
 
       <CmdK open={cmdOpen} onClose={() => setCmdOpen(false)} />
+
+      {/* No self-service deletion yet, so say exactly how it works instead of
+          promising "erase anytime" (which the footer used to). */}
+      <Modal open={deleteInfo} onClose={() => setDeleteInfo(false)} label="Delete my account">
+        <div className="p-7 sm:p-8">
+          <h2 className="flex items-center gap-2.5 font-display text-2xl text-ink"><Trash2 size={20} className="text-blush-deep" /> Delete your account</h2>
+          <p className="mt-3 text-[0.9rem] leading-relaxed text-ink-2">
+            Email us from <strong className="text-ink">{user?.email ?? "the address you sign in with"}</strong> and we'll delete your account and confirm when it's done.
+          </p>
+          <div className="mt-5 space-y-2.5 rounded-2xl border border-ink/10 bg-white/70 p-4 text-[0.84rem] leading-relaxed text-ink-2">
+            <p><strong className="text-ink">If you created this wedding</strong>, deleting your account deletes the whole wedding — guests, RSVPs, seating, budget and uploaded files — for your partner too.</p>
+            <p><strong className="text-ink">If you joined as a partner</strong>, only your access is removed; the wedding stays with whoever created it.</p>
+            <p>Before you ask, you can keep a copy: <strong className="text-ink">Export my data</strong> in this menu downloads everything.</p>
+          </div>
+          <div className="mt-6 flex flex-wrap justify-end gap-3">
+            <button onClick={() => { downloadExport(db, user, weddingId); toast("Your data is downloading", "Everything in your planner, as one JSON file."); }} className={btn.outline}>
+              <Download size={14} /> Export my data first
+            </button>
+            <a
+              href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Delete my Luma account")}&body=${encodeURIComponent(`Please delete my Luma account (${user?.email ?? ""}).`)}`}
+              className={btn.ink}
+              onClick={() => setDeleteInfo(false)}
+            >
+              Email {SUPPORT_EMAIL}
+            </a>
+          </div>
+        </div>
+      </Modal>
 
       {/* desktop sidebar */}
       <aside className="sticky top-0 z-30 hidden h-screen w-[264px] shrink-0 border-r border-white/60 bg-white/40 backdrop-blur-xl lg:block">
@@ -318,6 +348,28 @@ export default function Shell() {
                       )}
 
                       <div className="border-t border-ink/8 p-2">
+                        {mode === "cloud" && user && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setAccountOpen(false);
+                                downloadExport(db, user, weddingId);
+                                toast("Your data is downloading", "Everything in your planner, as one JSON file.");
+                              }}
+                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.84rem] font-bold text-ink transition hover:bg-ink/5 cursor-pointer"
+                              role="menuitem"
+                            >
+                              <Download size={15} /> Export my data
+                            </button>
+                            <button
+                              onClick={() => { setAccountOpen(false); setDeleteInfo(true); }}
+                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.84rem] font-bold text-ink transition hover:bg-ink/5 cursor-pointer"
+                              role="menuitem"
+                            >
+                              <Trash2 size={15} /> Delete my account
+                            </button>
+                          </>
+                        )}
                         <button
                           onClick={() => { setAccountOpen(false); void leave("Your plan is saved — see you soon."); }}
                           className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.84rem] font-bold text-ink transition hover:bg-blush-soft hover:text-blush-deep cursor-pointer"
