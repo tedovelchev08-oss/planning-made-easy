@@ -18,9 +18,12 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 const MAX_BODY = 16 * 1024;
 
+/** A guest's RSVP token works like a password: never write one to the log, even from an old client. */
+export const redactToken = (text: string): string => text.replace(/([?&#]token=)[^&#\s"]*/gi, "$1[redacted]");
+
 const clip = (v: unknown, n: number): string => {
   const s = typeof v === "string" ? v : JSON.stringify(v ?? null);
-  return s.length > n ? `${s.slice(0, n)}…` : s;
+  return redactToken(s.length > n ? `${s.slice(0, n)}…` : s);
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -40,8 +43,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     `[report:${kind}]`,
     JSON.stringify({
       ...(kind === "error"
-        ? { message: clip(body.message, 500), stack: clip(body.stack, 4000), ctx: body.ctx, route: body.route, ua: body.ua }
-        : { event: clip(body.event, 60), props: body.props, route: body.route }),
+        ? { message: clip(body.message, 500), stack: clip(body.stack, 4000), ctx: clip(body.ctx, 2000), route: clip(body.route, 300), ua: body.ua }
+        : { event: clip(body.event, 60), props: clip(body.props, 2000), route: clip(body.route, 300) }),
       at: body.at,
     }),
   );
