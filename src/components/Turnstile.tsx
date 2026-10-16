@@ -1,10 +1,11 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 
 /**
- * Cloudflare Turnstile: proves a person is answering the RSVP, so one
- * visitor can't flood a wedding with junk. The token is verified by
- * api/rsvp.ts; tokens are single-use and expire after five minutes, so the
- * widget is reset after every attempt.
+ * Cloudflare Turnstile: proves a person is on the other end. On the RSVP
+ * form the token is verified by api/rsvp.ts; on sign-up, sign-in, magic
+ * link and password reset, by Supabase Auth (its captcha setting). Tokens
+ * are single-use and expire after five minutes, so the widget is reset
+ * after every attempt.
  *
  * The site key is public (VITE_TURNSTILE_SITE_KEY). Preview and local builds
  * use Cloudflare's always-passing test key, set in their environment — never
@@ -47,7 +48,9 @@ export interface TurnstileHandle { reset: () => void }
 export const Turnstile = forwardRef<TurnstileHandle, {
   onToken: (token: string | null) => void;
   onUnavailable?: () => void;
-}>(function Turnstile({ onToken, onUnavailable }, ref) {
+  /** shown in Cloudflare's analytics, to tell the forms apart */
+  action?: "rsvp" | "auth";
+}>(function Turnstile({ onToken, onUnavailable, action = "rsvp" }, ref) {
   const box = useRef<HTMLDivElement>(null);
   const widget = useRef<string | null>(null);
   // the latest callbacks, without re-rendering the widget when they change
@@ -70,7 +73,7 @@ export const Turnstile = forwardRef<TurnstileHandle, {
         if (!alive || !box.current) return;
         widget.current = t.render(box.current, {
           sitekey,
-          action: "rsvp",
+          action,
           theme: "light",
           // the normal widget is 300px wide; the RSVP card on a 375px phone
           // leaves 277px, so it stuck out of the card. Compact is 150px wide.
@@ -86,7 +89,7 @@ export const Turnstile = forwardRef<TurnstileHandle, {
       if (widget.current && window.turnstile) window.turnstile.remove(widget.current);
       widget.current = null;
     };
-  }, []);
+  }, [action]);
 
   // w-full so clientWidth measures the space the form gives it, not the widget
   return <div ref={box} className="flex min-h-[65px] w-full justify-center" />;

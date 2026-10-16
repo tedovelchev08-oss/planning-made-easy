@@ -12,6 +12,7 @@ import { I18nProvider, LOCALES, useT, type Locale } from "../lib/i18n";
 import { captureError } from "../lib/report";
 import { SUPPORT_EMAIL } from "../lib/links";
 import { localPhoto } from "../lib/images";
+import { Turnstile, turnstileSiteKey, type TurnstileHandle } from "./Turnstile";
 
 /* ------------------------------ logo ------------------------------ */
 
@@ -692,6 +693,11 @@ const STRENGTH = [
   { label: "Unbreakable", bar: "bg-gold" },
 ];
 
+/** Supabase's captcha refusals, in words a couple can act on. */
+export function authMessage(message: string): string {
+  return /captcha/i.test(message) ? "The security check expired or didn't go through. Please complete it again." : message;
+}
+
 export function AuthModal() {
   const { authOpen, setAuthOpen, toast, db, mode: appMode, signupEmail } = useApp();
   const stats = useStats();
@@ -702,6 +708,14 @@ export function AuthModal() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // the bot check: only where there is a real account to protect
+  const needsCheck = appMode === "cloud" && !!turnstileSiteKey();
+  const check = useRef<TurnstileHandle>(null);
+  const [human, setHuman] = useState<string | null>(null);
+  const [checkUnavailable, setCheckUnavailable] = useState(false);
+  const blocked = needsCheck && !checkUnavailable && !human;
+  /** tokens are single-use: every attempt, whatever its outcome, needs a fresh one */
+  const freshCheck = () => check.current?.reset();
 
   useEffect(() => {
     if (authOpen) { setFlow("form"); setError(null); setBusy(false); }
@@ -714,46 +728,51 @@ export function AuthModal() {
     setError(null);
     if (!email.includes("@")) { setError("That email needs a second look."); return; }
     if (mode !== "reset" && password.length < 6) { setError("Passwords need at least 6 characters."); return; }
+    if (blocked) { setError("Please complete the quick security check first."); return; }
+    const token = human ?? undefined;
     setBusy(true);
     try {
       if (mode === "reset") {
-        const { error: err } = await authApi.reset(email);
+        const { error: err } = await authApi.reset(email, token);
         if (err) throw new Error(err.message);
         toast("Reset link sent", `Check ${email} — it lands in a minute or two.`);
         setAuthOpen(false);
         return;
       }
       if (mode === "signup") {
-        const { data, error: err } = await authApi.signUp(email, password);
+        const { data, error: err } = await authApi.signUp(email, password, token);
         if (err) throw new Error(err.message);
         if (!data.session) { setFlow("check-inbox"); return; } // email confirmation pending
         toast("Welcome to Luma", "Account created — let's set up your wedding.");
         setAuthOpen(false);
       } else {
-        const { error: err } = await authApi.signIn(email, password);
+        const { error: err } = await authApi.signIn(email, password, token);
         if (err) throw new Error(err.message);
         toast("Welcome back", "Your plan is right where you left it.");
         setAuthOpen(false);
       }
     } catch (err) {
-      setError((err as Error).message || "Something went sideways — try again.");
+      setError(authMessage((err as Error).message) || "Something went sideways — try again.");
     } finally {
       setBusy(false);
+      freshCheck();
     }
   };
 
   const sendMagicLink = async () => {
     setError(null);
     if (!email.includes("@")) { setError("Enter your email above first, then we'll send the link."); return; }
+    if (blocked) { setError("Please complete the quick security check first."); return; }
     setBusy(true);
     try {
-      const { error: err } = await authApi.magicLink(email);
+      const { error: err } = await authApi.magicLink(email, human ?? undefined);
       if (err) throw new Error(err.message);
       setFlow("check-inbox");
     } catch (err) {
-      setError((err as Error).message);
+      setError(authMessage((err as Error).message));
     } finally {
       setBusy(false);
+      freshCheck();
     }
   };
 
@@ -882,13 +901,23 @@ export function AuthModal() {
                 Forgot password?
               </motion.button>
             )}
+            {needsCheck && (
+              <div>
+                <Turnstile ref={check} action="auth" onToken={setHuman} onUnavailable={() => setCheckUnavailable(true)} />
+                {checkUnavailable && (
+                  <p className="mt-2 text-center text-[0.74rem] font-semibold text-ink-mute">
+                    The security check couldn't load. If signing in fails, turn off content blockers or try another browser.
+                  </p>
+                )}
+              </div>
+            )}
             {error && (
               <p className="rounded-xl border border-blush-deep/40 bg-blush-soft/70 px-4 py-3 text-[0.82rem] font-bold text-blush-deep" role="alert">
                 {error}
               </p>
             )}
             <motion.div {...stagger(5)}>
-              <button type="submit" disabled={busy} className={`btn3d ${mode === "signup" ? "btn3d-gold" : "btn3d-ink"} w-full rounded-2xl py-4 text-[0.95rem] font-extrabold disabled:pointer-events-none disabled:opacity-60 cursor-pointer`}>
+              <button type="submit" disabled={busy || blocked} className={`btn3d ${mode === "signup" ? "btn3d-gold" : "btn3d-ink"} w-full rounded-2xl py-4 text-[0.95rem] font-extrabold disabled:pointer-events-none disabled:opacity-60 cursor-pointer`}>
                 {busy ? <Loader2 size={17} className="mx-auto animate-spin" /> : mode === "reset" ? "Send reset link" : mode === "signup" ? "Create our planner →" : "Step back in →"}
               </button>
             </motion.div>
@@ -899,7 +928,7 @@ export function AuthModal() {
                   <span className="h-px flex-1 bg-ink/10" /> or <span className="h-px flex-1 bg-ink/10" />
                 </div>
                 <button
-                  type="button" onClick={sendMagicLink} disabled={busy}
+                  type="button" onClick={sendMagicLink} disabled={busy || blocked}
                   className="btn3d btn3d-light flex w-full items-center justify-center gap-2.5 rounded-2xl py-3.5 text-[0.9rem] font-bold disabled:pointer-events-none disabled:opacity-60 cursor-pointer"
                 >
                   <Mail size={15} className="text-gold-deep" /> Email me a magic link

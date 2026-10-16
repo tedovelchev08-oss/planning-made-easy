@@ -609,15 +609,20 @@ export async function acceptPendingInvites(): Promise<number> {
 
 /* ------------------------------ auth ------------------------------ */
 
+/**
+ * Every call that can create an account or send an email carries the
+ * Turnstile token. Supabase Auth checks it once its captcha setting is on
+ * (Authentication → Attack Protection), and ignores it before that.
+ */
 export const authApi = {
-  signUp: (email: string, password: string) =>
-    requireSb().auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } }),
-  signIn: (email: string, password: string) =>
-    requireSb().auth.signInWithPassword({ email, password }),
-  magicLink: (email: string) =>
-    requireSb().auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } }),
-  reset: (email: string) =>
-    requireSb().auth.resetPasswordForEmail(email, { redirectTo: window.location.origin }),
+  signUp: (email: string, password: string, captchaToken?: string) =>
+    requireSb().auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin, captchaToken } }),
+  signIn: (email: string, password: string, captchaToken?: string) =>
+    requireSb().auth.signInWithPassword({ email, password, options: { captchaToken } }),
+  magicLink: (email: string, captchaToken?: string) =>
+    requireSb().auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin, captchaToken } }),
+  reset: (email: string, captchaToken?: string) =>
+    requireSb().auth.resetPasswordForEmail(email, { redirectTo: window.location.origin, captchaToken }),
   signOut: () => requireSb().auth.signOut(),
   onAuthChange: (cb: (userId: string | null, email: string | null) => void) =>
     requireSb().auth.onAuthStateChange((_e, session) =>
