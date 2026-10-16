@@ -114,4 +114,12 @@ describe("the handler hands Stripe only allowed return URLs", () => {
     const args = (sessionsCreate.mock.calls[0] as unknown as [{ success_url: string }])[0];
     expect(args.success_url.startsWith(`${LUMA}/`)).toBe(true);
   });
+
+  it("sessions expire after 30 minutes, so an abandoned tab can't be paid later", async () => {
+    const now = Math.floor(Date.now() / 1000);
+    await checkout({ origin: LUMA });
+    const args = (sessionsCreate.mock.calls[0] as unknown as [{ expires_at: number }])[0];
+    expect(args.expires_at).toBeGreaterThanOrEqual(now + 30 * 60);
+    expect(args.expires_at).toBeLessThanOrEqual(now + 30 * 60 + 5);
+  });
 });
