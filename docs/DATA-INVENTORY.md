@@ -43,12 +43,11 @@ wedding's members (row-level security, `is_wedding_member()`).
 | **Vercel** | every request: IP address, browser, the pages and API calls | hosting and serverless functions | Log retention period |
 | **Stripe** | buyer's card and billing details (entered on Stripe's own page), email, and metadata `tier`, `user_id`, `wedding_id` | payments, refunds | |
 | **Cloudflare Turnstile** | guest's IP and browser signals when answering an RSVP | stopping spam RSVPs | |
-| **image.qwenlm.ai** | IP address of every visitor who loads the 6 marketing and invitation photos (`src/lib/images.ts`) | hosting those photos | Who operates it and their terms. Consider self-hosting the photos. |
 | **Sentry** | error reports (see section 3) | error monitoring | **Only if `VITE_SENTRY_DSN` is set.** Not set at time of writing. |
 | **Email provider** | sign-up confirmation and sign-in emails | auth emails | Supabase's built-in mailer is in use. Choose a provider (custom SMTP) before launch. |
 
-Not used: Google Fonts (fonts are self-hosted from `/fonts`; the CSP still lists
-`fonts.googleapis.com` and can drop it), analytics, advertising trackers.
+Not used: Google Fonts (fonts are self-hosted from `/fonts`), external image hosts (the built-in photos
+are self-hosted from `/images`), analytics, advertising trackers.
 
 ## 2a. Cookies and storage on the visitor's device
 

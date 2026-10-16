@@ -7,6 +7,7 @@ import {
 } from "./data";
 import { isSupabaseConfigured } from "./supabase";
 import { guestLimit, type Feature } from "./plans";
+import { IMAGES, localPhoto } from "./images";
 import {
   type Queue, bucketOf, clearQueue, countQueue, emptyQueue, loadQueue, mergeUnder, persistQueue, retryDelay, sendQueue,
 } from "./syncQueue";
@@ -159,7 +160,7 @@ const seedDb: Db = {
     ink: "#332B31",
     accent: "#D4AF37",
     serif: true,
-    heroPhoto: "https://image.qwenlm.ai/generated-images/491b8b3f-233c-48cf-a774-26c3db982f5f/_result.png",
+    heroPhoto: IMAGES.couple,
     animations: true,
     domain: "",
     published: true,
@@ -230,7 +231,13 @@ function readCache(uid: string): Db | null {
     // A cache written before a collection existed comes back without it.
     // Backfill rather than reject, so a returning couple keeps their offline
     // copy instead of it being silently dropped.
-    return { ...parsed, venueObjects: parsed.venueObjects ?? [] };
+    return {
+      ...parsed,
+      venueObjects: parsed.venueObjects ?? [],
+      // photos chosen before they were self-hosted still hold the old address
+      invitation: { ...parsed.invitation, photo: localPhoto(parsed.invitation?.photo ?? null) },
+      website: { ...parsed.website, heroPhoto: localPhoto(parsed.website?.heroPhoto ?? "") },
+    };
   } catch { return null; }
 }
 

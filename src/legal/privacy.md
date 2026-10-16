@@ -86,7 +86,6 @@ We don't sell personal information or share it with advertisers. We share it onl
 - **Vercel** (Vercel Inc.) hosts the website and its server functions. It receives every request made to Luma, including your IP address and browser details, and keeps short-term technical logs.
 - **Stripe** (Stripe Payments Europe, Limited, and its affiliates) processes payments and refunds.
 - **Cloudflare** (Cloudflare, Inc.) provides Turnstile, a spam check shown to guests when they answer an invitation. It receives the guest's IP address and browser signals for that check.
-- **An external image host** serves some example photos on our website, and receives the IP address of visitors who view them.
 
 We may also disclose information if the law requires it, to protect our rights or someone's safety, or as part of a sale or transfer of the business (in which case this policy continues to apply to your information).
 
