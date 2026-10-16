@@ -18,6 +18,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { checkoutPrice } from "./create-checkout";
 
 // NOTE: there is intentionally no `export const config = { api: { bodyParser: false } }`.
 // That is a Next.js API-route convention and is silently IGNORED by @vercel/node,
@@ -89,6 +90,61 @@ async function claimEvent(supabase: ReturnType<typeof admin>, id: string, type: 
   throw new Error(`webhook_events insert failed: ${error.message}`);
 }
 
+export interface LedgerRow extends PurchaseLike { stripe_payment_intent_id: string; created_at: string }
+
+const before = (a: LedgerRow, b: LedgerRow) =>
+  a.created_at < b.created_at || (a.created_at === b.created_at && a.stripe_payment_intent_id < b.stripe_payment_intent_id);
+
+/**
+ * How much of a payment Luma must not keep, in minor units.
+ *
+ * Two tabs, or both partners, can each open a checkout and pay. The plan a
+ * payment upgraded FROM is worked out from the wedding's own ledger: the
+ * purchases still standing that were recorded before this one (ties broken
+ * by payment id, so two webhooks running at once agree on the order). Then
+ * this payment owed what checkout would charge from that plan:
+ *   · nothing, if the wedding already had this tier → the whole payment;
+ *   · the upgrade difference, if it paid full price → the overpayment;
+ *   · otherwise 0. A discount code paying less than list is never refunded.
+ * Unknown tiers or currencies return 0: never refund on a guess.
+ */
+export function excessOf(pi: string, tier: string, currency: string, paid: number, ledger: LedgerRow[]): number {
+  const self = ledger.find((r) => r.stripe_payment_intent_id === pi);
+  if (!self || !(tier in PLAN_RANK) || paid <= 0) return 0;
+  const prior = planFromPurchases(ledger.filter((r) => r !== self && before(r, self)));
+  if (PLAN_RANK[prior] >= PLAN_RANK[tier]) return paid;
+  const due = checkoutPrice(tier, currency, prior);
+  return due ? Math.max(0, paid - due.amount) : 0;
+}
+
+/** Refund the part of a payment a wedding didn't owe. Idempotent per payment. */
+async function refundExcess(supabase: ReturnType<typeof admin>, weddingId: string, pi: string, tier: string, session: Stripe.Checkout.Session) {
+  const { data: rows, error } = await supabase
+    .from("purchases")
+    .select("tier, amount, amount_refunded, stripe_payment_intent_id, created_at")
+    .eq("wedding_id", weddingId);
+  if (error) throw new Error(`purchase list failed: ${error.message}`);
+
+  const excess = excessOf(pi, tier, session.currency ?? "", session.amount_total ?? 0, (rows ?? []) as LedgerRow[]);
+  if (excess <= 0) return;
+
+  const whole = excess >= (session.amount_total ?? 0);
+  try {
+    await stripe().refunds.create(
+      { payment_intent: pi, amount: excess, reason: "duplicate", metadata: { luma: whole ? "already-owned" : "overpaid-upgrade" } },
+      // a retried webhook asks for the same refund, and Stripe returns the first
+      { idempotencyKey: `luma-excess-${pi}` },
+    );
+  } catch (err) {
+    if ((err as { type?: string }).type === "StripeIdempotencyError") {
+      console.warn(`[webhook] excess refund for ${pi} already requested with different details — left as is`);
+      return;
+    }
+    throw err;
+  }
+  console.log(`[webhook] ${whole ? "duplicate payment" : "overpaid upgrade"} on ${pi} for wedding ${weddingId}: refunded ${excess}`);
+}
+
 async function grantFromCheckout(supabase: ReturnType<typeof admin>, session: Stripe.Checkout.Session) {
   const tier = session.metadata?.tier;
   const userId = session.metadata?.user_id ?? session.client_reference_id;
@@ -138,6 +194,11 @@ async function grantFromCheckout(supabase: ReturnType<typeof admin>, session: St
   } else {
     console.warn("[webhook] checkout session without a payment intent — not recorded in purchases", session.id);
   }
+
+  // A second payment for a plan the wedding already has, or full price for
+  // an upgrade, is refunded straight away (the charge.refunded event that
+  // follows updates the ledger).
+  if (targetWeddingId && paymentIntent) await refundExcess(supabase, targetWeddingId, paymentIntent, tier, session);
 
   // Update the wedding's plan (authoritative, per-wedding)
   // This happens regardless of the user's existing entitlements

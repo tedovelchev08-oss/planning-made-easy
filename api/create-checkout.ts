@@ -101,6 +101,9 @@ async function priceFor(s: Stripe, p: NonNullable<ReturnType<typeof checkoutPric
     currency: p.currency,
     unit_amount: p.amount,
     lookup_key: p.lookupKey,
+    // two first-ever checkouts at once both get here; without this the
+    // second fails on the duplicate lookup key and the buyer sees a 500
+    transfer_lookup_key: true,
   });
   return price.id;
 }
@@ -189,6 +192,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       metadata: { tier, user_id: userId, wedding_id },
       payment_intent_data: { metadata: { tier, user_id: userId, wedding_id } },
       allow_promotion_codes: true,
+      // an abandoned tab can't be paid hours later, after the plan changed
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
     });
 
     console.log(`[checkout] session ${session.id} created for ${userId} (${tier}, ${price.amount} ${price.currency})`);
