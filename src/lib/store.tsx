@@ -15,7 +15,7 @@ import {
   EntityKey, acceptPendingInvites, authApi, budgetToRow, createWedding, customTplToRow, fetchFreshRsvps,
   fetchWorkspace, guestToRow, invitationToRow, invitePartner as apiInvitePartner, isUuid, myWeddingId, newId,
   refreshEntitlement as apiRefreshEntitlement, registryToRow, rsvpToRow, syncEntity, tableToRow, taskToRow, venueObjectToRow, websiteToRow,
-  versionKey, type Versions,
+  versionKey, subscribeToWedding, type RemoteChange, type Versions,
 } from "./api";
 
 /* ------------------------------------------------------------------ */
@@ -219,6 +219,22 @@ function bootMode(): Mode {
     if (window.location.hash.startsWith("#/demo")) return "demo";
   }
   return isSupabaseConfigured ? "cloud" : "demo";
+}
+
+/** Realtime table → the entity the store tracks versions under */
+const LIVE_ENTITY: Record<string, EntityKey> = {
+  weddings: "wedding", guests: "guests", tables: "tables", venue_objects: "venueObjects",
+  budget_categories: "budget", tasks: "tasks", vendors: "vendors", registry_items: "registry",
+  custom_templates: "customTemplates", invitation_config: "invitation", website_config: "website",
+};
+
+/** whether this planner holds that row (for deletes, which arrive for every wedding) */
+function hasRow(db: Db, entity: EntityKey, id: string): boolean {
+  const rows: Record<string, { id: string }[] | undefined> = {
+    guests: db.guests, tables: db.tables, venueObjects: db.venueObjects, budget: db.budget, tasks: db.tasks,
+    vendors: db.vendors, registry: db.registry, customTemplates: db.customTemplates,
+  };
+  return entity in rows ? (rows[entity] ?? []).some((r) => r.id === id) : true;
 }
 
 const cacheKey = (uid: string) => `luma.cache.${uid}`;
@@ -637,24 +653,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [mode]);
 
   /*
-   * Partners each work on the copy they loaded, and every save is a full-row
-   * write, so a tab left open for hours writes stale rows over the other
-   * partner's changes. Minimal mitigation until real versioning (Phase 2):
-   * coming back to a tab that was hidden for a while sends our own edits
-   * first, then reloads the workspace from the server.
+   * Reload from the server: our own edits are sent first, and the reload is
+   * skipped while any are still unsaved. Used when a tab comes back after a
+   * while (below), after a conflict (0018), and for live updates (0019).
+   * Row versions mean a stale tab can no longer overwrite a partner's
+   * change; this keeps what each tab shows current.
    */
-  const refreshFromServer = useCallback(async () => {
+  /** true when the workspace was reloaded; false when it had to wait (unsaved edits, offline) */
+  const refreshFromServer = useCallback(async (): Promise<boolean> => {
     const wid = weddingIdRef.current;
     const owner = ownerRef.current;
-    if (modeRef.current !== "cloud" || !wid || !owner) return;
+    if (modeRef.current !== "cloud" || !wid || !owner) return true;
     await flush();
-    if (countPending() > 0) return; // couldn't save ours: never replace them
+    if (countPending() > 0) return false; // couldn't save ours: never replace them
     const seq = editSeq.current;
     try {
       const versions: Versions = new Map();
       const fresh = await fetchWorkspace(wid, owner.uid, versions);
       // an edit made while we were fetching wins; try again next time
-      if (editSeq.current !== seq || countPending() > 0) return;
+      if (editSeq.current !== seq || countPending() > 0) return false;
       versionsRef.current = versions;
       const changed = JSON.stringify(fresh) !== JSON.stringify(dbRef.current);
       // raw setter on purpose: the diffing setDb would queue the whole
@@ -663,9 +680,50 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       writeCache(owner.email, fresh);
       lastRsvpPull.current = Date.now();
       if (changed) toast("Updated with the latest changes", "Your partner's edits are in.", "info");
-    } catch { /* offline — the next return will try again */ }
+      return true;
+    } catch { return false; /* offline — the next return will try again */ }
   }, [flush, toast, countPending]);
   conflictReload.current = () => void refreshFromServer();
+
+  /*
+   * Live updates (0019): a partner's change reaches this tab within a couple
+   * of seconds. Echoes of our own saves are recognised by their version and
+   * ignored; a delete only counts if it's a row we have. Bursts are batched
+   * into one reload, which goes through refreshFromServer, so our own unsaved
+   * edits are sent first and never painted over; if it has to wait, it
+   * tries again shortly.
+   */
+  const liveTimer = useRef<number | null>(null);
+  const scheduleLiveReload = useCallback((delay = 1500) => {
+    if (liveTimer.current) window.clearTimeout(liveTimer.current);
+    liveTimer.current = window.setTimeout(async () => {
+      liveTimer.current = null;
+      if (!(await refreshFromServer())) scheduleLiveReload(3000);
+    }, delay);
+  }, [refreshFromServer]);
+
+  const onRemoteChange = useCallback((c: RemoteChange) => {
+    const entity = LIVE_ENTITY[c.table];
+    if (!entity || !c.id) return;
+    const id = entity === "wedding" || entity === "invitation" || entity === "website" ? entity : c.id;
+    if (c.type === "DELETE") {
+      if (!hasRow(dbRef.current, entity, id)) return; // another wedding's row, or one we already removed
+    } else {
+      const mine = versionsRef.current.get(versionKey(entity, id));
+      if (mine && c.updatedAt && Date.parse(mine) === Date.parse(c.updatedAt)) return; // our own save, echoed back
+    }
+    scheduleLiveReload();
+  }, [scheduleLiveReload]);
+
+  useEffect(() => {
+    if (mode !== "cloud" || !weddingId || booting) return;
+    let unsubscribe: (() => void) | null = null;
+    try { unsubscribe = subscribeToWedding(weddingId, onRemoteChange); } catch { /* no live updates: focus refresh still works */ }
+    return () => {
+      unsubscribe?.();
+      if (liveTimer.current) { window.clearTimeout(liveTimer.current); liveTimer.current = null; }
+    };
+  }, [mode, weddingId, booting, onRemoteChange]);
 
   useEffect(() => {
     if (mode !== "cloud") return;

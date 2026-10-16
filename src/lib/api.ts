@@ -419,6 +419,53 @@ export async function syncEntity(
   return versions;
 }
 
+/* ------------------------------ live updates ------------------------------ */
+
+/** A change to one of the wedding's rows, as Realtime reports it (0019). */
+export interface RemoteChange {
+  type: "INSERT" | "UPDATE" | "DELETE";
+  table: string;
+  id: string | null;
+  updatedAt: string | null;
+}
+
+/** table → the column that ties its rows to a wedding */
+const LIVE_TABLES: Record<string, string> = {
+  weddings: "id", guests: "wedding_id", tables: "wedding_id", venue_objects: "wedding_id",
+  budget_categories: "wedding_id", tasks: "wedding_id", vendors: "wedding_id",
+  registry_items: "wedding_id", custom_templates: "wedding_id",
+  invitation_config: "wedding_id", website_config: "wedding_id",
+};
+
+/**
+ * Listens for changes to this wedding's planner rows. Inserts and updates
+ * are filtered to the wedding (and RLS-checked by Realtime); deletes can't
+ * be filtered, so every delete on these tables arrives with only its id and
+ * the caller decides whether it's one of ours. Returns the unsubscribe.
+ */
+export function subscribeToWedding(weddingId: string, onChange: (c: RemoteChange) => void): () => void {
+  const s = requireSb();
+  const channel = s.channel(`wedding:${weddingId}`);
+  const emit = (table: string) => (p: { eventType: RemoteChange["type"]; new: Record<string, unknown>; old: Record<string, unknown> }) => {
+    const row = p.eventType === "DELETE" ? p.old : p.new;
+    const key = LIVE_TABLES[table] === "id" ? "id" : table.endsWith("_config") ? "wedding_id" : "id";
+    onChange({
+      type: p.eventType,
+      table,
+      id: (row?.[key] as string | undefined) ?? null,
+      updatedAt: (p.new?.updated_at as string | undefined) ?? null,
+    });
+  };
+  for (const [table, col] of Object.entries(LIVE_TABLES)) {
+    const filter = `${col}=eq.${weddingId}`;
+    channel.on("postgres_changes" as never, { event: "INSERT", schema: "public", table, filter }, emit(table) as never);
+    channel.on("postgres_changes" as never, { event: "UPDATE", schema: "public", table, filter }, emit(table) as never);
+    channel.on("postgres_changes" as never, { event: "DELETE", schema: "public", table }, emit(table) as never);
+  }
+  channel.subscribe();
+  return () => { void s.removeChannel(channel); };
+}
+
 /** Rows newer than `since` that the couple hasn't seen yet. */
 export async function fetchFreshRsvps(weddingId: string, since: number): Promise<RsvpEntry[]> {
   const { data, error } = await requireSb()
