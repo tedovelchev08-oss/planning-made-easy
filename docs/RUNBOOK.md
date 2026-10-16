@@ -56,7 +56,7 @@ wedding through **Stripe → `api/stripe-webhook` → database**:
 | Delivered, but the log says `signature verification failed` | `STRIPE_WEBHOOK_SECRET` doesn't match this endpoint | Copy the endpoint's signing secret into Vercel (Production), redeploy, then **Resend** |
 | Delivered, log says `no wedding found for purchaser` | They paid before creating a wedding | The entitlement exists. Apply it to their wedding (below) |
 | Delivered, `purchases` row exists, but the wedding shows the wrong plan | They bought for a different wedding, or a partner bought it | Check `purchases.wedding_id` against their wedding |
-| No delivery at all | The endpoint URL is wrong, or the event isn't subscribed | Endpoint must be `https://planning-made-easy.vercel.app/api/stripe-webhook` with events `checkout.session.completed` and `charge.refunded` |
+| No delivery at all | The endpoint URL is wrong, or the event isn't subscribed | Endpoint must be `https://planning-made-easy.vercel.app/api/stripe-webhook` with events `checkout.session.completed`, `charge.refunded` and `charge.dispute.closed` |
 
 **Applying a plan by hand** is a last resort, and only after you have confirmed a **succeeded payment in
 Stripe**. Use the SQL Editor (runs as `postgres`). The app itself can't change `weddings.plan`: a trigger
@@ -73,7 +73,10 @@ updates the plan by itself:
 - a **full** refund moves the wedding to the highest plan still paid for, or to free;
 - a **partial** refund keeps the plan.
 
-**Card disputes (chargebacks) do not change the plan automatically yet.**
+**Card disputes (chargebacks):** nothing changes while a dispute is open. Answer it in Stripe → Disputes
+before the deadline. When it closes, the `charge.dispute.closed` webhook acts on the outcome:
+- **lost:** the payment stops counting, like a full refund, and the wedding falls back to what is still paid for;
+- **won:** nothing changes.
 
 ---
 
