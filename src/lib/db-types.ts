@@ -243,6 +243,17 @@ export interface Database {
       };
       invite_partner: { Args: { p_wedding: string; p_email: string }; Returns: Json };
       accept_pending_invite: { Args: Record<string, never>; Returns: Json };
+      save_vendor: {
+        Args: {
+          p_wedding: string;
+          p_vendor: {
+            id: string; category: string; company: string; contact: string; email: string; phone: string;
+            price: number; status: string; contract: boolean; notes: string; budget_id: string | null;
+          };
+          p_payments: { label: string; amount: number; due: string; paid: boolean }[];
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       plan_t: PlanDb;

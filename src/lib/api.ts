@@ -344,20 +344,19 @@ export async function syncEntity(
       return;
     case "vendors": {
       if (deletes.length) await run(s.from("vendors").delete().in("id", deletes));
+      // one call per vendor: the vendor and its whole payment schedule are
+      // saved in a single transaction (0015), so a failure can't leave the
+      // vendor with its old payments deleted and the new ones missing
       for (const v of upserts as Vendor[]) {
-        const { payments } = v as Vendor & { payments?: Vendor["payments"] };
-        await run(s.from("vendors").upsert({
-          id: v.id, wedding_id: weddingId, category: v.category, company: v.company,
-          contact: v.contact, email: v.email, phone: v.phone, price: v.price,
-          status: v.status, contract: v.contract, notes: v.notes, budget_id: v.budgetId, sort: 0,
-        } as never, { onConflict: "id" }));
-        // replace the schedule wholesale — payment rows carry no client ids
-        await run(s.from("vendor_payments").delete().eq("vendor_id", v.id));
-        if (payments?.length) {
-          await run(s.from("vendor_payments").insert(
-            payments.map((p, i) => ({ id: newId(), vendor_id: v.id, label: p.label, amount: p.amount, due: p.due, paid: p.paid, sort: i })),
-          ));
-        }
+        await run(s.rpc("save_vendor", {
+          p_wedding: weddingId,
+          p_vendor: {
+            id: v.id, category: v.category, company: v.company, contact: v.contact, email: v.email,
+            phone: v.phone, price: v.price, status: v.status, contract: v.contract, notes: v.notes,
+            budget_id: v.budgetId,
+          },
+          p_payments: (v.payments ?? []).map((p) => ({ label: p.label, amount: p.amount, due: p.due, paid: p.paid })),
+        }));
       }
       return;
     }
