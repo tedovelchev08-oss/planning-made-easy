@@ -9,7 +9,7 @@ This policy explains what Luma stores on your device and why. It is part of our 
 - **Luma doesn't use cookies.**
 - It stores a few items in your browser that it needs to work, such as keeping you signed in.
 - It uses **no analytics, advertising or tracking** of any kind.
-- That's why you don't see a cookie banner.
+- That's why there's nothing to accept or reject: just a short notice the first time you visit.
 
 ## 1. What cookies and local storage are
 
@@ -24,6 +24,7 @@ Luma sets **no cookies**. It uses your browser's storage only for the following:
 - **Edits not yet saved** ("luma.pending.…"), so changes made offline aren't lost. They are removed once saved, or when you sign out.
 - **Your chosen currency** ("luma.currency"), which remembers the currency you picked on the pricing page. It is kept until you clear your browser data.
 - **The plan you picked** ("luma:pendingTier", session storage), so checkout can continue after you sign in. It is removed after checkout, or when you close the tab.
+- **That you've read the cookie notice** ("luma.notice.cookies"), so the short note about storage isn't shown on every visit. It is kept until you clear your browser data.
 
 All of these are **strictly necessary** for features you use. None of them track you, and none are shared with anyone. So we don't ask for consent for them.
 

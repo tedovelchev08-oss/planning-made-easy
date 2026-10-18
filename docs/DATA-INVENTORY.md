@@ -63,6 +63,7 @@ visitor asked for, so it needs no consent banner. The policy author should confi
 | `luma.pending.<email>` | localStorage | edits not yet saved to the server | removed on sign-out |
 | `luma.currency` | localStorage | the currency the visitor picked on the pricing page | kept until browser data is cleared |
 | `luma:pendingTier` | sessionStorage | the plan clicked before signing in, so checkout can resume | removed after checkout or when the tab closes |
+| `luma.notice.cookies` | localStorage | the visitor dismissed the cookie notice (Block 20) | kept until browser data is cleared |
 
 **Set by third parties, in their own frames or on their own pages:**
 - **Cloudflare Turnstile** (an iframe on the guest RSVP page from `challenges.cloudflare.com`).
