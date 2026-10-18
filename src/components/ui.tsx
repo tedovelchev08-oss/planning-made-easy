@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
-import { ArrowRight, Check, Heart, Loader2, Lock, Mail, RefreshCw, Sparkles, X } from "lucide-react";
+import { ArrowRight, Check, Loader2, Lock, Mail, RefreshCw, Sparkles, X } from "lucide-react";
 import { TIERS, Plan, planRank } from "../lib/data";
 import { FEATURES, PLANS, PLAN_ORDER, CURRENCIES, CURRENCY_ORDER, FREE_GUEST_LIMIT, formatPrice, upgradePrice, type Currency } from "../lib/plans";
 import { useCurrency } from "../lib/currency";
 import { purchaseArrived } from "../lib/checkout";
-import { useApp, usePrefersReducedMotion, useStats } from "../lib/store";
+import { useApp, usePrefersReducedMotion } from "../lib/store";
 import { authApi, createCheckoutSession } from "../lib/api";
 import { I18nProvider, LOCALES, useT, type Locale } from "../lib/i18n";
 import { captureError } from "../lib/report";
@@ -624,59 +624,7 @@ export function CheckoutReturnGate() {
 
 /* ------------------------------ auth modal ------------------------------ */
 
-/** word that keeps turning in the auth headline */
-// module scope: rebuilding this array each render would make words.length an
-// unstable effect dependency and reset the interval on every keystroke nearby
-const ROTATING_WORDS = ["feeling.", "calm.", "story.", "yes."];
-
-function RotatingWord() {
-  const reduced = usePrefersReducedMotion();
-  const words = ROTATING_WORDS;
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    if (reduced) return;
-    const id = window.setInterval(() => setI((v) => (v + 1) % ROTATING_WORDS.length), 2400);
-    return () => window.clearInterval(id);
-  }, [reduced]);
-  return (
-    <span className="relative inline-flex overflow-hidden align-baseline">
-      <AnimatePresence mode="wait">
-        <motion.span
-          key={words[i]}
-          initial={{ y: "110%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "-110%", opacity: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="italic text-blush"
-        >
-          {words[i]}
-        </motion.span>
-      </AnimatePresence>
-    </span>
-  );
-}
-
-/** input whose little heart lights up while you type */
-function LovelyInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  const [focus, setFocus] = useState(false);
-  return (
-    <div className="relative">
-      <input
-        {...props}
-        onFocus={(e) => { setFocus(true); props.onFocus?.(e); }}
-        onBlur={(e) => { setFocus(false); props.onBlur?.(e); }}
-        className={`${inputCls} pr-10`}
-      />
-      <motion.span
-        animate={focus ? { scale: [1, 1.4, 1] } : {}}
-        transition={{ duration: 0.5 }}
-        className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2"
-        aria-hidden="true"
-      >
-        <Heart size={15} className={focus ? "text-gold" : "text-ink-mute/35"} fill={focus ? "#D4AF37" : "none"} />
-      </motion.span>
-    </div>
-  );
-}
-
+/** password strength for the sign-up meter: length, mixed case, a digit, a symbol */
 function strengthOf(p: string) {
   let s = 0;
   if (p.length >= 8) s++;
@@ -687,270 +635,317 @@ function strengthOf(p: string) {
 }
 const STRENGTH = [
   { label: "Too short", bar: "bg-ink/15" },
-  { label: "Gentle", bar: "bg-blush" },
-  { label: "Getting there", bar: "bg-lav" },
-  { label: "Strong", bar: "bg-sage" },
-  { label: "Unbreakable", bar: "bg-gold" },
+  { label: "Weak", bar: "bg-blush-deep" },
+  { label: "Okay", bar: "bg-gold" },
+  { label: "Good", bar: "bg-sage" },
+  { label: "Strong", bar: "bg-sage-deep" },
 ];
 
 /** Supabase's captcha refusals, in words a couple can act on. */
 export function authMessage(message: string): string {
-  return /captcha/i.test(message) ? "The security check expired or didn't go through. Please complete it again." : message;
+  return /captcha/i.test(message) ? "The security check expired or didn't go through. Please try again." : message;
+}
+
+type AuthMode = "login" | "signup" | "reset";
+type AuthForms = { login: { email: string; password: string }; signup: { email: string; password: string }; reset: { email: string } };
+const emptyForms = (): AuthForms => ({ login: { email: "", password: "" }, signup: { email: "", password: "" }, reset: { email: "" } });
+
+const AUTH_COPY: Record<AuthMode, { title: string; sub: string; submit: string }> = {
+  login: { title: "Welcome back", sub: "Sign in to your wedding planner.", submit: "Sign in" },
+  signup: { title: "Create your planner", sub: "Free to start. Invite your partner once you're in.", submit: "Create account" },
+  reset: { title: "Reset your password", sub: "We'll email you a link to choose a new one.", submit: "Send reset link" },
+};
+
+/** the password box, with a show / hide switch */
+function PasswordInput({ id, value, onChange, autoComplete }: { id: string; value: string; onChange: (v: string) => void; autoComplete: string }) {
+  const [shown, setShown] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        id={id} type={shown ? "text" : "password"} value={value} onChange={(e) => onChange(e.target.value)}
+        autoComplete={autoComplete} className={`${inputCls} pr-20`}
+      />
+      <button
+        type="button" onClick={() => setShown((v) => !v)} aria-pressed={shown} aria-controls={id}
+        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2.5 py-1 text-[0.74rem] font-bold text-ink-mute transition hover:bg-ink/5 hover:text-ink cursor-pointer"
+      >
+        {shown ? "Hide" : "Show"}
+      </button>
+    </div>
+  );
 }
 
 export function AuthModal() {
-  const { authOpen, setAuthOpen, toast, db, mode: appMode, signupEmail } = useApp();
-  const stats = useStats();
-  const reduced = usePrefersReducedMotion();
-  const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
+  const { authOpen, setAuthOpen, toast, mode: appMode, signupEmail } = useApp();
+  const [mode, setMode] = useState<AuthMode>("login");
   const [flow, setFlow] = useState<"form" | "check-inbox">("form");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // each tab keeps its own fields: nothing typed in one shows up in another
+  const [forms, setForms] = useState<AuthForms>(emptyForms);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // the bot check: only where there is a real account to protect
+
+  // the bot check: only where there's a real account to protect. It stays
+  // invisible unless Cloudflare needs the person to tick a box.
   const needsCheck = appMode === "cloud" && !!turnstileSiteKey();
   const check = useRef<TurnstileHandle>(null);
-  const [human, setHuman] = useState<string | null>(null);
+  const token = useRef<string | null>(null);
+  const waiting = useRef<((t: string | null) => void)[]>([]);
   const [checkUnavailable, setCheckUnavailable] = useState(false);
-  const blocked = needsCheck && !checkUnavailable && !human;
+  const [checking, setChecking] = useState(false);
+  const onToken = (t: string | null) => {
+    token.current = t;
+    if (t) waiting.current.splice(0).forEach((resolve) => resolve(t));
+  };
+  /** a fresh token for this attempt; waits a moment if the check is still running */
+  const humanToken = async (): Promise<string | undefined> => {
+    if (!needsCheck || checkUnavailable) return undefined;
+    if (token.current) return token.current;
+    setChecking(true);
+    const t = await new Promise<string | null>((resolve) => {
+      waiting.current.push(resolve);
+      window.setTimeout(() => resolve(null), 10000);
+    });
+    setChecking(false);
+    if (!t) throw new Error("The security check didn't finish. Check your connection and try again.");
+    return t;
+  };
   /** tokens are single-use: every attempt, whatever its outcome, needs a fresh one */
   const freshCheck = () => check.current?.reset();
 
   useEffect(() => {
-    if (authOpen) { setFlow("form"); setError(null); setBusy(false); }
-    // arriving from the homepage's "Get started" box: sign up, email filled in
-    if (authOpen && signupEmail) { setMode("signup"); setEmail(signupEmail); }
+    if (!authOpen) return;
+    setFlow("form"); setError(null); setBusy(false);
+    // a fresh window every time; arriving from the homepage's "Get started"
+    // box opens sign-up with the email they typed there
+    const fresh = emptyForms();
+    if (signupEmail) { fresh.signup.email = signupEmail; setMode("signup"); } else setMode("login");
+    setForms(fresh);
   }, [authOpen, signupEmail]);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const switchMode = (m: AuthMode) => {
     setError(null);
-    if (!email.includes("@")) { setError("That email needs a second look."); return; }
-    if (mode !== "reset" && password.length < 6) { setError("Passwords need at least 6 characters."); return; }
-    if (blocked) { setError("Please complete the quick security check first."); return; }
-    const token = human ?? undefined;
+    // passwords never travel between tabs or linger in a hidden one
+    setForms((f) => ({
+      login: { ...f.login, password: "" },
+      signup: { ...f.signup, password: "" },
+      // "Forgot password?" starts from the address being signed in with
+      reset: { email: m === "reset" ? f.reset.email || f.login.email : f.reset.email },
+    }));
+    setMode(m);
+  };
+
+  const email = forms[mode].email.trim();
+  const password = mode === "reset" ? "" : forms[mode].password;
+  const setEmail = (v: string) => setForms((f) => ({ ...f, [mode]: { ...f[mode], email: v } }));
+  const setPassword = (v: string) => setForms((f) => (mode === "reset" ? f : { ...f, [mode]: { ...f[mode], password: v } }));
+
+  const run = async (action: (t: string | undefined) => Promise<void>) => {
+    setError(null);
     setBusy(true);
     try {
+      await action(await humanToken());
+    } catch (err) {
+      setError(authMessage((err as Error).message) || "Something went wrong. Please try again.");
+    } finally {
+      setBusy(false);
+      freshCheck();
+    }
+  };
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.includes("@")) { setError("Enter the email address you use for Luma."); return; }
+    if (mode !== "reset" && password.length < 6) { setError("Passwords need at least 6 characters."); return; }
+    void run(async (t) => {
       if (mode === "reset") {
-        const { error: err } = await authApi.reset(email, token);
+        const { error: err } = await authApi.reset(email, t);
         if (err) throw new Error(err.message);
-        toast("Reset link sent", `Check ${email} — it lands in a minute or two.`);
+        toast("Reset link sent", `Check ${email}. It usually arrives within a minute.`);
         setAuthOpen(false);
         return;
       }
       if (mode === "signup") {
-        const { data, error: err } = await authApi.signUp(email, password, token);
+        const { data, error: err } = await authApi.signUp(email, password, t);
         if (err) throw new Error(err.message);
         if (!data.session) { setFlow("check-inbox"); return; } // email confirmation pending
-        toast("Welcome to Luma", "Account created — let's set up your wedding.");
+        toast("Welcome to Luma", "Your account is ready. Let's set up your wedding.");
         setAuthOpen(false);
-      } else {
-        const { error: err } = await authApi.signIn(email, password, token);
-        if (err) throw new Error(err.message);
-        toast("Welcome back", "Your plan is right where you left it.");
-        setAuthOpen(false);
+        return;
       }
-    } catch (err) {
-      setError(authMessage((err as Error).message) || "Something went sideways — try again.");
-    } finally {
-      setBusy(false);
-      freshCheck();
-    }
+      const { error: err } = await authApi.signIn(email, password, t);
+      if (err) throw new Error(err.message);
+      toast("Welcome back", "Your plan is right where you left it.");
+      setAuthOpen(false);
+    });
   };
 
-  const sendMagicLink = async () => {
-    setError(null);
-    if (!email.includes("@")) { setError("Enter your email above first, then we'll send the link."); return; }
-    if (blocked) { setError("Please complete the quick security check first."); return; }
-    setBusy(true);
-    try {
-      const { error: err } = await authApi.magicLink(email, human ?? undefined);
+  const sendMagicLink = () => {
+    if (!email.includes("@")) { setError("Enter your email address first, and we'll send the link there."); return; }
+    void run(async (t) => {
+      const { error: err } = await authApi.magicLink(email, t);
       if (err) throw new Error(err.message);
       setFlow("check-inbox");
-    } catch (err) {
-      setError(authMessage((err as Error).message));
-    } finally {
-      setBusy(false);
-      freshCheck();
-    }
+    });
   };
 
+  const copy = AUTH_COPY[mode];
   const strength = strengthOf(password);
-  const stagger = (i: number) => ({
-    initial: reduced ? false : { opacity: 0, y: 14 },
-    animate: { opacity: 1, y: 0 },
-    transition: { delay: 0.08 + i * 0.07, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
-  });
+  const waitingLabel = checking ? "Checking the connection…" : null;
 
   return (
-    <Modal open={authOpen} onClose={() => setAuthOpen(false)} label="Sign in" wide>
-      <div className="grid sm:grid-cols-[1.02fr_1fr]">
-        {/* living ink panel */}
-        <aside className="relative hidden overflow-hidden bg-ink p-9 text-cream sm:flex sm:flex-col sm:justify-between">
-          <div className="pointer-events-none absolute -left-16 -top-20 h-64 w-64 rounded-full bg-blush/20 blur-3xl" aria-hidden="true" />
-          <div className="pointer-events-none absolute -bottom-24 -right-10 h-72 w-72 rounded-full bg-lav/20 blur-3xl" aria-hidden="true" />
-          {[16, 44, 70, 88].map((left, i) => (
-            <span key={left} className="inv-petal" style={{ left: `${left}%`, animationDuration: `${10 + i * 2.4}s`, animationDelay: `${i * 1.9}s` }} aria-hidden="true" />
-          ))}
-
-          <div className="relative flex items-center justify-between">
-            <Logo dark />
-            <span className="rounded-full border border-gold/40 px-3 py-1.5 text-[0.6rem] font-extrabold uppercase tracking-[0.2em] text-gold">Planner access</span>
+    <Modal open={authOpen} onClose={() => setAuthOpen(false)} label={copy.title} wide>
+      <div className="grid sm:grid-cols-[0.92fr_1fr]">
+        {/* what you get, in plain words */}
+        <aside className="hidden bg-ink p-9 text-cream sm:flex sm:flex-col sm:justify-between">
+          <Logo dark />
+          <div className="py-10">
+            <h2 className="font-display text-[2.4rem] leading-[1.05] tracking-tight">Plan your wedding<br /><em className="text-gold">together.</em></h2>
+            <ul className="mt-7 space-y-3.5 text-[0.9rem] leading-snug text-cream/75">
+              {[
+                "Invite your partner. Every change appears on both screens within seconds.",
+                "Guests, RSVPs, budget, seating and vendors in one place.",
+                "An invitation and website your guests answer from their phone.",
+              ].map((line) => (
+                <li key={line} className="flex gap-3">
+                  <Check size={16} className="mt-0.5 shrink-0 text-gold" aria-hidden="true" />
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-
-          <div className="relative py-10">
-            <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.3em] text-cream/40">The Luma planner</p>
-            <h2 className="mt-4 font-display text-[2.7rem] leading-[1.05] tracking-tight">
-              Plan the<br /><RotatingWord />
-            </h2>
-            <p className="mt-5 max-w-xs text-[0.9rem] leading-relaxed text-cream/60">
-              One calm workspace for guests, budget, timeline, seating and the big day itself — from the first guest to the final dance.
-            </p>
-          </div>
-
-          <div className="relative space-y-4">
-            <div className="flex items-center gap-3 rounded-2xl border border-cream/12 bg-cream/6 px-4 py-3.5 backdrop-blur-sm">
-              <Heart size={16} className="text-blush" fill="#FFB5C2" />
-              <div>
-                <p className="font-display text-lg leading-none">{stats.days} days</p>
-                <p className="mt-1 text-[0.66rem] font-bold uppercase tracking-[0.16em] text-cream/45">until {db.wedding.names} say “I do”</p>
-              </div>
-            </div>
-            {/* This said "Loved by 4,200+ couples" under five stars: an invented
-                figure, like the testimonials removed earlier. Only true things here. */}
-            <div className="flex items-center gap-2 text-[0.72rem] font-semibold text-cream/45">
-              <Check size={13} className="text-blush" aria-hidden="true" /> Free to start · no card needed
-            </div>
-          </div>
+          <p className="text-[0.76rem] text-cream/45">Free to start. No card needed.</p>
         </aside>
 
-        {/* form */}
+        {/* the form */}
         <div className="p-7 sm:p-9">
-          <div className="sm:hidden"><Logo /></div>
-
-          <motion.h2 {...stagger(0)} key={mode} className="mt-4 font-display text-[1.9rem] leading-tight text-ink sm:mt-0 sm:text-[2.1rem]">
-            {mode === "login" && <>Welcome <em className="text-blush-deep">back.</em></>}
-            {mode === "signup" && <>Begin the <em className="text-blush-deep">feeling.</em></>}
-            {mode === "reset" && <>Take a <em className="text-lav-deep">breath.</em></>}
-          </motion.h2>
-          <motion.p {...stagger(1)} className="mt-1.5 text-[0.86rem] font-semibold text-ink-2">
-            {mode === "login" && "Your plan is right where you left it."}
-            {mode === "signup" && "Two minutes now, two hundred calmer hours later."}
-            {mode === "reset" && "We'll send a link — passwords are the least romantic part anyway."}
-          </motion.p>
-
-          <motion.div {...stagger(2)} className="mt-5 flex gap-1 rounded-full bg-ink/5 p-1 text-sm font-semibold" role="tablist" aria-label="Authentication mode">
-            {(["login", "signup"] as const).map((m) => (
-              <button key={m} role="tab" aria-selected={mode === m} onClick={() => setMode(m)}
-                className={`relative flex-1 overflow-hidden rounded-full py-2 capitalize transition cursor-pointer ${mode === m ? "text-cream" : "text-ink-mute hover:text-ink"}`}>
-                {mode === m && !reduced && (
-                  <motion.span layoutId="auth-tab" className="absolute inset-0 rounded-full bg-ink" transition={{ type: "spring", stiffness: 400, damping: 34 }} />
-                )}
-                {mode === m && reduced && <span className="absolute inset-0 rounded-full bg-ink" />}
-                <span className="relative">{m === "login" ? "Sign in" : "Sign up"}</span>
-              </button>
-            ))}
-          </motion.div>
+          <div className="mb-5 sm:hidden"><Logo /></div>
 
           {flow === "check-inbox" ? (
-            <motion.div
-              initial={reduced ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-8 rounded-2xl border border-sage/50 bg-sage-soft/60 p-7 text-center"
-              role="status"
-            >
-              <span className="mx-auto flex h-13 w-13 h-[52px] w-[52px] items-center justify-center rounded-full bg-white text-sage-deep shadow-sm">
-                <Mail size={22} />
-              </span>
-              <h3 className="mt-4 font-display text-2xl text-ink">Check your inbox</h3>
-              <p className="mx-auto mt-2 max-w-xs text-[0.88rem] leading-relaxed text-ink-2">
-                We sent a sign-in link to <strong className="text-ink">{email}</strong>. Click it and you're in —
-                no password to remember, nothing to lose.
+            <div className="py-6" role="status">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-sage-soft text-sage-deep"><Mail size={20} /></span>
+              <h2 className="mt-5 font-display text-[1.9rem] leading-tight text-ink">Check your inbox</h2>
+              <p className="mt-2 max-w-sm text-[0.92rem] leading-relaxed text-ink-2">
+                We sent a link to <strong className="text-ink">{email}</strong>. Open it on this device to finish signing in.
+                If it doesn't arrive in a few minutes, check your spam folder.
               </p>
-              <button onClick={() => setFlow("form")} className="mt-5 text-[0.8rem] font-bold text-ink-mute underline-offset-2 transition hover:text-ink hover:underline cursor-pointer">
-                Use a password instead
+              <button onClick={() => setFlow("form")} className="mt-6 text-[0.84rem] font-bold text-ink-2 underline underline-offset-4 transition hover:text-ink cursor-pointer">
+                Back
               </button>
-            </motion.div>
+            </div>
           ) : (
-          <form onSubmit={submit} className="mt-6 space-y-4">
-            <motion.div {...stagger(3)}>
-              <Field label="Email">
-                <LovelyInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" />
-              </Field>
-            </motion.div>
-            {mode !== "reset" && (
-              <motion.div {...stagger(4)}>
-                <Field label="Password">
-                  <LovelyInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" autoComplete={mode === "signup" ? "new-password" : "current-password"} />
-                </Field>
-                {mode === "signup" && password.length > 0 && (
-                  <div className="mt-2">
-                    <div className="flex gap-1.5">
-                      {[0, 1, 2, 3].map((seg) => (
-                        <span key={seg} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${seg < strength ? STRENGTH[strength].bar : "bg-ink/10"}`} />
-                      ))}
+            <>
+              {mode !== "reset" && (
+                <div className="mb-7 flex gap-6 border-b border-ink/10" role="tablist" aria-label="Sign in or create an account">
+                  {(["login", "signup"] as const).map((m) => (
+                    <button
+                      key={m} role="tab" aria-selected={mode === m} type="button" onClick={() => switchMode(m)}
+                      className={`-mb-px border-b-2 pb-3 text-[0.92rem] font-bold transition cursor-pointer ${mode === m ? "border-ink text-ink" : "border-transparent text-ink-mute hover:text-ink-2"}`}
+                    >
+                      {m === "login" ? "Sign in" : "Create account"}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <h2 className="font-display text-[1.9rem] leading-tight text-ink">{copy.title}</h2>
+              <p className="mt-1.5 text-[0.9rem] text-ink-2">{copy.sub}</p>
+
+              <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
+                <div>
+                  <label htmlFor={`auth-email-${mode}`} className="mb-1.5 block text-[0.8rem] font-bold text-ink-2">Email</label>
+                  <input
+                    id={`auth-email-${mode}`} type="email" value={forms[mode].email} onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email" inputMode="email" className={inputCls}
+                  />
+                </div>
+
+                {mode !== "reset" && (
+                  <div>
+                    <div className="mb-1.5 flex items-baseline justify-between gap-3">
+                      <label htmlFor={`auth-password-${mode}`} className="block text-[0.8rem] font-bold text-ink-2">Password</label>
+                      {mode === "login" && (
+                        <button type="button" onClick={() => switchMode("reset")} className="text-[0.78rem] font-bold text-ink-mute underline-offset-4 transition hover:text-ink hover:underline cursor-pointer">
+                          Forgot password?
+                        </button>
+                      )}
                     </div>
-                    <p className="mt-1.5 text-[0.68rem] font-bold text-ink-mute">{STRENGTH[strength].label}</p>
+                    <PasswordInput
+                      key={mode} id={`auth-password-${mode}`} value={password} onChange={setPassword}
+                      autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                    />
+                    {mode === "signup" && (
+                      <div className="mt-2 flex items-center gap-3">
+                        <div className="flex flex-1 gap-1" aria-hidden="true">
+                          {[0, 1, 2, 3].map((seg) => (
+                            <span key={seg} className={`h-1 flex-1 rounded-full transition-colors ${password && seg < strength ? STRENGTH[strength].bar : "bg-ink/10"}`} />
+                          ))}
+                        </div>
+                        <span className="w-20 text-right text-[0.72rem] font-bold text-ink-mute">{password ? STRENGTH[strength].label : "6+ characters"}</span>
+                      </div>
+                    )}
                   </div>
                 )}
-              </motion.div>
-            )}
-            {mode === "login" && (
-              <motion.button {...stagger(4)} type="button" onClick={() => setMode("reset")} className="text-xs font-semibold text-ink-mute underline-offset-2 hover:text-gold-deep hover:underline cursor-pointer">
-                Forgot password?
-              </motion.button>
-            )}
-            {needsCheck && (
-              <div>
-                <Turnstile ref={check} action="auth" onToken={setHuman} onUnavailable={() => setCheckUnavailable(true)} />
-                {checkUnavailable && (
-                  <p className="mt-2 text-center text-[0.74rem] font-semibold text-ink-mute">
-                    The security check couldn't load. If signing in fails, turn off content blockers or try another browser.
+
+                {needsCheck && (
+                  <div>
+                    <Turnstile ref={check} action="auth" appearance="interaction-only" onToken={onToken} onUnavailable={() => setCheckUnavailable(true)} />
+                    {checkUnavailable && (
+                      <p className="text-[0.76rem] text-ink-mute">
+                        The security check couldn't load. If signing in fails, turn off content blockers or try another browser.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {error && (
+                  <p className="rounded-xl border border-blush-deep/30 bg-blush-soft/60 px-4 py-3 text-[0.84rem] font-semibold text-blush-deep" role="alert">
+                    {error}
                   </p>
                 )}
-              </div>
-            )}
-            {error && (
-              <p className="rounded-xl border border-blush-deep/40 bg-blush-soft/70 px-4 py-3 text-[0.82rem] font-bold text-blush-deep" role="alert">
-                {error}
-              </p>
-            )}
-            <motion.div {...stagger(5)}>
-              <button type="submit" disabled={busy || blocked} className={`btn3d ${mode === "signup" ? "btn3d-gold" : "btn3d-ink"} w-full rounded-2xl py-4 text-[0.95rem] font-extrabold disabled:pointer-events-none disabled:opacity-60 cursor-pointer`}>
-                {busy ? <Loader2 size={17} className="mx-auto animate-spin" /> : mode === "reset" ? "Send reset link" : mode === "signup" ? "Create our planner →" : "Step back in →"}
-              </button>
-            </motion.div>
 
-            {mode !== "reset" && (
-              <>
-                <div className="flex items-center gap-3 pt-1 text-[0.66rem] font-bold uppercase tracking-[0.18em] text-ink-mute">
-                  <span className="h-px flex-1 bg-ink/10" /> or <span className="h-px flex-1 bg-ink/10" />
-                </div>
-                <button
-                  type="button" onClick={sendMagicLink} disabled={busy || blocked}
-                  className="btn3d btn3d-light flex w-full items-center justify-center gap-2.5 rounded-2xl py-3.5 text-[0.9rem] font-bold disabled:pointer-events-none disabled:opacity-60 cursor-pointer"
-                >
-                  <Mail size={15} className="text-gold-deep" /> Email me a magic link
+                <button type="submit" disabled={busy} className={`btn3d btn3d-ink w-full rounded-xl py-3.5 text-[0.95rem] font-bold disabled:pointer-events-none disabled:opacity-60 cursor-pointer`}>
+                  {busy ? <span className="inline-flex items-center gap-2"><Loader2 size={16} className="animate-spin" />{waitingLabel ?? copy.submit}</span> : copy.submit}
                 </button>
-              </>
-            )}
-          </form>
+
+                {mode === "signup" && (
+                  <p className="text-center text-[0.76rem] leading-relaxed text-ink-mute">
+                    By creating an account you agree to the{" "}
+                    <a href="#/terms" target="_blank" rel="noreferrer" className="font-bold text-ink-2 underline underline-offset-2">Terms</a> and{" "}
+                    <a href="#/privacy" target="_blank" rel="noreferrer" className="font-bold text-ink-2 underline underline-offset-2">Privacy policy</a>.
+                  </p>
+                )}
+
+                {mode === "reset" ? (
+                  <button type="button" onClick={() => switchMode("login")} className="w-full text-center text-[0.84rem] font-bold text-ink-2 underline-offset-4 transition hover:text-ink hover:underline cursor-pointer">
+                    Back to sign in
+                  </button>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3 text-[0.74rem] font-semibold text-ink-mute">
+                      <span className="h-px flex-1 bg-ink/10" /> or <span className="h-px flex-1 bg-ink/10" />
+                    </div>
+                    <button
+                      type="button" onClick={sendMagicLink} disabled={busy}
+                      className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-ink/15 bg-white py-3 text-[0.9rem] font-bold text-ink transition hover:border-ink/30 disabled:pointer-events-none disabled:opacity-60 cursor-pointer"
+                    >
+                      <Mail size={15} className="text-ink-2" /> Email me a sign-in link
+                    </button>
+                  </>
+                )}
+              </form>
+            </>
           )}
 
-          <motion.p {...stagger(8)} className="mt-5 flex items-center justify-center gap-1.5 text-center text-[0.7rem] text-ink-mute">
-            <Sparkles size={12} className="text-gold" /> Real Supabase auth · email + password or magic link
-          </motion.p>
-          {appMode === "cloud" && (
-            <motion.p {...stagger(9)} className="mt-3 text-center text-[0.74rem] font-semibold text-ink-2">
+          {appMode === "cloud" && flow === "form" && (
+            <p className="mt-6 text-center text-[0.8rem] text-ink-2">
               Just looking?{" "}
               <button
                 onClick={() => { setAuthOpen(false); window.location.hash = "/demo?demo=1"; window.location.reload(); }}
-                className="font-extrabold text-blush-deep underline-offset-2 transition hover:underline cursor-pointer"
+                className="font-bold text-ink underline underline-offset-4 cursor-pointer"
               >
-                Explore the full demo →
+                Explore the demo
               </button>
-            </motion.p>
+            </p>
           )}
         </div>
       </div>
