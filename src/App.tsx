@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import GuestInvite from "./pages/GuestInvite";
 import NotFound from "./pages/NotFound";
 import LegalPage from "./pages/LegalPage";
+import CookieNotice from "./components/CookieNotice";
 import Shell from "./components/dashboard/Shell";
 import PlannerGate from "./components/dashboard/PlannerGate";
 import Overview from "./components/dashboard/Overview";
@@ -95,6 +96,7 @@ export default function App() {
           </Localised>
         </ErrorBoundary>
         <ToastHost />
+        <CookieNotice />
         <AuthModal />
         <CheckoutModal />
         <UpgradeModal />
