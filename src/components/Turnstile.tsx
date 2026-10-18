@@ -50,7 +50,12 @@ export const Turnstile = forwardRef<TurnstileHandle, {
   onUnavailable?: () => void;
   /** shown in Cloudflare's analytics, to tell the forms apart */
   action?: "rsvp" | "auth";
-}>(function Turnstile({ onToken, onUnavailable, action = "rsvp" }, ref) {
+  /**
+   * "interaction-only": invisible unless Cloudflare needs the person to tick
+   * a box, and then as wide as the form. "always": the visible widget.
+   */
+  appearance?: "always" | "interaction-only";
+}>(function Turnstile({ onToken, onUnavailable, action = "rsvp", appearance = "always" }, ref) {
   const box = useRef<HTMLDivElement>(null);
   const widget = useRef<string | null>(null);
   // the latest callbacks, without re-rendering the widget when they change
@@ -77,7 +82,8 @@ export const Turnstile = forwardRef<TurnstileHandle, {
           theme: "light",
           // the normal widget is 300px wide; the RSVP card on a 375px phone
           // leaves 277px, so it stuck out of the card. Compact is 150px wide.
-          size: box.current.clientWidth < COMPACT_BELOW ? "compact" : "normal",
+          appearance,
+          size: appearance === "interaction-only" ? "flexible" : box.current.clientWidth < COMPACT_BELOW ? "compact" : "normal",
           callback: (token: string) => cb.current.onToken(token),
           "expired-callback": () => cb.current.onToken(null),
           "error-callback": () => cb.current.onToken(null),
@@ -89,8 +95,9 @@ export const Turnstile = forwardRef<TurnstileHandle, {
       if (widget.current && window.turnstile) window.turnstile.remove(widget.current);
       widget.current = null;
     };
-  }, [action]);
+  }, [action, appearance]);
 
-  // w-full so clientWidth measures the space the form gives it, not the widget
-  return <div ref={box} className="flex min-h-[65px] w-full justify-center" />;
+  // w-full so clientWidth measures the space the form gives it, not the widget;
+  // an invisible check takes no room until Cloudflare shows it
+  return <div ref={box} className={`flex w-full justify-center ${appearance === "always" ? "min-h-[65px]" : ""}`} />;
 });
