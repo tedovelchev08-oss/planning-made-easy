@@ -18,12 +18,14 @@ export interface StudioDesign {
   name: string;
   /** the plan a wedding needs for guests to see this design */
   plan: StudioPlan;
+  /** one line for the planner's gallery */
+  blurb: string;
   /** colours for the photo placeholder, matching the design */
   placeholder: { from: string; to: string; ink: string };
 }
 
 export const STUDIO_DESIGNS: StudioDesign[] = [
-  { id: "celestial", name: "Celestial", plan: "luxe", placeholder: { from: "#0B1026", to: "#1E2650", ink: "#E8C87E" } },
+  { id: "celestial", name: "Celestial", plan: "luxe", blurb: "The night sky above your venue, drawn from your date", placeholder: { from: "#0B1026", to: "#1E2650", ink: "#E8C87E" } },
 ];
 
 export const STUDIO_PREFIX = "studio:";
@@ -87,7 +89,21 @@ export interface DesignData {
   faq?: { question?: string; answer?: string }[];
 }
 
-const DESIGN_TRACKS = ["nocturne", "clairdelune", "gnossienne", "traumerei", "pavane"];
+/** the designs' own music (public domain / CC0, see public/designs/_shared/audio/CREDITS.txt) */
+export const STUDIO_TRACKS = [
+  { id: "clairdelune", name: "Clair de lune", composer: "Debussy" },
+  { id: "nocturne", name: "Nocturne in E-flat", composer: "Chopin" },
+  { id: "gnossienne", name: "Gnossienne No. 1", composer: "Satie" },
+  { id: "traumerei", name: "Träumerei", composer: "Schumann" },
+  { id: "pavane", name: "Pavane", composer: "Ravel" },
+] as const;
+const DESIGN_TRACKS: string[] = STUDIO_TRACKS.map((t) => t.id);
+
+/** what the couple can write for a studio design: the editor's limits, well inside 0020's 32 KB */
+export const DESIGN_LIMITS = {
+  hashtag: 40, dressCode: 60, dressCodeNote: 80, rsvpDeadline: 40, story: 600,
+  items: 12, time: 20, title: 60, venue: 80, question: 120, answer: 500,
+} as const;
 
 function partners(w: PublicWedding): [string, string] {
   if (w.partnerA || w.partnerB) return [w.partnerA ?? "", w.partnerB ?? ""];

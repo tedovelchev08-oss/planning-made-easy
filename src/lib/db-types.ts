@@ -156,6 +156,8 @@ export interface InvitationConfigRow {
   music_url: string | null;
   /** 0011: guests see the invitation only while this is true */
   is_live: boolean;
+  /** 0020: what the owner's own designs show */
+  design_data: Json;
 }
 
 export interface WebsiteConfigRow {

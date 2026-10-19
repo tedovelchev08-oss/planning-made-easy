@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import type { DesignData } from "../../api/_lib/studioDesigns";
 import {
   BudgetCategory, CustomTemplate, Guest, Plan, RegistryItem, RsvpEntry, SeatTable, Task, Vendor, Wedding,
   catCommitted, catPaid, configureFormat,
@@ -37,6 +38,8 @@ export interface InvitationConfig {
   music: { track: "serene" | "golden" | "dance" | "upload"; uploadName: string | null; uploadUrl: string | null };
   /** open to guests. New invitations start closed: guests see "not open yet" until the couple shares it */
   live: boolean;
+  /** what the owner's own designs show (dress code, schedule, FAQ...): invitation_config.design_data (0020) */
+  designData?: DesignData;
 }
 
 export interface WebsiteConfig {
