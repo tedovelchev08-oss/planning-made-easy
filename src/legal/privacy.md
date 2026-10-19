@@ -1,6 +1,6 @@
 # Privacy policy
 
-**Last updated: October 16, 2026**
+**Last updated: October 20, 2026**
 
 This privacy policy explains how **Teodor Yovchev Velchev**, doing business as **Luma** ("**we**", "**us**", "**our**"), collects, uses, stores and shares personal information when you use Luma, the online wedding planner at [planning-made-easy.vercel.app](https://planning-made-easy.vercel.app) (the "**Services**"), including when you:
 
@@ -72,11 +72,11 @@ Couples should only add the information they need to plan their wedding. If you 
 
 ## 5. Invitation links and uploaded files
 
-When a couple opens their invitation to guests, **anyone with the invitation link** can see the details the couple chose to show: their names, the date, the venue, the design and any song they uploaded. Until the couple opens it, the link shows only that the invitation isn't open yet.
+When a couple opens their invitation to guests, **anyone with the invitation link** can see the details the couple chose to show: their names, the date, the venue, the design and any photo or song they uploaded. Until the couple opens it, the link shows only that the invitation isn't open yet.
 
 **Personal invitation links** contain a private code. Anyone with the link can answer for that guest, so couples should share each link only with its guest.
 
-Uploaded songs are stored at an address that works for anyone who has it. When a couple deletes or replaces a song, it is removed from storage straight away, but a cached copy can stay reachable at the same address for up to one hour.
+Uploaded photos and songs are stored at an address that works for anyone who has it. Photos are resized in your browser before upload, which also removes the information phones store inside a photo, such as where it was taken. When a couple deletes or replaces a photo or song, it is removed from storage straight away, but a cached copy can stay reachable at the same address for up to one hour.
 
 ## 6. Who do we share information with?
 
@@ -139,7 +139,7 @@ Depending on where you live (for example, in the EEA, the UK, Switzerland, Canad
 
 - **Export:** use **Export my data** in the account menu to download everything in your wedding at any time.
 - **Correct:** edit your information directly in the planner.
-- **Delete your account:** use **Delete my account** in the account menu. It takes effect straight away. If you can't, email **lumaplanning.support@gmail.com** from the address you signed up with and we will complete the deletion within 30 days. If you are a wedding's **owner**, deleting your account deletes the whole wedding, including its uploaded songs and for your partner. If you are a **partner**, only your access is removed. A record of any payment (plan, amount, date and payment reference, no longer linked to you) is kept for as long as accounting law requires.
+- **Delete your account:** use **Delete my account** in the account menu. It takes effect straight away. If you can't, email **lumaplanning.support@gmail.com** from the address you signed up with and we will complete the deletion within 30 days. If you are a wedding's **owner**, deleting your account deletes the whole wedding, including its uploaded photos and songs, and for your partner. If you are a **partner**, only your access is removed. A record of any payment (plan, amount, date and payment reference, no longer linked to you) is kept for as long as accounting law requires.
 - **Anything else:** email **lumaplanning.support@gmail.com**. We may need to confirm your identity first, and we will reply within one month.
 
 We give these rights to every user, wherever they live, and we won't treat you differently for using them.

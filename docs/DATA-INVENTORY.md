@@ -25,13 +25,14 @@ wedding's members (row-level security, `is_wedding_member()`).
 | `vendors` · `company`, `contact`, `email`, `phone`, `notes` | **third parties' contact details** (vendors) | couple | Personal data about people who are not Luma users. |
 | `vendor_payments`, `budget_categories`, `tasks`, `tables`, `venue_objects` | amounts, due dates, to-dos, floor plan | couple | Financial planning data. Not payment card data. |
 | `registry_items` · `name`, `store`, `price`, `url`, `purchased` | gift list | couple | |
-| `invitation_config` · `photo`, `music_url`, wording | a photo choice, an uploaded song's address | couple | `is_live` controls whether guests can see it at all. |
+| `invitation_config` · `photo`, `music_url`, wording | a built-in photo choice or an uploaded photo's address, an uploaded song's address | couple | `is_live` controls whether guests can see it at all. |
 | `website_config` | site content and settings | couple | |
 | `custom_templates` · `html`, `data_url` | designs the couple uploads (may contain photos of people) | couple | |
 | `entitlements` · `user_id`, `plan`, `stripe_customer_id`, `stripe_payment_intent_id` | purchase record | system (Stripe webhook) | Service role writes only. |
 | `purchases` · `user_id`, `wedding_id`, `tier`, `stripe_payment_intent_id`, `amount`, `amount_refunded`, `currency`, `status` | payment history | system (Stripe webhook) | Members can read their wedding's rows. |
 | `webhook_events` · `id`, `type` | Stripe event ids | system | No personal data beyond ids. Service role only. |
 | **Storage** bucket `media` · `<wedding_id>/music/<uuid>.<ext>` | uploaded songs | couple | **Public URLs**: anyone with the address can fetch the file. Deleting removes it from storage, but Supabase's CDN can keep serving a cached copy for up to an hour. |
+| **Storage** bucket `media` · `<wedding_id>/photos/<uuid>.jpg` | the couple's invitation photo | couple | Resized and re-encoded as JPEG in the browser first, which drops EXIF (phone location included). **Public URLs**, like songs; replaced and removed photos are deleted. Account deletion removes the wedding's whole folder. |
 
 **On the visitor's own device:** see section 2a.
 
