@@ -130,6 +130,7 @@ export const invitationToRow = (c: InvitationConfig, weddingId: string) => ({
   motion: c.motion as never, music: { track: c.music.track, uploadName: c.music.uploadName } as never,
   music_url: c.music.uploadUrl,
   is_live: c.live,
+  design_data: (c.designData ?? {}) as never,
 });
 
 export const websiteToRow = (w: WebsiteConfig, weddingId: string) => ({
@@ -246,6 +247,7 @@ export async function fetchWorkspace(weddingId: string, userId: string, versions
       },
       // rows from before 0011 have no flag to read: they were live, as is any wedding without a row
       live: inv?.is_live ?? true,
+      designData: (inv?.design_data ?? {}) as InvitationConfig["designData"],
     },
     website: {
       template: (web?.template ?? "serene") as WebsiteConfig["template"],
