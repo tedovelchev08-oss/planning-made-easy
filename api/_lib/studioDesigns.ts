@@ -22,10 +22,13 @@ export interface StudioDesign {
   blurb: string;
   /** colours for the photo placeholder, matching the design */
   placeholder: { from: string; to: string; ink: string };
+  /** the planner's card: a starfield, or a fine double frame */
+  motif: "stars" | "frame";
 }
 
 export const STUDIO_DESIGNS: StudioDesign[] = [
-  { id: "celestial", name: "Celestial", plan: "luxe", blurb: "The night sky above your venue, drawn from your date", placeholder: { from: "#0B1026", to: "#1E2650", ink: "#E8C87E" } },
+  { id: "celestial", name: "Celestial", plan: "luxe", blurb: "The night sky above your venue, drawn from your date", motif: "stars", placeholder: { from: "#0B1026", to: "#1E2650", ink: "#E8C87E" } },
+  { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Palm fronds and fine gilded lines, in sage and ivory", motif: "frame", placeholder: { from: "#F5F9F6", to: "#DDEBE2", ink: "#4E8A6C" } },
 ];
 
 export const STUDIO_PREFIX = "studio:";

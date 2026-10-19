@@ -39,6 +39,14 @@ describe("studio designs: the catalogue", () => {
     expect(planAllows(null, celestial)).toBe(false);
   });
 
+  it("Art Deco is part of Celebration (and so of Luxe)", () => {
+    const deco = studioDesignOf("studio:art-deco")!;
+    expect(deco.name).toBe("Art Deco");
+    expect(planAllows("celebration", deco)).toBe(true);
+    expect(planAllows("luxe", deco)).toBe(true);
+    expect(planAllows("essential", deco)).toBe(false);
+  });
+
   it("a guest's link keeps the token, the slug and the source", () => {
     expect(studioInviteUrl(celestial, { token: "t-1", src: "whatsapp" })).toBe("/designs/celestial/index.html?token=t-1&src=whatsapp");
     expect(studioInviteUrl(celestial, { slug: "ana-boris" })).toBe("/designs/celestial/index.html?slug=ana-boris");
