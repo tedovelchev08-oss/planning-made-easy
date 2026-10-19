@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Invitation</title>
+
+    <!-- Link previews (WhatsApp, iMessage...) read the raw HTML, so these are
+         generic on purpose: no stock photo, no couple's names in the markup. -->
+    <meta name="description" content="You're invited to celebrate with us. Open your invitation for the details and to RSVP.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="You're Invited">
+    <meta property="og:description" content="You're invited to celebrate with us. Open your invitation for the details and to RSVP.">
+    <meta name="twitter:card" content="summary">
+    <meta name="robots" content="noindex">
+
+    <meta name="theme-color" content="#74AA8F">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23F6F9F6'/%3E%3Ctext x='16' y='24' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-size='24' fill='%235E8C77'%3E%26amp;%3C/text%3E%3C/svg%3E">
+
+    <!-- Fonts, icons and effects are served by Luma itself (licences beside
+         each file in ../_shared): no third-party requests from a guest's phone. -->
+    <link rel="stylesheet" href="../_shared/fonts/fonts.css">
+    <link rel="stylesheet" href="../_shared/vendor/fontawesome/css/all.min.css">
+    <script src="../_shared/vendor/confetti.browser.min.js"></script>
+    <script src="../_shared/vendor/lz-string.min.js"></script>
+
+    <!-- Precompiled Tailwind utilities — no CDN dependency. Shared by every design. -->
+    <link rel="stylesheet" href="../_shared/tailwind.css?v=45">
+
+    <!-- This design's own look. To build a new design, copy this file and
+         wedding-design.css and restyle freely - wedding-core.js is untouched. -->
+    <link rel="stylesheet" href="wedding-design.css?v=45">
+
+    <!-- Builder chrome (drawer tabs, editor layout). Shared by every design. -->
+    <link rel="stylesheet" href="../_shared/wedding-ui.css?v=45">
+    <!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
+    <style>
+        html.luma-loading { background: #F5F9F6; }
+        html.luma-loading body { visibility: hidden; }
+        .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #F5F9F6; color: #1B2C27; font-family: 'Josefin Sans', Georgia, serif; }
+        .luma-notice h1 { font-family: 'Fraunces', Georgia, serif; font-size: 34px; font-weight: 400; color: #4E8A6C; margin: 0; }
+        .luma-notice p { font-size: 19px; max-width: 30rem; margin: 0; opacity: .85; }
+        .luma-notice a { margin-top: 8px; color: #4E8A6C; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+        .luma-check:empty { display: none; }
+    </style>
+</head>
+<body class="min-h-screen relative paper-grain selection:bg-gold/20 selection:text-charcoal pb-12">
+
+    <!-- Decorative only: eucalyptus sprigs framing the page corners. -->
+    <div class="botanical-frame" aria-hidden="true"><span class="sprig sprig-tl"></span><span class="sprig sprig-br"></span></div>
+
+    <noscript>
+        <div style="position:fixed;inset:0;z-index:9999;background:#FAF8F5;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center;font-family:Georgia,serif;">
+            <div style="max-width:26rem;">
+                <p style="font-size:1.25rem;color:#1A1918;margin-bottom:0.75rem;">This invitation needs JavaScript to open.</p>
+                <p style="font-size:0.95rem;color:#8C857B;">If you're viewing this inside a file preview (like a Files app "Quick Look" or a messaging app's built-in viewer), please open it directly in a full browser — Safari, Chrome, or similar — instead.</p>
+            </div>
+        </div>
+    </noscript>
+
+    <!-- Creator / Customizer Top Control Bar -->
+    <!-- Glass Header Nav -->
+    <header class="fixed top-0 inset-x-0 z-40 bg-cream/90 backdrop-blur-md border-b border-gold/15 transition-all duration-300">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-3">
+            <a href="#" class="shrink-0 font-serif text-xl tracking-widest text-charcoal font-light flex items-center gap-2">
+                <span id="nav-initial-1" data-field="initial1">E</span> <span class="font-script text-2xl text-gold">&</span> <span id="nav-initial-2" data-field="initial2">D</span>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="main-nav-scroll hidden md:flex items-center gap-8 font-sans text-xs uppercase tracking-[0.2em] text-warmgray font-medium flex-1 min-w-0 justify-center">
+                <a href="#our-story" class="shrink-0 hover:text-gold transition">Our Story</a>
+                <a href="#schedule" class="shrink-0 hover:text-gold transition">Schedule</a>
+                <a href="#details" class="shrink-0 hover:text-gold transition">Details</a>
+                <a href="#rsvp" class="shrink-0 hover:text-gold transition">RSVP</a>
+            </nav>
+
+            <div class="shrink-0 flex items-center gap-2">
+                <a href="#rsvp" class="nowrap px-5 py-2 rounded-full bg-charcoal text-cream text-xs font-sans uppercase tracking-widest hover:bg-gold transition shadow-sm">
+                    RSVP
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- REALISTIC 3D UNSEALING ENVELOPE INTRO OVERLAY -->
+    <!-- ART DECO REVEAL
+         Two full-height gates sweep apart to uncover the invitation behind
+         them. The timings below are read by wedding-core.js, so this design
+         controls its own pacing without the core knowing anything about
+         gates. Element ids (#envelope-overlay, #envelope-box-el) are the
+         contract the core binds to. -->
+    <div id="envelope-overlay" data-reveal-ms="2200" data-fade-ms="900"
+         class="fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000">
+
+        <div class="deco-scene envelope-3d-scene cursor-pointer" role="button" tabindex="0"
+             aria-label="Open your invitation" onclick="openEnvelope()" onkeydown="handleEnvelopeKeydown(event)">
+            <div id="envelope-box-el" class="deco-gates">
+
+                <!-- What sits behind the gates -->
+                <div class="deco-reveal">
+                    <div class="deco-reveal-inner">
+                        <span class="deco-eyebrow">Together with their families</span>
+                        <h2 id="envelope-names" data-field="coupleNames" class="deco-names">Emma &amp; Daniel</h2>
+                        <div class="deco-rule"><span></span><i></i><span></span></div>
+                        <p id="envelope-subtext" data-field="dateAndPlace" class="deco-meta">April 17, 2027 • Sonoma Valley</p>
+                    </div>
+                </div>
+
+                <!-- The gates themselves -->
+                <div class="deco-gate deco-gate-left">
+                    <div class="deco-gate-face">
+                        <div class="deco-rays"></div>
+                        <div class="deco-chevrons"></div>
+                    </div>
+                    <div class="deco-gate-edge"></div>
+                </div>
+                <div class="deco-gate deco-gate-right">
+                    <div class="deco-gate-face">
+                        <div class="deco-rays"></div>
+                        <div class="deco-chevrons"></div>
+                    </div>
+                    <div class="deco-gate-edge"></div>
+                </div>
+
+                <!-- Centre medallion, split by the parting gates -->
+                <div id="wax-seal-el" class="deco-medallion">
+                    <div class="deco-medallion-ring"></div>
+                    <span id="wax-seal-initials" data-field="initials" class="deco-monogram">E&amp;D</span>
+                </div>
+            </div>
+        </div>
+
+        <p id="envelope-hint-text" data-hint="Tap or press Enter to open"
+           data-hint-opening="Opening…"
+           class="deco-hint animate-pulse">Tap or press Enter to open</p>
+    </div>
+
+    <!-- Floating Background Music Toggle -->
+    <audio id="bg-music-audio" loop preload="none"></audio>
+    <button id="music-toggle-btn" onclick="toggleMusic()" class="music-toggle-btn" style="display:none;" aria-label="Toggle background music">
+        <i class="fas fa-music" id="music-toggle-icon"></i>
+    </button>
+    <p id="music-error-toast" class="music-error-toast hidden">Music couldn't load — check your internet connection.</p>
+
+    <!-- Gallery Lightbox -->
+    <div id="gallery-lightbox" class="gallery-lightbox" onclick="closeGalleryLightbox()">
+        <button type="button" class="gallery-lightbox-close" onclick="closeGalleryLightbox()" aria-label="Close">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="gallery-lightbox-img" src="" alt="">
+    </div>
+
+    <!-- Main Invitation Page Content -->
+    <main class="pt-32 pb-16 px-4 md:px-8 max-w-5xl mx-auto">
+        <!-- Hero Section -->
+        <section class="text-center py-12 md:py-20 relative">
+            <div class="reveal inline-block px-4 py-1.5 rounded-full border border-gold/30 bg-champagne/50 text-gold text-xs uppercase tracking-[0.3em] font-medium mb-6">
+                Save The Date
+            </div>
+
+            <h1 class="reveal reveal-d1 font-serif text-5xl sm:text-7xl md:text-8xl tracking-tight text-charcoal font-light leading-none mb-4">
+                <span id="hero-partner1" data-field="partner1">Emma</span> <span class="font-script text-6xl sm:text-8xl md:text-9xl text-gold font-normal -mx-2 md:-mx-4">&</span> <span id="hero-partner2" data-field="partner2">Daniel</span>
+            </h1>
+
+            <p class="reveal reveal-d2 font-serif italic text-xl md:text-2xl text-warmgray font-light max-w-xl mx-auto mb-8">
+                Together with their families, invite you to celebrate their wedding day
+            </p>
+
+            <!-- Key Event Banner Grid -->
+            <div id="details" class="grid grid-cols-1 md:grid-cols-3 border-y border-gold/20 py-6 my-10 max-w-3xl mx-auto gap-4 md:gap-0">
+                <div class="reveal reveal-d1 flex flex-col items-center justify-center md:border-r border-gold/20 px-4">
+                    <span class="font-sans text-[10px] uppercase tracking-[0.25em] text-warmgray mb-1">When</span>
+                    <span id="banner-date" data-field="dateFormatted" class="font-serif text-2xl text-charcoal font-medium">April 17, 2027</span>
+                    <span id="banner-time" data-field="time" class="font-sans text-xs text-gold font-medium">Saturday at 4:00 PM</span>
+                </div>
+                <div class="reveal reveal-d2 flex flex-col items-center justify-center md:border-r border-gold/20 px-4">
+                    <span class="font-sans text-[10px] uppercase tracking-[0.25em] text-warmgray mb-1">Where</span>
+                    <span id="banner-venue" data-field="venueName" class="font-serif text-2xl text-charcoal font-medium">Sonoma Estate</span>
+                    <span id="banner-address" data-field="venueAddress" class="font-sans text-xs text-gold font-medium">Sonoma Valley, California</span>
+                </div>
+                <div class="reveal reveal-d3 flex flex-col items-center justify-center px-4">
+                    <span class="font-sans text-[10px] uppercase tracking-[0.25em] text-warmgray mb-1">Dress Code</span>
+                    <span id="banner-dresscode" data-field="dressCode" class="font-serif text-2xl text-charcoal font-medium">Black Tie Optional</span>
+                    <span id="banner-dresscode-note" data-field="dressCodeNote" class="font-sans text-xs text-gold font-medium">Formal Garden Elegance</span>
+                </div>
+            </div>
+
+            <!-- Add to Calendar Buttons -->
+            <div class="reveal reveal-d3 flex flex-wrap items-center justify-center gap-4 mt-6">
+                <a id="gcal-link" target="_blank" rel="noopener" class="px-5 py-2.5 rounded-full border border-gold/40 hover:bg-gold/10 text-charcoal text-xs font-sans tracking-widest uppercase transition flex items-center gap-2">
+                    <i class="far fa-calendar-plus text-gold"></i> <span>Add to Google Calendar</span>
+                </a>
+                <a id="ics-link" href="#" class="px-5 py-2.5 rounded-full border border-gold/40 hover:bg-gold/10 text-charcoal text-xs font-sans tracking-widest uppercase transition flex items-center gap-2">
+                    <i class="fas fa-apple-alt text-gold"></i> <span>Apple / iCal (.ics)</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Countdown Section -->
+        <section class="reveal countdown-card my-12 p-8 md:p-12 rounded-2xl bg-white/70 backdrop-blur-md text-center shadow-sm">
+            <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold mb-2 block">The Countdown</span>
+            <h2 class="font-serif text-3xl md:text-4xl text-charcoal mb-8 font-light">Until we say I do</h2>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+                <div class="p-4 rounded-xl bg-sand/50 border border-gold/15">
+                    <span id="cd-days" class="font-serif text-4xl md:text-5xl font-light text-gold block">00</span>
+                    <span class="font-sans text-[10px] uppercase tracking-widest text-warmgray">Days</span>
+                </div>
+                <div class="p-4 rounded-xl bg-sand/50 border border-gold/15">
+                    <span id="cd-hours" class="font-serif text-4xl md:text-5xl font-light text-gold block">00</span>
+                    <span class="font-sans text-[10px] uppercase tracking-widest text-warmgray">Hours</span>
+                </div>
+                <div class="p-4 rounded-xl bg-sand/50 border border-gold/15">
+                    <span id="cd-minutes" class="font-serif text-4xl md:text-5xl font-light text-gold block">00</span>
+                    <span class="font-sans text-[10px] uppercase tracking-widest text-warmgray">Minutes</span>
+                </div>
+                <div class="p-4 rounded-xl bg-sand/50 border border-gold/15">
+                    <span id="cd-seconds" class="font-serif text-4xl md:text-5xl font-light text-gold block">00</span>
+                    <span class="font-sans text-[10px] uppercase tracking-widest text-warmgray">Seconds</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Story Section -->
+        <section id="our-story" class="py-16 md:py-24 border-t border-gold/15">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                <div class="reveal relative">
+                    <div class="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-gold/20 relative group">
+                        <img id="story-hero-img" data-field="heroPhoto" src="" onerror="this.onerror=null; this.removeAttribute('src'); this.style.background='linear-gradient(135deg, #e9dfcd, #c5a880)';" alt="Couple" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+                    </div>
+                </div>
+
+                <div class="reveal reveal-d1 space-y-6">
+                    <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Our Journey</span>
+                    <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light leading-tight">How We Met</h2>
+                    <p id="story-text-1" data-field="story1" class="font-serif text-lg text-warmgray leading-relaxed font-light"></p>
+                    <p id="story-text-2" data-field="story2" class="font-serif text-lg text-warmgray leading-relaxed font-light"></p>
+                    <div class="pt-4 border-t border-gold/15">
+                        <p class="font-script text-3xl text-gold">"We can't wait to celebrate with you."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Photo Gallery Section (hidden automatically until photos are added) -->
+        <section id="gallery-section" class="py-16 md:py-24 border-t border-gold/15" style="display:none;">
+            <div class="reveal text-center max-w-xl mx-auto mb-12">
+                <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Gallery</span>
+                <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light mt-2">Photographs</h2>
+            </div>
+            <div class="reveal gallery-carousel-outer">
+                <button type="button" class="gallery-nav-btn gallery-nav-prev" onclick="galleryCarouselNav(-1)" aria-label="Previous photo">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="gallery-carousel-wrap">
+                    <div id="gallery-carousel-track" class="gallery-carousel-track"></div>
+                </div>
+                <button type="button" class="gallery-nav-btn gallery-nav-next" onclick="galleryCarouselNav(1)" aria-label="Next photo">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Schedule Section -->
+        <section id="schedule" class="py-16 md:py-24 border-t border-gold/15">
+            <div class="schedule-leaves" aria-hidden="true"><span class="lf-1"></span><span class="lf-2"></span><span class="lf-3"></span><span class="lf-4"></span></div>
+            <div class="reveal text-center max-w-xl mx-auto mb-16">
+                <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Timeline</span>
+                <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light mt-2">How the day runs</h2>
+            </div>
+
+            <div id="schedule-timeline" class="reveal schedule-timeline"></div>
+        </section>
+
+        <!-- FAQ Section (hidden automatically until at least one question exists) -->
+        <section id="faq-section" class="py-16 md:py-24 border-t border-gold/15" style="display:none;">
+            <div class="reveal text-center max-w-xl mx-auto mb-12">
+                <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Good to Know</span>
+                <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light mt-2">Things you might be wondering</h2>
+            </div>
+            <div id="faq-list" class="reveal max-w-2xl mx-auto space-y-3"></div>
+        </section>
+
+        <!-- RSVP Section -->
+        <section id="rsvp" class="py-16 md:py-24 border-t border-gold/15">
+            <div class="reveal max-w-2xl mx-auto p-8 md:p-12 rounded-3xl bg-white/80 border border-gold/30 shadow-xl backdrop-blur-md">
+                <div class="text-center mb-10">
+                    <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Kindly Respond</span>
+                    <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light mt-2">RSVP</h2>
+                    <p id="rsvp-deadline-text" data-field="rsvpDeadlineText" class="font-serif italic text-warmgray mt-2">Please reply by March 1st, 2027</p>
+                </div>
+
+                <form id="rsvp-form" name="rsvp" method="POST" onsubmit="submitRSVP(event)" class="space-y-6">
+                    <input type="hidden" name="form-name" value="rsvp">
+                    <div>
+                        <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Full Name(s)</label>
+                        <input type="text" name="guest_names" required placeholder="e.g. Eleanor & James Vance" class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal placeholder:text-warmgray/50 focus:outline-none focus:border-gold font-sans text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Attending</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="attending" value="yes" checked onchange="handleRsvpAttendingChange()" class="peer sr-only-focusable">
+                                <div class="py-3 px-4 text-center rounded-xl border border-gold/25 peer-checked:bg-gold peer-checked:text-white font-sans text-xs uppercase tracking-widest transition">
+                                    Joyfully Accepts
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="attending" value="no" onchange="handleRsvpAttendingChange()" class="peer sr-only-focusable">
+                                <div class="py-3 px-4 text-center rounded-xl border border-gold/25 peer-checked:bg-gold peer-checked:text-white font-sans text-xs uppercase tracking-widest transition">
+                                    Regretfully Declines
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="rsvp-attending-extra-fields" class="space-y-6">
+                        <div>
+                            <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Party Size</label>
+                            <select name="guest_count" id="rsvp-guest-count" onchange="handleRsvpGuestCountChange()" class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal focus:outline-none focus:border-gold font-sans text-sm">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                            </select>
+                        </div>
+                        <div id="rsvp-plusone-wrap" style="display:none;">
+                            <label for="rsvp-plusone-name" id="rsvpPlusOneLabel" class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Plus-One Name</label>
+                            <input type="text" name="plusone_name" id="rsvp-plusone-name" placeholder="e.g. James Carter" class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal placeholder:text-warmgray/50 focus:outline-none focus:border-gold font-sans text-sm">
+                        </div>
+                        <div>
+                            <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Dietary Restrictions & Allergies</label>
+                            <textarea name="notes" rows="3" placeholder="Let us know about any allergies or dietary needs..." class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal placeholder:text-warmgray/50 focus:outline-none focus:border-gold font-sans text-sm"></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 rounded-xl bg-charcoal text-cream hover:bg-gold font-sans text-xs tracking-[0.2em] uppercase font-bold transition shadow-lg">
+                        Send Response
+                    </button>
+
+                    <p id="rsvp-error" class="hidden text-center text-xs text-red-600 font-sans">
+                        Something went wrong sending your response — please try again, or reach out to the couple directly.
+                    </p>
+                </form>
+
+                <div id="rsvp-success" class="hidden text-center py-10">
+                    <div id="rsvp-success-icon-wrap" class="w-16 h-16 rounded-full bg-champagne border border-gold text-gold flex items-center justify-center mx-auto mb-4 text-2xl">
+                        <i id="rsvp-success-icon" class="fas fa-check"></i>
+                    </div>
+                    <h3 id="rsvp-success-heading" class="font-serif text-3xl text-charcoal mb-2">Thank You!</h3>
+                    <p id="rsvp-success-message" class="font-serif italic text-warmgray text-lg">Your response has been saved. We look forward to celebrating with you!</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="py-12 border-t border-gold/15 text-center">
+        <div class="reveal">
+            <p data-field="coupleNames" class="font-serif text-2xl text-charcoal couple-names-inline">Emma & Daniel</p>
+            <p id="footer-subtext" data-field="dateAndPlace" class="font-sans text-[10px] uppercase tracking-[0.25em] text-warmgray mt-1">April 17, 2027 • Sonoma Valley</p>
+            <span class="asset-credit">Palm illustration designed by <a href="https://www.freepik.com" target="_blank" rel="noopener">rawpixel.com / Freepik</a></span>
+            <p id="footer-hashtag" data-field="hashtag" class="font-script text-2xl text-gold mt-2">#EmmaAndDaniel2027</p>
+        </div>
+    </footer>
+
+    <!-- Filled from Luma by luma-bridge.js (window.lumaBoot) before the first
+         render; these are only the shapes wedding-core.js expects. -->
+    <script id="invitation-data-script">
+        let invitationData = {
+            partner1: "", partner2: "", hashtag: "", date: "", time: "",
+            venueName: "", venueAddress: "", dressCode: "", dressCodeNote: "", rsvpDeadline: "",
+            rsvpPlusOneLabel: "Plus-One Name",
+            rsvpPlusOneLabelPlural: "Plus-One Names",
+            music: { enabled: false, track: "clairdelune" },
+            gallery: [], faq: [], schedule: [],
+            heroPhoto: "", story1: "", story2: "",
+            isGuestView: true
+        };
+    </script>
+
+    <!-- Luma first: the core awaits window.lumaBoot -->
+    <script src="../_shared/luma-bridge.js?v=1"></script>
+
+    <!-- Shared behaviour for every design: builder, save and share, envelope,
+         countdown, calendar, gallery, FAQ, RSVP, export. Fix something here
+         and all designs inherit it. Loaded after the data block above because
+         it reads invitationData. -->
+    <script src="../_shared/wedding-core.js?v=45"></script>
+</body>
+</html>

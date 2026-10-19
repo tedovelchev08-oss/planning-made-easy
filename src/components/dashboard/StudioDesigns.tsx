@@ -64,7 +64,11 @@ function StudioCard({ design, initials }: { design: StudioDesign; initials: stri
   const { from, to, ink } = design.placeholder;
   return (
     <span className="relative flex aspect-[4/5] w-full flex-col items-center justify-center gap-2 overflow-hidden" style={{ background: `linear-gradient(180deg, ${from}, ${to})`, color: ink }}>
-      <span aria-hidden="true" className="absolute inset-0 opacity-60" style={{ backgroundImage: `radial-gradient(1px 1px at 20% 30%, ${ink}, transparent), radial-gradient(1px 1px at 70% 20%, ${ink}, transparent), radial-gradient(1.5px 1.5px at 80% 70%, ${ink}, transparent), radial-gradient(1px 1px at 35% 80%, ${ink}, transparent), radial-gradient(1px 1px at 55% 55%, ${ink}, transparent)` }} />
+      {design.motif === "stars" ? (
+        <span aria-hidden="true" className="absolute inset-0 opacity-60" style={{ backgroundImage: `radial-gradient(1px 1px at 20% 30%, ${ink}, transparent), radial-gradient(1px 1px at 70% 20%, ${ink}, transparent), radial-gradient(1.5px 1.5px at 80% 70%, ${ink}, transparent), radial-gradient(1px 1px at 35% 80%, ${ink}, transparent), radial-gradient(1px 1px at 55% 55%, ${ink}, transparent)` }} />
+      ) : (
+        <span aria-hidden="true" className="absolute inset-2.5 border" style={{ borderColor: `${ink}80`, outline: `1px solid ${ink}40`, outlineOffset: "3px" }} />
+      )}
       <span className="relative flex h-16 w-16 items-center justify-center rounded-full border font-display text-xl" style={{ borderColor: `${ink}99` }}>{initials}</span>
       <span className="relative text-[0.5rem] font-extrabold uppercase tracking-[0.3em]">{design.name}</span>
     </span>
