@@ -13,6 +13,7 @@ import { initials, planLabel } from "../../lib/data";
 import { useT } from "../../lib/i18n";
 import { Logo, Modal, Pill, btn } from "../ui";
 import CmdK from "./CmdK";
+import Reminders from "./Reminders";
 
 const MODULES = [
   { path: "", key: "nav.dashboard", icon: LayoutDashboard, end: true },
@@ -320,6 +321,8 @@ export default function Shell() {
             </button>
 
             <SyncChip />
+
+            <Reminders />
 
             <span className="hidden items-center gap-2 rounded-full border border-gold/40 bg-gold-soft/60 px-3.5 py-2 text-[0.72rem] font-extrabold text-gold-deep lg:flex">
               <CalendarDays size={13} /> {stats.days} days
