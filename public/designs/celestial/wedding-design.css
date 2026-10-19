@@ -1,0 +1,2036 @@
+        /* ============================================================
+           THIS DESIGN'S PALETTE
+           Change these seven lines to re-skin the whole invitation --
+           they drive both this file and the shared tailwind.css.
+           Values are HSL components (hue saturation lightness), written
+           without commas so transparency can be applied as hsl(var(--c-gold)/.25).
+           ============================================================ */
+        /* CELESTIAL. This is the first dark design, so the two roles that
+           usually mean "light" are inverted: --c-cream is the deep night
+           background and --c-charcoal is the pale text sitting on it. The
+           names stay put because the shared tailwind.css is built against
+           them - renaming would fork a shared file for one design. Anywhere
+           the markup hardcodes a light value (bg-white/70 on the countdown
+           card, bg-white/80 on the RSVP panel) is overridden in the CELESTIAL
+           block at the foot of this file. */
+        :root {
+            --c-gold:      41 62% 71%;   /* primary accent: starlight gold */
+            --c-gold-dark: 41 48% 58%;   /* accent hover */
+            --c-cream:     226 46% 10%;  /* page background - deep night */
+            --c-charcoal:  220 32% 93%;  /* body text - pale, sits on the night */
+            --c-warmgray:  219 18% 68%;  /* muted/secondary text */
+            --c-champagne: 226 38% 16%;  /* soft panel fill */
+            --c-sand:      227 34% 18%;  /* input + card fill */
+
+            /* Celestial-only tokens, used by the block at the foot of the file */
+            --c-night-deep: 230 52% 6%;
+            --c-night-lift: 224 40% 15%;
+            --c-star:       210 60% 96%;
+
+            /* Retheme the shared builder chrome. wedding-ui.css reads these
+               with the light values as fallbacks, so setting them here is all
+               it takes to darken the editor. */
+            --ui-panel-bg:   hsl(226 38% 16% / .85);
+            --ui-field-bg:   hsl(230 52% 6% / .75);
+            --ui-field-text: hsl(220 32% 93%);
+            --ui-warn-bg:    hsl(28 45% 18%);
+            --ui-warn-text:  hsl(35 80% 82%);
+        }
+        :root {
+            --bg-main: hsl(var(--c-cream));
+            --text-dark: hsl(var(--c-charcoal));
+            --accent-gold: hsl(var(--c-gold));
+            --border-subtle: hsl(var(--c-gold) / 0.25);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* Paper Grain Texture */
+        .paper-grain {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+        }
+
+        /* Realistic 3D Envelope Container */
+        .envelope-3d-scene {
+            perspective: 1000px;
+        }
+
+        .envelope-box {
+            position: relative;
+            width: 340px;
+            height: 230px;
+            background: #e8e2d8;
+            border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0,0,0,0.08);
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease;
+        }
+
+        @media (min-width: 640px) {
+            .envelope-box {
+                width: 440px;
+                height: 290px;
+            }
+        }
+
+        /* Used briefly when resetting the envelope programmatically (e.g. entering
+           guest preview) so it snaps straight back to sealed instead of visibly
+           playing the closing animation in reverse. */
+        .envelope-no-transition,
+        .envelope-no-transition * {
+            transition: none !important;
+        }
+
+        /* Lets the center nav links scroll horizontally on their own if
+           they don't fit, instead of overflowing the whole header. */
+        .main-nav-scroll {
+            overflow-x: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .main-nav-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .nowrap {
+            white-space: nowrap;
+        }
+
+        /* ===== Countdown: enhanced double-line border on the outer card ===== */
+        .countdown-card {
+            border: 1px solid hsl(var(--c-gold) / 0.4);
+            box-shadow: inset 0 0 0 4px hsl(var(--c-gold) / 0.1), 0 8px 24px rgba(26, 25, 24, 0.06);
+        }
+
+        /* ===== Celebration Schedule: alternating timeline ===== */
+        .schedule-timeline {
+            position: relative;
+            max-width: 46rem;
+            margin: 0 auto;
+            padding: 0 .5rem;
+        }
+        .schedule-timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            background: hsl(var(--c-gold) / 0.35);
+            transform: translateX(-50%);
+        }
+        .schedule-row {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 2.5rem;
+            padding: 1.6rem 0;
+        }
+        .schedule-row::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: hsl(var(--c-gold));
+            border: 2px solid hsl(var(--c-cream));
+            transform: translate(-50%, -50%);
+        }
+        .schedule-content {
+            display: flex;
+            align-items: center;
+            gap: .9rem;
+            min-width: 0;
+        }
+        .schedule-row.align-right .schedule-content {
+            grid-column: 2;
+            justify-self: start;
+            flex-direction: row;
+        }
+        .schedule-row.align-left .schedule-content {
+            grid-column: 1;
+            justify-self: end;
+            flex-direction: row-reverse;
+        }
+        .schedule-row.align-right .schedule-text { text-align: left; }
+        .schedule-row.align-left .schedule-text { text-align: right; }
+        .schedule-icon {
+            flex-shrink: 0;
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 50%;
+            border: 1px solid hsl(var(--c-gold) / 0.4);
+            background: #ffffff;
+            color: hsl(var(--c-gold));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .schedule-text { min-width: 0; }
+        .schedule-time {
+            display: block;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: .68rem;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: hsl(var(--c-gold));
+            margin-bottom: .15rem;
+        }
+        .schedule-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: hsl(var(--c-charcoal));
+            line-height: 1.2;
+        }
+        .schedule-venue {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: .82rem;
+            color: hsl(var(--c-warmgray));
+            margin-top: .15rem;
+        }
+        /* Collapse to a single left-aligned column on narrow screens */
+        @media (max-width: 640px) {
+            .schedule-timeline::before { left: 1.35rem; }
+            .schedule-row {
+                grid-template-columns: 1fr;
+                column-gap: 0;
+                padding: 1.25rem 0 1.25rem 2.9rem;
+            }
+            .schedule-row::after { left: 1.35rem; }
+            .schedule-row.align-left .schedule-content,
+            .schedule-row.align-right .schedule-content {
+                grid-column: 1;
+                justify-self: start;
+                flex-direction: row;
+            }
+            .schedule-row.align-left .schedule-text,
+            .schedule-row.align-right .schedule-text {
+                text-align: left;
+            }
+        }
+
+        /* ===== Schedule drawer: editable item cards + icon picker ===== */
+        .schedule-drawer-item {
+            padding: .85rem;
+            border-radius: .75rem;
+            border: 1px solid hsl(var(--c-gold) / 0.25);
+            background: rgba(255, 255, 255, 0.7);
+        }
+        .schedule-drawer-item + .schedule-drawer-item {
+            margin-top: .75rem;
+        }
+        .schedule-mini-btn {
+            width: 1.6rem;
+            height: 1.6rem;
+            border-radius: .4rem;
+            border: 1px solid hsl(var(--c-gold) / 0.35);
+            background: #fff;
+            color: hsl(var(--c-warmgray));
+            font-size: .65rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color .15s ease, color .15s ease;
+        }
+        .schedule-mini-btn:hover:not(:disabled) {
+            background: hsl(var(--c-gold) / 0.15);
+            color: hsl(var(--c-charcoal));
+        }
+        .schedule-mini-btn:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+        .schedule-mini-btn-danger:hover:not(:disabled) {
+            background: rgba(220, 38, 38, 0.12);
+            color: #b91c1c;
+        }
+        .schedule-icon-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .35rem;
+        }
+        .schedule-icon-btn {
+            width: 1.9rem;
+            height: 1.9rem;
+            border-radius: .5rem;
+            border: 1px solid hsl(var(--c-gold) / 0.3);
+            background: #fff;
+            color: hsl(var(--c-warmgray));
+            font-size: .8rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+        }
+        .schedule-icon-btn:hover {
+            background: hsl(var(--c-gold) / 0.12);
+            color: hsl(var(--c-charcoal));
+        }
+        .schedule-icon-btn-active {
+            background: hsl(var(--c-gold));
+            border-color: hsl(var(--c-gold));
+            color: #ffffff;
+        }
+
+        /* Floating background-music toggle button */
+        .music-toggle-btn {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 1.5rem;
+            z-index: 50;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            background: hsl(var(--c-charcoal));
+            color: hsl(var(--c-gold));
+            border: 1px solid hsl(var(--c-gold) / 0.4);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color .2s ease, color .2s ease;
+        }
+        .music-toggle-btn:hover {
+            background: hsl(var(--c-gold));
+            color: hsl(var(--c-charcoal));
+        }
+        .music-error-toast {
+            position: fixed;
+            bottom: 5.75rem;
+            left: 1.5rem;
+            z-index: 50;
+            max-width: 13rem;
+            background: hsl(var(--c-charcoal));
+            color: hsl(var(--c-cream));
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: .68rem;
+            line-height: 1.4;
+            padding: .6rem .8rem;
+            border-radius: .6rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        /* ===== Photo Gallery (public): coverflow carousel ===== */
+        .gallery-carousel-outer {
+            position: relative;
+            max-width: 56rem;
+            margin: 0 auto;
+        }
+        .gallery-carousel-wrap {
+            position: relative;
+            height: 260px;
+            overflow: hidden;
+        }
+        @media (min-width: 640px) {
+            .gallery-carousel-wrap { height: 380px; }
+        }
+        .gallery-carousel-track {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .gallery-carousel-item {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            aspect-ratio: 1 / 1;
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 1px solid hsl(var(--c-gold) / 0.3);
+            box-shadow: 0 15px 40px rgba(26, 25, 24, 0.18);
+            background: #FBF8F3;
+            padding: 7%;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: transform .6s cubic-bezier(.22, .61, .36, 1), opacity .6s ease;
+            will-change: transform, opacity;
+        }
+        @media (min-width: 640px) {
+            .gallery-carousel-item { width: 300px; }
+        }
+        .gallery-carousel-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: .4rem;
+            border: 1px solid hsl(var(--c-gold) / 0.55);
+            box-sizing: border-box;
+        }
+        .gallery-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 1px solid hsl(var(--c-gold) / 0.4);
+            color: hsl(var(--c-gold));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .95rem;
+            cursor: pointer;
+            z-index: 20;
+            box-shadow: 0 8px 20px rgba(26, 25, 24, 0.12);
+            transition: background-color .15s ease, color .15s ease;
+        }
+        .gallery-nav-btn:hover {
+            background: hsl(var(--c-gold));
+            color: #ffffff;
+        }
+        .gallery-nav-prev { left: .25rem; }
+        .gallery-nav-next { right: .25rem; }
+        @media (min-width: 900px) {
+            .gallery-nav-prev { left: -1.4rem; }
+            .gallery-nav-next { right: -1.4rem; }
+        }
+
+        .gallery-lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(15, 14, 13, 0.92);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            cursor: zoom-out;
+        }
+        .gallery-lightbox.is-open {
+            display: flex;
+        }
+        .gallery-lightbox img {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: .5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        .gallery-lightbox-close {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12);
+            color: hsl(var(--c-cream));
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        /* ===== Photo Gallery (drawer) ===== */
+        .gallery-drawer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: .5rem;
+        }
+        .gallery-drawer-tile {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            border-radius: .5rem;
+            overflow: hidden;
+            border: 1px solid hsl(var(--c-gold) / 0.3);
+        }
+        .gallery-drawer-tile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .gallery-drawer-tile-controls {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .3rem;
+            transition: opacity .15s ease;
+        }
+        .gallery-drawer-tile:hover .gallery-drawer-tile-controls,
+        .gallery-drawer-tile:focus-within .gallery-drawer-tile-controls {
+            opacity: 1;
+        }
+        .gallery-drawer-tile-controls .schedule-mini-btn {
+            background: rgba(255, 255, 255, 0.92);
+        }
+        .gallery-drawer-add-tile {
+            aspect-ratio: 1 / 1;
+            border-radius: .5rem;
+            border: 1px dashed hsl(var(--c-gold) / 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: .25rem;
+            color: hsl(var(--c-gold));
+            font-size: .65rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            cursor: pointer;
+            transition: background-color .15s ease;
+            text-align: center;
+            padding: .4rem;
+        }
+        .gallery-drawer-add-tile:hover {
+            background: hsl(var(--c-gold) / 0.1);
+        }
+        .gallery-drawer-add-tile i {
+            font-size: 1.1rem;
+        }
+
+        /* ===== FAQ accordion ===== */
+        .faq-item {
+            border: 1px solid hsl(var(--c-gold) / 0.25);
+            border-radius: .9rem;
+            background: rgba(255, 255, 255, 0.6);
+            overflow: hidden;
+        }
+        .faq-question {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1.1rem 1.4rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.15rem;
+            color: hsl(var(--c-charcoal));
+        }
+        .faq-chevron {
+            flex-shrink: 0;
+            font-size: .8rem;
+            color: hsl(var(--c-gold));
+            transition: transform .2s ease;
+        }
+        .faq-question.faq-question-open .faq-chevron {
+            transform: rotate(180deg);
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .25s ease;
+        }
+        .faq-answer.faq-answer-open {
+            max-height: 40rem;
+        }
+        .faq-answer p {
+            padding: 0 1.4rem 1.1rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: .85rem;
+            line-height: 1.6;
+            color: hsl(var(--c-warmgray));
+        }
+
+        /* Envelope Inner Pattern Lining */
+        .envelope-liner {
+            position: absolute;
+            inset: 6px;
+            background: #f4ece1;
+            background-image: radial-gradient(hsl(var(--c-gold)) 0.75px, transparent 0.75px);
+            background-size: 12px 12px;
+            border-radius: 4px;
+            transition: transform 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.1s, opacity 0.7s ease 0.15s;
+        }
+
+        /* Card tucked inside envelope */
+        .envelope-card {
+            position: absolute;
+            bottom: 10px;
+            left: 5%;
+            width: 90%;
+            height: 85%;
+            background-image: var(--flap-grain), linear-gradient(180deg, #fffefb 0%, #fdfaf2 100%);
+            background-blend-mode: overlay, normal;
+            border: 1px solid hsl(var(--c-gold) / 0.4);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            z-index: 2;
+            transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1) 0.2s,
+                        box-shadow 1s cubic-bezier(0.22, 1, 0.36, 1) 0.2s,
+                        z-index 0.1s 0.45s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        /* Shared subtle paper-fiber grain used inside the folded flaps */
+        :root {
+            --flap-grain: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+        }
+
+        /* Front Envelope Flaps Layer — built with clip-path so each fold can carry
+           real light/shadow gradients and a soft crease shadow, instead of flat
+           CSS-border triangles. */
+        .envelope-flap-left {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 52%;
+            height: 100%;
+            clip-path: polygon(0 0, 0 100%, 100% 50%);
+            background-image: var(--flap-grain), linear-gradient(115deg, #f7f1e5 0%, #ece1cb 58%, #ddcda9 100%);
+            background-blend-mode: overlay;
+            z-index: 3;
+            filter: drop-shadow(2px 0 2px rgba(90, 70, 40, 0.08));
+            transition: transform 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.1s, opacity 0.7s ease 0.15s;
+        }
+
+        .envelope-flap-right {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 52%;
+            height: 100%;
+            clip-path: polygon(100% 0, 100% 100%, 0 50%);
+            background-image: var(--flap-grain), linear-gradient(245deg, #f7f1e5 0%, #ece1cb 58%, #ddcda9 100%);
+            background-blend-mode: overlay;
+            z-index: 3;
+            filter: drop-shadow(-2px 0 2px rgba(90, 70, 40, 0.08));
+            transition: transform 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.1s, opacity 0.7s ease 0.15s;
+        }
+
+        .envelope-flap-bottom {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 58%;
+            clip-path: polygon(0 100%, 100% 100%, 50% 0);
+            background-image: var(--flap-grain), linear-gradient(5deg, #d9cba9 0%, #efe6d2 65%, #f3ecdd 100%);
+            background-blend-mode: overlay;
+            z-index: 4;
+            filter: drop-shadow(0 -2px 3px rgba(90, 70, 40, 0.1));
+            transition: transform 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.1s, opacity 0.7s ease 0.15s;
+        }
+
+        /* Top Triangular Flap — has a real front face and a lighter "inner lining"
+           face that only becomes visible once it folds open, like real paper. */
+        .envelope-flap-top {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 62%;
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+            transform-origin: top center;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1), z-index 0.1s 0.4s;
+            z-index: 5;
+            background-image: var(--flap-grain), linear-gradient(165deg, #f9f3e7 0%, #e9dcc0 65%, #dbc9a5 100%);
+            background-blend-mode: overlay;
+            filter: drop-shadow(0 5px 7px rgba(60, 45, 25, 0.14));
+        }
+
+        .envelope-flap-top::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            clip-path: inherit;
+            background-image: var(--flap-grain), linear-gradient(195deg, #fdf9f0 0%, #f2e9d5 100%);
+            background-blend-mode: overlay;
+            transform: rotateX(180deg);
+            backface-visibility: hidden;
+        }
+
+        /* Interactive Wax Seal Medallion — a raised outer rim (like a real pressed
+           seal) with a recessed, engraved medallion at its center, gold metallic
+           highlights, and small drips pooling underneath. */
+        .wax-seal {
+            position: absolute;
+            top: 94px;
+            left: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            z-index: 6;
+            transform: translateX(-50%) rotate(-2deg);
+            transition: transform 0.3s ease, filter 0.3s ease, opacity 0.5s ease;
+        }
+        @media (min-width: 640px) {
+            .wax-seal { top: 116px; width: 70px; height: 70px; }
+        }
+
+        /* Melted wax drips pooling below the rim, sitting behind it */
+        .wax-seal-drip {
+            position: absolute;
+            left: 50%;
+            background: radial-gradient(circle at 35% 25%, #d9a838 0%, #b17f18 55%, #7a530d 100%);
+            border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%;
+            z-index: 1;
+            box-shadow: inset 0 -2px 3px rgba(60, 38, 6, 0.45);
+        }
+        .wax-seal-drip-1 { width: 13px; height: 17px; bottom: -9px; transform: translateX(-140%) rotate(10deg); }
+        .wax-seal-drip-2 { width: 9px; height: 12px; bottom: -6px; transform: translateX(90%) rotate(-16deg); }
+
+        /* Outer raised rim — thick, glossy, catches light unevenly like real wax */
+        .wax-seal-rim {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            border-radius: 50% 49% 51% 50% / 50% 51% 49% 50%;
+            background-image:
+                var(--flap-grain),
+                radial-gradient(circle at 30% 78%, rgba(255, 232, 170, 0.55) 0%, rgba(255, 232, 170, 0) 20%),
+                radial-gradient(circle at 82% 38%, rgba(255, 240, 190, 0.6) 0%, rgba(255, 240, 190, 0) 18%),
+                conic-gradient(from -40deg, #e7b64a, #a9781f 20%, #8a5f14 35%, #c99a2e 50%, #6f4c0f 65%, #dba936 80%, #e7b64a 100%);
+            background-blend-mode: overlay, normal, normal, normal;
+            box-shadow:
+                inset 0 2px 2px rgba(255, 241, 197, 0.55),
+                inset 0 -3px 5px rgba(50, 32, 4, 0.55),
+                0 8px 14px rgba(35, 22, 3, 0.4),
+                0 2px 4px rgba(35, 22, 3, 0.25);
+        }
+
+        /* Recessed inner medallion — darker, matte, holds the engraving */
+        .wax-seal-medallion {
+            position: absolute;
+            inset: 15%;
+            z-index: 3;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image:
+                var(--flap-grain),
+                radial-gradient(circle at 40% 32%, #c79b34 0%, #9c7420 45%, #6e4f10 90%);
+            background-blend-mode: overlay, normal;
+            box-shadow:
+                inset 0 2px 4px rgba(20, 12, 0, 0.55),
+                inset 0 -1px 1px rgba(255, 236, 180, 0.3),
+                0 0 0 1px rgba(255, 236, 180, 0.18);
+        }
+
+        .wax-seal:hover {
+            transform: translateX(-50%) rotate(-2deg) scale(1.08);
+            filter: brightness(1.08);
+        }
+
+        .wax-seal:active {
+            transform: translateX(-50%) rotate(-2deg) scale(0.94);
+        }
+
+        /* Engraved / pressed-in monogram look, sitting in the recessed medallion */
+        #wax-seal-initials {
+            position: relative;
+            z-index: 4;
+            color: #4a3308;
+            text-shadow: 0 -1px 1px rgba(0,0,0,0.5), 0 1px 0 rgba(255, 236, 180, 0.45);
+        }
+
+        /* OPENED ANIMATION STATES */
+        .envelope-open .envelope-flap-top {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+
+        .envelope-open .wax-seal {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-50%) translateY(-18px) rotate(10deg) scale(0.8);
+            transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1) 0.05s,
+                        opacity 0.55s ease 0.2s;
+        }
+
+        /* The pocket (liner + side/bottom flaps) sinks down and fades away,
+           rather than the card climbing up in front of it — keeps the card
+           looking like it stays in place while the envelope falls away. */
+        .envelope-open .envelope-liner,
+        .envelope-open .envelope-flap-left,
+        .envelope-open .envelope-flap-right,
+        .envelope-open .envelope-flap-bottom {
+            transform: translateY(55px);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .envelope-open .envelope-card {
+            transform: translateY(-14px) scale(1.02);
+            box-shadow: 0 24px 38px rgba(60, 45, 20, 0.22), 0 8px 14px rgba(60, 45, 20, 0.12);
+            z-index: 10;
+        }
+
+        @media (min-width: 640px) {
+            .envelope-open .envelope-liner,
+            .envelope-open .envelope-flap-left,
+            .envelope-open .envelope-flap-right,
+            .envelope-open .envelope-flap-bottom {
+                transform: translateY(75px);
+            }
+
+            .envelope-open .envelope-card {
+                transform: translateY(-18px) scale(1.03);
+            }
+        }
+
+        /* Visually hidden, but still focusable and still announced by screen
+           readers. Tailwind's `hidden` is display:none, which drops an element
+           out of the tab order completely — used on the RSVP radios it made the
+           attending choice unreachable for anyone navigating by keyboard. */
+        .sr-only-focusable {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* The hidden input can't show a focus ring of its own, so its visible
+           sibling wears one on its behalf. */
+        .sr-only-focusable:focus-visible ~ div {
+            outline: 2px solid hsl(var(--c-gold));
+            outline-offset: 2px;
+        }
+
+        /* Once the envelope has faded out it must leave the tab order and the
+           accessibility tree — an invisible but still-focusable overlay sitting
+           on top of the invitation traps keyboard users. */
+        .envelope-overlay-hidden {
+            visibility: hidden;
+        }
+
+        /* Only the opacity fade should animate. The overlay carries Tailwind's
+           `transition-all`, which sweeps up visibility too — and a discrete
+           property flips at the halfway mark, so a re-sealed envelope stayed
+           invisible for half a second before popping back in. */
+        #envelope-overlay {
+            transition-property: opacity;
+        }
+
+        /* Read-Only Guest Mode Overrides */
+        body.guest-mode #builder-bar,
+        body.guest-mode #customizer-drawer,
+        body.guest-mode .builder-only {
+            display: none !important;
+        }
+
+        /* Floating Exit Preview Button */
+        #exit-preview-btn {
+            display: none;
+        }
+        body.guest-mode.show-exit-btn #exit-preview-btn {
+            display: flex;
+        }
+
+        body.guest-mode header {
+            top: 0 !important;
+        }
+
+        /* iOS Safari has a known rendering bug where position:fixed +
+           backdrop-filter (the frosted-glass header) can visually detach
+           from the viewport during scroll, letting page content bleed
+           through above it. Forcing the header onto its own GPU
+           compositing layer resolves it. */
+        header {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: transform;
+        }
+
+        /* Custom Scrollbar Styling */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: hsl(var(--c-cream)); }
+        ::-webkit-scrollbar-thumb { background: hsl(var(--c-gold)); border-radius: 3px; }
+
+        /* Scroll Reveal Animations — progressive enhancement: elements are fully
+           visible by default so nothing breaks without JS, and only become
+           hidden-then-revealed once the observer is confirmed active. Re-triggers
+           both when scrolling down into view and back up into view. One
+           consistent fade-up direction throughout, matching the hero. */
+        .reveal {
+            transition: opacity 1.4s cubic-bezier(0.19, 0.67, 0.28, 1),
+                        transform 1.4s cubic-bezier(0.19, 0.67, 0.28, 1);
+        }
+        body.js-reveal-active .reveal {
+            opacity: 0;
+            transform: translateY(36px);
+        }
+        body.js-reveal-active .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-d1 { transition-delay: 0.15s; }
+        .reveal-d2 { transition-delay: 0.3s; }
+        .reveal-d3 { transition-delay: 0.45s; }
+        .reveal-d4 { transition-delay: 0.6s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            body.js-reveal-active .reveal {
+                opacity: 1;
+                transform: none;
+                transition: none;
+            }
+        }
+
+
+        /* ============================================================
+           CELESTIAL
+           Everything above this line is the shared base every design
+           starts from. Everything below is what makes this one a night
+           sky: the starfield, the constellation reveal, and the
+           overrides for the handful of places the base markup assumes
+           a light background.
+           ============================================================ */
+
+        /* ---------- typography ----------
+           Italiana only on display lines. It has a single weight, no
+           italic, and very thin strokes, so it is beautiful at 48px and
+           illegible at 14px. Running text stays on Cormorant Garamond. */
+
+        body {
+            font-family: 'Jost', 'Plus Jakarta Sans', sans-serif;
+            background-color: hsl(var(--c-night-deep));
+        }
+
+        .font-sans { font-family: 'Jost', 'Plus Jakarta Sans', sans-serif; }
+
+        /* .font-serif is on these headings and beats a bare h1/h2 selector,
+           so the class has to be in the selector or Cormorant wins. */
+        h1.font-serif, h2.font-serif,
+        h1, h2,
+        .sky-names,
+        .countdown-card h2,
+        #our-story h2,
+        #schedule h2,
+        #gallery-section h2,
+        #faq-section h2,
+        #rsvp h2 {
+            font-family: 'Italiana', 'Cormorant Garamond', serif;
+            font-weight: 400;
+            letter-spacing: .04em;
+        }
+
+        /* Italiana's own thin strokes already read as light - the base
+           markup's font-light would push it to a synthesised weight. */
+        h1.font-light, h2.font-light { font-weight: 400; }
+
+        /* ---------- the night itself ----------
+           Two star layers at different sizes and speeds. The positions are
+           percentages, which resolve against background-size rather than
+           the viewport, so each layer tiles seamlessly at any screen size. */
+
+        /* html carries the colour too. The body's background propagates to the
+           canvas, but the `background` shorthand below resets background-color
+           to transparent, which left a white flash before paint. */
+        html { background-color: hsl(var(--c-night-deep)); }
+
+        .night-sky {
+            background:
+                radial-gradient(120% 80% at 50% -10%, hsl(var(--c-night-lift)) 0%, transparent 60%),
+                linear-gradient(180deg, hsl(var(--c-night-deep)) 0%, hsl(var(--c-cream)) 45%, hsl(var(--c-night-deep)) 100%);
+            background-color: hsl(var(--c-night-deep));
+            /* No background-attachment: fixed here. It forces the whole
+               gradient to repaint on every scroll frame, and the fixed star
+               layers below already give the parallax it was there for. */
+        }
+
+        .page-sky,
+        .sky-field {
+            position: fixed;
+            inset: -10% -10% -10% -10%;
+            pointer-events: none;
+            background-repeat: repeat;
+        }
+
+        .page-sky { z-index: 0; }
+
+        .page-sky-far,
+        .sky-field-far {
+            background-image:
+                radial-gradient(1px 1px at 12% 18%, hsl(var(--c-star) / .85), transparent 62%),
+                radial-gradient(1px 1px at 47% 9%,  hsl(var(--c-star) / .55), transparent 62%),
+                radial-gradient(1px 1px at 78% 22%, hsl(var(--c-star) / .75), transparent 62%),
+                radial-gradient(1px 1px at 8%  54%, hsl(var(--c-star) / .5),  transparent 62%),
+                radial-gradient(1px 1px at 33% 41%, hsl(var(--c-star) / .7),  transparent 62%),
+                radial-gradient(1px 1px at 62% 58%, hsl(var(--c-star) / .45), transparent 62%),
+                radial-gradient(1px 1px at 88% 47%, hsl(var(--c-star) / .65), transparent 62%),
+                radial-gradient(1px 1px at 21% 77%, hsl(var(--c-star) / .6),  transparent 62%),
+                radial-gradient(1px 1px at 54% 86%, hsl(var(--c-star) / .5),  transparent 62%),
+                radial-gradient(1px 1px at 72% 71%, hsl(var(--c-star) / .7),  transparent 62%),
+                radial-gradient(1px 1px at 94% 91%, hsl(var(--c-star) / .4),  transparent 62%),
+                radial-gradient(1px 1px at 39% 63%, hsl(var(--c-star) / .55), transparent 62%);
+            background-size: 620px 620px;
+        }
+
+        .page-sky-near,
+        .sky-field-near {
+            background-image:
+                radial-gradient(1.9px 1.9px at 26% 28%, hsl(var(--c-star) / .95), transparent 58%),
+                radial-gradient(1.6px 1.6px at 68% 14%, hsl(var(--c-gold)  / .85), transparent 58%),
+                radial-gradient(2.1px 2.1px at 84% 66%, hsl(var(--c-star) / .8),  transparent 58%),
+                radial-gradient(1.5px 1.5px at 15% 82%, hsl(var(--c-gold)  / .7),  transparent 58%),
+                radial-gradient(1.8px 1.8px at 45% 52%, hsl(var(--c-star) / .75), transparent 58%),
+                radial-gradient(1.4px 1.4px at 57% 92%, hsl(var(--c-star) / .6),  transparent 58%);
+            background-size: 940px 940px;
+            opacity: .9;
+            /* The only continuous animation on the page. Opacity is composited,
+               so this costs a blend of an existing layer rather than redrawing
+               it - unlike the background-position drift that used to be here,
+               which repainted two full-viewport layers every single frame and
+               pinned the GPU. The stars now twinkle instead of drifting. */
+            animation: starTwinkle 9s ease-in-out infinite alternate;
+        }
+
+        @keyframes starTwinkle {
+            from { opacity: .55; }
+            to   { opacity: 1; }
+        }
+
+        /* ---------- star density on small screens ----------
+           background-size is a fixed pixel tile, so the number of stars on
+           screen scales with the viewport: a 1440px desktop showed about 49,
+           a 375px phone about 11. The sky looked bare on exactly the device
+           most guests open it on. Shrinking the tile packs the same pattern
+           into less area and restores the density without adding elements.
+
+           Phones are also read in daylight at reduced brightness, so the
+           twinkle floor lifts too - at .55 the faintest stars disappeared
+           entirely for half of every cycle. */
+        @media (max-width: 768px) {
+            .page-sky-far,
+            .sky-field-far {
+                background-size: 300px 300px;
+            }
+
+            .page-sky-near,
+            .sky-field-near {
+                background-size: 430px 430px;
+                opacity: 1;
+                animation-name: starTwinkleBright;
+            }
+
+            @keyframes starTwinkleBright {
+                from { opacity: .78; }
+                to   { opacity: 1; }
+            }
+
+            /* The Milky Way is a wide, shallow band. On a narrow screen the
+               viewport only ever crosses its thin edge, so it reads as a
+               vague smudge. Steeper and taller puts the bright core on
+               screen. */
+            .page-band {
+                --band-angle: -62deg;
+                height: 170%;
+            }
+        }
+
+        /* ---------- stellar colour ----------
+           Real stars are not one colour. Spectral class sets it: Rigel is
+           blue-white, Aldebaran orange, Betelgeuse red. A field of identical
+           white dots reads as a dotted background; a field with a few blue
+           and a few amber among the white reads as a sky. Costs nothing -
+           these are the same gradients, retinted. */
+
+        .page-sky-far,
+        .sky-field-far {
+            background-image:
+                radial-gradient(1px 1px at 12% 18%, hsl(210 60% 96% / .85), transparent 62%),
+                radial-gradient(1px 1px at 47% 9%,  hsl(28 70% 82% / .6),   transparent 62%),
+                radial-gradient(1px 1px at 78% 22%, hsl(210 60% 96% / .75), transparent 62%),
+                radial-gradient(1px 1px at 8%  54%, hsl(220 80% 88% / .55), transparent 62%),
+                radial-gradient(1px 1px at 33% 41%, hsl(210 60% 96% / .7),  transparent 62%),
+                radial-gradient(1px 1px at 62% 58%, hsl(28 70% 82% / .5),   transparent 62%),
+                radial-gradient(1px 1px at 88% 47%, hsl(210 60% 96% / .65), transparent 62%),
+                radial-gradient(1px 1px at 21% 77%, hsl(220 80% 88% / .6),  transparent 62%),
+                radial-gradient(1px 1px at 54% 86%, hsl(210 60% 96% / .5),  transparent 62%),
+                radial-gradient(1px 1px at 72% 71%, hsl(14 65% 74% / .6),   transparent 62%),
+                radial-gradient(1px 1px at 94% 91%, hsl(210 60% 96% / .4),  transparent 62%),
+                radial-gradient(1px 1px at 39% 63%, hsl(210 60% 96% / .55), transparent 62%);
+            background-size: 620px 620px;
+        }
+
+        .page-sky-near,
+        .sky-field-near {
+            background-image:
+                radial-gradient(1.9px 1.9px at 26% 28%, hsl(210 60% 98% / .95), transparent 58%),
+                radial-gradient(1.6px 1.6px at 68% 14%, hsl(41 62% 71% / .85),  transparent 58%),
+                radial-gradient(2.1px 2.1px at 84% 66%, hsl(220 85% 90% / .8),  transparent 58%),
+                radial-gradient(1.5px 1.5px at 15% 82%, hsl(14 68% 76% / .72),  transparent 58%),
+                radial-gradient(1.8px 1.8px at 45% 52%, hsl(210 60% 98% / .75), transparent 58%),
+                radial-gradient(1.4px 1.4px at 57% 92%, hsl(41 62% 71% / .6),   transparent 58%);
+            background-size: 940px 940px;
+        }
+
+        /* ---------- the Milky Way ----------
+           The background read as empty because it was only points of light. A
+           real sky carries a luminous band across it. This is a wash, not
+           stars: one angled element, no animation, and it does more for the
+           emptiness than any number of extra dots. */
+        /* The base angle is a variable and the scroll delta is a second one,
+           because design.js writes the scroll value inline and an inline
+           transform would otherwise beat the mobile angle in the media
+           query below. Splitting them lets both win at what they own. */
+        .page-band {
+            --band-angle: -24deg;
+            --band-turn: 0deg;
+            position: fixed;
+            top: -20%;
+            left: -30%;
+            width: 160%;
+            height: 140%;
+            z-index: 0;
+            pointer-events: none;
+            transform: rotate(calc(var(--band-angle) + var(--band-turn)));
+            background:
+                radial-gradient(58% 13% at 50% 50%, hsl(226 62% 62% / .10) 0%, transparent 72%),
+                radial-gradient(46% 7%  at 44% 47%, hsl(214 70% 78% / .085) 0%, transparent 70%),
+                radial-gradient(30% 5%  at 62% 54%, hsl(30 60% 74% / .05)  0%, transparent 70%);
+        }
+
+        /* A soft lift behind the content so text never sits on pure black */
+        .page-glow {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(90% 55% at 50% 32%, hsl(var(--c-gold) / .07) 0%, transparent 70%);
+        }
+
+        /* ---------- airglow and vignette ----------
+           Night skies are not evenly lit: there is a faint brightening toward
+           the horizon and a falloff overhead. Without it the page reads as a
+           filled colour rather than a photograph of a sky. Two gradients. */
+        .page-atmosphere {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(180deg,
+                    hsl(230 60% 4% / .55) 0%,
+                    transparent 22%,
+                    transparent 68%,
+                    hsl(224 52% 26% / .28) 92%,
+                    hsl(216 48% 34% / .34) 100%),
+                radial-gradient(120% 78% at 50% 62%, transparent 52%, hsl(230 60% 4% / .5) 100%);
+        }
+
+        /* ---------- meteors ----------
+           Built by design.js: three on a strong shower night, one otherwise.
+           Each is a single streak animated on transform and opacity, with most
+           of the cycle spent waiting - the same shape as the reveal's shooting
+           star, which measured cheap. */
+        .page-meteors {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .page-meteor {
+            position: absolute;
+            left: -14%;
+            width: 190px;
+            height: 1px;
+            opacity: 0;
+            background: linear-gradient(90deg,
+                transparent,
+                hsl(210 60% 96% / .85) 60%,
+                hsl(41 62% 78% / .95));
+            transform: rotate(19deg);
+            animation-name: pageShoot;
+            animation-timing-function: ease-in;
+            animation-iteration-count: infinite;
+        }
+
+        @keyframes pageShoot {
+            0%   { opacity: 0; transform: translate3d(0, 0, 0) rotate(19deg); }
+            3%   { opacity: 1; }
+            13%  { opacity: 0; transform: translate3d(86vw, 30vh, 0) rotate(19deg); }
+            100% { opacity: 0; transform: translate3d(86vw, 30vh, 0) rotate(19deg); }
+        }
+
+        /* The shower's name, shown only on a date that actually has one. */
+        .shower-note {
+            display: block;
+            margin-top: 1.25rem;
+            font-family: 'Jost', sans-serif;
+            font-size: .74rem;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: hsl(var(--c-gold) / .85);
+        }
+        .shower-note[hidden] { display: none; }
+
+        /* Content has to clear the fixed sky layers, which sit at z-index 0.
+           Only main and footer need it - the header, drawer and floating
+           buttons already carry their own position and stacking, and naming
+           them here risks fighting rules that make them work. */
+        main, footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ---------- the constellation reveal ---------- */
+
+        #envelope-overlay {
+            background:
+                radial-gradient(120% 90% at 50% 12%, hsl(var(--c-night-lift)) 0%, transparent 62%),
+                linear-gradient(180deg, hsl(var(--c-night-deep)) 0%, hsl(226 50% 8%) 55%, hsl(var(--c-night-deep)) 100%);
+            overflow: hidden;
+        }
+
+        #envelope-overlay .sky-field { z-index: 0; }
+
+        .sky-haze {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(60% 45% at 50% 42%, hsl(var(--c-gold) / .10) 0%, transparent 70%);
+        }
+
+        /* One shooting star, well spaced out. Most of the animation is the
+           pause - it streaks for a moment at the start of each cycle. */
+        .sky-shooting {
+            position: absolute;
+            top: 16%;
+            left: -12%;
+            width: 180px;
+            height: 1px;
+            pointer-events: none;
+            background: linear-gradient(90deg, transparent, hsl(var(--c-star) / .9), transparent);
+            opacity: 0;
+            transform: rotate(18deg);
+            animation: shoot 11s ease-in infinite;
+            animation-delay: 3.5s;
+        }
+
+        @keyframes shoot {
+            0%          { opacity: 0; transform: translate3d(0,0,0) rotate(18deg); }
+            2%          { opacity: 1; }
+            11%         { opacity: 0; transform: translate3d(78vw, 26vh, 0) rotate(18deg); }
+            100%        { opacity: 0; transform: translate3d(78vw, 26vh, 0) rotate(18deg); }
+        }
+
+        .sky-scene {
+            position: relative;
+            z-index: 2;
+            border-radius: 50%;
+            outline-offset: 12px;
+        }
+
+        .constellation {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            color: hsl(var(--c-gold));
+            transition: transform 1.2s cubic-bezier(.5,0,.3,1), opacity 1.1s ease;
+        }
+
+        @media (min-width: 640px) {
+            .constellation { width: 330px; height: 330px; }
+        }
+
+        .constellation-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        /* The rim of the chart is the celestial equator - a real boundary,
+           not a decorative ring, so it is drawn as a hairline. */
+        .sky-rim {
+            stroke: hsl(var(--c-gold) / .22);
+            stroke-width: 1;
+            stroke-dasharray: 2 6;
+        }
+
+        /* Stars arrive brightest first, which is the order they actually
+           come out at dusk. design.js sets each delay from the magnitude
+           sort, so the stagger is carrying real information. */
+        .c-star {
+            opacity: 0;
+            fill: hsl(var(--c-star) / .92);
+            transform-box: fill-box;
+            transform-origin: center;
+            animation: starIn .7s ease-out forwards;
+        }
+
+        /* Only the handful brighter than magnitude 1.6 get the glow. Applying
+           it to all 57 was both muddy and a lot of drop-shadow rasterising. */
+        .c-star-bright {
+            fill: hsl(var(--c-gold));
+            filter: drop-shadow(0 0 4px hsl(var(--c-gold) / .8));
+        }
+
+        @keyframes starIn {
+            from { opacity: 0; transform: scale(.2); }
+            60%  { opacity: 1; transform: scale(1.5); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        /* Then the lines join them up. pathLength="100" in the markup means
+           one dasharray draws every segment at the same rate. */
+        .c-line {
+            stroke: hsl(var(--c-gold) / .5);
+            stroke-width: 1;
+            stroke-linecap: round;
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: lineDraw 1.1s ease-in-out forwards;
+        }
+
+        @keyframes lineDraw {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* The mark resolves last, which is the moment the whole thing is for */
+        .constellation-mark {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            animation: markIn 1.1s ease-out forwards;
+            animation-delay: 2.1s;
+        }
+
+        /* The monogram sits over the densest part of the chart, and gold
+           letters on gold stars had nothing to separate them. This clears a
+           soft patch of sky behind the mark - the stars fade out rather than
+           being covered by a disc, so it does not read as a plate. */
+        .constellation-mark::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 58%;
+            aspect-ratio: 1;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(circle,
+                hsl(var(--c-night-deep) / .95) 0%,
+                hsl(var(--c-night-deep) / .82) 42%,
+                transparent 70%);
+        }
+
+        .c-monogram { position: relative; }
+
+        .c-monogram {
+            font-family: 'Italiana', serif;
+            font-size: 2.6rem;
+            letter-spacing: .06em;
+            color: hsl(var(--c-star));
+            text-shadow: 0 0 18px hsl(var(--c-gold) / .7), 0 0 46px hsl(var(--c-gold) / .35);
+        }
+
+        @media (min-width: 640px) {
+            .c-monogram { font-size: 3.4rem; }
+        }
+
+        @keyframes markIn {
+            from { opacity: 0; letter-spacing: .3em; }
+            to   { opacity: 1; letter-spacing: .06em; }
+        }
+
+        .sky-caption {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            margin-top: 2.4rem;
+            opacity: 0;
+            animation: captionIn 1.2s ease-out forwards;
+            animation-delay: 2.5s;
+        }
+
+        @keyframes captionIn {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        .sky-names {
+            font-size: clamp(2rem, 7vw, 3.4rem);
+            line-height: 1.05;
+            color: hsl(var(--c-charcoal));
+        }
+
+        .sky-meta {
+            margin-top: .8rem;
+            font-family: 'Jost', sans-serif;
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .24em;
+            color: hsl(var(--c-warmgray));
+        }
+
+        .sky-hint {
+            position: relative;
+            z-index: 2;
+            margin-top: 2.6rem;
+            font-family: 'Jost', sans-serif;
+            font-size: .7rem;
+            text-transform: uppercase;
+            letter-spacing: .28em;
+            color: hsl(var(--c-warmgray));
+            opacity: 0;
+            animation: captionIn 1s ease-out forwards;
+            animation-delay: 3.1s;
+        }
+
+        /* The tap: the constellation swells and dissolves, the sky drifts
+           back, and the core fades the overlay out behind it. */
+        .constellation.envelope-open {
+            transform: scale(1.45);
+            opacity: 0;
+        }
+        #envelope-overlay:has(.envelope-open) .sky-caption,
+        #envelope-overlay:has(.envelope-open) .sky-hint {
+            opacity: 0;
+            transition: opacity .5s ease;
+            animation: none;
+        }
+        #envelope-overlay:has(.envelope-open) .sky-field {
+            transform: scale(1.12);
+            transition: transform 1.3s ease-out;
+        }
+
+        /* Once the invitation is open the overlay is only visibility:hidden, so
+           its twinkle and shooting star keep ticking for the whole visit.
+           Stop them - the guest is never going to see them again. */
+        .envelope-overlay-hidden .sky-field,
+        .envelope-overlay-hidden .sky-shooting,
+        .envelope-overlay-hidden .sky-hint {
+            animation: none !important;
+        }
+
+        /* ---------- the builder drawer ----------
+           wedding-ui.css handles the panels and fields through the --ui-*
+           tokens above. What is left is the drawer shell and the controls the
+           core renders with its own classes, which the base markup paints with
+           literal white utilities. */
+
+        #customizer-drawer {
+            background: hsl(var(--c-night-deep) / .97) !important;
+            border-left: 1px solid hsl(var(--c-gold) / .22) !important;
+            color: hsl(var(--c-charcoal));
+        }
+
+        #customizer-drawer h3,
+        #customizer-drawer h4,
+        #customizer-drawer label,
+        #customizer-drawer p,
+        #customizer-drawer span {
+            color: hsl(var(--c-charcoal));
+        }
+
+        #customizer-drawer .drawer-tab {
+            background: hsl(var(--c-champagne) / .7) !important;
+            color: hsl(var(--c-warmgray)) !important;
+        }
+        #customizer-drawer .drawer-tab[aria-selected="true"],
+        #customizer-drawer .drawer-tab-active {
+            background: hsl(var(--c-gold)) !important;
+            color: hsl(var(--c-night-deep)) !important;
+        }
+
+        /* Per-item cards for schedule, gallery and FAQ rows */
+        #customizer-drawer .schedule-drawer-item {
+            background: hsl(var(--c-champagne) / .6) !important;
+            border-color: hsl(var(--c-gold) / .22) !important;
+        }
+
+        /* The icon picker renders as a grid of light chips */
+        #customizer-drawer .schedule-icon-btn,
+        #customizer-drawer .schedule-mini-btn {
+            background: hsl(var(--c-night-deep) / .8) !important;
+            border: 1px solid hsl(var(--c-gold) / .25) !important;
+            color: hsl(var(--c-charcoal)) !important;
+        }
+        #customizer-drawer .schedule-icon-btn:hover,
+        #customizer-drawer .schedule-mini-btn:hover {
+            border-color: hsl(var(--c-gold) / .6) !important;
+        }
+        #customizer-drawer .schedule-icon-btn-active {
+            background: hsl(var(--c-gold)) !important;
+            color: hsl(var(--c-night-deep)) !important;
+            border-color: hsl(var(--c-gold)) !important;
+        }
+        #customizer-drawer .schedule-mini-btn-danger:hover {
+            background: hsl(0 55% 40%) !important;
+            color: hsl(var(--c-star)) !important;
+        }
+
+        /* The top control bar and the drawer footer both use literal white
+           and sand utilities in the markup. */
+        #builder-bar {
+            background: hsl(var(--c-night-deep) / .97) !important;
+            border-bottom: 1px solid hsl(var(--c-gold) / .2) !important;
+        }
+        #customizer-drawer .bg-sand\/50 {
+            background: hsl(var(--c-champagne) / .7) !important;
+        }
+
+        /* ---------- light-theme pairings in the base markup ----------
+           The base was written for a light design, where `bg-charcoal
+           text-cream` means dark chip / pale label and `bg-gold text-white`
+           means gold chip / white label. BOTH pairings invert here, because
+           --c-charcoal is now the pale colour and --c-cream the dark one. Left
+           alone they land dark-on-dark, or white on gold at about 1.9:1.
+           Each one has to be restated. */
+
+        /* The bar inherits text-cream, which is now the night colour */
+        #builder-bar,
+        #builder-bar button,
+        #builder-bar .text-cream {
+            color: hsl(var(--c-charcoal)) !important;
+        }
+        /* ...but the little gold icons stay gold */
+        #builder-bar .text-gold,
+        #builder-bar i.text-gold {
+            color: hsl(var(--c-gold)) !important;
+        }
+
+        /* Ghost buttons: bg-white/10 over a dark bar is nearly invisible */
+        #builder-bar button.bg-white\/10 {
+            background: hsl(var(--c-champagne)) !important;
+            border: 1px solid hsl(var(--c-gold) / .22) !important;
+        }
+        #builder-bar button.bg-white\/10:hover {
+            background: hsl(var(--c-night-lift)) !important;
+            border-color: hsl(var(--c-gold) / .45) !important;
+        }
+
+        /* Gold chips take the darkest ink - never white, never pale charcoal */
+        #builder-bar .bg-gold,
+        #customizer-drawer .bg-gold,
+        #share-modal .bg-gold {
+            color: hsl(var(--c-night-deep)) !important;
+        }
+
+        /* A pale chip carrying gold or white text is the same fault inverted */
+        #exit-preview-btn {
+            background: hsl(var(--c-night-lift)) !important;
+            color: hsl(var(--c-gold)) !important;
+            border-color: hsl(var(--c-gold) / .5) !important;
+        }
+        #exit-preview-btn:hover {
+            background: hsl(var(--c-gold)) !important;
+            color: hsl(var(--c-night-deep)) !important;
+        }
+
+        #share-modal .bg-charcoal {
+            color: hsl(var(--c-night-deep)) !important;
+        }
+
+        /* The hero-photo picker is a bg-white/70 label with text-charcoal */
+        #customizer-drawer label[for="cfg-hero-photo-file"] {
+            background: hsl(var(--c-champagne)) !important;
+            color: hsl(var(--c-charcoal)) !important;
+        }
+
+        /* RSVP attending choice: the checked chip goes gold, so its label has
+           to go dark. Matched via :has(input:checked) rather than Tailwind's
+           compiled peer-checked selector, which is an implementation detail. */
+        #rsvp label:has(input:checked) > div {
+            color: hsl(var(--c-night-deep)) !important;
+        }
+
+        /* ---------- header ---------- */
+
+        /* Opaque rather than blurred. A backdrop-filter on a fixed header
+           re-blurs everything behind it on every scroll frame; against a
+           near-black sky the blur was buying almost nothing visually. */
+        header {
+            background: hsl(var(--c-night-deep) / .94) !important;
+            border-bottom-color: hsl(var(--c-gold) / .18) !important;
+            backdrop-filter: none !important;
+        }
+
+        header a[href="#rsvp"].nowrap {
+            background: hsl(var(--c-gold));
+            color: hsl(var(--c-night-deep));
+            font-weight: 500;
+        }
+        header a[href="#rsvp"].nowrap:hover {
+            background: hsl(var(--c-star));
+        }
+
+        /* ---------- panels that the base markup paints white ----------
+           bg-white/70 and bg-white/80 are baked into index.html for the
+           countdown and RSVP cards. On a night sky they would be two glaring
+           slabs, so both become lifted navy with a gold hairline. */
+
+        .countdown-card,
+        #rsvp .rounded-3xl {
+            background: hsl(var(--c-champagne) / .72) !important;
+            border: 1px solid hsl(var(--c-gold) / .28) !important;
+            box-shadow:
+                inset 0 1px 0 hsl(var(--c-star) / .06),
+                0 18px 50px hsl(230 60% 3% / .55) !important;
+            /* The base markup carries backdrop-blur-md on both of these. Two
+               large blurred panels over a starfield is most of the GPU cost
+               for an effect nobody can see through - the fill is near-opaque. */
+            backdrop-filter: none !important;
+        }
+
+        .countdown-card .rounded-xl {
+            background: hsl(var(--c-night-deep) / .5);
+            border-color: hsl(var(--c-gold) / .22);
+        }
+
+        /* Countdown numerals are the one place gold gets to glow */
+        #cd-days, #cd-hours, #cd-minutes, #cd-seconds {
+            color: hsl(var(--c-gold));
+            text-shadow: 0 0 24px hsl(var(--c-gold) / .35);
+        }
+
+        /* ---------- the sky record ----------
+           The same computed chart as the reveal, kept in the page. The reveal
+           is the dramatic version and is gone in four seconds; this is the
+           keepsake, so it is quieter: smaller stars, fainter joins, no glow,
+           and nothing animates in. The facts beside it are a record of the
+           evening, which is why they are a definition list rather than prose. */
+
+        /* Size and bottom margin come from the shared section-heading rule
+           below, so they are deliberately not repeated here. */
+        .sky-record-title {
+            font-family: 'Italiana', serif;
+            font-weight: 400;
+            text-align: center;
+            color: hsl(var(--c-charcoal));
+        }
+
+        /* Sized against main's own column (max-w-5xl, ~1024px). At 46rem this
+           sat well inside it and read as a small island with dead space on
+           both sides, which made the chart look incidental rather than like
+           the point of the design. */
+        .sky-record {
+            display: grid;
+            grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+            gap: clamp(2rem, 6vw, 5rem);
+            align-items: center;
+            max-width: 56rem;
+            margin: 0 auto;
+        }
+
+        .sky-keepsake-svg {
+            width: 100%;
+            height: auto;
+            display: block;
+            color: hsl(var(--c-gold));
+        }
+
+        /* Static. The entrance belongs to the reveal, not to a block the
+           guest scrolls past later. */
+        .sky-keepsake-svg .c-star {
+            opacity: 1;
+            animation: none;
+            fill: hsl(var(--c-star) / .8);
+        }
+        .sky-keepsake-svg .c-star-bright {
+            fill: hsl(var(--c-gold));
+            filter: none;
+        }
+        .sky-keepsake-svg .c-line {
+            stroke-dashoffset: 0;
+            animation: none;
+            stroke: hsl(var(--c-gold) / .34);
+        }
+        .sky-keepsake-svg .sky-rim {
+            stroke: hsl(var(--c-gold) / .18);
+        }
+
+        .sky-record-facts {
+            display: grid;
+            gap: 1.5rem;
+            margin: 0;
+        }
+
+        .sky-fact dt {
+            font-family: 'Jost', sans-serif;
+            font-size: .6rem;
+            text-transform: uppercase;
+            letter-spacing: .26em;
+            color: hsl(var(--c-warmgray));
+            margin-bottom: .35rem;
+        }
+
+        .sky-fact dd {
+            margin: 0;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.35rem;
+            line-height: 1.3;
+            color: hsl(var(--c-charcoal));
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            flex-wrap: wrap;
+        }
+
+        .sky-fact-sep { color: hsl(var(--c-gold) / .6); }
+
+        .sky-fact-quiet {
+            font-family: 'Jost', sans-serif;
+            font-size: .78rem;
+            letter-spacing: .12em;
+            color: hsl(var(--c-warmgray));
+        }
+
+        /* `.sky-fact dd` is (0,1,1) and beat `.sky-fact-quiet` at (0,1,0), so
+           the sidereal time was rendering as large serif and outranking the
+           venue name. The id wins outright, and the whole quiet treatment
+           belongs here rather than being split across two selectors. */
+        #sky-lst {
+            font-family: 'Jost', sans-serif;
+            font-size: .82rem;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: .16em;
+            color: hsl(var(--c-warmgray));
+        }
+
+        /* The moon disc, now inside the record rather than floating alone */
+        #moon-disc {
+            color: hsl(var(--c-gold) / .4);
+            flex-shrink: 0;
+        }
+        .moon-dark { fill: hsl(var(--c-night-lift)); }
+        .moon-lit  { fill: hsl(43 68% 84%); }
+        .moon-edge { stroke-width: 1; }
+
+        @media (max-width: 720px) {
+            .sky-record {
+                grid-template-columns: minmax(0, 1fr);
+                justify-items: center;
+                text-align: center;
+                gap: 2.5rem;
+            }
+            .sky-keepsake-svg { max-width: 280px; }
+            .sky-record-facts { justify-items: center; }
+            .sky-fact dd { justify-content: center; }
+        }
+
+        /* ---------- section headings ----------
+           Every section used to open with a letterspaced label above its
+           heading: GALLERY above Photographs, THE COUNTDOWN above Until we
+           say I do, KINDLY RESPOND above RSVP. Each said the same thing
+           twice, in a smaller size, and the heading was already carrying it.
+           All eight are gone.
+
+           With the label removed the heading has to hold the opening on its
+           own, so it gets more size and the air the label used to occupy.
+           More space above than below, which is what makes a heading read as
+           belonging to what follows it. */
+
+        /* `.countdown-card h2` has to be named explicitly. Its section carries
+           no id, so the bare `main section > h2` (0,0,3) lost to Tailwind's
+           `.text-4xl` (0,1,0) and that one heading stayed at 36px while every
+           id-scoped sibling stepped up to 51px. `.sky-record-title` is in the
+           list for the same reason: one scale for every section opener. */
+        main section > h2,
+        main section > div > h2,
+        .countdown-card h2,
+        .sky-record-title,
+        #rsvp h2,
+        #faq-section h2,
+        #gallery-section h2,
+        #schedule h2 {
+            font-size: clamp(2.1rem, 5vw, 3.2rem);
+            line-height: 1.08;
+            letter-spacing: .03em;
+            margin-top: 0;
+            margin-bottom: clamp(1.75rem, 4vw, 2.75rem);
+        }
+
+        /* The story heading sits in a two-column grid beside the photo, so it
+           takes the same treatment at a smaller step. */
+        #our-story h2 {
+            font-size: clamp(1.9rem, 4vw, 2.6rem);
+            line-height: 1.1;
+            margin-bottom: 1.25rem;
+        }
+
+        /* ---------- section rules ---------- */
+
+        main section {
+            border-top-color: hsl(var(--c-gold) / .16) !important;
+        }
+
+        /* ---------- schedule: the day as a moon cycle ----------
+           The base timeline keeps its time-proportional spacing; only the
+           markers change. Each event's icon disc becomes a moon, and the
+           spine behind them is a thin band of sky. */
+
+        .schedule-timeline::before,
+        .schedule-row::after {
+            background: linear-gradient(180deg,
+                transparent,
+                hsl(var(--c-gold) / .35) 12%,
+                hsl(var(--c-gold) / .35) 88%,
+                transparent) !important;
+        }
+
+        .schedule-icon {
+            background: hsl(var(--c-night-deep)) !important;
+            border: 1px solid hsl(var(--c-gold) / .45) !important;
+            color: hsl(var(--c-gold)) !important;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 0 5px hsl(var(--c-night-deep)), 0 0 22px hsl(var(--c-gold) / .28);
+        }
+
+        /* The moon phases that used to wax down this timeline are gone. They
+           encoded nothing - the moon does not change over a six-hour
+           reception - so they were decoration dressed as structure. The real
+           moon for the wedding date is stated once, in .moon-note below. */
+
+        .schedule-icon i {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* A tick on the marker's rim showing where the sky stood at that hour.
+           design.js writes --sky-turn per row from that event's own sidereal
+           time, so the ticks walk round the ring as the evening goes on: a
+           six-hour reception turns them through ninety degrees. The icon the
+           couple picked stays exactly where it was. */
+        .schedule-icon::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: -6px;
+            width: 2px;
+            height: 8px;
+            margin-left: -1px;
+            border-radius: 1px;
+            background: hsl(var(--c-gold));
+            box-shadow: 0 0 6px hsl(var(--c-gold) / .7);
+            transform-origin: 50% 28px;   /* the 2.75rem disc's centre */
+            transform: rotate(var(--sky-turn, 0deg));
+            z-index: 0;
+        }
+
+        /* Without design.js there is no honest angle to show, so show none. */
+        .schedule-row:not([style*="--sky-turn"]) .schedule-icon::before {
+            display: none;
+        }
+
+        .schedule-time {
+            color: hsl(var(--c-gold)) !important;
+            letter-spacing: .2em;
+        }
+        .schedule-title { color: hsl(var(--c-charcoal)); }
+        .schedule-venue { color: hsl(var(--c-warmgray)); }
+
+        /* No background. This is a grid child, so it blockifies and fills its
+           whole cell - any fill here paints a 340x66 slab behind the label
+           rather than the small pill it looks like in the markup. */
+        .schedule-gap {
+            color: hsl(var(--c-warmgray) / .7) !important;
+            background: transparent !important;
+        }
+
+        /* ---------- gallery: photographs as glowing orbs ---------- */
+
+        /* The base styles a slide as a photo MOUNT: cream card, 7% padding,
+           1rem corners, with the image inset inside it. Rounding only the
+           image left that cream card square behind it - a white slab with a
+           circle floating in the middle. The whole slide has to become the
+           orb: no card, no padding, image edge to edge. */
+        .gallery-carousel-item {
+            background: transparent !important;
+            padding: 0 !important;
+            border-radius: 50% !important;
+            border: none !important;
+            overflow: visible !important;
+            box-shadow:
+                0 0 34px hsl(var(--c-gold) / .20),
+                0 20px 44px hsl(230 60% 3% / .6) !important;
+        }
+
+        .gallery-carousel-item img {
+            border-radius: 50% !important;
+            border: 1px solid hsl(var(--c-gold) / .45) !important;
+        }
+
+        /* box-shadow, not filter: drop-shadow. drop-shadow has to rasterise the
+           element's alpha every frame the carousel moves; box-shadow on the
+           round mask below gets the same halo for free. */
+        .gallery-carousel-item {
+            filter: none;
+        }
+
+        /* A soft vignette from the bottom so the orb reads as lit from above
+           rather than as a flat circular crop. */
+        .gallery-carousel-item::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: inset 0 -26px 44px hsl(230 60% 4% / .45);
+        }
+
+        .gallery-nav-btn {
+            background: hsl(var(--c-champagne) / .9) !important;
+            border-color: hsl(var(--c-gold) / .4) !important;
+            color: hsl(var(--c-gold)) !important;
+        }
+        .gallery-nav-btn:hover {
+            background: hsl(var(--c-gold)) !important;
+            color: hsl(var(--c-night-deep)) !important;
+        }
+
+        /* ---------- forms on a dark ground ---------- */
+
+        #rsvp input,
+        #rsvp select,
+        #rsvp textarea {
+            background: hsl(var(--c-night-deep) / .6) !important;
+            border-color: hsl(var(--c-gold) / .3) !important;
+            color: hsl(var(--c-charcoal)) !important;
+        }
+        #rsvp input::placeholder,
+        #rsvp textarea::placeholder {
+            color: hsl(var(--c-warmgray) / .75) !important;
+        }
+        #rsvp input:focus,
+        #rsvp select:focus,
+        #rsvp textarea:focus {
+            border-color: hsl(var(--c-gold) / .8) !important;
+            box-shadow: 0 0 0 3px hsl(var(--c-gold) / .18) !important;
+        }
+
+        /* The attending choice: unselected has to be legible, not a ghost */
+        #rsvp .peer-checked\:bg-gold:not(.peer-checked) {
+            border-color: hsl(var(--c-gold) / .35);
+        }
+
+        /* ---------- FAQ ---------- */
+
+        #faq-section .faq-item,
+        #faq-section details {
+            background: hsl(var(--c-champagne) / .55);
+            border-color: hsl(var(--c-gold) / .22);
+        }
+
+        /* ---------- footer ---------- */
+
+        footer {
+            border-top-color: hsl(var(--c-gold) / .16) !important;
+        }
+
+        /* ---------- quality floor ----------
+           Dark backgrounds make thin light type look thinner than it is, so
+           muted text gets a floor here rather than inheriting the light
+           theme's value, and focus rings need to be visible against navy. */
+
+        .text-warmgray,
+        .text-warmgray * {
+            color: hsl(var(--c-warmgray));
+        }
+
+        :focus-visible {
+            outline: 2px solid hsl(var(--c-gold));
+            outline-offset: 3px;
+        }
+
+        ::selection {
+            background: hsl(var(--c-gold) / .3);
+            color: hsl(var(--c-star));
+        }
+
+        /* Firefox ignores the ::-webkit-scrollbar rules further up. Those
+           already theme themselves through the palette variables, so this is
+           only the second syntax, not a second colour decision. */
+        html {
+            scrollbar-color: hsl(var(--c-gold)) hsl(var(--c-cream));
+            scrollbar-width: thin;
+        }
+
+        /* The countdown rewrites four numbers every second. In a proportional
+           face a 1 is narrower than a 0, so each tick nudged the digits
+           sideways and the whole block shimmered. Tabular figures give every
+           digit one width. This is the most visible defect on the page and
+           costs one line. */
+        #cd-days, #cd-hours, #cd-minutes, #cd-seconds,
+        .schedule-time,
+        .moon-note-lit {
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: 'tnum' 1;
+        }
+
+        /* A default caret is near-black, which all but disappears in a dark
+           field. */
+        #rsvp input,
+        #rsvp textarea,
+        #customizer-drawer input,
+        #customizer-drawer textarea {
+            caret-color: hsl(var(--c-gold));
+        }
+
+        /* Display lines are set in a face with very open counters, so a lone
+           trailing word reads as a mistake rather than a line break. */
+        h1, h2,
+        .sky-names,
+        .moon-note-phase {
+            text-wrap: balance;
+        }
+
+        /* Story copy reads better with a slightly narrower measure than the
+           column gives it; the floor is 65-75ch and the two-column grid was
+           running under that at the wide breakpoint. */
+        #story-text-1, #story-text-2 {
+            max-width: 34em;
+        }
+
+        a[href]:not([class*="rounded"]):hover {
+            text-underline-offset: .18em;
+            text-decoration-thickness: 1px;
+        }
+
+        /* ---------- motion ----------
+           The whole reveal is decorative. If the guest asked for less
+           movement, show the finished state immediately. */
+
+        @media (prefers-reduced-motion: reduce) {
+            .page-sky-far, .page-sky-near,
+            .sky-field-far, .sky-field-near { animation: none; }
+            .sky-shooting, .page-meteors { display: none; }
+            /* bindScrollSky() bails out under reduced motion, so the layers
+               keep whatever transform they loaded with, which is none. */
+
+            .c-star, .c-line, .constellation-mark, .sky-caption, .sky-hint {
+                animation: none;
+                opacity: 1;
+            }
+            .c-line { stroke-dashoffset: 0; }
+            .constellation.envelope-open { transition: none; }
+        }
+

@@ -39,3 +39,6 @@ export function guestLink(to: { slug?: string; token?: string; src?: string } = 
   const qs = q.toString();
   return `${siteUrl()}/#/invite${qs ? `?${qs}` : ""}`;
 }
+
+/** Leave the app for another page on this site, without a history entry (so Back doesn't bounce). */
+export const leaveFor = (url: string) => window.location.replace(url);

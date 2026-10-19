@@ -44,6 +44,8 @@ vi.mock("../lib/store", async () => {
     usePrefersReducedMotion: () => true,
   };
 });
+const leaveFor = vi.fn();
+vi.mock("../lib/links", async () => ({ ...(await vi.importActual<typeof import("../lib/links")>("../lib/links")), leaveFor: (u: string) => leaveFor(u) }));
 vi.mock("../lib/sound", () => ({ playChime: vi.fn(), useChimeLoop: () => ({ playing: false, toggle: vi.fn(), stop: vi.fn() }) }));
 
 import GuestInvite from "./GuestInvite";
@@ -107,6 +109,36 @@ describe("GuestInvite — the couple's uploaded song (Block 6)", () => {
     );
     await screen.findByText("Will you join us?");
     expect(container.querySelector("audio")).toBeNull();
+    payload = unpublished;
+  });
+});
+
+describe("GuestInvite — a wedding using one of the owner's own designs (Block 18)", () => {
+  const studio = (plan: string) => ({ ...unpublished, plan, invitation: { ...unpublished.invitation, template_id: "studio:celestial" } });
+
+  it("sends the guest to the design's page, keeping their link", async () => {
+    payload = studio("luxe");
+    leaveFor.mockClear();
+    render(
+      <MemoryRouter initialEntries={["/invite?slug=ana-and-ben&src=whatsapp"]}>
+        <GuestInvite />
+      </MemoryRouter>,
+    );
+    await vi.waitFor(() => expect(leaveFor).toHaveBeenCalledWith("/designs/celestial/index.html?slug=ana-and-ben&src=whatsapp"));
+    expect(screen.queryByText("Will you join us?")).toBeNull();
+    payload = unpublished;
+  });
+
+  it("stays on Luma's own page when the plan no longer includes the design", async () => {
+    payload = studio("celebration");
+    leaveFor.mockClear();
+    render(
+      <MemoryRouter initialEntries={["/invite?slug=ana-and-ben"]}>
+        <GuestInvite />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText("Will you join us?")).toBeTruthy();
+    expect(leaveFor).not.toHaveBeenCalled();
     payload = unpublished;
   });
 });

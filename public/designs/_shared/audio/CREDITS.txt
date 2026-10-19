@@ -1,0 +1,60 @@
+BACKGROUND MUSIC — SOURCES AND LICENCES
+=======================================
+
+Every track here is Public Domain or CC0. That covers BOTH layers of rights
+that a recording carries:
+
+  1. the composition  (all five composers died well over a century ago)
+  2. the performance  (a recording has its own copyright, separate from the
+                       piece — this is the part that is easy to get wrong)
+
+All five were downloaded from Wikimedia Commons, where each file's licence is
+stated on its own file page, and re-encoded to MP3. The originals were .ogg
+and .opus, which Safari does not reliably play, and most wedding guests open
+these invitations on an iPhone.
+
+
+TRACKS
+------
+
+nocturne.mp3      Chopin — Nocturne No. 2 in E-flat major, Op. 9 No. 2
+                  Performer: Peter Johnston
+                  Licence: CC0 (public domain dedication)
+                  https://commons.wikimedia.org/wiki/File:Chopin_Nocturne_No._2_in_E_Flat_Major,_Op._9.ogg
+
+clairdelune.mp3   Debussy — Clair de Lune (1905, piano solo)
+                  Licence: Public domain
+                  https://commons.wikimedia.org/wiki/File:Clair_de_Lune_by_Claude_Debussy_(1905,_piano_solo).opus
+
+gnossienne.mp3    Satie — Gnossienne No. 1
+                  Performer: La Pianista
+                  Licence: Public domain
+                  https://commons.wikimedia.org/wiki/File:Satie_-_Gnossienne_1.ogg
+
+traumerei.mp3     Schumann — Träumerei (Scenes from Childhood, Op. 15 No. 7)
+                  Licence: Public domain
+                  https://commons.wikimedia.org/wiki/File:Robert_Schumann_-_scenes_from_childhood,_op._15_-_vii._dreaming.ogg
+
+pavane.mp3        Ravel — Pavane pour une infante défunte
+                  Performer: Pracchia-78
+                  Licence: Public domain
+                  https://commons.wikimedia.org/wiki/File:Maurice_Ravel_-_Pavane_pour_une_infante_défunte.ogg
+
+
+ENCODING
+--------
+
+MP3, 96 kbps, 44.1 kHz stereo, with a 4-second fade at the end so the loop
+does not cut off mid-note. All five were normalised to -19 LUFS, which is a
+background level and identical across tracks, so switching selection in the
+builder never jumps in volume.
+
+
+IF YOU ADD A TRACK
+------------------
+
+Check the RECORDING's licence, not just the composer's dates. "Bach is out of
+copyright" says nothing about the 2019 recording of it. The set this replaced
+was hotlinked to Internet Archive uploads named "ClairDeLuneFromTwilight" and
+"CannonInDFromDudeWhereIsMyCar" — soundtrack rips, still fully in copyright,
+shipping inside a product sold to hundreds of couples.
