@@ -1,0 +1,338 @@
+/* ===================================================================
+   BUILDER CHROME - shared by every design
+
+   The customiser drawer and the top bar are tooling, not part of any
+   invitation's look, so they live here rather than in a design's own
+   stylesheet. Every design links this file, which means a fix to the
+   editor lands everywhere at once.
+
+   Two things this file does:
+
+   1. Turns the drawer's stacked sections into tabs. The drawer used to
+      be one continuous 7,800px scroll - about nine screens.
+
+   2. Shrinks the page instead of covering it. The drawer used to sit
+      on top of the invitation, hiding roughly a third of what the
+      couple were editing. On a wide screen the page now narrows to the
+      remaining space so edits can be watched as they are made.
+   =================================================================== */
+
+:root {
+    --drawer-w: 32rem;
+    /* Width the invitation actually occupies. Designs use this instead
+       of 100vw for full-bleed artwork, so decoration keeps reaching the
+       visible edge when the editor squeezes the page. */
+    --page-w: 100vw;
+}
+
+/* ---------- drawer tabs ---------- */
+
+.drawer-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    padding: 0.5rem;
+    background: hsl(var(--c-sand) / 0.5);
+    border-bottom: 1px solid hsl(var(--c-gold) / 0.25);
+    flex-shrink: 0;
+}
+
+.drawer-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0.55rem 0.2rem;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: hsl(var(--c-warmgray));
+    font-family: inherit;
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.25;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+}
+
+.drawer-tab i { font-size: 15px; line-height: 1; }
+
+.drawer-tab span {
+    display: block;
+    /* Two-word labels wrap rather than truncate, so nothing is hidden. */
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.drawer-tab:hover { background: hsl(var(--c-gold) / 0.10); color: hsl(var(--c-charcoal)); }
+
+.drawer-tab.is-active {
+    background: hsl(var(--c-cream));
+    border-color: hsl(var(--c-gold) / 0.45);
+    color: hsl(var(--c-gold-dark));
+}
+
+.drawer-tab:focus-visible {
+    outline: 2px solid hsl(var(--c-gold));
+    outline-offset: -2px;
+}
+
+/* Only one section on screen at a time. */
+.drawer-panel[hidden] { display: none !important; }
+
+/* The tab already names the section, so its heading is redundant. */
+.drawer-panel > h4[hidden] { display: none !important; }
+
+/* ---------- push the page instead of covering it ---------- */
+
+/* Below this width there isn't room for both, so the drawer stays an
+   overlay exactly as it was. */
+@media (min-width: 1100px) {
+    body {
+        transition: padding-right .3s ease;
+    }
+
+    body.editor-open {
+        padding-right: var(--drawer-w);
+        --page-w: calc(100vw - var(--drawer-w));
+    }
+
+    /* Fixed chrome spans the viewport, so it needs telling separately. */
+    body.editor-open #builder-bar,
+    body.editor-open header {
+        right: var(--drawer-w);
+        transition: right .3s ease;
+    }
+
+    #customizer-drawer {
+        width: var(--drawer-w);
+        max-width: var(--drawer-w);
+    }
+
+    /* The floating exit-preview button follows the page edge too. */
+    body.editor-open #exit-preview-btn { right: calc(var(--drawer-w) + 1.5rem); }
+}
+
+/* Guest view never shows the editor, so nothing here should apply. */
+body.guest-mode { padding-right: 0 !important; }
+body.guest-mode { --page-w: 100vw; }
+
+/* ---------- the builder owns its own look ----------
+   A design's stylesheet loads after this one and can carry blanket
+   resets (border-radius: 0, box-shadow: none) intended for the
+   invitation. Those were leaking in and flattening the drawer's cards
+   until they looked like they had no background at all.
+
+   These rules are deliberately specific enough to survive that, so the
+   editor looks the same no matter how a design restyles the page. */
+
+/* The fills go through variables with the original light values as their
+   fallbacks, so light designs are unchanged and a dark design can retheme the
+   editor by setting --ui-* in its own :root. Hardcoding white here meant a
+   dark design got white cards with dark fields inside them. */
+
+#customizer-drawer .drawer-panel {
+    background: var(--ui-panel-bg, hsl(0 0% 100% / 0.72)) !important;
+    border: 1px solid hsl(var(--c-gold) / 0.28) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 2px hsl(var(--c-charcoal) / 0.05) !important;
+    padding: 1rem !important;
+}
+
+/* Fields and buttons inside the drawer keep their own shape too. */
+#customizer-drawer input,
+#customizer-drawer select,
+#customizer-drawer textarea {
+    border-radius: 8px !important;
+    background: var(--ui-field-bg, hsl(var(--c-cream) / 0.6)) !important;
+    color: var(--ui-field-text, inherit) !important;
+}
+
+#customizer-drawer button {
+    border-radius: 8px !important;
+}
+
+#customizer-drawer .drawer-tab { border-radius: 6px !important; }
+/* ---------- unreadable ceremony time ----------
+   parseEventTime falls back to 4pm when it cannot read the text. That
+   keeps the page rendering, but silently showing the wrong ceremony
+   time is worse than showing none - so the field says so. */
+
+#customizer-drawer .field-warning input {
+    border-color: hsl(28 70% 52%) !important;
+    background: var(--ui-warn-bg, hsl(30 80% 96%)) !important;
+    color: var(--ui-warn-text, inherit) !important;
+}
+
+#customizer-drawer .field-warning::after {
+    content: "Couldn't read that time - showing 4:00 PM. Try 4:00 PM or 16:00.";
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.45;
+    letter-spacing: .02em;
+    color: hsl(28 65% 38%);
+}
+/* ============================================================
+   STUDIO BAR — shared editor chrome (from design-7, Mirror Palace)
+
+   One hairline row of icons at every width: no fills, no rounded boxes,
+   nothing that reads as an admin toolbar bolted onto an invitation.
+
+   Every colour carries a fallback, because the designs do not share a
+   palette - design-8 defines --line and --g-tag, design-4 defines
+   neither. The bar paints its own dark ground, so the fallbacks only
+   ever have to work on that.
+
+   Gated on .studio-compact, which wedding-core.js adds only after every
+   button has a short label. Without that gate a design whose buttons
+   could not be labelled would render four unlabelled icons, since the
+   real label is hidden at font-size:0.
+============================================================ */
+#builder-bar.studio-compact{
+  padding:0; gap:0;
+  background:rgba(9,8,10,.97);
+  border-bottom:1px solid var(--line, rgba(244,240,232,.14));
+  box-shadow:none;
+  justify-content:center;
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+}
+/* The studio wordmark is decoration, and it is what pushed the actions
+   onto a second row. */
+#builder-bar.studio-compact > div:first-child{ display:none; }
+#builder-bar.studio-compact > div:last-child{ display:flex; gap:0; flex-wrap:nowrap; }
+
+#builder-bar.studio-compact button,
+#builder-bar.studio-compact button.bg-gold,
+#builder-bar.studio-compact button.bg-emerald-700{
+  position:relative;
+  flex:0 0 auto; min-width:96px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+  padding:10px 14px 11px;
+  border:0; border-radius:0;
+  background:none; color:var(--g-tag, #b08c3f);
+  font-size:0;                       /* the long label is replaced below */
+  transition:color .3s ease, background .3s ease;
+}
+#builder-bar.studio-compact button:hover{
+  color:var(--ivory, #efe6d4); background:rgba(244,240,232,.05); }
+
+/* Icons inherit, or the two carrying a fill class elsewhere would be
+   painted ink and vanish against this bar. */
+#builder-bar.studio-compact button i,
+#builder-bar.studio-compact button.bg-gold i,
+#builder-bar.studio-compact button.bg-emerald-700 i{ color:inherit; font-size:14px; }
+
+#builder-bar.studio-compact button span[data-short]::after{
+  content:attr(data-short);
+  display:block; font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+}
+
+/* One quiet step of hierarchy: the action she came here to perform. */
+#builder-bar.studio-compact button[data-primary]{ color:var(--ivory, #efe6d4); }
+#builder-bar.studio-compact button[data-primary] i{ color:var(--ivory, #efe6d4); }
+#builder-bar.studio-compact button:active{ background:rgba(236,211,157,.1); }
+
+/* Dividers as pseudo-elements: a border-left loses to the `border:0` on
+   the .bg-gold reset above, because a class selector outranks
+   `button + button`. This also insets the rule from the bar's edges. */
+#builder-bar.studio-compact button + button::before{
+  content:''; position:absolute; left:0; top:14px; bottom:14px;
+  width:1px; background:var(--line, rgba(244,240,232,.14));
+}
+
+@media (max-width:560px){
+  /* Fill the width rather than centring, so targets stay finger-sized. */
+  #builder-bar.studio-compact > div:last-child{ width:100%; }
+  #builder-bar.studio-compact button,
+  #builder-bar.studio-compact button.bg-gold,
+  #builder-bar.studio-compact button.bg-emerald-700{
+    flex:1 1 0; min-width:0; padding:9px 2px 10px; }
+  #builder-bar.studio-compact button span[data-short]::after{ letter-spacing:.05em; }
+}
+
+/* ===================================================================
+   SHARED FIXES  (added while building design-9)
+
+   Everything below was rediscovered and rewritten by hand in individual
+   designs. It belongs here so the next design inherits it instead of
+   hitting the same three bugs again. All of it is either a pure addition
+   or written at zero specificity, so no existing design changes.
+   =================================================================== */
+
+/* ---- 1. visually-hidden ----------------------------------------------
+   A control that must stay in the DOM and stay SUBMITTABLE, but not be
+   seen — the RSVP guest-count <select> is the case: Netlify only registers
+   fields that exist, so it cannot be display:none. The class is used in
+   design markup; without it the browser renders a stray dropdown in the
+   middle of the form. Clipped rather than hidden for that reason. */
+.visually-hidden{
+    position:absolute !important; width:1px; height:1px; margin:-1px; padding:0;
+    overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%);
+    white-space:nowrap; border:0;
+}
+
+/* ---- 2. chrome button labels follow their own button ------------------
+   THE SINGLE BIGGEST SOURCE OF "invisible text" IN A DARK DESIGN.
+
+   The bar, drawer and share modal are written with Tailwind pairings meant
+   for a LIGHT design (`bg-gold text-charcoal`, `bg-charcoal text-cream`).
+   A dark design inverts --c-cream/--c-charcoal, then repaints the editor
+   with a blanket rule like `#customizer-drawer span{color:<pale>}`. That
+   blanket rule also hits the <span> INSIDE a button, overriding the
+   button's own colour — producing pale-on-gold (1.9:1) or pale-on-pale
+   (1:1) labels that are perfectly clickable and completely unreadable.
+
+   Making the label and icon inherit the button's colour removes the whole
+   class of bug: style the button, and the label follows. */
+#builder-bar button span,
+#builder-bar button i,
+#customizer-drawer .drawer-tab span,
+#customizer-drawer .drawer-tab i,
+#customizer-drawer .ed-add span,
+#customizer-drawer .ed-add i,
+#share-modal button span,
+#share-modal button i{ color:inherit; }
+
+/* ---- 3. drawer field defaults ----------------------------------------
+   The .ed-field / .ed-row / .ed-hint pattern is builder chrome, but it was
+   only ever defined inside individual designs' wedding-design.css — so a
+   design that did not carry it rendered every label inline, running
+   straight into its input ("Reply-By Date 1 June 2027" on one line).
+
+   Written with :where() so these count as ZERO specificity: any design
+   that styles .ed-field itself still wins, and this is only a floor. */
+:where(.ed-field){ min-width:0; }
+:where(.ed-field) :where(label){
+    display:block; margin-bottom:6px;
+    font-size:10px; letter-spacing:0.16em; text-transform:uppercase;
+    color:hsl(var(--c-warmgray));
+}
+:where(.ed-field) :where(input[type="text"],input[type="date"],textarea,select){
+    width:100%; display:block; padding:10px 12px; font-size:12px;
+    border-radius:8px;
+    border:1px solid hsl(var(--c-gold) / 0.30);
+    background:var(--ui-field-bg, hsl(var(--c-cream) / 0.6));
+    color:var(--ui-field-text, hsl(var(--c-charcoal)));
+}
+:where(.ed-field) :where(textarea){ resize:vertical; line-height:1.6; }
+:where(.ed-row){ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+:where(.ed-hint){ margin:6px 0 0; font-size:10px; line-height:1.5; color:hsl(var(--c-warmgray)); }
+:where(.ed-note){
+    margin:0; padding:9px 11px; border-radius:6px;
+    background:hsl(var(--c-gold) / 0.07); border:1px solid hsl(var(--c-gold) / 0.18);
+    font-size:10.5px; line-height:1.55; color:hsl(var(--c-warmgray));
+}
+:where(.ed-subhead){
+    margin:18px 0 0; padding-top:14px; border-top:1px solid hsl(var(--c-gold) / 0.18);
+    font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:hsl(var(--c-gold));
+}
+:where(.ed-wording){
+    margin-top:18px; padding-top:14px; border-top:1px dashed hsl(var(--c-gold) / 0.22);
+    display:flex; flex-direction:column; gap:12px;
+}
+:where(.ed-check){ display:flex; align-items:center; gap:10px; cursor:pointer; }

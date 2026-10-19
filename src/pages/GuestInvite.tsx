@@ -6,9 +6,10 @@ import { MEALS, RsvpSource, configureFormat, fmtDate, seedTemplates } from "../l
 import { useApp, usePrefersReducedMotion, type Db, type InvitationConfig } from "../lib/store";
 import { getGuestByToken, getPublicInvitation, submitRsvp, type PublicInvitation } from "../lib/api";
 import { playChime, useChimeLoop } from "../lib/sound";
-import { siteHost } from "../lib/links";
+import { leaveFor, siteHost } from "../lib/links";
 import { can } from "../lib/plans";
 import { Turnstile, type TurnstileHandle } from "../components/Turnstile";
+import { planAllows, studioDesignOf, studioInviteUrl } from "../../api/_lib/studioDesigns";
 import { InviteArt } from "../components/dashboard/Invitations";
 import { SiteBody } from "../components/dashboard/Website";
 import { DesignFrame, Logo, SafeImg } from "../components/ui";
@@ -132,6 +133,12 @@ export default function GuestInvite() {
         if (!live) return;
         if (!p) { setLoadState("missing"); return; }
         if (p.live === false) { setLoadState("closed"); return; }
+        // the couple chose one of the owner's own designs (Block 18): that's a page of its own
+        const studio = studioDesignOf(p.invitation?.template_id);
+        if (studio && planAllows(p.plan, studio)) {
+          leaveFor(studioInviteUrl(studio, { token, slug: token ? null : slug, src: srcParam }));
+          return;
+        }
         // show dates & money the way the couple set them, not the visitor's defaults
         configureFormat({ locale: p.locale, currency: p.currency, timeZone: p.timezone });
         setPub(p);
