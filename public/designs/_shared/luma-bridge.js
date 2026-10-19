@@ -103,6 +103,16 @@
 
   window.lumaBoot = load();
 
+  // the planner rewrites the preview as the couple types: follow it, gently
+  if (preview) {
+    var reloadSoon = null;
+    window.addEventListener('storage', function (e) {
+      if (e.key !== 'luma.designPreview') return;
+      clearTimeout(reloadSoon);
+      reloadSoon = setTimeout(function () { window.location.reload(); }, 900);
+    });
+  }
+
   /* ------------------------- hide what's empty ------------------------- */
 
   function hide(el) { if (el) el.style.display = 'none'; }

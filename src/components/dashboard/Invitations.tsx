@@ -14,6 +14,8 @@ import { MUSIC_TYPES, deleteMusic, musicFileProblem, uploadMusic } from "../../l
 import { playChime, useChimeLoop } from "../../lib/sound";
 import { DesignFrame, Field, Modal, Pill, PlanTag, SafeImg, btn, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
+import { STUDIO_DESIGNS, studioDesignOf } from "../../../api/_lib/studioDesigns";
+import { StudioDetails, StudioGallery, StudioPreviewPane, openStudioPreview, writePreview } from "./StudioDesigns";
 
 /* ------------------------------ palette & font presets ------------------------------ */
 
@@ -364,6 +366,11 @@ export default function Invitations() {
   const cfg = db.invitation;
   const activeCustom = db.customTemplates.find((c) => c.id === cfg.templateId) ?? null;
   const isHtmlDesign = !!activeCustom?.html;
+  /** one of the owner's own designs (Block 18): a page of its own, previewed in its own tab */
+  const studio = studioDesignOf(cfg.templateId);
+
+  // an open preview tab follows the couple's edits (luma-bridge.js reloads on change)
+  useEffect(() => { if (studio) writePreview(db, studio); }, [studio, db]);
   const template = seedTemplates.find((t) => t.id === cfg.templateId) ?? seedTemplates[0];
   const colors = resolveColors(template, cfg.colors);
   const serif = cfg.fontSerif ?? template.serif;
@@ -412,9 +419,10 @@ export default function Invitations() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-2xl text-ink">
-              {activeCustom ? activeCustom.name : template.name}{" "}
-              <span className="text-base italic text-ink-mute">· {activeCustom ? "your design" : template.cat}</span>
+              {studio ? studio.name : activeCustom ? activeCustom.name : template.name}{" "}
+              <span className="text-base italic text-ink-mute">· {studio ? "studio design" : activeCustom ? "your design" : template.cat}</span>
             </h2>
+            {!studio && (
             <div className="flex rounded-full border border-ink/12 bg-white/70 p-1">
               {([["desktop", Monitor], ["tablet", Tablet], ["mobile", Smartphone]] as const).map(([d, Icon]) => (
                 <button key={d} onClick={() => setDevice(d)} aria-label={`${d} preview`} className={`rounded-full p-2 transition cursor-pointer ${device === d ? "bg-ink text-cream" : "text-ink-mute hover:text-ink"}`}>
@@ -422,6 +430,7 @@ export default function Invitations() {
                 </button>
               ))}
             </div>
+            )}
           </div>
 
           <div className="rounded-[1.8rem] border border-white/70 bg-white/50 p-4 backdrop-blur-md sm:p-6">
@@ -432,7 +441,9 @@ export default function Invitations() {
                 {animated && <Pill tone="gold" className="ml-auto"><Sparkles size={10} /> animated</Pill>}
               </div>
               <div className="max-h-[560px] overflow-y-auto">
-                {activeCustom ? (
+                {studio ? (
+                  <StudioPreviewPane design={studio} />
+                ) : activeCustom ? (
                   activeCustom.html ? (
                     <div>
                       <DesignFrame html={activeCustom.html} title={`${activeCustom.name} — live invitation`} className="h-[540px] bg-white" />
@@ -456,7 +467,7 @@ export default function Invitations() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <button onClick={() => setLive(true)} className={`${btn.ink} !py-3`}><Play size={14} /> Live preview</button>
+            <button onClick={() => (studio ? openStudioPreview(db, studio) : setLive(true))} className={`${btn.ink} !py-3`}><Play size={14} /> Live preview</button>
             <a href="#/invite" target="_blank" rel="noreferrer" className={`${btn.outline} !py-3`}><Link2 size={14} /> Guest page</a>
             {/* Luma does not email guests. This used to fake a "Send to N guests"
                 run ("Invitations sent… via Resend") while nothing left the app.
@@ -495,7 +506,9 @@ export default function Invitations() {
             </button>
           </section>
 
-          {isHtmlDesign ? (
+          {studio ? (
+            <StudioDetails cfg={cfg} setCfg={setCfg} design={studio} />
+          ) : isHtmlDesign ? (
             <section className="rounded-[1.6rem] border border-gold/40 bg-gold-soft/40 p-6 backdrop-blur-md">
               <h3 className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
                 <Sparkles size={12} /> Live HTML design
@@ -540,7 +553,8 @@ export default function Invitations() {
           <section className="rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md">
             <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">RSVP options</h3>
             <div className="mt-4 space-y-2.5">
-              {([["rsvp", "RSVP button"], ["meal", "Meal selection"], ["notes", "Guest notes"]] as const).map(([key, label]) => {
+              {/* studio designs ask for names, party size and notes in their own form */}
+              {(studio ? [["rsvp", "RSVP form"]] as const : [["rsvp", "RSVP button"], ["meal", "Meal selection"], ["notes", "Guest notes"]] as const).map(([key, label]) => {
                 // what guests will actually see: meal and notes need Celebration
                 const paid = key !== "rsvp";
                 const on = cfg[key] && (!paid || can(db.plan, "rsvpDetails"));
@@ -559,9 +573,9 @@ export default function Invitations() {
             </div>
           </section>
 
-          <LuxeStudio cfg={cfg} setCfg={setCfg} unlocked={luxeUnlocked} />
+          <LuxeStudio cfg={cfg} setCfg={setCfg} unlocked={luxeUnlocked} songOnly={!!studio} />
 
-          {template.photo && (
+          {!studio && template.photo && (
             <section className="rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md">
               <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">Photo</h3>
               <div className="mt-4 grid grid-cols-3 gap-2">
@@ -586,11 +600,13 @@ export default function Invitations() {
               {c}
             </button>
           ))}
-          <Pill tone="gold">{seedTemplates.length + db.customTemplates.length} designs</Pill>
+          <Pill tone="gold">{seedTemplates.length + STUDIO_DESIGNS.length + db.customTemplates.length} designs</Pill>
           <button onClick={() => (can(db.plan, "customDesigns") ? setImportOpen(true) : openUpgrade("customDesigns"))} className={`${btn.outline} ml-auto !px-4 !py-2 text-[0.78rem]`}>
             <UploadCloud size={14} /> Add Luxe designs
           </button>
         </div>
+
+        <StudioGallery cfg={cfg} setCfg={setCfg} />
 
         {db.customTemplates.length > 0 && (
           <div className="mt-5">
@@ -1081,10 +1097,12 @@ export function RsvpTracker() {
 
 /* ------------------------------ luxe studio ------------------------------ */
 
-function LuxeStudio({ cfg, setCfg, unlocked }: {
+function LuxeStudio({ cfg, setCfg, unlocked, songOnly = false }: {
   cfg: ReturnType<typeof useApp>["db"]["invitation"];
   setCfg: (p: Partial<ReturnType<typeof useApp>["db"]["invitation"]>) => void;
   unlocked: boolean;
+  /** a studio design brings its own motion and tracks: only the couple's own song applies */
+  songOnly?: boolean;
 }) {
   const { toast, openUpgrade, db, mode, weddingId } = useApp();
   const [currency] = useCurrency();
@@ -1130,7 +1148,7 @@ function LuxeStudio({ cfg, setCfg, unlocked }: {
   const removeTrack = async () => {
     const previous = music.uploadUrl;
     setCfg({ music: { track: "serene", uploadName: null, uploadUrl: null } });
-    toast("Song removed", "Your invitation plays “Serene” again.", "info");
+    toast("Song removed", songOnly ? "Your invitation plays the music you picked for it." : "Your invitation plays “Serene” again.", "info");
     if (mode === "cloud" && weddingId && previous) {
       await deleteMusic(weddingId, previous).catch(() => {
         toast("The old file is still stored", "It's no longer played. We'll try again next time.", "warn");
@@ -1140,6 +1158,7 @@ function LuxeStudio({ cfg, setCfg, unlocked }: {
 
   const body = (
     <>
+      {!songOnly && (
       <div>
         <p className="text-[0.72rem] font-extrabold text-ink-2">Petals & motion</p>
         <div className="mt-2 flex rounded-full bg-ink/5 p-1 text-[0.74rem] font-bold">
@@ -1160,11 +1179,12 @@ function LuxeStudio({ cfg, setCfg, unlocked }: {
           ))}
         </div>
       </div>
+      )}
 
-      <div className="mt-5">
-        <p className="text-[0.72rem] font-extrabold text-ink-2">Background music</p>
+      <div className={songOnly ? "" : "mt-5"}>
+        <p className="text-[0.72rem] font-extrabold text-ink-2">{songOnly ? "Your own song" : "Background music"}</p>
         <div className="mt-2 space-y-2">
-          {MUSIC_TRACKS.map((t) => (
+          {!songOnly && MUSIC_TRACKS.map((t) => (
             <button key={t.id} disabled={!unlocked} onClick={() => { setCfg({ music: { ...music, track: t.id } }); playChime("place"); }}
               className={`flex w-full items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left transition disabled:cursor-not-allowed ${music.track === t.id ? "border-gold/60 bg-gold-soft/50" : "border-ink/12 hover:border-ink/30"}`}>
               <span className={`flex h-8 w-8 items-center justify-center rounded-full ${music.track === t.id ? "bg-gold text-ink" : "bg-ink/6 text-ink-mute"}`}><Music size={13} /></span>

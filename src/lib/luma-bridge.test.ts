@@ -41,7 +41,7 @@ const invitation = {
 let rsvpBodies: Record<string, unknown>[];
 let network: ReturnType<typeof vi.fn>;
 
-function boot(search: string, live: Record<string, unknown> = {}) {
+function boot(search: string, live: Record<string, unknown> = {}, reload?: () => void) {
   history.replaceState(null, "", `/designs/celestial/${search}`);
   document.documentElement.className = "";
   document.body.innerHTML = MARKUP;
@@ -62,7 +62,18 @@ function boot(search: string, live: Record<string, unknown> = {}) {
   vi.stubGlobal("fetch", network);
   // Turnstile, already loaded, passes straight away
   w.turnstile = { render: (_el: Element, o: { callback: (t: string) => void }) => { o.callback("human-ok"); return "w1"; }, reset: vi.fn() } as never;
-  new Function(BRIDGE)();
+  if (!reload) { new Function(BRIDGE)(); return; }
+  // jsdom's location can't be stubbed: give the script a window whose location.reload is a spy
+  const loc = { search: location.search, href: location.href, reload, replace: vi.fn() };
+  const win = new Proxy(window, {
+    get: (t, k) => {
+      if (k === "location") return loc;
+      const v = Reflect.get(t, k);
+      return typeof v === "function" && !/^[A-Z]/.test(String(k)) ? v.bind(t) : v;
+    },
+    set: (t, k, v) => Reflect.set(t, k, v),
+  });
+  new Function("window", BRIDGE)(win);
 }
 
 beforeEach(() => {
@@ -152,5 +163,20 @@ describe("luma-bridge", () => {
     boot("?slug=ana-boris");
     await w.lumaBoot;
     expect((await fetch("/elsewhere")).status).toBe(404);
+  });
+});
+
+describe("luma-bridge: the planner's preview follows the couple's edits", () => {
+  it("reloads shortly after the preview copy changes, once", async () => {
+    vi.useFakeTimers();
+    localStorage.setItem("luma.designPreview", JSON.stringify({ invitation }));
+    const reload = vi.fn();
+    boot("?preview=1", {}, reload);
+    window.dispatchEvent(new StorageEvent("storage", { key: "luma.designPreview" }));
+    window.dispatchEvent(new StorageEvent("storage", { key: "luma.designPreview" }));
+    window.dispatchEvent(new StorageEvent("storage", { key: "luma.cache.x" }));
+    vi.advanceTimersByTime(1000);
+    expect(reload).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
   });
 });
