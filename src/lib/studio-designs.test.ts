@@ -105,6 +105,18 @@ describe("studio designs: the catalogue", () => {
     expect(d.storyStatements).toBe("It started with two\nTwo lives\nOne unexpected moment\nAnd now\nUs");
   });
 
+  it("The Picture House is part of Luxe, with three stills of the couple and a generic slate until they write theirs", () => {
+    const cn = studioDesignOf("studio:cinema")!;
+    expect(planAllows("luxe", cn)).toBe(true);
+    expect(planAllows("celebration", cn)).toBe(false);
+    const still = "https://abc.supabase.co/storage/v1/object/public/media/w1/photos/s.jpg";
+    const d = toInvitationData({ slug: "a", names: "A & B", date: "2027-06-12T14:00:00Z", invitation: { template_id: "studio:cinema", design_data: { photos: { storyPhotoTwo: still } } } }, cn);
+    expect(d.heroEyebrow).toBe("Scene 01 — The Wedding");
+    expect([d.storyPhotoOne, d.storyPhotoTwo, d.storyPhotoTogether]).toEqual(["", still, ""]);
+    // the hero is the design's own spotlight until the couple adds a photo
+    expect(d.heroPhoto).toBe("");
+  });
+
   it("a guest's link keeps the token, the slug and the source", () => {
     expect(studioInviteUrl(celestial, { token: "t-1", src: "whatsapp" })).toBe("/designs/celestial/index.html?token=t-1&src=whatsapp");
     expect(studioInviteUrl(celestial, { slug: "ana-boris" })).toBe("/designs/celestial/index.html?slug=ana-boris");

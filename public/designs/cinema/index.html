@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Generic on purpose: a crawler reads this, and design.js rewrites it with the
+     couple's names the moment the page runs. Only crawlers ever see this wording. -->
+<title>The Picture House &mdash; A Wedding Invitation</title>
+<meta name="description" content="A love story in three acts. You are invited.">
+<meta name="theme-color" content="#060403">
+
+
+<!-- Favicon: champagne A&J on ink. Self-contained, no file needed. -->
+<!-- Link previews read the raw HTML: generic on purpose, no image, no names. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="You&rsquo;re Invited">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230b0908'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-size='30' fill='%23c99b4c'%3EA%26J%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230b0908'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-size='30' fill='%23c99b4c'%3EA%26J%3C/text%3E%3C/svg%3E">
+
+<!-- Fonts: Bodoni Moda (display), Cormorant Garamond (body), Space Mono (printed
+     data / labels), Caveat (chalk on the clapperboard). -->
+<link rel="stylesheet" href="../_shared/fonts/fonts.css">
+<!-- Font Awesome: the shared builder drawer renders its icons with it. -->
+<link rel="stylesheet" href="../_shared/vendor/fontawesome/css/all.min.css">
+<!-- Confetti is available to the core; LZ-String compresses the share-link payload. -->
+<script src="../_shared/vendor/confetti.browser.min.js"></script>
+<script src="../_shared/vendor/lz-string.min.js"></script>
+
+<!-- ORDER MATTERS. tailwind.css ships Preflight (a full reset) that would flatten
+     this design; wedding-design.css loads after it so The Picture House always wins,
+     and wedding-ui.css last because it only dresses the builder drawer. -->
+<link rel="stylesheet" href="../_shared/tailwind.css?v=13">
+<link rel="stylesheet" href="wedding-design.css?v=13">
+<link rel="stylesheet" href="../_shared/wedding-ui.css?v=13">
+<!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
+<style>
+  html.luma-loading { background: #0b0908; }
+  html.luma-loading body { visibility: hidden; }
+  .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #0b0908; color: #efe6d6; font-family: 'Cormorant Garamond', sans-serif; }
+  .luma-notice h1 { font-family: 'Bodoni Moda', Georgia, serif; font-size: 34px; font-weight: 400; color: #c99b4c; margin: 0; }
+  .luma-notice p { font-size: 17px; max-width: 30rem; margin: 0; opacity: .8; }
+  .luma-notice a { margin-top: 8px; color: #c99b4c; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+  .luma-check:empty { display: none; }
+</style>
+</head>
+<body>
+
+
+<!-- Background music (the core plays the bundled Satie/Debussy/Ravel recordings). -->
+<audio id="bg-music-audio" loop preload="none"></audio>
+<button id="music-toggle-btn" onclick="toggleMusic()" class="audio-toggle" style="display:none;" aria-label="Toggle background music">
+  <i class="fas fa-music" id="music-toggle-icon"></i>
+</button>
+<!-- ============================================================
+     THE PICTURE HOUSE · the invitation itself
+     Almost every guest-facing string is written by buildContent() in design.js,
+     which reads the shared invitationData and pours it into this markup.
+============================================================ -->
+
+<div id="grain" aria-hidden="true"></div>
+<div id="vignette" aria-hidden="true"></div>
+<div id="curtains" aria-hidden="true"></div>
+<div id="cueBurn" aria-hidden="true"></div>
+<div class="scratch" aria-hidden="true"></div>
+<div class="scratch s2" aria-hidden="true"></div>
+
+<!-- INTRO -->
+<div id="intro" role="presentation">
+  <div class="proj-beam" aria-hidden="true"></div>
+  <div class="leader" aria-hidden="true">
+    <span class="leader-tag tl">Picture start</span>
+    <span class="leader-tag br">35 mm · Academy</span>
+    <span class="sweep"></span><span class="leader-num" id="leaderNum">3</span>
+  </div>
+  <div class="slate" aria-hidden="true">
+    <div class="slate-board">
+      <span class="slate-clap" aria-hidden="true"><i class="slate-bolt"></i></span>
+      <div class="slate-fields">
+        <div class="sf sf-wide"><label>Prod.</label><span class="chalk">The Picture House</span></div>
+        <div class="sf sf-wide"><label>Dir.</label><span class="chalk">Fate</span></div>
+        <div class="slate-grid">
+          <div class="sf"><label>Roll</label><span class="chalk">01</span></div>
+          <div class="sf"><label>Scene</label><span class="chalk">01</span></div>
+          <div class="sf"><label>Take</label><span class="chalk">1</span></div>
+          <div class="sf"><label>Date</label><span class="chalk" id="slateDate">24·08·27</span></div>
+        </div>
+      </div>
+    </div>
+    <span class="slate-flash" aria-hidden="true"></span>
+  </div>
+  <span class="flare" aria-hidden="true"></span>
+  <div class="titlecard" aria-hidden="true">
+    <p class="tc-eyebrow">The projection of</p>
+    <p class="tc-names"><span data-sync="one"></span> <em>&amp;</em> <span data-sync="two"></span></p>
+    <p class="tc-line">YOU ARE INVITED · <span data-sync="date"></span></p>
+  </div>
+  <button id="skipBtn" type="button">Skip Intro</button>
+</div>
+
+<header class="site-nav">
+  <span class="mono-gram" id="navGram"></span>
+  <div class="nav-right">
+    <button class="nav-btn" id="soundBtn" type="button" aria-pressed="false">Sound</button>
+    <button class="nav-btn" id="navMenuBtn" type="button" aria-expanded="false">Menu</button>
+  </div>
+</header>
+<div id="hud" class="mono" aria-hidden="true"><span class="rec"></span>REEL <span id="reelNum">01</span> · TC <span id="tcTime">00:00:00:00</span></div>
+
+<main id="main">
+
+  <!-- HERO -->
+  <section id="hero" data-reel="01">
+    <div class="hero-bg" id="heroBg" aria-hidden="true"></div>
+    <div class="hero-shade" aria-hidden="true"></div>
+    <div class="hero-dust" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="hero-inner">
+      <p class="hero-eyebrow rv" id="heroEyebrow"></p>
+      <h1 class="hero-names">
+        <span class="mask"><span class="mask-in" style="--d:.15s"><span data-sync="one"></span></span></span>
+        <span class="mask"><span class="mask-in" style="--d:.3s"><span class="amp">&amp;</span> <span data-sync="two"></span></span></span>
+      </h1>
+      <p class="hero-tag rv" style="--d:.5s" id="heroTag">A love story in three acts</p>
+      <p class="hero-date rv" style="--d:.62s" data-sync="date"></p>
+    </div>
+    <p class="hero-cue rv" style="--d:.9s">The projection begins<span>▼</span></p>
+  </section>
+
+  <!-- ACT I -->
+  <section id="act1" class="act" data-io data-reel="02">
+    <header class="inter">
+      <p class="reel rv">Reel 02 · Act I</p>
+      <h2><span class="mask"><span class="mask-in" style="--d:.1s">The <em>Meeting</em></span></span></h2>
+      <div class="rule rule-x" style="--d:.3s"></div>
+    </header>
+    <div class="story-grid">
+      <figure class="pframe rv-blur">
+        <img src="" id="storyImgOne" alt="A portrait" onerror="this.onerror=null;window.photoFallback&&window.photoFallback(this)">
+        <figcaption>Starring <span data-sync="one"></span></figcaption>
+      </figure>
+      <div class="story-text">
+        <p class="rv" style="--d:.15s" id="storyP1">We met on an ordinary afternoon that has since become the only one we remember clearly. A shared table, a borrowed chair, a conversation that refused to end at closing time.</p>
+        <p class="rv" style="--d:.3s" id="storyP2">What followed was quieter than a love story is supposed to be — long dinners, longer walks, and the slow, certain feeling of two separate lives beginning to face the same direction. This is the scene where everything changes, and neither of us noticed it happening.</p>
+      </div>
+      <figure class="pframe alt rv-blur" style="--d:.2s">
+        <img src="" id="storyImgTwo" alt="A portrait" onerror="this.onerror=null;window.photoFallback&&window.photoFallback(this)">
+        <figcaption>Starring <span data-sync="two"></span></figcaption>
+      </figure>
+    </div>
+    <figure class="story-together rv-blur" style="--d:.1s">
+      <img src="" id="storyImgTogether" alt="The two of you" onerror="this.onerror=null;window.photoFallback&&window.photoFallback(this)">
+      <figcaption>Scene 31 — The first dance</figcaption>
+    </figure>
+  </section>
+
+  <!-- ACT II -->
+  <section id="act2" class="act" data-io data-reel="03">
+    <header class="inter">
+      <p class="reel rv">Reel 03 · Act II</p>
+      <h2><span class="mask"><span class="mask-in" style="--d:.1s">The <em>Vows</em></span></span></h2>
+      <div class="rule rule-x" style="--d:.3s"></div>
+    </header>
+    <div class="date-card">
+      <p class="date-big rv-blur" data-sync="date"></p>
+      <p class="date-sub rv" style="--d:.2s">Now showing · one afternoon only</p>
+      <div class="cd rv" style="--d:.3s" role="timer" aria-label="Countdown to the ceremony">
+        <div class="cd-cell"><span class="cd-num" id="cdD">00</span><span class="cd-lab">Days</span></div>
+        <div class="cd-cell"><span class="cd-num" id="cdH">00</span><span class="cd-lab">Hours</span></div>
+        <div class="cd-cell"><span class="cd-num" id="cdM">00</span><span class="cd-lab">Minutes</span></div>
+        <div class="cd-cell"><span class="cd-num" id="cdS">00</span><span class="cd-lab">Seconds</span></div>
+      </div>
+      <div class="venue rv" style="--d:.2s">
+        <p class="venue-name" id="venueName"></p>
+        <p class="venue-addr" id="venueAddr"></p>
+        <a class="venue-link" id="venueLink" href="#" target="_blank" rel="noopener">Get directions</a>
+        <a class="venue-link" id="calBtn" href="#" rel="noopener" style="margin-left:24px">Add to calendar</a>
+        <p class="dress" id="dressLine">Dress code — black tie, with a touch of velvet.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACT III -->
+  <section id="act3" class="act" data-io data-reel="04">
+    <header class="inter">
+      <p class="reel rv">Reel 04 · Act III</p>
+      <h2><span class="mask"><span class="mask-in" style="--d:.1s">The <em>Celebration</em></span></span></h2>
+      <div class="rule rule-x" style="--d:.3s"></div>
+    </header>
+    <div class="sheet rv">
+      <div class="sheet-head"><span>Call time</span><span>Scene</span><span>Action</span><span>Setting</span></div>
+      <div id="scheduleList"></div>
+    </div>
+  </section>
+
+  <!-- FILMSTRIP -->
+  <section id="gallery-stage" data-reel="04">
+    <div class="strip-sticky">
+      <div class="strip-head">
+        <h2>The <em>Filmstrip</em></h2>
+        <p>Scroll to advance the reel</p>
+      </div>
+      <div class="strip">
+        <div class="gate" aria-hidden="true"></div>
+        <div class="track" id="filmTrack"></div>
+      </div>
+      <div id="galleryBar" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- RSVP -->
+  <section id="rsvp" data-io data-reel="05">
+    <div class="rsvp-wrap">
+      <header class="inter">
+        <p class="reel rv" id="rsvpTag">Reel 05 · The Reply</p>
+        <h2><span class="mask"><span class="mask-in" style="--d:.1s">Admit <em>Two</em></span></span></h2>
+        <div class="rule rule-x" style="--d:.3s"></div>
+      </header>
+      <div class="ticket rv" id="ticket">
+        <div class="tk-main">
+          <div class="tk-head">
+            <div class="tk-house">
+              <span class="tk-house-name">The Picture House</span>
+              <span class="tk-reply"><span id="rsvpDeadlinePrefix">Kindly reply by</span> <span id="rsvpDeadlineText">1 June 2027</span></span>
+            </div>
+            <span class="tk-emblem" aria-hidden="true">
+              <svg viewBox="0 0 64 64" width="32" height="32" fill="none" stroke="#b8863a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20 H52 A3 3 0 0 1 55 23 V27 A4 4 0 0 0 55 35 V41 A3 3 0 0 1 52 44 H12 A3 3 0 0 1 9 41 V35 A4 4 0 0 0 9 27 V23 A3 3 0 0 1 12 20 Z"/>
+                <path d="M32 26 L34 31 L39.5 31.4 L35.3 34.8 L36.8 40 L32 37 L27.2 40 L28.7 34.8 L24.5 31.4 L30 31 Z" fill="#b8863a" stroke="none"/>
+              </svg>
+            </span>
+          </div>
+          <div class="tk-rule" aria-hidden="true"><i></i></div>
+          <!-- Netlify Forms: the reply posts to Netlify. name/data-netlify/form-name
+               register the form at deploy; the field NAMES (guest_names, attending,
+               guest_count, notes) match every design so replies land in one shape.
+               design.js owns the tear + the post; the core's submit is not used. -->
+          <form id="rsvp-form" name="rsvp" method="POST" novalidate>
+            <input type="hidden" name="form-name" value="rsvp">
+            <p class="hp-field" aria-hidden="true" style="position:absolute;left:-9999px;height:0;overflow:hidden"><label>Leave this field empty<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+            <div class="f-row" id="rowName">
+              <label for="rsvpName" id="rsvpNameLabel">Your name</label>
+              <input type="text" id="rsvpName" name="guest_names" autocomplete="name" placeholder="Written in the credits as…">
+            </div>
+            <div class="f-row" id="rowAtt">
+              <label id="attLabel" data-sync-label="attendance">Attendance</label>
+              <div class="att-row" role="radiogroup" aria-labelledby="attLabel">
+                <label class="att"><input type="radio" name="attending" value="yes" checked><span id="rsvpYesLabel">Joyfully attending</span></label>
+                <label class="att"><input type="radio" name="attending" value="no"><span id="rsvpNoLabel">Regretfully declining</span></label>
+              </div>
+            </div>
+            <div class="f-row" id="rowSeats">
+              <label id="guestLabel">Seats in your party</label>
+              <div class="guest-row" role="radiogroup" aria-labelledby="guestLabel" id="guestChips"></div>
+              <!-- Static, visually hidden — Netlify registers this field; the chips drive it. -->
+              <select id="rsvp-guest-count" name="guest_count" class="visually-hidden" tabindex="-1" aria-hidden="true">
+                <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
+                <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+              </select>
+            </div>
+            <!-- Revealed by the core (handleRsvpGuestCountChange) once more than
+                 one seat is chosen, so we know who is in the party. -->
+            <div class="f-row" id="rsvp-plusone-wrap" style="display:none">
+              <label for="rsvp-plusone-name" id="rsvpPlusOneLabel">Name of your guest</label>
+              <input type="text" id="rsvp-plusone-name" name="plusone_name" autocomplete="off"
+                     placeholder="Also in the credits…"
+                     data-singular="Also in the credits…" data-plural="Also in the credits, separated by commas…">
+            </div>
+            <div class="f-row">
+              <label for="rsvpNotes" id="rsvpNotesLabel">Dietary requirements &amp; notes</label>
+              <textarea id="rsvpNotes" name="notes" rows="3" placeholder="Optional"></textarea>
+            </div>
+            <button class="tk-submit" id="rsvpSubmitBtn" type="submit"><span id="rsvpSubmitLabel">Tear the stub · Send RSVP</span></button>
+            <p class="tk-error" id="rsvpError" role="alert"></p>
+          </form>
+          <span class="jag jag-r" aria-hidden="true"></span>
+        </div>
+        <aside class="tk-stub" aria-hidden="true">
+          <span class="jag jag-l" aria-hidden="true"></span>
+          <span class="no">Nº 002408</span>
+          <span class="admit">ADMIT TWO</span>
+          <span class="stub-fine">Stalls · one afternoon<br>no reserved seat</span>
+          <span class="tk-bar"></span>
+          <span class="bar-num">0 02408 2708 27</span>
+          <span class="date-s" data-sync="date"></span>
+        </aside>
+        <div class="tk-success" role="status">
+          <span class="stamp">Admit Two · Confirmed</span>
+          <p>Your name is in the credits now.</p>
+        </div>
+        <div class="tk-rc" role="status">
+          <span class="rc-stamp">Rain Check</span>
+          <p class="rc-note">The seat stays yours &mdash; come find us for the encore.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE CREDITS -->
+  <section id="credits" data-reel="05">
+    <div class="credits-sticky">
+      <div class="credits-inner" id="creditsInner">
+        <p class="cr-line">Starring</p>
+        <p class="cr-names"><span data-sync="one"></span> &amp; <span data-sync="two"></span></p>
+        <p class="cr-line">Directed by</p><p class="cr-val">Fate</p>
+        <p class="cr-line">Cinematography</p><p class="cr-val">Light, mostly</p>
+        <p class="cr-line">Score</p><p class="cr-val">Satie · Debussy</p>
+        <p class="cr-line">Location</p><p class="cr-val" id="crLocation"></p>
+        <p class="cr-line">Casting</p><p class="cr-val">The two families</p>
+        <p class="cr-line">With thanks to</p><p class="cr-val" id="crGuest">Everyone in the audience</p>
+        <p class="cr-date" data-sync="date"></p>
+        <p class="cr-end">Until we meet</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>Reel ends · <span data-sync="one"></span> &amp; <span data-sync="two"></span> · <span data-sync="date"></span> · Until we meet</footer>
+</main>
+
+<!-- MENU -->
+<div id="menuOverlay" hidden>
+  <button id="menuClose" type="button">Close ×</button>
+  <nav aria-label="Sections"><div id="menuLinks"></div></nav>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Photograph">
+  <button id="lbClose" type="button">Close ×</button>
+  <img id="lbImg" alt="">
+  <figcaption id="lbCap"></figcaption>
+</div>
+
+<!-- END CREDITS OVERLAY -->
+<div id="endCredits" aria-hidden="true">
+  <div class="ec-vignette" aria-hidden="true"></div>
+  <div class="ec-dust" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="ec-track" id="ecTrack">
+    <p class="ec-kicker">The end of the beginning</p>
+    <p class="ec-names"><span data-sync="one"></span> &amp; <span data-sync="two"></span></p>
+    <p class="ec-kicker red">Thank</p><p class="ec-name">Their Guests</p>
+    <p class="ec-role">For standing beside them</p>
+    <p class="ec-kicker" id="ecGuestKick">RSVP received</p>
+    <div class="ec-guest">
+      <p class="ec-name" id="ecGuest">—</p>
+      <p class="ec-role" id="ecGuestSub" style="margin-top:10px"></p>
+    </div>
+    <p class="ec-kicker red">Directed by</p><p class="ec-name">Fate</p>
+    <p class="ec-kicker">Cinematography</p><p class="ec-name">Light, Mostly</p>
+    <p class="ec-kicker red">Score</p><p class="ec-name">Satie · Debussy</p>
+    <p class="ec-kicker">Location</p><p class="ec-name" id="ecLocation"></p>
+    <p class="ec-kicker red">Casting</p><p class="ec-name">The Two Families</p>
+    <p class="ec-kicker">Costumes</p><p class="ec-name">Black Tie, A Touch Of Velvet</p>
+    <p class="ec-kicker red">Best supporting roles</p><p class="ec-name">The Guests</p>
+    <p class="ec-kicker">Produced by</p><p class="ec-name">Love, Mostly</p>
+    <p class="ec-theend">THE END</p>
+    <p class="ec-date" data-sync="date"></p>
+  </div>
+  <button id="ecSkip" type="button">Skip credits →</button>
+  <div id="ecActions"><button id="ecReturn" type="button">Return to the invitation</button></div>
+</div>
+
+<!-- SHARE / EXPORT MODAL (shared core drives it; markup lives per-design) -->
+<script id="invitation-data-script">
+let invitationData = {
+    /* Filled from Luma by luma-bridge.js (window.lumaBoot) before the first
+       render: the couple's details, photos and wording. Below are only the
+       shapes, and this design's generic labels. */
+    partner1: "", partner2: "", hashtag: "", date: "", time: "",
+    venueName: "", venueAddress: "", dressCode: "", dressCodeNote: "", rsvpDeadline: "",
+    music: { enabled: false, track: "gnossienne" },
+    heroPhoto: "", story1: "", story2: "",
+    gallery: [], schedule: [], faq: [],
+    photoTone: true,
+    ceremonyNote: "",
+    heroEyebrow: "",
+    heroQuote: "A love story in three acts.\nYou are invited.",
+    storyTag: "Reel 02 · Act I",
+    storyTitle: "The Meeting",
+    storyStatements: "It started with two\nTwo lives\nOne unexpected moment\nAnd now\nUs",
+    storyOpener: "Everything began quietly",
+    celebrationPlace: "",
+    celebrationAddress: "",
+    rsvpKicker: "Admit Two",
+    rsvpEmailText: "",
+    dayTag: "Reel 03 · Act II",
+    dayCaption: "Now showing · one afternoon only",
+    scheduleHeading: "The course of the evening",
+    galleryTag: "The Filmstrip",
+    rsvpTag: "Reel 05 · The Reply",
+    rsvpDeadlinePrefix: "Kindly reply by",
+    rsvpNameLabel: "Your name",
+    rsvpAttendanceLabel: "Attendance",
+    rsvpYesLabel: "Joyfully attending",
+    rsvpNoLabel: "Regretfully declining",
+    rsvpGuestsLabel: "Seats in your party",
+    rsvpPlusOneLabel: "Name of your guest",
+    rsvpNotesLabel: "Dietary requirements & notes",
+    rsvpSubmitLabel: "Tear the stub · Send RSVP",
+    rsvpErrorText: "That didn't send. Check your connection and try again.",
+    faqTag: "Questions",
+    faqHeading: "Things you might ask",
+    isGuestView: true
+};
+</script>
+
+<!-- Luma first: the core awaits window.lumaBoot -->
+<script src="../_shared/luma-bridge.js?v=2"></script>
+
+
+<!-- Shared behaviour for every design: builder, save and share, countdown,
+     calendar, gallery, FAQ, RSVP post, music, export. Loaded after the data. -->
+<script src="../_shared/wedding-core.js?v=13"></script>
+<!-- This design only: the opening sequence, the reveal engine, the tear, and the
+     seam onto the shared core. Loaded after the core so it can override by name. -->
+<script src="design.js?v=13"></script>
+
+<!-- Luma: the after-render hook this design's own render needs, and what it
+     leaves to its old builder. -->
+<script src="luma.js?v=1"></script>
+</body>
+</html>
