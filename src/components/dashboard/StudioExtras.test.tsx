@@ -81,6 +81,17 @@ describe("a design's own photos, gallery and wording", () => {
     expect(within(music).queryByRole("button", { name: /Clair de lune/ })).toBeNull();
   });
 
+  it("a design's own choices (The Glasshouse's backdrop): the first is chosen until another is picked", () => {
+    mount(STUDIO_DESIGNS.find((d) => d.id === "glasshouse")!);
+    const pick = screen.getByRole("region", { name: "The glasshouse" });
+    expect(within(pick).getByRole("button", { name: "Palm canopy" }).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(within(pick).getByRole("button", { name: "Misted panes" }));
+    expect(latest.designData?.choices).toEqual({ backdrop: "assets/backdrops/backdrop-1.jpg" });
+    expect(within(pick).getByRole("button", { name: "Misted panes" }).getAttribute("aria-pressed")).toBe("true");
+    // no extra photo slots: no "More photos" section
+    expect(screen.queryByRole("region", { name: /photos$/ })).toBeNull();
+  });
+
   it("a design without extras doesn't show them", () => {
     mount(celestial);
     expect(screen.queryByRole("region", { name: /photos$/ })).toBeNull();

@@ -313,6 +313,23 @@ function StudioExtras({ cfg, setCfg, design }: {
         </section>
       )}
 
+      {(x.choices ?? []).map((c) => {
+        const current = dd.choices?.[c.key] ?? c.options[0].value;
+        return (
+          <section key={c.key} className={`${card} space-y-2`} aria-label={c.label}>
+            <h3 className={label}>{c.label}</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {c.options.map((o) => (
+                <button key={o.value} onClick={() => set({ choices: { ...(dd.choices ?? {}), [c.key]: o.value } })} aria-pressed={current === o.value}
+                  className={`rounded-xl border px-3 py-2.5 text-[0.76rem] font-bold transition cursor-pointer ${current === o.value ? "border-gold/60 bg-gold-soft/50 text-ink" : "border-ink/12 text-ink-mute hover:border-ink/30"}`}>
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+
       <section className={`${card} space-y-3`} aria-label={`${design.name} wording`}>
         <h3 className={label}>Wording</h3>
         <p className="text-[0.72rem] font-semibold text-ink-mute">Left empty, a line is either left out or shows {design.name}'s own wording.</p>

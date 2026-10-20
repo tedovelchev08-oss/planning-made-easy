@@ -1,0 +1,921 @@
+/* ============================================================
+   THE GLASSHOUSE
+   ------------------------------------------------------------
+   A glasshouse is where things are kept growing out of season, and you
+   see everything in one through glass: misted, rained on, divided into
+   panes. That is the whole design.
+
+   THE HOUR IS MORNING. The page runs from first light to noon as you
+   scroll it, the glass fogs because it is cold outside and warm in, and
+   the frame is whitewashed timber. See the PALETTE note below - this
+   design shipped once at dusk and was moved.
+
+   The photographs carry this design. They are not decoration around
+   type, they ARE the hero, and the type is set to sit on them.
+   ============================================================ */
+
+/* ============================================================
+   PALETTE
+   ------------------------------------------------------------
+   THE HOUR IS MORNING, and that is a decision about the whole design
+   rather than about colour. Glass fogs when it is cold outside and warm
+   in, which is a morning event, not an evening one - so the condensation
+   this design is built on is better motivated here than it was at dusk.
+   A Victorian glasshouse is also whitewashed cast iron and timber, which
+   the dark version had to fight.
+
+   The ground is not cream. It is the cold green-grey of daylight coming
+   through misted glass, and it holds the ONLY colour on the page to a
+   single hue at three depths: every scrap of warmth comes from the
+   photographs and from one manila label. The seven --c-* values drive
+   the shared tailwind.css and wedding-ui.css too, and they now sit the
+   normal way up - the dark version had to invert them.
+   ============================================================ */
+:root{
+  --c-gold:      152 30% 26%;   /* deep ivy - links, rules, the one connector */
+  --c-gold-dark: 154 34% 18%;
+  --c-cream:     100 14% 90%;   /* editor ground, pale */
+  --c-charcoal:  132 24% 12%;   /* editor text, dark */
+  --c-warmgray:  128 9%  42%;
+  --c-champagne: 96  16% 85%;   /* soft panel fill */
+  --c-sand:      100 15% 88%;   /* input and card fill */
+
+  --ui-panel-bg:   hsl(96 16% 85% / .94);
+  --ui-field-bg:   hsl(100 20% 96% / .90);
+  --ui-field-text: hsl(132 24% 12%);
+  --ui-warn-bg:    hsl(38 62% 90%);
+  --ui-warn-text:  hsl(30 55% 22%);
+
+  --line:        rgba(23,37,27,.16);
+  --line-strong: rgba(23,37,27,.32);
+  --g-tag:       #2f5741;
+
+  /* This design's own names. --ink keeps the exact hue the old ground had:
+     the design did not change colour, it changed which end of the range the
+     page sits at. */
+  --ground:      #e6eae2;   /* daylight through misted glass */
+  --ground-deep: #d6dccf;   /* the shaded pane */
+  --glass:       #c3ccbc;
+  --moss:        #8b9c88;
+  --ink:         #17251b;
+  --ink-dim:     #4b5b4d;
+  /* Measured, not eyeballed: #758575 came out at 3.22:1 against the ground,
+     which fails AA for the form placeholders and the footer that use it. */
+  --ink-faint:   #59695a;   /* 4.78:1 on --ground */
+  --accent:      #2f5741;   /* deep ivy */
+  --accent-dp:   #1f3d2c;
+  --tag-stock:   #d8cbae;   /* manila - what a plant label is actually made of */
+  --tag-ink:     #2a2418;
+
+  /* The dark design's names, kept as aliases so nothing that still refers to
+     them renders as a missing variable while the rest is converted. */
+  --night:     var(--ground);
+  --deep:      var(--ground-deep);
+  --pale:      var(--ink);
+  --pale-dim:  var(--ink-dim);
+  --pale-faint:var(--ink-faint);
+  --amber:     var(--accent);
+  --amber-dp:  var(--accent-dp);
+
+  --display: 'Sora', system-ui, -apple-system, sans-serif;
+  --support: 'Archivo', system-ui, -apple-system, sans-serif;
+  /* The third role, and the only one with a rule attached: it is for RECORDED
+     FACT and never for prose. A herbarium specimen label is typed - species,
+     locality, date, collector's notes - so the label rows, the times in the
+     order of the day and nothing else are set in it. That is what separates
+     what the couple wrote from what was written down. */
+  --tag:     'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --ease:      cubic-bezier(.65,0,.15,1);
+  --ease-soft: cubic-bezier(.22,1,.36,1);
+
+  --gut: clamp(26px, 5.5vw, 96px);
+  --col: 1200px;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*{ box-sizing:border-box }
+html{ -webkit-text-size-adjust:100% }
+body{
+  margin:0;
+  background:var(--night);
+  color:var(--pale);
+  font-family:var(--support);
+  font-weight:300;
+  font-size:17px;
+  line-height:1.7;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{ margin:0; font-family:var(--display); font-weight:200; letter-spacing:-.02em; text-wrap:balance }
+p{ margin:0 }
+a{ color:inherit }
+img{ max-width:100%; display:block }
+::selection{ background:rgba(47,87,65,.20) }
+
+/* Condensation. Fixed and pointer-events:none so it never costs a scroll
+   repaint, and faint enough to read as glass rather than as noise. */
+body::after{
+  content:''; position:fixed; inset:0; z-index:1; pointer-events:none;
+  opacity:.11; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   PHOTOGRAPHS: THE COUPLE'S, NOT THE DESIGN'S
+   The samples shipped here are graded hard at file level because their
+   job is to sell the look. A buyer's own photographs get a much lighter
+   touch, tested against real faces: anything near double this turns
+   skin sallow. On by default, one checkbox turns it off.
+   ============================================================ */
+:root{ --photo-tone: saturate(.88) hue-rotate(-6deg) contrast(1.03) }
+body.photos-as-taken{ --photo-tone: none }
+.frame img, .g-item .ph img{ filter:var(--photo-tone) }
+
+/* ============================================================
+   THE GLASS
+   The one mechanic. A section arrives behind fogged glass and clears
+   when it is reached. Applied to a pseudo-element so nothing animates
+   layout, and gated on a class the observer adds.
+   ============================================================ */
+.sec{ position:relative; z-index:2; padding:clamp(84px,11vh,142px) var(--gut) }
+.wrap{ max-width:var(--col); margin:0 auto }
+
+.glass{ position:relative }
+.glass > *{
+  opacity:0; transform:translateY(26px) scale(.995);
+  filter:blur(9px);
+  transition:opacity 1.1s var(--ease-soft), transform 1.1s var(--ease-soft), filter 1.1s var(--ease-soft);
+}
+.glass.cleared > *{ opacity:1; transform:none; filter:blur(0) }
+
+/* ============================================================
+   00 - HERO
+   The photograph is the hero. The two gradients exist only so type can
+   sit on it, and the type is set low and left rather than centred.
+   ============================================================ */
+#hero{
+  position:relative; z-index:2; min-height:100dvh;
+  padding:calc(var(--bar-h,0px) + clamp(88px,11vh,120px)) var(--gut) clamp(56px,8vh,104px);
+  display:flex; flex-direction:column; justify-content:flex-end;
+  overflow:hidden;
+}
+.shot{ position:absolute; inset:0; z-index:0 }
+.shot img{ width:100%; height:100%; object-fit:cover; object-position:52% 42% }
+.shot::after{
+  /* z-index 2 puts the darkening ABOVE the condensation canvas. It has to:
+     the mist is painted from the raw plate, so if the gradient only reached
+     the sharp photograph underneath, every wiped hole would read as a bright
+     splash rather than as clear glass. Both are graded together. */
+  content:''; position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:
+    /* A LIGHT scrim now, not a dark one: the names are set in ink, so what they
+       need behind them is daylight, not shadow. Only as much as the type
+       requires - anything heavier and the glasshouse stops being a photograph
+       and becomes a pale wash. */
+    linear-gradient(100deg, rgba(230,234,226,.86) 0%, rgba(230,234,226,.44) 30%, rgba(230,234,226,0) 62%, rgba(230,234,226,.16) 100%),
+    linear-gradient(0deg, rgba(230,234,226,.72) 0%, rgba(230,234,226,.10) 38%, rgba(230,234,226,0) 58%);
+}
+/* The fog that lifts once, on arrival. A REAL element, not a pseudo-element:
+   a ::before carrying backdrop-filter would not take an opacity change from an
+   ancestor class in Chrome, so the glass never cleared and the hero stayed
+   blurred. A real node also lets finishEntry set it directly as a failsafe. */
+.shot-fog{
+  position:absolute; inset:0; z-index:3; pointer-events:none;
+  background:rgba(244,247,242,.16);
+  -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+  opacity:1; transition:opacity 1.6s var(--ease-soft);
+}
+body.arrived .shot-fog{ opacity:0 }
+
+/* The condensation the reader can wipe. It sits BELOW the type, so the names
+   are always legible whether the glass is misted or clear, and above the
+   photograph so wiping actually reveals something. */
+.shot-glass{
+  position:absolute; inset:0; z-index:1; width:100%; height:100%;
+  opacity:0; transition:opacity 1.2s var(--ease-soft);
+  /* pan-y, NOT none. The hero is a full screen tall, so touch-action:none
+     here means a finger on the first screen cannot scroll the page at all.
+     pan-y hands vertical drags back to the page and keeps the sideways ones,
+     which is the direction you wipe a window in anyway. */
+  touch-action:pan-y;
+}
+/* Never fully opaque. The backdrop is the design's own material and was
+   graded to be looked at, so the mist is a veil over it rather than a lid on
+   it: the picture reads through, and wiping sharpens what you could already
+   half see. Painting the canvas at full alpha internally and capping it here
+   also bounds the re-misting, which would otherwise creep to opaque. */
+body.arrived .shot-glass{ opacity:.74 }
+/* The hint that used to sit here is gone. The page wipes the glass itself a
+   beat after it arrives, which teaches the gesture better than a caption
+   naming it, and a label plus a demonstration is one accessory too many. */
+
+/* THE GLAZING. The page is seen through a glasshouse, so it is divided into
+   bays by real glazing bars rather than being one flat column. Fixed, so the
+   frame stays still while the content moves behind it, which is what looking
+   through a window actually does. */
+.glazing{
+  position:fixed; inset:0; z-index:3; pointer-events:none;
+  display:grid; grid-template-columns:repeat(4,1fr);
+  overflow:hidden;
+}
+/* An astragal is not a hairline: it has a shadowed side and a lit side.
+   Two-stop gradient rather than a border, so it reads as a bar of painted
+   timber holding a pane and not as a CSS divider. */
+.glazing span{
+  position:relative;
+}
+.glazing span + span::before{
+  content:''; position:absolute; top:0; bottom:0; left:-2px; width:4px;
+  background:linear-gradient(90deg,
+    rgba(23,37,27,.16) 0%, rgba(23,37,27,.16) 42%,
+    rgba(255,255,255,.60) 50%, rgba(255,255,255,0) 100%);
+}
+/* The transom, at the height a glasshouse actually has one. */
+.glazing::after{
+  content:''; position:absolute; left:0; right:0; top:38%; height:4px;
+  background:linear-gradient(180deg,
+    rgba(23,37,27,.14) 0%, rgba(23,37,27,.14) 42%,
+    rgba(255,255,255,.52) 50%, rgba(255,255,255,0) 100%);
+}
+/* The sun on the glass, sliding across the bays as the afternoon goes.
+   --sun-x is written by the same scroll handler that crossfades the light. */
+.glazing::before{
+  content:''; position:absolute; top:-10%; bottom:-10%;
+  width:40vw; left:calc(var(--sun-x,18%) - 20vw);
+  transform:skewX(-7deg);
+  background:linear-gradient(90deg,
+    rgba(255,255,255,0) 0%, rgba(255,255,255,.30) 48%, rgba(255,255,255,0) 100%);
+}
+
+.hero-inner{ position:relative; z-index:4; width:100%; max-width:var(--col); margin:0 auto;
+  display:flex; align-items:flex-end; justify-content:space-between; gap:48px }
+.hero-copy{ max-width:660px }
+.rule{ width:52px; height:1px; background:var(--amber); margin-bottom:clamp(24px,4vh,38px) }
+.hero-names{ font-family:var(--display); font-weight:200; line-height:.98; color:var(--pale) }
+.hero-name{ display:block; font-size:clamp(52px,8.6vw,102px); letter-spacing:-.028em }
+.hero-amp{
+  display:block; font-weight:200; color:var(--amber);
+  font-size:clamp(15px,1.7vw,22px); letter-spacing:.3em; text-transform:uppercase;
+  margin:clamp(14px,2.2vh,24px) 0 clamp(12px,1.8vh,20px); line-height:1;
+}
+.hero-sub{ margin-top:clamp(24px,3.6vh,36px); max-width:46ch; color:var(--pale-dim);
+  font-size:clamp(14px,1.15vw,16px); line-height:1.75 }
+.hero-meta{ display:flex; flex-direction:column; gap:18px; text-align:right; flex:none }
+.hero-meta div{ font-size:11px; letter-spacing:.26em; text-transform:uppercase; color:var(--pale-dim) }
+.hero-meta b{ display:block; margin-top:6px; font-family:var(--display); font-weight:300;
+  font-size:clamp(16px,1.4vw,20px); letter-spacing:0; text-transform:none; color:var(--pale) }
+
+/* ============================================================
+   01 - THE BEGINNING (asymmetric split, photograph behind glass)
+   ============================================================ */
+#beginning .wrap{ display:grid; grid-template-columns:1fr 1.05fr; gap:clamp(40px,6vw,104px); align-items:center }
+.sec-title{ font-size:clamp(30px,4.2vw,54px); line-height:1.08; color:var(--pale) }
+.sec-text{ margin-top:24px; color:var(--pale-dim); max-width:52ch }
+.frame{ position:relative; aspect-ratio:4/5; overflow:hidden; background:var(--deep) }
+.frame img{ width:100%; height:100%; object-fit:cover }
+.frame::after{ content:''; position:absolute; inset:0; pointer-events:none;
+  box-shadow:inset 0 0 0 1px rgba(23,37,27,.15) }
+.frame .ph-tag{ display:none }
+
+/* ============================================================
+   02 - UNDER GLASS (typographic, full width, no photograph)
+   ============================================================ */
+/* Three words with 56px of air between them and a tiny amber connector read as
+   three fragments, not as a sentence - and the connector was effectively
+   invisible. It is one line now. The payoff underneath is a typed note in the
+   label's own face, which is the thing a nurseryman would actually write on the
+   tag months later. */
+#us{ text-align:center }
+#us .u-words{ display:flex; align-items:baseline; justify-content:center;
+  gap:clamp(10px,1.2vw,20px); font-family:var(--display); font-weight:200;
+  line-height:1.05; color:var(--pale); flex-wrap:wrap }
+#us .u-w{ font-size:clamp(38px,7vw,96px); letter-spacing:-.03em }
+#us .u-amp{ font-size:clamp(24px,3.6vw,50px); letter-spacing:-.02em; text-transform:none;
+  color:var(--amber); font-weight:200 }
+#us .u-us{
+  display:inline-block; margin-top:clamp(22px,3.2vh,38px);
+  font-family:var(--tag); font-weight:400; font-size:12px;
+  letter-spacing:.28em; text-transform:uppercase; color:var(--amber);
+  padding-top:16px; border-top:1px solid rgba(217,164,65,.34);
+}
+#us .u-text{ margin:clamp(34px,5vh,58px) auto 0; max-width:48ch; color:var(--pale-dim) }
+
+/* ============================================================
+   03 - THE DAY
+   ============================================================ */
+/* THE LABEL. Everything in a nursery carries one: what it is, where it sits,
+   when it flowers, and a line of notes. So the facts of the day are printed on
+   a label rather than centred in the dark. It is the only printed object on an
+   otherwise photographic page, which is why it is allowed to be the one bright
+   thing, and it hangs on its string. */
+#the-day .wrap{ max-width:820px; text-align:center }
+.day-wrap{ display:flex; flex-direction:column; align-items:center }
+
+.label-card{
+  position:relative;
+  width:min(400px, 100%);
+  margin-top:34px;                     /* room for the string above it */
+  padding:44px 38px 36px;
+  text-align:left;
+  color:var(--tag-ink);
+  background:
+    linear-gradient(154deg, rgba(255,255,255,.42), rgba(255,255,255,0) 48%),
+    var(--tag-stock);
+  box-shadow:0 18px 40px -22px rgba(23,37,27,.45), 0 1px 0 rgba(255,255,255,.55) inset;
+  /* Card stock, not a browser card: the corners are clipped the way a punched
+     label's are, and there is no border radius anywhere else on this page. */
+  clip-path:polygon(0 14px, 14px 0, calc(100% - 14px) 0, 100% 14px,
+                    100% calc(100% - 14px), calc(100% - 14px) 100%,
+                    14px 100%, 0 calc(100% - 14px));
+}
+.lc-string{
+  position:absolute; left:50%; top:-34px; width:1px; height:34px;
+  background:linear-gradient(180deg, rgba(23,37,27,0), rgba(23,37,27,.34));
+}
+.lc-hole{
+  position:absolute; left:50%; top:16px; width:11px; height:11px;
+  margin-left:-5.5px; border-radius:50%;
+  background:var(--ground-deep);
+  box-shadow:inset 0 1px 2px rgba(42,36,24,.5);
+}
+.lc-issuer{
+  font-family:var(--tag); font-weight:400;
+  font-size:9px; letter-spacing:.26em; text-transform:uppercase;
+  color:#6b6046; text-align:center;
+}
+.lc-species{
+  margin-top:16px; text-align:center;
+  font-family:var(--display); font-weight:300; font-size:clamp(21px,2.4vw,27px);
+  line-height:1.25; letter-spacing:-.015em;
+}
+.lc-species i{ display:block; font-style:normal; color:#9a7a35; font-size:17px;
+  font-family:var(--display); font-weight:300; margin:3px 0 }
+.lc-date{
+  margin-top:18px; padding-top:18px; text-align:center;
+  border-top:1px solid rgba(42,36,24,.22);
+  font-family:var(--display); font-weight:200; font-size:clamp(26px,3.4vw,36px);
+  line-height:1; letter-spacing:.02em; font-variant-numeric:tabular-nums;
+}
+.lc-rows{ margin:26px 0 0; display:flex; flex-direction:column; gap:0 }
+.lc-rows > div{
+  display:flex; align-items:baseline; justify-content:space-between; gap:18px;
+  padding:11px 0; border-top:1px solid rgba(42,36,24,.16);
+}
+.lc-rows dt{
+  flex:none; font-family:var(--tag); font-weight:400;
+  font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:#6b6046;
+}
+.lc-rows dd{
+  margin:0; text-align:right; font-family:var(--tag); font-weight:300;
+  font-size:12.5px; line-height:1.55; letter-spacing:-.01em; color:var(--tag-ink);
+  font-variant-numeric:tabular-nums;
+}
+.day-links{ margin-top:40px; display:flex; justify-content:center; flex-wrap:wrap; gap:12px }
+.day-links a{
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase; text-decoration:none;
+  color:var(--pale); border:1px solid var(--line-strong); padding:13px 22px; border-radius:0;
+  transition:background .25s var(--ease-soft), border-color .25s var(--ease-soft),
+             color .25s var(--ease-soft), transform .12s ease;
+}
+.day-links a:hover{ background:var(--amber); border-color:var(--amber); color:#f2f5ef }
+.day-links a:active{ transform:translateY(1px) }
+.day-links a:focus-visible{ outline:2px solid var(--amber); outline-offset:3px }
+
+/* ============================================================
+   04 - THE ORDER OF THE DAY
+   One reading direction, a single hairline above the group rather than
+   a rule under every row.
+   ============================================================ */
+#schedule .wrap{ max-width:900px }
+/* The one place on this page where order genuinely carries information the
+   reader needs, so it is the one place that gets a line drawn down it. The
+   times are recorded fact and are typed. */
+.sched{ position:relative; margin-top:clamp(40px,6vh,72px); border-top:1px solid var(--line) }
+.sched::before{
+  content:''; position:absolute; left:135px; top:0; bottom:0; width:1px;
+  background:linear-gradient(180deg, var(--line), rgba(217,164,65,.34));
+}
+.tl-item{ display:grid; grid-template-columns:118px 1fr; align-items:baseline;
+  gap:0 34px; padding:clamp(20px,2.6vh,30px) 0 }
+.tl-item + .tl-item{ border-top:1px solid var(--line) }
+.tl-time{
+  font-family:var(--tag); font-weight:400; font-size:15px; letter-spacing:.02em;
+  font-variant-numeric:tabular-nums; color:var(--amber); line-height:1.4;
+}
+.tl-title{ font-family:var(--display); font-weight:300; font-size:clamp(17px,1.7vw,21px);
+  letter-spacing:-.01em; color:var(--pale); line-height:1.35 }
+
+/* ============================================================
+   05 - PHOTOGRAPHS
+   Not four equal tiles: one tall lead frame, two upright, one wide.
+   ============================================================ */
+#gallery .gallery-grid{
+  margin-top:clamp(40px,6vh,72px);
+  display:grid; grid-template-columns:1.2fr 1fr 1fr;
+  grid-auto-rows:minmax(200px,auto); gap:clamp(12px,1.5vw,20px);
+}
+.g-item{ position:relative; min-height:200px }
+.g-item .ph{ position:relative; width:100%; height:100%; background:var(--deep); overflow:hidden }
+.g-item .ph img{ width:100%; height:100%; object-fit:cover }
+.g-item .ph::after{ content:''; position:absolute; inset:0; box-shadow:inset 0 0 0 1px rgba(23,37,27,.15) }
+.g-item .ph-tag{ display:none }
+.g1{ grid-row:span 2 }
+.g4{ grid-column:2 / span 2 }
+.g-extra{ display:none }
+
+/* ============================================================
+   06 - RSVP
+   ============================================================ */
+#rsvp{ text-align:center }
+#rsvp .wrap{ max-width:620px }
+.rsvp-title{ font-size:clamp(34px,5vw,60px); color:var(--pale); line-height:1 }
+/* This is a sentence, so it is set as one. At 11px in .38em uppercase it was
+   an eyebrow with a whole clause jammed into it, which nobody reads. */
+.rsvp-lead{ margin-bottom:16px; font-size:15px; letter-spacing:.01em;
+  text-transform:none; color:var(--pale-dim) }
+.rsvp-form{ margin-top:clamp(40px,6vh,66px); text-align:left }
+.field{ position:relative; margin-bottom:30px }
+.field label{ display:block; margin-bottom:10px; font-size:11px; letter-spacing:.24em;
+  text-transform:uppercase; color:var(--pale-dim); font-weight:400 }
+.field input, .field textarea{
+  width:100%; background:transparent; border:0; border-bottom:1px solid var(--line-strong);
+  padding:10px 0; font-family:var(--support); font-size:16px; font-weight:300;
+  color:var(--pale); border-radius:0;
+}
+.field textarea{ resize:vertical }
+.field input::placeholder, .field textarea::placeholder{ color:var(--pale-faint) }
+.field input:focus, .field textarea:focus{ outline:0; border-bottom-color:var(--amber) }
+.field input:focus-visible, .field textarea:focus-visible{ outline:2px solid var(--amber); outline-offset:4px }
+.field-underline{ display:none }
+/* The shared .visually-hidden sizes itself without !important, so the rule
+   above would stretch the hidden radios and the guest-count select across the
+   column. On a phone that is real horizontal scroll. */
+.field .visually-hidden, .rsvp-choice .visually-hidden{
+  position:absolute !important; width:1px !important; height:1px !important;
+  margin:-1px !important; padding:0 !important; overflow:hidden !important;
+  border:0 !important; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap;
+}
+
+.rsvp-choice{ display:flex; gap:10px }
+.choice-btn{
+  flex:1; text-align:center; cursor:pointer; padding:14px 10px;
+  border:1px solid var(--line-strong); font-family:var(--display);
+  font-size:16px; font-weight:300; color:var(--pale-dim);
+  transition:background .25s var(--ease-soft), color .25s var(--ease-soft), border-color .25s var(--ease-soft);
+}
+/* Bone, not amber: the same card stock the label is printed on. Two amber
+   slabs stacked made the form shout twice, and the submit is the one action. */
+.choice-btn.selected{ background:var(--tag-stock); border-color:var(--tag-stock); color:var(--tag-ink); font-weight:400 }
+
+.rsvp-submit{
+  width:100%; margin-top:12px; padding:18px 20px; cursor:pointer;
+  background:var(--amber); border:1px solid var(--amber); color:#f2f5ef;
+  font-family:var(--support); font-size:12px; font-weight:500;
+  letter-spacing:.24em; text-transform:uppercase; border-radius:0;
+  transition:background .25s var(--ease-soft), transform .12s ease;
+}
+.rsvp-submit:hover{ background:var(--accent-dp) }
+.rsvp-submit:active{ transform:translateY(1px) }
+.rsvp-submit:focus-visible{ outline:2px solid var(--pale); outline-offset:3px }
+.rsvp-error{ color:#8c3a26 }
+
+.rsvp-done{ margin-top:clamp(40px,6vh,66px) }
+.rd-line{ font-family:var(--display); font-weight:200; font-size:clamp(24px,3.2vw,36px);
+  line-height:1.2; color:var(--amber) }
+.rd-sub{ margin-top:12px; font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--pale-dim) }
+.rd-again{
+  margin-top:26px; background:none; cursor:pointer; color:var(--pale);
+  border:1px solid var(--line-strong); padding:12px 20px; border-radius:0;
+  font-family:var(--support); font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  transition:background .25s var(--ease-soft), border-color .25s var(--ease-soft), color .25s var(--ease-soft);
+}
+.rd-again:hover{ background:var(--amber); border-color:var(--amber); color:#f2f5ef }
+.rd-again:focus-visible{ outline:2px solid var(--amber); outline-offset:3px }
+
+footer{
+  position:relative; z-index:2; padding:56px var(--gut) 64px;
+  display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap;
+  border-top:1px solid var(--line);
+  font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--pale-faint);
+}
+
+/* ============================================================
+   RSVP CONFIRMATION
+   The glass clears completely, once, and the message is behind it.
+   ============================================================ */
+#closing{
+  position:fixed; inset:0; z-index:9500; display:none;
+  flex-direction:column; align-items:center; justify-content:center; padding:32px;
+  background:var(--night);
+}
+#closing.on{ display:flex }
+#closing .cl-shot{ position:absolute; inset:0; z-index:0 }
+#closing .cl-shot img{ width:100%; height:100%; object-fit:cover }
+#closing .cl-shot::after{ content:''; position:absolute; inset:0; background:rgba(232,238,230,.80) }
+.cl-copy{ position:relative; z-index:2; text-align:center; opacity:0 }
+.cf-title{ font-family:var(--display); font-weight:200; font-size:clamp(30px,5vw,56px);
+  color:var(--pale); line-height:1.1; letter-spacing:-.02em }
+.cf-sub{ margin-top:20px; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--pale-dim) }
+.cf-names{ margin-top:10px; font-family:var(--display); font-weight:300;
+  font-size:clamp(18px,2.2vw,24px); color:var(--amber) }
+.cl-close{
+  position:absolute; bottom:34px; left:50%; transform:translateX(-50%); z-index:3;
+  background:none; border:0; cursor:pointer; font-family:var(--support);
+  font-size:11px; letter-spacing:.26em; text-transform:uppercase; color:var(--pale-faint); padding:10px 14px;
+}
+.cl-close:hover{ color:var(--pale) }
+.cl-close:focus-visible{ outline:2px solid var(--amber); outline-offset:3px }
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+#site-nav{
+  position:fixed; top:var(--bar-h,0px); left:0; right:0; z-index:40; height:72px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 var(--gut); pointer-events:none;
+}
+#site-nav > *{ pointer-events:auto }
+#site-nav::before{
+  content:''; position:absolute; inset:0; z-index:-1; opacity:0;
+  background:hsl(var(--c-cream) / .82);
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  box-shadow:0 1px 0 var(--line);
+  transition:opacity .3s var(--ease-soft);
+}
+#site-nav.is-stuck::before{ opacity:1 }
+@media (prefers-reduced-transparency: reduce){
+  #site-nav::before{ background:hsl(var(--c-cream)); -webkit-backdrop-filter:none; backdrop-filter:none }
+}
+#nav-sentinel{ position:absolute; top:0; left:0; width:1px; height:1px; pointer-events:none }
+.nav-mark{ font-family:var(--display); font-weight:300; font-size:13px;
+  letter-spacing:.3em; text-transform:uppercase; color:var(--pale-dim) }
+.nav-index-btn{
+  display:flex; align-items:center; gap:10px; background:none; border:0; cursor:pointer;
+  font-family:var(--support); font-size:11px; letter-spacing:.26em;
+  text-transform:uppercase; color:var(--pale-dim); padding:8px 0;
+}
+.nav-index-btn:focus-visible{ outline:2px solid var(--amber); outline-offset:4px }
+
+#index-menu{
+  position:fixed; inset:0; z-index:60; background:var(--deep);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; visibility:hidden; transition:opacity .45s var(--ease-soft), visibility .45s;
+}
+#index-menu.open{ opacity:1; visibility:visible }
+.index-close{
+  position:absolute; top:26px; right:var(--gut); background:none; border:0; cursor:pointer;
+  font-family:var(--support); font-size:11px; letter-spacing:.26em;
+  text-transform:uppercase; color:var(--pale-dim);
+}
+.index-inner{ display:flex; flex-direction:column; gap:14px }
+.index-item{
+  display:flex; align-items:baseline; gap:22px; cursor:pointer;
+  font-family:var(--display); font-weight:200; color:var(--pale);
+  transition:color .2s ease, transform .3s var(--ease-soft);
+}
+.index-item:hover{ color:var(--amber); transform:translateX(6px) }
+.index-item .num{ font-size:12px; color:var(--amber-dp); width:26px }
+.index-item .label{ font-size:clamp(26px,4vw,44px); line-height:1.12 }
+
+/* ============================================================
+   LOADER AND ENTRY
+   One idea, performed once: the glass is fogged, then it clears.
+   ============================================================ */
+#loader{
+  position:fixed; inset:0; z-index:9999; background:var(--night);
+  display:flex; align-items:center; justify-content:center;
+}
+#loader .loader-track{ width:120px; height:1px; background:var(--line) }
+#loader .loader-fill{ width:0; height:1px; background:var(--amber) }
+#loader .loader-num{ display:none }
+
+#intro{
+  position:fixed; inset:0; z-index:9998; overflow:hidden;
+  display:flex; align-items:center; justify-content:center; background:var(--night);
+}
+#intro .ov-shot{ position:absolute; inset:0 }
+#intro .ov-shot img{ width:100%; height:100%; object-fit:cover }
+#intro .ov-shot::after{ content:''; position:absolute; inset:0; background:rgba(232,238,230,.70) }
+#intro .ov-fog{
+  position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:rgba(246,249,244,.42);
+  -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px);
+}
+.ov-copy{ position:relative; z-index:3; text-align:center }
+.ov-eyeb{ font-size:11px; letter-spacing:.42em; text-transform:uppercase; color:var(--pale-dim); opacity:0 }
+.ov-names{ margin-top:22px; font-family:var(--display); font-weight:200; line-height:1; color:var(--pale) }
+.ov-names span[data-sync]{ display:block; font-size:clamp(44px,7.6vw,96px); letter-spacing:-.028em; opacity:0 }
+.ov-amp{ display:block; font-weight:200; font-size:clamp(13px,1.5vw,19px); color:var(--amber);
+  letter-spacing:.3em; text-transform:uppercase; margin:16px 0 12px; line-height:1; opacity:0 }
+.intro-skip{
+  position:absolute; bottom:38px; left:50%; transform:translateX(-50%); z-index:4;
+  background:none; border:0; cursor:pointer; font-family:var(--support);
+  font-size:11px; letter-spacing:.26em; text-transform:uppercase; color:var(--pale-faint);
+}
+.intro-skip:focus-visible{ outline:2px solid var(--amber); outline-offset:4px }
+
+/* ============================================================
+   GUEST PREVIEW
+   ============================================================ */
+body.guest-mode #builder-bar,
+body.guest-mode #customizer-drawer,
+body.guest-mode #hud{ display:none !important }
+body.guest-mode{ padding-top:0 !important }
+#exit-preview-btn{
+  display:none; position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+  z-index:9000; padding:13px 26px; cursor:pointer;
+  background:var(--amber); color:#f2f5ef; border:1px solid var(--amber);
+  font-family:var(--support); font-size:11px; font-weight:500;
+  letter-spacing:.22em; text-transform:uppercase; border-radius:0;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+body.guest-mode.show-exit-btn #exit-preview-btn{ display:block }
+#exit-preview-btn:focus-visible{ outline:2px solid var(--pale); outline-offset:3px }
+
+/* wedding-core.js pushes #main below its fixed studio bar with an inline
+   padding-top. This design's hero is a full-viewport composition, so that
+   would cost it a third of its height. A stylesheet !important beats the
+   core's inline rule; the hero pads itself by the bar's measured height. */
+#main{ position:relative; z-index:2; padding-top:0 !important }
+
+/* Restate the light/dark pairings baked into the shared editor markup. */
+#builder-bar{ background:hsl(var(--c-cream) / .96) !important; color:var(--pale) !important }
+#customizer-drawer{ background:hsl(var(--c-cream)) !important; color:var(--pale) !important }
+#customizer-drawer .bg-white\/60,
+#customizer-drawer .bg-white\/70,
+#customizer-drawer .bg-white\/80{ background:hsl(var(--c-champagne) / .6) !important }
+#share-modal .bg-cream{ background:hsl(var(--c-cream)) !important; color:var(--pale) !important }
+/* The shared markup pairs `bg-gold` with `text-white`, which was legible when
+   --c-gold was a mid brown. This design's gold is a bright amber, so white on
+   it measures 2.27:1. Dark ink on amber instead, matching every other amber
+   control on the page. */
+#customizer-drawer .bg-gold.text-white,
+#share-modal .bg-gold.text-white,
+#customizer-drawer .bg-gold,
+#share-modal .bg-gold{ color:#f2f5ef !important }
+
+/* The backdrop picker in the drawer. Real thumbnails, because the choice is a
+   picture and a list of names would tell the buyer nothing. */
+.gh-backdrops{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
+.gh-bd{
+  position:relative; display:block; padding:0; cursor:pointer; overflow:hidden;
+  border:1px solid var(--line); border-radius:10px; background:hsl(var(--c-sand));
+  transition:border-color .2s var(--ease-soft), transform .12s ease;
+}
+.gh-bd img{ width:100%; aspect-ratio:16/10; object-fit:cover; display:block }
+.gh-bd span{
+  display:block; padding:7px 9px; font-family:var(--support); font-size:10px;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--pale-dim); text-align:left;
+}
+.gh-bd:hover{ border-color:var(--line-strong) }
+.gh-bd:active{ transform:translateY(1px) }
+.gh-bd:focus-visible{ outline:2px solid var(--amber); outline-offset:2px }
+.gh-bd.is-on{ border-color:var(--amber) }
+.gh-bd.is-on span{ color:var(--amber) }
+.gh-bd.is-on::after{
+  content:''; position:absolute; top:8px; right:8px; width:10px; height:10px;
+  border-radius:50%; background:var(--amber); box-shadow:0 0 0 3px hsl(var(--c-cream) / .8);
+}
+
+.audio-toggle{
+  position:fixed; right:22px; bottom:22px; z-index:8000; width:44px; height:44px;
+  align-items:center; justify-content:center; padding:0; line-height:1;
+  border-radius:50%; cursor:pointer; background:hsl(var(--c-champagne));
+  border:1px solid var(--line-strong); color:var(--pale-dim);
+  box-shadow:0 6px 18px rgba(0,0,0,.35);
+  transition:background .25s var(--ease-soft), color .25s var(--ease-soft),
+             border-color .25s var(--ease-soft), transform .12s ease;
+}
+.audio-toggle i{ font-size:14px; line-height:1; display:block }
+/* Optical, not geometric: the note glyph's bounding box is centred but its
+   mass sits 0.077em right, because the beam outweighs the noteheads. */
+.audio-toggle i.fa-music{ transform:translateX(-0.04em) }
+.audio-toggle:hover{ border-color:var(--amber); color:var(--amber) }
+.audio-toggle:active{ transform:translateY(1px) }
+.audio-toggle:focus-visible{ outline:2px solid var(--amber); outline-offset:3px }
+.audio-toggle.is-playing{ background:var(--amber); border-color:var(--amber); color:#f2f5ef }
+body.guest-mode.show-exit-btn .audio-toggle{ bottom:76px }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:900px){
+  :root{ --gut:26px }
+  body{ font-size:16px }
+  .sec{ padding-top:clamp(78px,10vh,124px); padding-bottom:clamp(78px,10vh,124px) }
+  .hero-inner{ flex-direction:column; align-items:flex-start; gap:34px }
+  .hero-meta{ flex-direction:row; flex-wrap:wrap; gap:26px; text-align:left }
+  .hero-sub{ max-width:none }
+  #beginning .wrap{ grid-template-columns:1fr; gap:32px }
+  .sec-text{ max-width:none }
+  #us .u-words{ gap:14px; flex-wrap:wrap }
+  .day-links a{ padding:12px 16px; letter-spacing:.12em }
+  .tl-item{ grid-template-columns:72px 1fr; gap:0 20px }
+  .sched::before{ left:82px }
+  .tl-time{ font-size:13px }
+  #gallery .gallery-grid{ grid-template-columns:1fr }
+  .g1{ grid-row:auto; grid-column:1 }
+  .g4{ grid-column:1 }
+}
+@media (max-width:560px){
+  .rsvp-choice{ flex-direction:column }
+  .hero-meta{ flex-direction:column; gap:16px }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   The glass is simply already clear.
+   ============================================================ */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important; scroll-behavior:auto !important;
+  }
+  .glass > *{ opacity:1 !important; transform:none !important; filter:none !important }
+  .shot-fog{ opacity:0 !important }
+  /* The label is already hanging straight. */
+  #the-day.glass:not(.cleared) .label-card{ transform:none !important }
+  .daylight b{ transition:none !important }
+  #intro, #loader{ display:none !important }
+}
+
+/* ============================================================
+   THE LIGHT
+   ------------------------------------------------------------
+   The one thing everybody who has stood in a glasshouse remembers is
+   the light moving through it. This page is a single afternoon: it
+   opens at four o'clock in flat daylight, crosses golden hour around
+   the order of the day, goes blue at dusk, and ends under the lamps at
+   the RSVP. The sun tracks left to right across the panes as you go.
+
+   It is driven by scroll POSITION, not by a timer, so it is the
+   reader moving through the evening rather than an animation played at
+   them. Four layers crossfade; only opacity changes, so it costs the
+   compositor and nothing else.
+   ============================================================ */
+.daylight{ position:fixed; inset:0; z-index:0; pointer-events:none }
+.daylight b{ position:absolute; inset:0; display:block; opacity:0 }
+
+/* First light. Everything still cold and blue, the glass grey with mist and
+   the sun not over the wall yet. */
+.daylight .l1{
+  background:
+    radial-gradient(120% 88% at var(--sun-x,16%) -14%, rgba(206,222,232,.75), rgba(206,222,232,0) 60%),
+    linear-gradient(180deg,#dbe3e3 0%, #cbd5ce 82%);
+  opacity:1;
+}
+/* The sun comes over the wall and lands on the panes. The one warm hour, and
+   the only place on this page where a warm colour appears without a
+   photograph putting it there. */
+.daylight .l2{
+  background:
+    radial-gradient(96% 80% at var(--sun-x,44%) 0%, rgba(255,230,180,.82), rgba(255,230,180,0) 58%),
+    radial-gradient(70% 52% at var(--sun-x,44%) 98%, rgba(255,224,174,.30), rgba(255,224,174,0) 62%),
+    linear-gradient(180deg,#f3efdf 0%, #e3e7d7 78%);
+}
+/* Mid-morning. The warmth burns off, the greens come up, and the room is at
+   its clearest. */
+.daylight .l3{
+  background:
+    radial-gradient(120% 74% at var(--sun-x,72%) 6%, rgba(234,244,230,.88), rgba(234,244,230,0) 62%),
+    linear-gradient(180deg,#e9eee3 0%, #d9e1d3 82%);
+}
+/* Noon. Flat, bright and overhead - the hour with no shadows in it. */
+.daylight .l4{
+  background:
+    radial-gradient(90% 62% at 50% -10%, rgba(255,255,255,.94), rgba(255,255,255,0) 66%),
+    linear-gradient(180deg,#f1f4ec 0%, #e2e8dd 84%);
+}
+
+/* ============================================================
+   THE PLATES BEHIND THE THIN SECTIONS
+   Three of these sections are words on a ground, and words on a ground in a
+   design about looking through glass is nothing to look through. Each one
+   carries a plate from the design's own set, pushed right back and faded out
+   at the edges so it reads as the room behind the type rather than as a
+   background image. Set per section with --plate in the markup.
+   ============================================================ */
+.sec[style*="--plate"]::before{
+  content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background-image:
+    /* On the dark version this overlay knocked a bright photograph back. On a
+       pale ground the photograph is ALREADY low-contrast against the page, so
+       the same overlay just doubles up and the plate turns to fog. Less veil,
+       more plate, and the mask still keeps it off the type. */
+    linear-gradient(180deg, rgba(230,234,226,.42), rgba(230,234,226,.42)),
+    var(--plate);
+  background-size:cover; background-position:center;
+  opacity:.62;
+  /* The first version of this mask was densest at the CENTRE, which put the
+     busiest part of the photograph directly behind the words. Inverted: the
+     plate is clear where the type sits and gathers toward the margins, so the
+     foliage frames the section instead of competing with it. The second mask
+     fades it out at the top and bottom so it never bands into the next
+     section. */
+  -webkit-mask-image:
+    radial-gradient(72% 58% at 50% 50%, transparent 6%, rgba(0,0,0,.5) 52%, #000 100%),
+    linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:
+    radial-gradient(72% 58% at 50% 50%, transparent 6%, rgba(0,0,0,.5) 52%, #000 100%),
+    linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
+  mask-composite:intersect;
+}
+
+/* The label is a physical object, so it gets there like one: it swings down
+   from its string rather than fading up with the rest of the section. */
+.glass .label-card{ transform-origin:50% -34px }
+#the-day.glass:not(.cleared) .label-card{ transform:rotate(-3.2deg) translateY(-14px) }
+#the-day.glass.cleared .label-card{
+  transform:rotate(0deg);
+  transition:transform 1.5s cubic-bezier(.2,1.5,.4,1) .15s;
+}
+
+/* backdrop-1 is a window with heavy frames in it, and at 100% those frames
+   land as a hard rectangle behind the order of the day. Pushed in and offset,
+   only the ferns beyond the glass are in shot. */
+#schedule::before{ background-size:auto 170%; background-position:72% 42% }
+
+/* ============================================================
+   FIXES FROM THE FINISH REVIEW
+   ============================================================ */
+
+/* The Yes/No radios are visually-hidden, so without this a keyboard user
+   tabbing through the form has no idea where they are. */
+.choice-btn:has(input:focus-visible),
+.choice-btn:focus-within{ outline:2px solid var(--amber); outline-offset:3px }
+
+/* The two things a guest looks for after the button. Quiet, and the mono is
+   not used here because a deadline read to a person is prose, not a datum. */
+.rsvp-foot{
+  margin-top:22px; display:flex; flex-wrap:wrap; gap:6px 18px;
+  font-size:13px; color:var(--pale-faint);
+}
+.rsvp-foot a{ color:var(--pale-dim); text-decoration:none; border-bottom:1px solid var(--line-strong) }
+.rsvp-foot a:hover{ color:var(--amber); border-bottom-color:var(--amber) }
+.rsvp-foot a:focus-visible{ outline:2px solid var(--amber); outline-offset:3px }
+
+/* The label's smallest type was #6d7a6b on bone at 9px - 3.47:1, under the 4.5
+   floor and under any practical reading size. This is the one block a guest has
+   to get right, so it is darkened and grown. */
+.lc-issuer{ color:#5c5240; font-size:10.5px }
+.lc-rows dt{ color:#5c5240; font-size:10.5px }
+.lc-rows dd{ font-size:13px; font-weight:400 }
+
+/* The site index was a list of bare divs with a click listener: mouse only. */
+.index-item{ cursor:pointer }
+.index-item:focus-visible{ outline:2px solid var(--amber); outline-offset:4px }
+
+/* Every one of these is the only way out of a full-screen state, and all four
+   were under 44px. Grown with padding rather than an oversized pseudo-element:
+   .nav-index-btn and .index-close sit hard against the right gutter, and a
+   44px box centred on a 30px button put 2px of real horizontal scroll on the
+   page at 375px. Negative margin keeps the optical position where it was. */
+.intro-skip, .index-close, .nav-index-btn, .cl-close{
+  min-height:44px; display:inline-flex; align-items:center;
+}
+.index-close{ padding:0 0 0 16px; margin-top:-10px }
+.nav-index-btn{ padding-top:0; padding-bottom:0 }
+.intro-skip{ padding:0 18px }
+
+/* The hero corner sits where the grade is almost clear, and the buyer can swap
+   in any of four plates behind it. It carries its own shadow rather than
+   trusting whichever photograph is loaded. */
+.hero-meta div, .hero-meta b{ text-shadow:0 1px 14px rgba(244,247,242,.95), 0 0 3px rgba(244,247,242,.8) }
+
+/* The index rows are <button> now so they can be reached by keyboard. Preflight
+   gives buttons a font and a background, so both are taken back here. */
+.index-item{
+  display:flex; width:100%; background:none; border:0; padding:0;
+  font:inherit; color:inherit; text-align:left; font-family:var(--display);
+}
+
+/* A LOCAL visually-hidden. The shared one is declared without !important and
+   loses to this design's own rules, which once put 104px of real horizontal
+   scroll on the page. This one is only ever used on headings. */
+.visually-hidden-real{
+  position:absolute !important; width:1px !important; height:1px !important;
+  padding:0 !important; margin:-1px !important; overflow:hidden !important;
+  clip:rect(0 0 0 0) !important; clip-path:inset(50%) !important; white-space:nowrap !important;
+  border:0 !important;
+}
+
+/* The hero corner sits over the busiest part of whichever plate is loaded, and
+   on a pale design a text-shadow alone cannot rescue 11px letterspaced caps.
+   It gets its own daylight behind it - a soft corner wash rather than a card,
+   so it still reads as light on glass and not as a box on a photograph. */
+.hero-meta{ position:relative }
+.hero-meta::before{
+  content:''; position:absolute; z-index:-1;
+  /* The ellipse is sized 50%/50% and centred so it reaches zero exactly at
+     every edge of its box. Any larger and the gradient is still part-opaque
+     where the box stops, which draws a visible rectangle across the
+     photograph - which is the thing this is supposed to avoid. */
+  inset:-96px -130px -96px -150px;
+  background:radial-gradient(50% 50% at 50% 50%,
+    rgba(233,237,229,.95) 0%, rgba(233,237,229,.80) 36%,
+    rgba(233,237,229,.32) 70%, rgba(233,237,229,0) 100%);
+}

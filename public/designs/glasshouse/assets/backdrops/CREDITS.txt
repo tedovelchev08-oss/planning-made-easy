@@ -1,0 +1,48 @@
+THE FOUR GLASSHOUSE BACKDROPS - SOURCES AND LICENCES
+====================================================
+
+These four are NOT photographs of the wedding. They are the design's own
+material: the palette, the gradients over them and the position of the names
+are all tuned to these pictures. That is why the editor offers a choice of
+four rather than a free upload, and why all four are graded to the same look.
+
+SOURCE
+------
+All four are from Pexels (https://www.pexels.com), used under the Pexels
+licence: free, commercial use allowed, no attribution required, modification
+allowed. This file is kept anyway so the source can be re-checked later.
+
+  backdrop-1.jpg   pexels.com/photo/10443464   misted panes, foliage behind
+  backdrop-2.jpg   pexels.com/photo/11601236   deep planting under glass
+  backdrop-3.jpg   pexels.com/photo/5947948    palm canopy against the roof
+
+A fourth plate (the house at dusk) shipped with the first version of this
+design and was retired when the design moved from evening to morning: a night
+photograph cannot be graded into a morning page, only greyed.
+
+THEY ARE NOT UNALTERED COPIES - ON PURPOSE
+------------------------------------------
+The Pexels licence permits commercial use but does NOT permit selling
+unaltered copies of a photo. A sold template that ships an untouched stock
+JPEG sits close to that line.
+
+Each file here has been changed at the FILE level, not with a CSS filter at
+display time:
+
+  * contrast +10%, brightness -2%, saturation pulled to 84%
+  * curved into this design's palette: shadows toward green-black (#0b1510),
+    highlights toward cool bone (#dfe7e0), so every backdrop shares one look
+    and the amber lamps inside them survive as the single accent
+  * lightly unsharpened
+  * cropped to 1800 x 1100, the ratio the hero uses
+
+That grade is The Glasshouse's own look, so the shipped files are derivative
+works rather than redistributed originals.
+
+IF A BACKDROP IS MISSING
+------------------------
+design.js resolves any unknown value back to backdrop-3, so a deleted file or
+a stale saved choice cannot leave the hero pointing at nothing. If you replace
+one, keep the same file name and the same 1800 x 1100 ratio, and remember the
+names are set in pale type across the lower left: a picture that is bright
+there will not hold them.

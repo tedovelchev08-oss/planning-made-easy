@@ -77,6 +77,24 @@ describe("studio designs: the catalogue", () => {
     expect(d.gallery).toEqual([]);
   });
 
+  it("The Glasshouse keeps its own backdrop as the hero; the couple's photo goes in the story frame", () => {
+    const gh = studioDesignOf("studio:glasshouse")!;
+    expect(planAllows("celebration", gh)).toBe(true);
+    const photo = "https://abc.supabase.co/storage/v1/object/public/media/w1/photos/p.jpg";
+    const d = toInvitationData({ slug: "a", names: "A & B", date: "2027-06-12T14:00:00Z", invitation: { template_id: "studio:glasshouse", photo, design_data: { choices: { backdrop: "assets/backdrops/backdrop-1.jpg" } } } }, gh);
+    expect(d.heroPhoto).toBe("");
+    expect(d.storyPhoto).toBe(photo);
+    expect(d.backdrop).toBe("assets/backdrops/backdrop-1.jpg");
+    expect(d.storyTitle).toBe("How it began.");
+  });
+
+  it("a choice outside the design's own options falls back to its first", () => {
+    const gh = studioDesignOf("studio:glasshouse")!;
+    const d = toInvitationData({ slug: "a", names: "A & B", date: "2027-06-12T14:00:00Z", invitation: { template_id: "studio:glasshouse", design_data: { choices: { backdrop: "https://evil.example/x.jpg" } } } }, gh);
+    expect(d.backdrop).toBe("assets/backdrops/backdrop-3.jpg");
+    expect(d.storyPhoto).toBe("");
+  });
+
   it("a guest's link keeps the token, the slug and the source", () => {
     expect(studioInviteUrl(celestial, { token: "t-1", src: "whatsapp" })).toBe("/designs/celestial/index.html?token=t-1&src=whatsapp");
     expect(studioInviteUrl(celestial, { slug: "ana-boris" })).toBe("/designs/celestial/index.html?slug=ana-boris");
