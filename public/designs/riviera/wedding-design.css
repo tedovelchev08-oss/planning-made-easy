@@ -1,0 +1,519 @@
+/* ============================================================
+   RIEN NE VA PLUS  (design-22, "Monte Carlo, Midday")
+   ------------------------------------------------------------
+   A Riviera terrace at noon, and a roulette wheel whose winning pocket
+   is the wedding day. The guest spins it in the opening; the ball
+   lands on the date; the wheel then shrinks into a thin gold dial that
+   passes BEHIND the first name and IN FRONT OF the second. That
+   interlock is the design: the dial and the names occupy the same space.
+
+   Everything else is daylight: limestone paper, baize green, gold leaf,
+   and the sea in the photograph. No section is dark.
+   ============================================================ */
+
+/* ============================================================
+   PALETTE
+   The --c-* values drive the SHARED tailwind.css and wedding-ui.css.
+   This is a LIGHT design: --c-cream is the paper, --c-charcoal the ink.
+   ============================================================ */
+:root{
+  --c-gold:      40 50% 52%;
+  --c-gold-dark: 40 52% 38%;
+  --c-cream:     44 37% 92%;
+  --c-charcoal:  155 19% 17%;
+  --c-warmgray:  150 10% 34%;
+  --c-champagne: 44 35% 88%;
+  --c-sand:      44 30% 85%;
+
+  /* Shared drawer chrome; the fallbacks in wedding-ui.css assume a dark ground. */
+  --line:        rgba(34,51,44,.14);
+  --line-strong: rgba(34,51,44,.28);
+  --g-tag:       #8a6a26;
+
+  /* This design's own names */
+  --paper:      #f2eee3;
+  --paper-lit:  #f8f5ec;
+  --paper-dp:   #e7e0cf;
+  --baize:      #1d5c45;
+  --baize-dp:   #154634;
+  --baize-lit:  #2a7357;
+  --gold:       #c39a45;
+  --gold-dp:    #8a6a26;
+  --gold-hi:    #ecd08a;
+  --ink:        #22332c;
+  --ink-soft:   #4a5a52;
+  --ink-faint:  #66756d;
+
+  --display: 'Gloock', 'Bodoni 72', Didot, Georgia, serif;
+  --italic:  'Libre Caslon Text', Georgia, serif;
+  --support: 'Albert Sans', system-ui, -apple-system, sans-serif;
+
+  --ease:      cubic-bezier(.65,0,.25,1);
+  --ease-soft: cubic-bezier(.2,.7,.2,1);
+  --gut: clamp(24px, 6vw, 96px);
+
+  /* HERO GEOMETRY, phone first. Every position in the hero is derived from
+     these, so the ring, the names and the details can never disagree. */
+  --photo-h:    46svh;
+  --ring-d:     min(34svh, 76vw);
+  --ring-cx:    60vw;
+  --ring-cy:    58svh;
+  --names-x:    24px;
+  --names-size: min(10.5svh, 23vw);
+  --fit:        1;            /* design.js shrinks long names to fit */
+}
+@media (min-width:900px) and (min-aspect-ratio:1/1){
+  :root{
+    --photo-w:    55vw;
+    --ring-d:     min(62vh, 36vw);
+    --ring-cx:    55vw;
+    --ring-cy:    43vh;
+    --names-x:    58vw;
+    --names-size: min(15vh, 8.4vw);
+  }
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+html{ scroll-behavior:smooth }
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--support); font-size:17px; line-height:1.6;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+body.intro-on{ overflow:hidden }
+/* wedding-core.js writes an inline padding-top onto #main to clear its studio
+   bar. The hero is a full-viewport composition, so neutralise it; the bar
+   simply floats over the top of the photograph. */
+#main{ position:relative; z-index:2; padding-top:0 !important }
+
+.sec{ position:relative; padding:clamp(80px,12vh,150px) var(--gut) }
+.sec-title{
+  font-family:var(--display); font-weight:400; color:var(--baize);
+  font-size:clamp(34px,5.2vw,62px); line-height:1.08; letter-spacing:-.01em;
+  text-align:center; margin-bottom:clamp(28px,5vh,56px);
+}
+.eyebrow{
+  font-size:12px; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--gold-dp); font-weight:600; text-align:center; margin-bottom:14px;
+}
+
+.btn-baize{
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--baize); color:var(--paper-lit);
+  font:600 12px/1 var(--support); letter-spacing:.22em; text-transform:uppercase;
+  padding:17px 30px; border:0; border-radius:0; cursor:pointer; text-decoration:none;
+  box-shadow:inset 0 0 0 1px rgba(236,208,138,.5);
+  transition:background .3s ease, transform .15s ease;
+}
+.btn-baize:hover{ background:var(--baize-dp) }
+.btn-baize:active{ transform:translateY(1px) }
+.btn-baize:focus-visible{ outline:2px solid var(--gold); outline-offset:3px }
+.btn-baize.wide{ width:100% }
+
+/* ============================================================
+   PHOTOGRAPHS: the couple's, lightly settled into the palette.
+   The value was tested against faces (see design-10); do not raise it.
+   ============================================================ */
+:root{ --photo-tone: saturate(.90) sepia(.14) contrast(1.02) }
+body.photos-as-taken{ --photo-tone: none }
+
+/* ============================================================
+   00 - HERO
+   ============================================================ */
+#hero{ position:relative; height:100svh; min-height:560px; overflow:hidden }
+
+.hero-photo{
+  position:absolute; left:0; top:0; width:100%; height:var(--photo-h);
+  margin:0; overflow:hidden; background:var(--paper-dp);
+}
+.hero-photo img{
+  width:100%; height:100%; object-fit:cover; object-position:61% 50%;
+  filter:var(--photo-tone);
+}
+/* a gold hairline where photograph meets paper */
+.hero-photo::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold) 18%,var(--gold) 82%,transparent);
+}
+@media (min-width:900px) and (min-aspect-ratio:1/1){
+  .hero-photo{ width:var(--photo-w); height:100% }
+  .hero-photo img{ object-position:62% 50% }
+  .hero-photo::after{ left:auto; top:0; right:0; bottom:0; width:1px; height:auto;
+    background:linear-gradient(180deg,transparent,var(--gold) 18%,var(--gold) 82%,transparent) }
+}
+
+/* --- the wheel / dial --- */
+.wheel{
+  position:absolute; z-index:3;
+  width:var(--ring-d); height:var(--ring-d);
+  left:calc(var(--ring-cx) - var(--ring-d) / 2);
+  top:calc(var(--ring-cy) - var(--ring-d) / 2);
+  transform-origin:50% 50%;
+}
+.wheel svg{ width:100%; height:100%; display:block; overflow:visible }
+.wheel.front{ z-index:5; pointer-events:none; opacity:0 }
+.wheel.morphing{ transition:transform 1.6s var(--ease) }
+/* Split only once the dial has arrived, or the front copy would sit in place
+   while the back one is still travelling. */
+body.dial-settled .wheel.back { clip-path:inset(-10% -10% 50% -10%) }
+body.dial-settled .wheel.front{ clip-path:inset(50% -10% -10% -10%); opacity:1 }
+
+/* during the opening the wheel rides above the opening overlay */
+body.intro-on .wheel.back{ z-index:30; cursor:pointer; filter:drop-shadow(0 28px 38px rgba(60,40,20,.26)) }
+body.intro-on .wheel.back:focus-visible{ outline:2px solid var(--gold); outline-offset:8px; border-radius:50% }
+
+.bowl,.cone,.pocket,.num,.fret,.win-mark,.win-label{
+  transition:opacity 1.1s ease, fill .9s ease, fill-opacity 1.1s ease;
+}
+.win-mark,.win-label{ opacity:0 }
+svg.ring .bowl, svg.ring .cone, svg.ring .fret{ opacity:0 }
+svg.ring .pocket{ fill-opacity:0 }
+svg.ring .num{ fill:var(--baize) }
+svg.ring .num.win{ fill:var(--paper-lit) }
+svg.ring .win-mark{ opacity:1 }
+svg.ring .win-label{ opacity:1; transition-delay:.8s }
+.win-glow{ opacity:0; transition:opacity .5s ease }
+.won .win-glow{ opacity:1; animation:winGlow 1.4s ease-in-out 2 }
+svg.ring .win-glow{ opacity:0; animation:none }
+@keyframes winGlow{ 50%{ opacity:.35 } }
+
+/* --- names --- */
+.hero-names{
+  position:absolute; z-index:4; left:var(--names-x); margin:0;
+  top:calc(var(--ring-cy) - var(--names-size) * var(--fit) * 1.02);
+  font-family:var(--display); font-weight:400; color:var(--baize);
+  font-size:calc(var(--names-size) * var(--fit)); line-height:1.02; letter-spacing:-.01em;
+  white-space:nowrap;
+}
+.hn{ display:block }
+.hero-names .amp{
+  font-family:var(--italic); font-style:italic; color:var(--gold);
+  font-size:.62em; margin-right:.08em; display:inline-block; transform:translateY(-.12em);
+}
+
+/* --- details under the dial --- */
+.hero-details{
+  position:absolute; z-index:4; left:var(--names-x); right:24px;
+  top:calc(var(--ring-cy) + var(--ring-d) / 2 + 3svh);
+}
+.hero-when{
+  font-family:var(--italic); font-style:italic; color:var(--ink);
+  font-size:clamp(17px,2.3svh,22px); line-height:1.3; padding-bottom:2px;
+}
+.hero-where{
+  margin-top:6px; font-size:12px; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--baize); font-weight:600;
+}
+.hero-details .btn-baize{ margin-top:22px }
+
+/* The hero's own entrance after the opening (and on a page with no opening). */
+.hn, .hero-details{ transition:opacity 1s ease, transform 1.2s var(--ease-soft) }
+body.intro-on:not(.intro-leaving) .hn, body.intro-on:not(.intro-leaving) .hero-details{ opacity:0; transform:translateY(.4em) }
+body.intro-leaving .hn1{ transition-delay:.9s }
+body.intro-leaving .hn2{ transition-delay:1.15s }
+body.intro-leaving .hero-details{ transition-delay:1.6s }
+
+/* ============================================================
+   THE OPENING
+   Fixed over the viewport while body.intro-on. The wheel itself is not
+   in here: it is the hero's own wheel, lifted above this layer.
+   ============================================================ */
+#intro{ display:none; position:fixed; inset:0; z-index:20 }
+body.intro-on #intro{ display:block }
+body.intro-leaving #intro{ opacity:0; pointer-events:none; transition:opacity 1.4s ease .1s }
+.intro-photo{ position:absolute; inset:0; overflow:hidden }
+.intro-photo img{
+  width:100%; height:100%; object-fit:cover; object-position:61% 50%;
+  filter:blur(14px) saturate(1.08) brightness(1.12); transform:scale(1.12);
+}
+.intro-veil{
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse at 50% 45%, rgba(242,238,227,.30), rgba(242,238,227,.66));
+}
+.intro-call{
+  position:absolute; left:0; right:0; text-align:center; padding:0 24px;
+  top:calc(50svh + min(86vw, 58svh, 600px) / 2 + 2.4svh);
+}
+.intro-line{
+  font-family:var(--italic); font-style:italic; color:var(--baize-dp);
+  font-size:clamp(19px,2.6svh,25px); min-height:1.6em; padding-bottom:2px;
+  transition:opacity .45s ease;
+}
+.intro-line.fade{ opacity:0 }
+.intro-spin{
+  margin-top:14px; background:none; color:var(--baize-dp); cursor:pointer;
+  border:0; border-bottom:1px solid var(--gold); border-radius:0;
+  font:600 12px/1 var(--support); letter-spacing:.26em; text-transform:uppercase;
+  padding:12px 4px; transition:opacity .4s ease;
+}
+.intro-spin[disabled]{ opacity:0; cursor:default }
+.intro-spin:focus-visible, .intro-skip:focus-visible{ outline:2px solid var(--gold); outline-offset:4px }
+.intro-skip{
+  position:absolute; right:20px; bottom:calc(20px + env(safe-area-inset-bottom));
+  background:none; border:0; cursor:pointer; padding:8px;
+  font:500 11px/1 var(--support); letter-spacing:.24em; text-transform:uppercase; color:var(--ink-soft);
+}
+
+/* ============================================================
+   01 - OUR STORY
+   ============================================================ */
+.story-col{ max-width:34rem; margin:0 auto; text-align:center }
+.story-p{
+  font-family:var(--italic); font-size:clamp(18px,2.1vw,22px); line-height:1.65; color:var(--ink-soft);
+}
+.story-p + .story-p{ margin-top:1.2em }
+.story-p:first-of-type{ color:var(--ink) }
+
+/* ============================================================
+   02 - THE DAY
+   ============================================================ */
+#the-day{ padding-top:0 }
+.day-wrap{
+  max-width:880px; margin:0 auto; display:grid; grid-template-columns:auto 1fr;
+  gap:clamp(28px,6vw,72px); align-items:center;
+}
+.day-chip{
+  width:clamp(132px,18vw,188px); aspect-ratio:1; border-radius:50%;
+  display:grid; place-items:center; position:relative;
+  background:radial-gradient(circle at 35% 30%, #f6e2a6, var(--gold) 55%, var(--gold-dp));
+  box-shadow:0 18px 40px rgba(138,106,38,.28), inset 0 0 0 6px rgba(255,248,226,.35);
+}
+.day-chip::before{
+  content:""; position:absolute; inset:12%; border-radius:50%;
+  border:1px solid rgba(255,248,226,.7);
+}
+.day-chip span{
+  font-family:var(--display); color:var(--paper-lit);
+  font-size:clamp(54px,7.5vw,82px); line-height:1; text-shadow:0 2px 0 rgba(138,106,38,.45);
+}
+.day-when{ font-family:var(--italic); font-style:italic; font-size:clamp(19px,2.2vw,24px); color:var(--ink) }
+.day-time{ margin-top:4px; font-size:13px; letter-spacing:.2em; text-transform:uppercase; color:var(--gold-dp); font-weight:600 }
+.day-venue{ margin-top:22px; font-family:var(--display); font-weight:400; font-size:clamp(30px,4vw,46px); line-height:1.1; color:var(--baize) }
+.day-addr{ margin-top:6px; color:var(--ink-soft) }
+.day-dress{ margin-top:14px; font-family:var(--italic); font-style:italic; color:var(--ink-soft) }
+.day-links{ margin-top:26px; display:flex; flex-wrap:wrap; gap:12px }
+.day-links a{
+  font-size:12px; letter-spacing:.16em; text-transform:uppercase; font-weight:600;
+  color:var(--baize); text-decoration:none; padding:12px 18px;
+  border:1px solid rgba(29,92,69,.35); transition:background .25s ease, color .25s ease;
+}
+.day-links a:hover{ background:var(--baize); color:var(--paper-lit) }
+.day-links a:focus-visible{ outline:2px solid var(--gold); outline-offset:3px }
+
+/* ============================================================
+   03 - THE TABLE
+   A band of baize, the only coloured ground on the page. It is a
+   mid green in daylight, not a dark section.
+   ============================================================ */
+#schedule{
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.10), transparent 60%),
+    radial-gradient(ellipse at 50% 120%, rgba(0,0,0,.10), transparent 60%),
+    var(--baize-lit);
+  box-shadow:inset 0 1px 0 var(--gold), inset 0 -1px 0 var(--gold);
+}
+/* felt grain, on a fixed-size pseudo-element so it never repaints on scroll */
+#schedule::before{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.22; mix-blend-mode:soft-light;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.sec-title.on-baize{ color:var(--paper-lit) }
+.table-row{
+  position:relative; list-style:none; margin:0 auto; padding:0; max-width:1100px;
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(170px,1fr)); gap:clamp(28px,4vw,48px);
+}
+.tl-item{ text-align:center; color:var(--paper-lit) }
+/* A casino chip: gold body, paper edge inserts, a printed inner ring. */
+.tl-chip{
+  width:96px; height:96px; margin:0 auto 18px; border-radius:50%;
+  display:grid; place-items:center; position:relative;
+  background:radial-gradient(circle at 35% 30%, #f3dc9a, var(--gold) 60%, var(--gold-dp));
+  box-shadow:0 10px 22px rgba(0,0,0,.22);
+}
+.tl-chip::before{
+  content:""; position:absolute; inset:4px; border-radius:50%;
+  border:7px dashed rgba(248,245,236,.92);
+}
+.tl-chip::after{
+  content:""; position:absolute; inset:19px; border-radius:50%;
+  border:1px solid rgba(248,245,236,.75);
+}
+.tl-time{ position:relative; z-index:1; font-family:var(--display); font-size:21px; color:var(--baize-dp) }
+.tl-title{ font-family:var(--italic); font-style:italic; font-size:22px; line-height:1.2 }
+.tl-venue{ margin-top:6px; font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--gold-hi); font-weight:600 }
+
+/* ============================================================
+   04 - POSTCARDS
+   ============================================================ */
+.postcards{
+  max-width:1100px; margin:0 auto; display:grid;
+  grid-template-columns:repeat(4,1fr); gap:clamp(18px,3vw,36px); align-items:start;
+}
+.pc{
+  background:var(--paper-lit); padding:10px 10px 0; margin:0;
+  box-shadow:0 14px 30px rgba(34,51,44,.14), 0 1px 0 rgba(34,51,44,.06);
+  transform:rotate(var(--tilt,0deg));
+}
+.pc:nth-child(1){ --tilt:-2.2deg; margin-top:24px }
+.pc:nth-child(2){ --tilt:1.6deg }
+.pc:nth-child(3){ --tilt:-1.2deg; margin-top:40px }
+.pc:nth-child(4){ --tilt:2.4deg; margin-top:8px }
+.pc img{ width:100%; aspect-ratio:4/5; object-fit:cover; display:block; filter:var(--photo-tone) }
+.pc figcaption{
+  font-family:var(--italic); font-style:italic; font-size:15px; color:var(--ink-soft);
+  padding:10px 4px 12px; text-align:center; min-height:1em;
+}
+.pc.extra{ display:none }
+
+/* ============================================================
+   05 - QUESTIONS (markup written by the core)
+   ============================================================ */
+#faq-list{ max-width:40rem; margin:0 auto }
+.faq-item{ border-bottom:1px solid var(--line-strong) }
+.faq-item:first-child{ border-top:1px solid var(--line-strong) }
+.faq-question{
+  width:100%; display:flex; justify-content:space-between; align-items:center; gap:16px;
+  background:none; border:0; cursor:pointer; padding:20px 2px; text-align:left;
+  font-family:var(--italic); font-size:clamp(18px,2vw,21px); color:var(--ink);
+}
+.faq-question:focus-visible{ outline:2px solid var(--gold); outline-offset:2px }
+.faq-chevron{ color:var(--gold); font-size:12px; transition:transform .3s ease }
+.faq-question-open .faq-chevron{ transform:rotate(180deg) }
+.faq-answer{ display:none; padding:0 2px 22px; color:var(--ink-soft) }
+.faq-answer.faq-answer-open{ display:block }
+
+/* ============================================================
+   06 - RSVP
+   ============================================================ */
+#rsvp{ background:var(--paper-lit); box-shadow:inset 0 1px 0 var(--line) }
+.rsvp-card{ max-width:34rem; margin:0 auto }
+.rsvp-card .sec-title{ margin-bottom:10px }
+.rsvp-deadline{ text-align:center; font-family:var(--italic); font-style:italic; color:var(--ink-soft); margin-bottom:clamp(30px,5vh,48px) }
+.hp-field{ position:absolute; left:-9999px; height:0; overflow:hidden }
+.field{ margin-bottom:26px; position:relative }
+.field label, .field-label{
+  display:block; font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-soft); font-weight:600; margin-bottom:8px;
+}
+.field input[type=text], .field input[type=number], .field textarea{
+  width:100%; background:transparent; border:0; border-bottom:1px solid var(--line-strong);
+  padding:10px 0; font-family:var(--italic); font-size:19px; color:var(--ink); border-radius:0;
+}
+.field textarea{ resize:vertical }
+.field input:focus, .field textarea:focus{ outline:0; border-bottom-color:var(--baize) }
+.field input:focus-visible, .field textarea:focus-visible{ outline:2px solid var(--gold); outline-offset:4px }
+/* The shared .visually-hidden has no !important, so restate it above the field rules. */
+.field .visually-hidden, .rsvp-choice .visually-hidden{
+  position:absolute !important; width:1px !important; height:1px !important;
+  margin:-1px !important; padding:0 !important; overflow:hidden !important;
+  border:0 !important; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap;
+}
+.rsvp-choice{ display:flex; gap:10px }
+.choice{
+  flex:1; text-align:center; cursor:pointer; padding:14px 10px;
+  border:1px solid var(--line-strong); font-family:var(--italic); font-size:17px; color:var(--ink-soft);
+  transition:background .25s ease, color .25s ease, border-color .25s ease;
+}
+.field label.choice{ display:block; margin:0; text-transform:none; letter-spacing:0; font-weight:400; font-size:17px; font-family:var(--italic); color:var(--ink-soft) }
+.field label.choice.selected{ color:var(--paper-lit) }
+.choice.selected{ background:var(--baize); border-color:var(--baize); color:var(--paper-lit) }
+.choice:focus-within{ outline:2px solid var(--gold); outline-offset:2px }
+.rsvp-error{ margin-top:14px; color:#9a2c2c; font-size:14px; text-align:center }
+.rsvp-contact{ margin-top:28px; text-align:center; font-size:13px; color:var(--ink-faint); letter-spacing:.04em }
+
+.rsvp-done{ text-align:center; padding:10px 0 4px }
+.done-wheel{ width:120px; height:120px; margin:0 auto 18px }
+.done-wheel svg{ width:100%; height:100%; overflow:visible }
+.dw-ring{ fill:none; stroke:var(--gold); stroke-width:2 }
+.dw-ring.thin{ stroke-width:.8 }
+.dw-ball{ fill:var(--paper-lit); stroke:var(--gold-dp); stroke-width:1 }
+.rsvp-done:not([hidden]) .dw-ball{ animation:ballSettle 1.6s var(--ease-soft) both }
+@keyframes ballSettle{
+  0%  { transform:rotate(-320deg) }
+  100%{ transform:rotate(0) }
+}
+.done-title{ font-family:var(--display); font-size:clamp(30px,4vw,40px); color:var(--baize) }
+.done-sub{ margin-top:8px; font-family:var(--italic); font-style:italic; color:var(--ink-soft); font-size:19px }
+.done-again{
+  margin-top:24px; background:none; border:0; border-bottom:1px solid var(--gold); cursor:pointer;
+  font:600 11px/1 var(--support); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); padding:8px 2px;
+}
+
+.site-foot{
+  display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;
+  padding:40px var(--gut) 48px; border-top:1px solid var(--line);
+  font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-faint);
+}
+.foot-names{ font-family:var(--display); letter-spacing:.04em; text-transform:none; font-size:18px; color:var(--baize) }
+
+/* ============================================================
+   REVEALS (IntersectionObserver adds .in)
+   ============================================================ */
+.rv{ opacity:0; transform:translateY(18px); transition:opacity .9s ease, transform 1s var(--ease-soft) }
+.rv.in{ opacity:1; transform:none }
+
+/* ============================================================
+   GUEST PREVIEW + BUILDER CHROME
+   ============================================================ */
+body.guest-mode #builder-bar,
+body.guest-mode #customizer-drawer,
+body.guest-mode #hud{ display:none !important }
+body.guest-mode{ padding-top:0 !important }
+#exit-preview-btn{
+  display:none; position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+  z-index:9000; padding:12px 26px; cursor:pointer;
+  background:var(--baize); color:var(--paper-lit); border:1px solid var(--baize);
+  font:500 11px/1 var(--support); letter-spacing:.22em; text-transform:uppercase; border-radius:0;
+  box-shadow:0 10px 30px rgba(34,51,44,.2);
+}
+body.guest-mode.show-exit-btn #exit-preview-btn{ display:block }
+#exit-preview-btn:focus-visible{ outline:2px solid var(--gold); outline-offset:3px }
+
+#builder-bar{ background:hsl(var(--c-charcoal) / .96) !important; color:var(--paper) !important }
+#customizer-drawer{ background:var(--paper) !important; color:var(--ink) !important }
+
+.audio-toggle{
+  position:fixed; right:22px; bottom:22px; z-index:8000; width:44px; height:44px;
+  align-items:center; justify-content:center; padding:0; line-height:1;
+  border-radius:50%; cursor:pointer; background:var(--paper-lit);
+  border:1px solid var(--line-strong); color:var(--ink-soft);
+  box-shadow:0 6px 18px rgba(34,51,44,.12);
+  transition:background .25s ease, color .25s ease, border-color .25s ease;
+}
+.audio-toggle i{ font-size:14px; line-height:1; display:block }
+.audio-toggle i.fa-music{ transform:translateX(-0.04em) }
+.audio-toggle:hover{ border-color:var(--baize); color:var(--baize) }
+.audio-toggle.is-playing{ background:var(--baize); border-color:var(--baize); color:var(--paper-lit) }
+.audio-toggle:focus-visible{ outline:2px solid var(--gold); outline-offset:3px }
+body.guest-mode.show-exit-btn .audio-toggle{ bottom:76px }
+body.intro-on .audio-toggle{ display:none !important }
+
+/* ============================================================
+   RESPONSIVE (below the desktop split)
+   ============================================================ */
+@media (max-width:899px), (max-aspect-ratio:1/1){
+  .postcards{ grid-template-columns:1fr 1fr; gap:22px 16px }
+  .pc:nth-child(n){ margin-top:0 }
+  .pc:nth-child(2n){ margin-top:28px }
+}
+@media (max-width:640px){
+  .day-wrap{ grid-template-columns:1fr; text-align:center; justify-items:center }
+  .day-links{ justify-content:center }
+  .table-row{ grid-template-columns:1fr 1fr; gap:36px 18px }
+  .tl-title{ font-size:19px }
+  .rsvp-choice{ flex-direction:column }
+}
+
+/* ============================================================
+   REDUCED MOTION: the ball is simply already in its pocket.
+   ============================================================ */
+@media (prefers-reduced-motion:reduce){
+  html{ scroll-behavior:auto }
+  *,*::before,*::after{
+    animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important; transition-delay:0s !important;
+  }
+  .rv{ opacity:1 !important; transform:none !important }
+}
