@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Generic on purpose: crawlers read this, and the edge function swaps in the
+     couple's real names server-side. Only crawlers ever see this wording. -->
+<title>All In - A Wedding Invitation</title>
+<meta name="description" content="You have been dealt a hand. You are invited.">
+<meta name="theme-color" content="#f3f0e8">
+
+
+<!-- Link previews read the raw HTML: generic on purpose, no image, no names. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="You&rsquo;re Invited">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 fill=%27%23f3f0e8%27/%3E%3Crect x=%2716%27 y=%278%27 width=%2732%27 height=%2746%27 rx=%274%27 fill=%27%23fcfbf7%27 stroke=%27%23c8a24e%27 stroke-width=%272%27/%3E%3Cpath d=%27M32 40c-9-7-12-11-12-15a6 6 0 0 1 12-2a6 6 0 0 1 12 2c0 4-3 8-12 15z%27 fill=%27%23c0303a%27/%3E%3C/svg%3E">
+
+<!-- DM Serif Display carries the names and the card indices (a high-contrast
+     face with a true italic for the ampersand); Work Sans the small type.
+     Neither is used by another design in this catalogue. -->
+<link rel="stylesheet" href="../_shared/fonts/fonts.css">
+<!-- Font Awesome: the shared builder drawer renders its icons with it. -->
+<link rel="stylesheet" href="../_shared/vendor/fontawesome/css/all.min.css">
+<!-- LZ-String compresses the share-link payload. No confetti: a reply is
+     confirmed by turning a card face up. -->
+<script src="../_shared/vendor/lz-string.min.js"></script>
+
+<!-- ORDER MATTERS. tailwind.css ships Preflight (a full reset); this design's
+     sheet loads after it so it always wins, and wedding-ui.css last because it
+     only dresses the builder drawer. -->
+<link rel="stylesheet" href="../_shared/tailwind.css?v=1">
+<link rel="stylesheet" href="wedding-design.css?v=1">
+<link rel="stylesheet" href="../_shared/wedding-ui.css?v=1">
+<!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
+<style>
+  html.luma-loading { background: #f4ecdc; }
+  html.luma-loading body { visibility: hidden; }
+  .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #f4ecdc; color: #1f2a4d; font-family: 'Work Sans', sans-serif; }
+  .luma-notice h1 { font-family: 'DM Serif Display', Georgia, serif; font-size: 34px; font-weight: 400; color: #c0303a; margin: 0; }
+  .luma-notice p { font-size: 17px; max-width: 30rem; margin: 0; opacity: .8; }
+  .luma-notice a { margin-top: 8px; color: #c0303a; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+  .luma-check:empty { display: none; }
+</style>
+</head>
+<body>
+
+<button id="exit-preview-btn" onclick="toggleGuestPreview()">Exit preview</button>
+
+<audio id="bg-music-audio" loop preload="none"></audio>
+<button id="music-toggle-btn" onclick="toggleMusic()" class="audio-toggle" style="display:none;" aria-label="Toggle background music">
+  <i class="fas fa-music" id="music-toggle-icon"></i>
+</button>
+<main id="main">
+
+  <!-- ============================================================
+       00 - THE HAND
+       Five cards, stacked face down as a deck until the guest deals them.
+       Every printed value comes from invitationData via data-sync, so the
+       Queen and King always carry the couple's names and the 12 and VI
+       always match the wedding date.
+       ============================================================ -->
+  <section id="hero">
+    <div class="card c-q"><div class="inner">
+      <div class="face red">
+        <div class="idx tl">Q<span class="s">&hearts;</span></div>
+        <div class="court"><span class="n" data-sync="one"></span><span class="mid">&hearts;</span><span class="n flip" data-sync="one"></span></div>
+        <div class="idx br">Q<span class="s">&hearts;</span></div>
+      </div>
+      <div class="back"><div class="mono" data-sync="mono">E&amp;M</div></div>
+    </div></div>
+
+    <div class="card c-k"><div class="inner">
+      <div class="face navy">
+        <div class="idx tl">K<span class="s">&spades;</span></div>
+        <div class="court"><span class="n" data-sync="two"></span><span class="mid">&spades;</span><span class="n flip" data-sync="two"></span></div>
+        <div class="idx br">K<span class="s">&spades;</span></div>
+      </div>
+      <div class="back"><div class="mono" data-sync="mono">E&amp;M</div></div>
+    </div></div>
+
+    <div class="card c-d"><div class="inner">
+      <div class="face red">
+        <div class="idx tl"><span data-sync="day"></span><span class="s">&diams;</span></div>
+        <div class="pip-big"><span class="big" data-sync="day"></span><span class="sub" data-sync="weekday">Saturday</span></div>
+        <div class="idx br"><span data-sync="day"></span><span class="s">&diams;</span></div>
+      </div>
+      <div class="back"><div class="mono" data-sync="mono">E&amp;M</div></div>
+    </div></div>
+
+    <div class="card c-m"><div class="inner">
+      <div class="face navy">
+        <div class="idx tl"><span data-sync="roman">VI</span><span class="s">&clubs;</span></div>
+        <div class="pip-big"><span class="it" data-sync="month">June</span><span class="sub" data-sync="year">2027</span></div>
+        <div class="idx br"><span data-sync="roman">VI</span><span class="s">&clubs;</span></div>
+      </div>
+      <div class="back"><div class="mono" data-sync="mono">E&amp;M</div></div>
+    </div></div>
+
+    <div class="card c-a ace"><div class="inner">
+      <div class="face">
+        <div class="idx tl red">A<span class="s">&hearts;</span></div>
+        <div class="window"><img id="heroImg" src="" alt=""></div>
+        <div class="heart">&hearts;</div>
+        <div class="idx br red">A<span class="s">&hearts;</span></div>
+      </div>
+      <div class="back"><div class="mono" data-sync="mono">E&amp;M</div></div>
+    </div></div>
+
+    <h1 class="hero-names">
+      <span class="hn hn1" data-sync="one"></span>
+      <span class="hn hn2"><span class="amp">&amp;</span><span data-sync="two"></span></span>
+    </h1>
+
+    <div class="hero-details">
+      <p class="hero-when" data-sync="dateWords"></p>
+      <p class="hero-where" id="heroPlace"></p>
+      <a class="btn-red" href="#rsvp" id="heroCta">Reply</a>
+    </div>
+
+    <!-- THE OPENING. Shown only while body.deck is set by design.js, so a page
+         whose script fails still shows the dealt hand. -->
+    <div class="call" id="intro">
+      <p class="call-line" id="introLine">You have been dealt a hand</p>
+      <button type="button" class="call-deal" id="introDeal">Tap to deal</button>
+    </div>
+    <button type="button" class="intro-skip" id="introSkip">Skip</button>
+  </section>
+
+  <!-- ============================================================
+       01 - OUR STORY (photograph and words, side by side)
+       ============================================================ -->
+  <section class="sec" id="story">
+    <div class="story-wrap">
+      <figure class="story-photo rv"><img id="storyImg" src="" alt=""></figure>
+      <div class="story-text rv">
+        <h2 class="sec-title left" id="storyTitle">How we met</h2>
+        <p class="story-p" id="storyP1"></p>
+        <p class="story-p" id="storyP2"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       02 - THE DAY (one large card, face up)
+       ============================================================ -->
+  <section class="sec" id="the-day">
+    <div class="big-card rv">
+      <div class="idx tl red"><span data-sync="day"></span><span class="s">&diams;</span></div>
+      <div class="big-body">
+        <p class="bc-weekday" data-sync="weekday">Saturday</p>
+        <p class="bc-date" data-sync="dateWords"></p>
+        <p class="bc-time" id="dayTime">4:00 PM</p>
+        <h2 class="bc-venue" id="dayVenue"></h2>
+        <p class="bc-addr" id="dayAddr"></p>
+        <p class="bc-dress" id="dayDress">Black tie</p>
+      </div>
+      <div class="idx br red"><span data-sync="day"></span><span class="s">&diams;</span></div>
+    </div>
+    <div class="day-links">
+      <a id="venueLink" href="#" target="_blank" rel="noopener">Directions</a>
+      <a id="gcal-link" href="#" target="_blank" rel="noopener">Google Calendar</a>
+      <a id="ics-link" href="#">Apple Calendar</a>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       03 - THE ORDER OF PLAY (a card per event, its time as the rank)
+       ============================================================ -->
+  <section class="sec" id="schedule">
+    <h2 class="sec-title" id="scheduleHeading">The order of the day</h2>
+    <ol class="event-row" id="tlItems"></ol>
+  </section>
+
+  <!-- ============================================================
+       04 - PHOTOGRAPHS (dealt as cards)
+       ============================================================ -->
+  <section class="sec" id="gallery">
+    <h2 class="sec-title" id="galleryHeading">A few of ours</h2>
+    <div class="photo-hand"></div>
+  </section>
+
+  <!-- ============================================================
+       05 - QUESTIONS (rendered by the core into #faq-list)
+       ============================================================ -->
+  <section class="sec" id="faq-section">
+    <h2 class="sec-title" id="faqHeading">Things you might ask</h2>
+    <div id="faq-list"></div>
+  </section>
+
+  <!-- ============================================================
+       06 - RSVP: two cards to choose between
+       ============================================================ -->
+  <section class="sec" id="rsvp">
+    <div class="rsvp-card">
+      <p class="eyebrow" id="rsvpLead">We would love to have you at the table</p>
+      <h2 class="sec-title" id="rsvpTitle">We're all in. Are you?</h2>
+      <p class="rsvp-deadline" id="rsvpDeadline">Kindly reply by 1st May, 2027</p>
+
+      <form class="rsvp-form" id="rsvp-form" name="rsvp" method="POST" novalidate>
+        <input type="hidden" name="form-name" value="rsvp">
+        <p class="hp-field" aria-hidden="true"><label>Leave this field empty<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+        <div class="field">
+          <label for="rsvpName" id="rsvpNameLabel">Your name</label>
+          <input type="text" id="rsvpName" name="guest_names" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <span class="field-label" id="joinLabel">Will you be there?</span>
+          <div class="choice-cards" role="radiogroup" aria-labelledby="joinLabel">
+            <label class="choice selected">
+              <input type="radio" name="attending" value="yes" class="visually-hidden" checked>
+              <span class="ch-idx red">A<span class="s">&hearts;</span></span>
+              <span class="ch-text" id="rsvpYesLabel">All in</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="attending" value="no" class="visually-hidden">
+              <span class="ch-idx navy">2<span class="s">&clubs;</span></span>
+              <span class="ch-text" id="rsvpNoLabel">With regret</span>
+            </label>
+          </div>
+        </div>
+        <div class="field" id="rsvp-guests-wrap">
+          <label for="rsvpGuests" id="rsvpGuestsLabel">How many of you</label>
+          <input type="number" id="rsvpGuests" min="1" max="6" value="2" inputmode="numeric">
+          <select id="rsvp-guest-count" name="guest_count" class="visually-hidden" tabindex="-1" aria-hidden="true">
+            <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          </select>
+        </div>
+        <div class="field" id="rsvp-plusone-wrap" style="display:none">
+          <label for="rsvp-plusone-name" id="rsvpPlusOneLabel">Your guest's name</label>
+          <input type="text" id="rsvp-plusone-name" name="plusone_name">
+        </div>
+        <div class="field">
+          <label for="rsvpMessage" id="rsvpNotesLabel">A note for us, or any dietary needs</label>
+          <textarea id="rsvpMessage" name="notes" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn-red wide" id="rsvpSubmit"><span id="rsvpSubmitLabel">Send reply</span></button>
+        <p class="rsvp-error" id="rsvp-error" role="alert" hidden></p>
+      </form>
+
+      <!-- Replaces the form once a reply is accepted: the chosen card, face up. -->
+      <div class="rsvp-done" id="rsvp-confirmed" hidden>
+        <div class="done-card" id="doneCard" aria-hidden="true">
+          <div class="inner">
+            <div class="face"><span class="dc-idx red" id="doneIdx">A<span class="s">&hearts;</span></span><span class="dc-suit red" id="doneSuit">&hearts;</span></div>
+            <div class="back"><div class="mono" data-sync="mono">E&amp;M</div></div>
+          </div>
+        </div>
+        <p class="done-title" id="rsvpDoneTitle">Thank you.</p>
+        <p class="done-sub" id="rsvpDoneSub">Your reply is with us. See you at the table.</p>
+        <button type="button" class="done-again" id="rsvpAgain">Send a different reply</button>
+      </div>
+
+      <p class="rsvp-contact" id="rsvpContact"></p>
+    </div>
+  </section>
+
+  <footer class="site-foot">
+    <span class="foot-names" id="footNames"></span>
+    <span class="foot-tag" id="footTag"></span>
+  </footer>
+</main>
+
+<script id="invitation-data-script">
+let invitationData = {
+    /* Filled from Luma by luma-bridge.js (window.lumaBoot) before the first
+       render: the couple's details, photos and wording. Below are only the
+       shapes, and this design's generic labels. */
+    partner1: "", partner2: "", hashtag: "", date: "", time: "",
+    venueName: "", venueAddress: "", dressCode: "", dressCodeNote: "", rsvpDeadline: "",
+    music: { enabled: false, track: "gnossienne" },
+    heroPhoto: "", story1: "", story2: "",
+    gallery: [], schedule: [], faq: [],
+    photoTone: true,
+    ceremonyNote: "",
+    introCall: "You have been dealt a hand",
+    introButton: "Tap to deal",
+    heroCta: "Reply",
+    monogram: "",
+    heroPlace: "",
+    dateWords: "",
+    storyTitle: "How we met",
+    scheduleHeading: "The order of the day",
+    galleryHeading: "A few of ours",
+    faqHeading: "Things you might ask",
+    rsvpKicker: "We would love to have you at the table",
+    rsvpTag: "We're all in. Are you?",
+    rsvpDeadlinePrefix: "Kindly reply by",
+    rsvpEmailText: "",
+    rsvpNameLabel: "Your name",
+    rsvpAttendanceLabel: "Will you be there?",
+    rsvpYesLabel: "All in",
+    rsvpNoLabel: "With regret",
+    rsvpGuestsLabel: "How many of you",
+    rsvpPlusOneLabel: "Your guest's name",
+    rsvpNotesLabel: "A note for us, or any dietary needs",
+    rsvpSubmitLabel: "Send reply",
+    rsvpNameMissing: "Please add your name so we know who is replying.",
+    rsvpDoneTitle: "Thank you.",
+    rsvpDoneYes: "Your reply is with us. See you at the table.",
+    rsvpDoneNo: "Your reply is with us. You will be missed.",
+    isGuestView: true
+};
+</script>
+
+<!-- Luma first: the core awaits window.lumaBoot -->
+<script src="../_shared/luma-bridge.js?v=2"></script>
+
+
+<!-- Shared behaviour for every design. Loaded after the data. -->
+<script src="../_shared/wedding-core.js?v=1"></script>
+<!-- This design only: the deal, the cards, and the seam onto the core. -->
+<script src="design.js?v=1"></script>
+
+<!-- Luma: the after-render hook this design's own render needs, and what it
+     leaves to its old builder. -->
+<script src="luma.js?v=1"></script>
+</body>
+</html>

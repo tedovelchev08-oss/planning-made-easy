@@ -106,6 +106,23 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       ],
     },
   },
+  {
+    id: "all-in", name: "All In", plan: "luxe", motif: "frame",
+    blurb: "Your invitation is dealt: the two of you as Queen and King, your photo on the Ace",
+    placeholder: { from: "#C0303A", to: "#8E2230", ink: "#F4ECDC" },
+    tracks: [
+      { id: "gnossienne", name: "Gnossienne No. 1", composer: "Satie" },
+      { id: "clairdelune", name: "Clair de lune", composer: "Debussy" },
+    ],
+    extras: {
+      photos: [],
+      gallery: 4,
+      texts: [
+        { key: "heroPlace", label: "Where, in a few words", max: 60, placeholder: "Villa Aurelia, Rome" },
+        { key: "rsvpEmailText", label: "Contact for questions", max: 80, placeholder: "An email or phone number, if you'd like" },
+      ],
+    },
+  },
   { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Palm fronds and fine gilded lines, in sage and ivory", motif: "frame", placeholder: { from: "#F5F9F6", to: "#DDEBE2", ink: "#4E8A6C" } },
 ];
 
