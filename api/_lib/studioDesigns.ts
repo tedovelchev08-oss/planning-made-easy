@@ -24,10 +24,54 @@ export interface StudioDesign {
   placeholder: { from: string; to: string; ink: string };
   /** the planner's card: a starfield, or a fine double frame */
   motif: "stars" | "frame";
+  /** the design's own music; the shared STUDIO_TRACKS when absent */
+  tracks?: readonly StudioTrack[];
+  /** until the couple adds a photo: their initials, or the design's own drawn plate */
+  heroPlaceholder?: "initials" | "design";
+  /** what this design shows beyond the shared details */
+  extras?: {
+    /** photos besides the main one (invitation_config.photo), by invitationData key */
+    photos: { key: string; label: string; hint?: string }[];
+    /** how many gallery photos, with captions (0: none) */
+    gallery: number;
+    /** wording only this design has; `fallback` is shown when left empty, otherwise it's hidden */
+    texts: { key: string; label: string; max: number; placeholder: string; multiline?: boolean; fallback?: string }[];
+  };
 }
+
+export interface StudioTrack { id: string; name: string; composer: string }
 
 export const STUDIO_DESIGNS: StudioDesign[] = [
   { id: "celestial", name: "Celestial", plan: "luxe", blurb: "The night sky above your venue, drawn from your date", motif: "stars", placeholder: { from: "#0B1026", to: "#1E2650", ink: "#E8C87E" } },
+  {
+    id: "mirror-palace", name: "Mirror Palace", plan: "luxe", motif: "frame", heroPlaceholder: "design",
+    blurb: "Gilt, candlelight and mirrors, opening like palace doors",
+    placeholder: { from: "#0A0A0A", to: "#1D1B1F", ink: "#C6B89C" },
+    tracks: [
+      { id: "aria", name: "Aria, Goldberg Variations", composer: "Bach" },
+      { id: "prelude-ebm", name: "Prelude in E-flat minor", composer: "Bach" },
+      { id: "prelude-csm", name: "Prelude in C-sharp minor", composer: "Bach" },
+    ],
+    extras: {
+      photos: [
+        { key: "storyPhotoOne", label: "A portrait of one of you", hint: "The two portraits slide together as guests scroll" },
+        { key: "storyPhotoTwo", label: "A portrait of the other" },
+        { key: "storyPhotoTogether", label: "The two of you", hint: "Appears as the portraits meet" },
+        { key: "ceremonyPhoto", label: "The ceremony venue" },
+        { key: "celebrationPhoto", label: "The celebration" },
+      ],
+      gallery: 5,
+      texts: [
+        { key: "heroCity", label: "City", max: 40, placeholder: "Florence" },
+        { key: "heroQuote", label: "Opening lines", max: 120, multiline: true, placeholder: "Two lives. One reflection.", fallback: "Two lives. One reflection.\nOne beautiful beginning." },
+        { key: "dateCaptionText", label: "A line about the day", max: 300, multiline: true, placeholder: "One afternoon in late August, we ask you to stand beside us…" },
+        { key: "celebrationPlace", label: "The celebration", max: 60, placeholder: "Dinner · Music · Dancing", fallback: "Dinner · Music · Dancing" },
+        { key: "celebrationAddress", label: "Where it is", max: 120, placeholder: "The Orangery, Villa Cora" },
+        { key: "rsvpEmailText", label: "Contact for questions", max: 80, placeholder: "An email or phone number, if you'd like" },
+        { key: "closingMsg", label: "Closing words", max: 40, placeholder: "Until We Meet", fallback: "Until We Meet" },
+      ],
+    },
+  },
   { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Palm fronds and fine gilded lines, in sage and ivory", motif: "frame", placeholder: { from: "#F5F9F6", to: "#DDEBE2", ink: "#4E8A6C" } },
 ];
 
@@ -88,6 +132,12 @@ export interface DesignData {
   story2?: string;
   /** one of the design's own tracks, or "none"; ignored when the couple uploaded a song */
   musicTrack?: string;
+  /** the design's extra photos (extras.photos), by key: public addresses of uploads */
+  photos?: Record<string, string>;
+  /** the design's own wording (extras.texts), by key */
+  texts?: Record<string, string>;
+  /** the design's gallery (extras.gallery) */
+  gallery?: { photo?: string; caption?: string }[];
   schedule?: { time?: string; title?: string; venue?: string; icon?: string }[];
   faq?: { question?: string; answer?: string }[];
 }
@@ -100,7 +150,12 @@ export const STUDIO_TRACKS = [
   { id: "traumerei", name: "Träumerei", composer: "Schumann" },
   { id: "pavane", name: "Pavane", composer: "Ravel" },
 ] as const;
-const DESIGN_TRACKS: string[] = STUDIO_TRACKS.map((t) => t.id);
+
+/** the music a design offers */
+export const tracksOf = (design: StudioDesign): readonly StudioTrack[] => design.tracks ?? STUDIO_TRACKS;
+
+/** a photo address a guest's browser may load: uploads (https) and the planner's own preview copies (blob:) */
+const photoUrl = (v: unknown): string => (typeof v === "string" && /^(https:\/\/|blob:)/.test(v) ? v : "");
 
 /** what the couple can write for a studio design: the editor's limits, well inside 0020's 32 KB */
 export const DESIGN_LIMITS = {
@@ -153,7 +208,7 @@ export function toInvitationData(w: PublicWedding, design: StudioDesign): Record
   const music = w.invitation?.music ?? {};
   const uploaded = music.url && music.track === "upload";
   // silent unless the couple picked one of the design's tracks (as the designs ship)
-  const track = DESIGN_TRACKS.includes(dd.musicTrack ?? "") ? dd.musicTrack! : null;
+  const track = tracksOf(design).some((t) => t.id === dd.musicTrack) ? dd.musicTrack! : null;
 
   return {
     partner1,
@@ -170,15 +225,37 @@ export function toInvitationData(w: PublicWedding, design: StudioDesign): Record
     story2: dd.story2 ?? "",
     music: uploaded
       ? { enabled: true, track: "couple", coupleUrl: music.url, coupleName: music.uploadName ?? "Our song" }
-      : { enabled: !!track, track: track ?? "clairdelune" },
+      : { enabled: !!track, track: track ?? tracksOf(design)[0].id },
     // the design's own sample photos are never shown: only the couple's
     gallery: [],
     schedule: (dd.schedule ?? []).slice(0, 12).map((s, i) => ({
       id: i + 1, time: s.time ?? "", icon: s.icon ?? "fa-heart", venue: s.venue ?? "", title: s.title ?? "",
     })),
     faq: (dd.faq ?? []).slice(0, 12).map((f, i) => ({ id: i + 1, question: f.question ?? "", answer: f.answer ?? "" })),
-    heroPhoto: w.invitation?.photo || placeholderPhoto(design, partner1, partner2),
+    // the couple's own photo; until then their initials, or the design's own drawn plate
+    heroPhoto: photoUrl(w.invitation?.photo) || (design.heroPlaceholder === "design" ? "" : placeholderPhoto(design, partner1, partner2)),
+    ...extrasOf(design, dd),
     rsvpOpen: w.invitation?.collect_rsvp !== false,
     isGuestView: true,
   };
+}
+
+/** a design's own photos, gallery and wording, each declared in its extras and nothing else */
+function extrasOf(design: StudioDesign, dd: DesignData): Record<string, unknown> {
+  const x = design.extras;
+  if (!x) return {};
+  const out: Record<string, unknown> = {};
+  for (const slot of x.photos) out[slot.key] = photoUrl(dd.photos?.[slot.key]);
+  for (const t of x.texts) {
+    const v = typeof dd.texts?.[t.key] === "string" ? dd.texts[t.key].trim().slice(0, t.max) : "";
+    out[t.key] = v || t.fallback || "";
+  }
+  if (x.gallery > 0) {
+    out.gallery = (dd.gallery ?? [])
+      .map((g) => ({ photo: photoUrl(g.photo), caption: typeof g.caption === "string" ? g.caption.slice(0, 60) : "" }))
+      .filter((g) => g.photo)
+      .slice(0, x.gallery)
+      .map((g, i) => ({ id: `g-${i + 1}`, ...g }));
+  }
+  return out;
 }

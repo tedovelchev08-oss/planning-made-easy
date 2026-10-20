@@ -1,7 +1,7 @@
 import React from "react";
 import { Check, Crown, ExternalLink, Lock, Music, Plus, Sparkles, Trash2 } from "lucide-react";
 import {
-  DESIGN_LIMITS, STUDIO_DESIGNS, STUDIO_PREFIX, STUDIO_TRACKS, designPath, planAllows, toInvitationData,
+  DESIGN_LIMITS, STUDIO_DESIGNS, STUDIO_PREFIX, designPath, planAllows, toInvitationData, tracksOf,
   type DesignData, type StudioDesign,
 } from "../../../api/_lib/studioDesigns";
 import { useApp, type Db, type InvitationConfig } from "../../lib/store";
@@ -174,7 +174,7 @@ export function StudioDetails({ cfg, setCfg, design }: {
   return (
     <>
       <section className={`${card} space-y-3`} aria-label="Your photo">
-        <h3 className={label}>Your photo</h3>
+        <h3 className={label}>{design.extras ? "Main photo" : "Your photo"}</h3>
         <PhotoUpload photo={cfg.photo} onChange={(photo) => setCfg({ photo })} />
         {!isUploadedPhoto(cfg.photo) && <p className="text-[0.72rem] font-semibold text-ink-mute">Until you add one, {design.name} shows your initials.</p>}
       </section>
@@ -189,6 +189,8 @@ export function StudioDetails({ cfg, setCfg, design }: {
         <Field label="Dress code note"><input className={inputCls} maxLength={L.dressCodeNote} placeholder="Midnight colours welcome" value={dd.dressCodeNote ?? ""} onChange={(e) => set({ dressCodeNote: e.target.value })} /></Field>
         <Field label="Hashtag"><input className={inputCls} maxLength={L.hashtag} placeholder="#AnaAndBoris" value={dd.hashtag ?? ""} onChange={(e) => set({ hashtag: e.target.value })} /></Field>
       </section>
+
+      {design.extras && <StudioExtras cfg={cfg} setCfg={setCfg} design={design} />}
 
       <section className={`${card} space-y-3`}>
         <h3 className={label}>How you met</h3>
@@ -246,7 +248,7 @@ export function StudioDetails({ cfg, setCfg, design }: {
         {uploaded && (
           <p className="text-[0.76rem] font-semibold text-ink-2">“{cfg.music.uploadName}” plays when guests open it. Pick a track below to use that instead.</p>
         )}
-        {[{ id: "none", name: "No music", composer: "Quiet" }, ...STUDIO_TRACKS].map((t) => (
+        {[{ id: "none", name: "No music", composer: "Quiet" }, ...tracksOf(design)].map((t) => (
           <button key={t.id} onClick={() => pickTrack(t.id)} aria-pressed={track === t.id}
             className={`flex w-full items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left transition cursor-pointer ${track === t.id ? "border-gold/60 bg-gold-soft/50" : "border-ink/12 hover:border-ink/30"}`}>
             <span className="flex-1">
@@ -255,6 +257,73 @@ export function StudioDetails({ cfg, setCfg, design }: {
             </span>
             {track === t.id && <Check size={13} strokeWidth={3.4} className="text-gold-deep" />}
           </button>
+        ))}
+      </section>
+    </>
+  );
+}
+
+/* ------------------------------ a design's own photos, gallery and wording ------------------------------ */
+
+function StudioExtras({ cfg, setCfg, design }: {
+  cfg: InvitationConfig; setCfg: (p: Partial<InvitationConfig>) => void; design: StudioDesign;
+}) {
+  const x = design.extras!;
+  const dd: DesignData = cfg.designData ?? {};
+  const set = (p: Partial<DesignData>) => setCfg({ designData: { ...dd, ...p } });
+  const photos = dd.photos ?? {};
+  const texts = dd.texts ?? {};
+  const gallery = dd.gallery ?? [];
+
+  return (
+    <>
+      <section className={`${card} space-y-4`} aria-label={`${design.name} photos`}>
+        <h3 className={label}>More photos</h3>
+        <p className="text-[0.72rem] font-semibold text-ink-mute">Any you leave out show {design.name}'s own drawings instead.</p>
+        {x.photos.map((slot) => (
+          <div key={slot.key} className="space-y-1.5">
+            <p className="text-[0.8rem] font-extrabold text-ink">{slot.label}</p>
+            {slot.hint && <p className="text-[0.68rem] font-semibold text-ink-mute">{slot.hint}</p>}
+            <PhotoUpload photo={photos[slot.key] ?? null} label={slot.label}
+              onChange={(url) => {
+                const next = { ...photos };
+                if (url) next[slot.key] = url; else delete next[slot.key];
+                set({ photos: next });
+              }} />
+          </div>
+        ))}
+      </section>
+
+      {x.gallery > 0 && (
+        <section className={`${card} space-y-3`} aria-label="Gallery">
+          <h3 className={label}>Gallery · up to {x.gallery}</h3>
+          {gallery.map((g, i) => (
+            <div key={g.photo ?? i} className="space-y-2 rounded-2xl border border-ink/10 bg-white/70 p-3">
+              <PhotoUpload photo={g.photo ?? null} label={`Gallery photo ${i + 1}`}
+                onChange={(url) => set({ gallery: url ? gallery.map((x2, j) => (j === i ? { ...x2, photo: url } : x2)) : gallery.filter((_, j) => j !== i) })} />
+              <input className={small} maxLength={60} placeholder="A caption (optional)" aria-label={`Gallery photo ${i + 1}: caption`} value={g.caption ?? ""}
+                onChange={(e) => set({ gallery: gallery.map((x2, j) => (j === i ? { ...x2, caption: e.target.value } : x2)) })} />
+            </div>
+          ))}
+          {gallery.length < x.gallery && (
+            <PhotoUpload photo={null} label="New gallery photo" onChange={(url) => { if (url) set({ gallery: [...gallery, { photo: url, caption: "" }] }); }} />
+          )}
+        </section>
+      )}
+
+      <section className={`${card} space-y-3`} aria-label={`${design.name} wording`}>
+        <h3 className={label}>Wording</h3>
+        <p className="text-[0.72rem] font-semibold text-ink-mute">Left empty, a line is either left out or shows {design.name}'s own wording.</p>
+        {x.texts.map((t) => (
+          <Field key={t.key} label={t.label}>
+            {t.multiline ? (
+              <textarea className={inputCls} rows={2} maxLength={t.max} placeholder={t.placeholder} value={texts[t.key] ?? ""}
+                onChange={(e) => set({ texts: { ...texts, [t.key]: e.target.value } })} />
+            ) : (
+              <input className={inputCls} maxLength={t.max} placeholder={t.placeholder} value={texts[t.key] ?? ""}
+                onChange={(e) => set({ texts: { ...texts, [t.key]: e.target.value } })} />
+            )}
+          </Field>
         ))}
       </section>
     </>
