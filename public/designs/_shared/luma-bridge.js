@@ -255,8 +255,11 @@
 
     var answer = form.get('attending') === 'no' ? 'no' : 'yes';
     var seats = parseInt(form.get('guest_count') || '1', 10) || 1;
-    var notes = clip(form.get('notes'), 900);
-    var note = [answer === 'yes' && seats > 1 ? 'Party of ' + seats : '', notes || ''].filter(Boolean).join(' · ');
+    var notes = clip(form.get('notes'), 800);
+    // some designs ask for dietary needs in a field of their own
+    var dietary = answer === 'yes' ? clip(form.get('dietary'), 100) : null;
+    var note = [answer === 'yes' && seats > 1 ? 'Party of ' + seats : '', dietary ? 'Dietary: ' + dietary : '', notes || '']
+      .filter(Boolean).join(' · ');
     var name = clip(form.get('guest_names'), 120);
     if (!name || name.length < 2) return Promise.resolve(fail('Please write your name.'));
 
@@ -296,4 +299,10 @@
 
   // start the check early, so it's usually done before the guest presses Send
   window.lumaBoot.then(function () { whenReady(renderCheck); });
+
+  /* A design that draws itself may not call lumaAfterRender (its luma.js
+     should). Whatever happens, a loaded invitation is never left hidden. */
+  window.lumaBoot.then(function (data) {
+    if (data) setTimeout(show, 2500);
+  });
 })();
