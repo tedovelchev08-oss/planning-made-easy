@@ -48,6 +48,14 @@ describe("StudioGallery", () => {
     expect(screen.getByRole("button", { name: /Celestial/ }).getAttribute("aria-pressed")).toBe("true");
   });
 
+  it("keeps a photo the couple uploaded", () => {
+    const own = "https://abc.supabase.co/storage/v1/object/public/media/w1/photos/p.jpg";
+    app.db = makeDb("luxe", { photo: own });
+    render(<Harness initial={app.db.invitation}>{(cfg, set) => <StudioGallery cfg={cfg} setCfg={set} />}</Harness>);
+    fireEvent.click(screen.getByRole("button", { name: /Celestial/ }));
+    expect(latest.photo).toBe(own);
+  });
+
   it("on a smaller plan, it explains the upgrade and changes nothing", () => {
     app.db = makeDb("celebration");
     render(<Harness initial={app.db.invitation}>{(cfg, set) => <StudioGallery cfg={cfg} setCfg={set} />}</Harness>);

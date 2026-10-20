@@ -8,6 +8,8 @@ import { useApp, type Db, type InvitationConfig } from "../../lib/store";
 import { PLANS } from "../../lib/plans";
 import { playChime } from "../../lib/sound";
 import { Field, Pill, btn, inputCls } from "../ui";
+import { PhotoUpload } from "./PhotoUpload";
+import { isUploadedPhoto } from "../../lib/api";
 
 /**
  * The owner's own invitation designs in the planner (Block 18b): a gallery
@@ -82,7 +84,7 @@ export function StudioGallery({ cfg, setCfg }: { cfg: InvitationConfig; setCfg: 
   const choose = (d: StudioDesign) => {
     if (!planAllows(db.plan, d)) { openUpgrade("premiumDesigns"); return; }
     // never a template's stock photo on the owner's designs: the couple's own, or their initials
-    setCfg({ templateId: `${STUDIO_PREFIX}${d.id}`, colors: null, fontSerif: null, photo: null });
+    setCfg({ templateId: `${STUDIO_PREFIX}${d.id}`, colors: null, fontSerif: null, photo: isUploadedPhoto(cfg.photo) ? cfg.photo : null });
     playChime("place");
     toast(`Design: ${d.name}`, "Add your details on the right, then preview it.");
   };
@@ -171,6 +173,12 @@ export function StudioDetails({ cfg, setCfg, design }: {
 
   return (
     <>
+      <section className={`${card} space-y-3`} aria-label="Your photo">
+        <h3 className={label}>Your photo</h3>
+        <PhotoUpload photo={cfg.photo} onChange={(photo) => setCfg({ photo })} />
+        {!isUploadedPhoto(cfg.photo) && <p className="text-[0.72rem] font-semibold text-ink-mute">Until you add one, {design.name} shows your initials.</p>}
+      </section>
+
       <section className={`${card} space-y-3`} aria-label={`${design.name} details`}>
         <h3 className={label}>The details</h3>
         <p className="text-[0.76rem] font-semibold text-ink-mute">Names, date, time and venue come from your wedding settings.</p>

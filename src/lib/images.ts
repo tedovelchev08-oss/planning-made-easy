@@ -31,3 +31,40 @@ const LEGACY: Record<string, string> = {
 export function localPhoto<T extends string | null | undefined>(src: T): T {
   return (typeof src === "string" && LEGACY[src] ? LEGACY[src] : src) as T;
 }
+
+/* ------------------------------ couples' own photos ------------------------------ */
+
+/** the longest side a couple's photo is stored at: sharp on a phone and a laptop, a few hundred KB */
+export const PHOTO_MAX_SIDE = 2000;
+
+/** the size a w×h image is stored at, never enlarged */
+export function fitWithin(w: number, h: number, max = PHOTO_MAX_SIDE): { width: number; height: number } {
+  const scale = Math.min(1, max / Math.max(w, h));
+  return { width: Math.max(1, Math.round(w * scale)), height: Math.max(1, Math.round(h * scale)) };
+}
+
+/**
+ * A couple's photo, ready to upload: resized and re-encoded as JPEG in the
+ * browser. Re-encoding also drops the file's metadata (EXIF), which on a
+ * phone photo usually includes where it was taken; guests never get that.
+ * Browsers draw the photo upright (EXIF orientation) before it's dropped.
+ */
+export function preparePhoto(file: Blob): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const { width, height } = fitWithin(img.naturalWidth, img.naturalHeight);
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const c = canvas.getContext("2d");
+      URL.revokeObjectURL(url);
+      if (!c) { reject(new Error("This browser can't prepare the photo.")); return; }
+      c.drawImage(img, 0, 0, width, height);
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("The photo couldn't be prepared."))), "image/jpeg", 0.86);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("That photo couldn't be opened. Try a JPEG copy of it.")); };
+    img.src = url;
+  });
+}

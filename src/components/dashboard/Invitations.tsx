@@ -10,7 +10,8 @@ import { useApp, usePrefersReducedMotion } from "../../lib/store";
 import { FEATURES, FREE_DESIGN_ID, PLANS, can, formatPrice, guestLimit, type Feature } from "../../lib/plans";
 import { useCurrency } from "../../lib/currency";
 import { guestLink } from "../../lib/links";
-import { MUSIC_TYPES, deleteMusic, musicFileProblem, uploadMusic } from "../../lib/api";
+import { MUSIC_TYPES, deleteMusic, deletePhoto, isUploadedPhoto, musicFileProblem, uploadMusic } from "../../lib/api";
+import { PhotoUpload } from "./PhotoUpload";
 import { playChime, useChimeLoop } from "../../lib/sound";
 import { DesignFrame, Field, Modal, Pill, PlanTag, SafeImg, btn, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
@@ -356,7 +357,7 @@ function LivePreview({ onClose }: { onClose: () => void }) {
 /* ------------------------------ main module ------------------------------ */
 
 export default function Invitations() {
-  const { db, patch, toast, openUpgrade } = useApp();
+  const { db, patch, toast, openUpgrade, mode, weddingId } = useApp();
   const [cat, setCat] = useState<string>("all");
   const [device, setDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [live, setLive] = useState(false);
@@ -399,7 +400,9 @@ export default function Invitations() {
       openUpgrade(t.luxe ? "premiumDesigns" : "allDesigns");
       return;
     }
-    setCfg({ templateId: t.id, colors: null, fontSerif: null, photo: t.photo ? cfg.photo ?? t.photo : null });
+    // an uploaded photo is kept across designs (its file would otherwise be orphaned)
+    const own = isUploadedPhoto(cfg.photo) ? cfg.photo : null;
+    setCfg({ templateId: t.id, colors: null, fontSerif: null, photo: t.photo ? cfg.photo ?? t.photo : own });
     toast(`Template — ${t.name}`, "Make it yours on the right.");
   };
 
@@ -580,11 +583,21 @@ export default function Invitations() {
               <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">Photo</h3>
               <div className="mt-4 grid grid-cols-3 gap-2">
                 {PHOTO_CHOICES.map((p) => (
-                  <button key={p.label} onClick={() => setPaid("customize", { photo: p.src })} aria-label={`Use ${p.label}`} title={p.label}
+                  <button key={p.label} onClick={() => {
+                    if (!can(db.plan, "customize")) { openUpgrade("customize"); return; }
+                    // a built-in photo replaces an uploaded one, whose file is then removed
+                    if (isUploadedPhoto(cfg.photo) && mode === "cloud" && weddingId) void deletePhoto(weddingId, cfg.photo).catch(() => {});
+                    setCfg({ photo: p.src });
+                  }} aria-label={`Use ${p.label}`} title={p.label}
                     className={`overflow-hidden rounded-xl border-2 transition cursor-pointer ${cfg.photo === p.src ? "border-gold" : "border-transparent opacity-80 hover:opacity-100"}`}>
                     <img src={p.src} alt={p.label} className="h-14 w-full object-cover" loading="lazy" />
                   </button>
                 ))}
+              </div>
+              <div className="mt-4">
+                {can(db.plan, "customize")
+                  ? <PhotoUpload photo={cfg.photo} onChange={(photo) => setCfg({ photo: photo ?? template.photo ?? null })} />
+                  : <button onClick={() => openUpgrade("customize")} className="text-[0.78rem] font-bold text-ink-mute transition hover:text-ink cursor-pointer">Upload your own photo · <PlanTag plan="celebration" /></button>}
               </div>
             </section>
           )}

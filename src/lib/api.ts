@@ -675,14 +675,17 @@ export function musicFileProblem(file: { type: string; size: number }): string |
 export const musicPath = (weddingId: string, type: string, id: string = crypto.randomUUID()) =>
   `${weddingId}/music/${id}.${MUSIC_TYPES[type] ?? "mp3"}`;
 
-/** The storage path inside the media bucket for a public URL, if it is one of this wedding's songs. */
-export function musicPathFromUrl(url: string | null | undefined, weddingId: string): string | null {
+/** The storage path inside the media bucket for a public URL, if it is in one of this wedding's folders. */
+function mediaPathFromUrl(url: string | null | undefined, weddingId: string, folder: "music" | "photos"): string | null {
   const marker = "/storage/v1/object/public/media/";
   const i = url ? url.indexOf(marker) : -1;
   if (!url || i < 0) return null;
   const path = decodeURIComponent(url.slice(i + marker.length).split("?")[0]);
-  return path.startsWith(`${weddingId}/music/`) ? path : null;
+  return path.startsWith(`${weddingId}/${folder}/`) ? path : null;
 }
+
+/** The storage path inside the media bucket for a public URL, if it is one of this wedding's songs. */
+export const musicPathFromUrl = (url: string | null | undefined, weddingId: string) => mediaPathFromUrl(url, weddingId, "music");
 
 /** Upload a song for the guest page and return its public address. */
 export async function uploadMusic(weddingId: string, file: File): Promise<string> {
@@ -699,6 +702,44 @@ export async function uploadMusic(weddingId: string, file: File): Promise<string
 export async function deleteMusic(weddingId: string, url: string | null | undefined): Promise<void> {
   const path = musicPathFromUrl(url, weddingId);
   if (!path) return; // not one of ours: nothing to delete
+  const { error } = await requireSb().storage.from("media").remove([path]);
+  if (error) throw new Error(error.message);
+}
+
+/* ------------------------------ uploaded photos ------------------------------ */
+
+/** Phones' photos are large: they're resized in the browser first (images.preparePhoto), so this is only a sanity cap. */
+export const PHOTO_MAX_BYTES = 30 * 1024 * 1024;
+
+/** Why a photo can't be used, or null when it can. */
+export function photoFileProblem(file: { type: string; size: number }): string | null {
+  if (!/^image\/(jpeg|png|webp|heic|heif|gif)$/.test(file.type)) return "That isn't a photo we can use. JPEG, PNG, WebP or HEIC work.";
+  if (file.size > PHOTO_MAX_BYTES) return "That photo is over 30 MB. Try a smaller copy of it.";
+  return null;
+}
+
+/** media/<wedding>/photos/<random>.jpg: inside the wedding's folder, which only its members can write (0008). */
+export const photoPath = (weddingId: string, id: string = crypto.randomUUID()) => `${weddingId}/photos/${id}.jpg`;
+
+export const photoPathFromUrl = (url: string | null | undefined, weddingId: string) => mediaPathFromUrl(url, weddingId, "photos");
+
+/** Whether a stored photo address is one the couple uploaded (rather than a built-in photo). */
+export const isUploadedPhoto = (url: string | null | undefined): boolean =>
+  !!url && (url.startsWith("blob:") || /\/storage\/v1\/object\/public\/media\/[^/]+\/photos\//.test(url));
+
+/** Upload a prepared (resized, re-encoded) photo and return its public address. */
+export async function uploadPhoto(weddingId: string, photo: Blob): Promise<string> {
+  const s = requireSb();
+  const path = photoPath(weddingId);
+  const { error } = await s.storage.from("media").upload(path, photo, { contentType: "image/jpeg", upsert: false });
+  if (error) throw new Error(error.message);
+  return s.storage.from("media").getPublicUrl(path).data.publicUrl;
+}
+
+/** Delete a photo this wedding uploaded, so replaced and removed photos don't pile up. */
+export async function deletePhoto(weddingId: string, url: string | null | undefined): Promise<void> {
+  const path = photoPathFromUrl(url, weddingId);
+  if (!path) return; // a built-in photo, or not ours: nothing to delete
   const { error } = await requireSb().storage.from("media").remove([path]);
   if (error) throw new Error(error.message);
 }
