@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Activity, Check, Copy, Crown, Heart, Instagram, Link2, Lock, Mail, MessageCircle, Monitor,
+  Activity, Check, Copy, Crown, Heart, Instagram, Link2, Loader2, Lock, Mail, MessageCircle, Monitor,
   Music, Play, Send, Share2, Smartphone, Sparkles, StopCircle, Tablet, Trash2, UploadCloud, X,
 } from "lucide-react";
 import { Guest, MEALS, MUSIC_TRACKS, RsvpEntry, TEMPLATE_CATS, Template, bestGuestMatch, fmtDate, seedTemplates, timeAgo } from "../../lib/data";
@@ -870,7 +870,7 @@ function PersonalLinkButton({ guest, token }: { guest: string; token: string }) 
 }
 
 export function RsvpTracker() {
-  const { db, patch, toast, openUpgrade } = useApp();
+  const { db, patch, toast, openUpgrade, booting } = useApp();
   /** an RSVP that would push the list past the plan's guest limit waits, unsynced */
   const fits = (next: Guest[]) => {
     if (next.length <= db.guests.length || next.length <= guestLimit(db.plan)) return true;
@@ -1004,7 +1004,14 @@ export function RsvpTracker() {
         <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blush-soft text-blush-deep"><Activity size={19} /></span>
         <div className="min-w-0 flex-1">
           <h2 className="font-display text-2xl text-ink">Who's coming?</h2>
-          <p className="text-[0.8rem] font-semibold text-ink-mute">Every answer from your link, messages and emails — as it happens.</p>
+          {/* while the planner loads, the list is this device's last copy: say so, not as if it were final */}
+          {booting ? (
+            <p role="status" className="flex items-center gap-1.5 text-[0.8rem] font-semibold text-ink-mute">
+              <Loader2 size={13} className="animate-spin" aria-hidden="true" /> Checking for new answers…
+            </p>
+          ) : (
+            <p className="text-[0.8rem] font-semibold text-ink-mute">Every answer from your link, messages and emails — as it happens.</p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           <button onClick={() => void remind()} disabled={waiting === 0} className="rounded-full border border-ink/15 px-4 py-2 text-[0.76rem] font-bold text-ink-2 transition hover:border-blush-deep hover:text-blush-deep disabled:opacity-40 cursor-pointer">
