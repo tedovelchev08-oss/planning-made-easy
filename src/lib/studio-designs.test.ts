@@ -47,6 +47,17 @@ describe("studio designs: the catalogue", () => {
     expect(planAllows("essential", deco)).toBe(false);
   });
 
+  it("The Red Thread is part of Celebration, with its two tracks and its own opening lines", () => {
+    const rt = studioDesignOf("studio:red-thread")!;
+    expect(planAllows("celebration", rt)).toBe(true);
+    expect(planAllows("essential", rt)).toBe(false);
+    const d = toInvitationData({ slug: "a", names: "A & B", date: "2027-06-12T14:00:00Z", invitation: { template_id: "studio:red-thread", design_data: { musicTrack: "clairdelune" } } }, rt);
+    expect(d.music).toEqual({ enabled: true, track: "clairdelune" });
+    expect(d.heroQuote).toMatch(/^An old story says a red thread/);
+    expect(d.heroPlace).toBe("");
+    expect(d.gallery).toEqual([]);
+  });
+
   it("a guest's link keeps the token, the slug and the source", () => {
     expect(studioInviteUrl(celestial, { token: "t-1", src: "whatsapp" })).toBe("/designs/celestial/index.html?token=t-1&src=whatsapp");
     expect(studioInviteUrl(celestial, { slug: "ana-boris" })).toBe("/designs/celestial/index.html?slug=ana-boris");

@@ -277,6 +277,7 @@ function StudioExtras({ cfg, setCfg, design }: {
 
   return (
     <>
+      {x.photos.length > 0 && (
       <section className={`${card} space-y-4`} aria-label={`${design.name} photos`}>
         <h3 className={label}>More photos</h3>
         <p className="text-[0.72rem] font-semibold text-ink-mute">Any you leave out show {design.name}'s own drawings instead.</p>
@@ -293,6 +294,7 @@ function StudioExtras({ cfg, setCfg, design }: {
           </div>
         ))}
       </section>
+      )}
 
       {x.gallery > 0 && (
         <section className={`${card} space-y-3`} aria-label="Gallery">
