@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 2000" width="1600" height="2000" role="img">
+  <defs>
+    <radialGradient id="bloom" cx="50%" cy="32%" r="70%">
+      <stop offset="0%"   stop-color="#e8d9b8" stop-opacity="0.55"/>
+      <stop offset="38%"  stop-color="#c6b89c" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#0a0a0a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#1b1a1e"/>
+      <stop offset="55%"  stop-color="#121114"/>
+      <stop offset="100%" stop-color="#080809"/>
+    </linearGradient>
+    <radialGradient id="vig" cx="50%" cy="50%" r="75%">
+      <stop offset="55%"  stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.72"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" result="n"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="2000" fill="url(#fall)"/>
+
+  <ellipse cx="800" cy="620" rx="900" ry="760" fill="url(#bloom)"/>
+  <path d="M560 1180 V760 a240 240 0 0 1 480 0 v420 z" fill="#0d0c0f" opacity="0.55"/>
+  <path d="M596 1180 V764 a204 204 0 0 1 408 0 v416 z" fill="none" stroke="#c6b89c" stroke-opacity="0.34" stroke-width="3"/>
+  <g filter="url(#soft)" opacity="0.9">
+    <path d="M712 1180 v-232 a52 52 0 0 1 104 0 v232 z" fill="#050506"/>
+    <circle cx="764" cy="906" r="42" fill="#050506"/>
+    <path d="M840 1180 v-256 a56 56 0 0 1 112 0 v256 z" fill="#050506"/>
+    <circle cx="896" cy="884" r="45" fill="#050506"/>
+  </g>
+  <rect y="1180" width="1600" height="820" fill="#0a0a0a"/>
+  <ellipse cx="800" cy="1190" rx="470" ry="26" fill="#c6b89c" opacity="0.1"/>
+  <g opacity="0.16" transform="translate(0,2360) scale(1,-1)">
+    <path d="M712 1180 v-232 a52 52 0 0 1 104 0 v232 z" fill="#c6b89c"/>
+    <path d="M840 1180 v-256 a56 56 0 0 1 112 0 v256 z" fill="#c6b89c"/>
+  </g>
+  <rect width="1600" height="2000" fill="url(#vig)"/>
+  <rect width="1600" height="2000" filter="url(#grain)" opacity="0.07" style="mix-blend-mode:overlay"/>
+</svg>

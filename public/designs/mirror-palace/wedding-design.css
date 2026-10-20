@@ -1,0 +1,2189 @@
+/* ============================================================
+   THE MIRROR PALACE — Design tokens
+   Display: Bodoni Moda (high-contrast fashion serif)
+   Support: Inter (utility grotesk)
+   Palette: near-monochrome — ink / ivory / champagne, all muted
+============================================================ */
+:root{
+  --ink:#0a0a0a;
+  --charcoal:#18171a;
+  --charcoal-2:#221f1f;
+  --ivory:#f4f0e8;
+  --pearl:#ece6db;
+  --champagne:#c6b89c;
+  --champagne-dim:#9c8f76;
+  --line: rgba(244,240,232,0.14);
+  --line-strong: rgba(244,240,232,0.28);
+  --shadow-soft: 0 30px 80px rgba(0,0,0,0.35);
+  --ease-lux: cubic-bezier(.16,.84,.24,1);
+  --ease-soft: cubic-bezier(.22,.61,.36,1);
+  --dur-major: 1200ms;
+  --dur-micro: 480ms;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+
+/* Keyboard focus ring. The ink outline reads on the pale sections, the
+   champagne halo reads on the dark ones, so one rule covers the whole page. */
+:focus-visible{
+  outline:2px solid var(--ink);
+  outline-offset:2px;
+  box-shadow:0 0 0 4px var(--champagne);
+  border-radius:2px;
+}
+/* The horizontal clip has to live on `html`, not on `body`.
+   `overflow-x:hidden` forces the other axis to a used value of `auto`, so
+   putting it on body turns BODY into a scroll container — and every
+   `position:sticky` inside it then pins to body's scrollport, which never
+   scrolls, because the thing actually scrolling is the viewport. The result
+   is that sticky silently does nothing: the story stage never pins, the
+   three photos scroll straight past, and the rest of that section's height
+   plays out as blank black. On `html` the values propagate to the viewport
+   instead, so the viewport stays the scroller and sticky works.
+
+   `clip` on body is belt-and-braces: it clips without ever creating a
+   scroll container, so it cannot reintroduce the bug. Safari below 16
+   ignores it and the rule on `html` covers that case. */
+html{ scroll-behavior:auto; overflow-x:hidden; }
+body{
+  background:var(--ink);
+  color:var(--ivory);
+  font-family:'Inter', sans-serif;
+  font-weight:300;
+  overflow-x:clip;
+  -webkit-font-smoothing:antialiased;
+  cursor:default;
+}
+::selection{ background:var(--champagne); color:var(--ink); }
+
+.serif{ font-family:'Bodoni Moda', serif; font-weight:500; letter-spacing:0.01em; }
+.eyebrow{
+  font-family:'Inter', sans-serif;
+  font-weight:400;
+  font-size:11px;
+  letter-spacing:0.32em;
+  text-transform:uppercase;
+  color:var(--champagne);
+}
+a{ color:inherit; text-decoration:none; }
+button{ font-family:inherit; background:none; border:none; color:inherit; cursor:pointer; }
+img{ display:block; max-width:100%; }
+
+/* ---------- shared reveal utility ---------- */
+.reveal{
+  opacity:0;
+  transform: translateY(28px);
+  transition: opacity 1100ms var(--ease-lux), transform 1100ms var(--ease-lux);
+}
+.reveal.is-visible{ opacity:1; transform:translateY(0); }
+.reveal-delay-1{ transition-delay: 120ms; }
+.reveal-delay-2{ transition-delay: 260ms; }
+.reveal-delay-3{ transition-delay: 400ms; }
+
+/* ============================================================
+   LOADER
+============================================================ */
+#loader{
+  position:fixed; inset:0; z-index:9999;
+  background:var(--ink);
+  display:flex; align-items:center; justify-content:center;
+  transition: opacity 900ms var(--ease-soft);
+}
+#loader.hide{ opacity:0; pointer-events:none; }
+.loader-mark{ text-align:center; }
+.loader-mark .initials{
+  font-family:'Bodoni Moda', serif;
+  font-size:15vw;
+  line-height:1;
+  display:flex; gap:0.35em; align-items:center; justify-content:center;
+  color:var(--ivory);
+  opacity:0;
+  animation: loaderFade 1400ms var(--ease-soft) forwards;
+}
+.loader-mark .initials span:nth-child(2){ color:var(--champagne-dim); font-size:0.55em; }
+@keyframes loaderFade{ to{ opacity:1; } }
+.loader-line{
+  margin:22px auto 0; height:1px; width:0;
+  background:linear-gradient(90deg, transparent, var(--champagne), transparent);
+  animation: loaderLine 1600ms 400ms var(--ease-lux) forwards;
+}
+@keyframes loaderLine{ to{ width:120px; } }
+
+/* ============================================================
+   INTRO — the mirror sequence
+============================================================ */
+#intro{
+  position:fixed; inset:0; z-index:9000;
+  overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+#intro.done{ visibility:hidden; }
+
+.skip-btn{
+  position:fixed; top:26px; right:28px; z-index:9500;
+  font-size:11px; letter-spacing:0.28em; text-transform:uppercase;
+  color:rgba(244,240,232,0.55);
+  padding:10px 6px;
+  opacity:0; transition:opacity 600ms 900ms ease, color 300ms ease;
+}
+.skip-btn.show{ opacity:1; }
+.skip-btn:hover{ color:var(--ivory); }
+.skip-btn::after{
+  content:''; display:block; height:1px; width:0%; background:var(--champagne);
+  transition:width 300ms var(--ease-soft); margin-top:4px;
+}
+.skip-btn:hover::after{ width:100%; }
+
+.intro-point{
+  position:absolute; z-index:2; width:3px; height:3px; border-radius:50%;
+  background:var(--ivory);
+  box-shadow:0 0 0px 0px rgba(244,240,232,0);
+  opacity:0;
+  transition: opacity 700ms ease, box-shadow 700ms ease;
+}
+#intro.glow .intro-point{ opacity:1; box-shadow:0 0 40px 6px rgba(244,240,232,0.5); }
+#intro.expand .intro-point{ opacity:0; transition: opacity 500ms ease; }
+
+.intro-line{
+  position:absolute; z-index:2; width:1px; height:0;
+  background:linear-gradient(180deg, transparent, var(--ivory) 45%, var(--champagne) 55%, transparent);
+  opacity:0;
+  transition: height 900ms var(--ease-lux), opacity 400ms ease;
+}
+#intro.glow .intro-line{ opacity:1; height:46vh; }
+#intro.expand .intro-line{ opacity:0; }
+
+.mirror-surface{
+  position:absolute; z-index:2; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:1px; height:100vh;
+  overflow:hidden;
+  background:
+    linear-gradient(100deg, rgba(255,255,255,0.02), rgba(255,255,255,0.09) 45%, rgba(255,255,255,0.02) 55%, transparent),
+    linear-gradient(180deg, #232227, #131214 55%, #0d0c0e);
+  opacity:0;
+  transition: width 1300ms var(--ease-lux), opacity 700ms ease, box-shadow 500ms ease;
+  box-shadow: 0 0 140px rgba(196,184,156,0.05);
+}
+#intro.expand .mirror-surface{ opacity:1; width:min(88vw, 900px); }
+#intro.sync .mirror-surface{ box-shadow:0 0 220px rgba(244,240,232,0.18); }
+#intro.split .mirror-surface{ opacity:0; transition:opacity 500ms ease; }
+.mirror-surface::before{
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(60% 40% at 30% 20%, rgba(255,255,255,0.07), transparent 60%),
+    radial-gradient(50% 30% at 75% 80%, rgba(196,184,156,0.06), transparent 60%);
+  mix-blend-mode:screen;
+  animation: mirrorShimmer 9s ease-in-out infinite;
+}
+@keyframes mirrorShimmer{
+  0%,100%{ transform:translateY(0) scale(1); opacity:0.7; }
+  50%{ transform:translateY(-2%) scale(1.02); opacity:1; }
+}
+.mirror-noise{
+  position:absolute; inset:0; opacity:0.05; mix-blend-mode:overlay; pointer-events:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+.light-src{
+  position:absolute; z-index:2; top:50%; width:2px; height:150px; border-radius:2px;
+  background:linear-gradient(180deg, transparent, rgba(244,240,232,0.9), transparent);
+  transform:translateY(-50%);
+  filter: blur(0.4px);
+  opacity:0;
+  transition: opacity 700ms ease, left 1400ms var(--ease-lux), right 1400ms var(--ease-lux), box-shadow 500ms ease;
+}
+.light-left{ left:-6%; }
+.light-right{ right:-6%; }
+#intro.lights .light-src{ opacity:1; }
+#intro.lights .light-left{ left:calc(50% - 90px); }
+#intro.lights .light-right{ right:calc(50% - 90px); }
+
+#intro.sync .light-src{ box-shadow:0 0 70px 18px rgba(244,240,232,0.35); }
+#intro.split .light-src{ opacity:0; transition:opacity 500ms ease; }
+
+.intro-names{
+  position:relative; z-index:2; text-align:center;
+  opacity:0; transition:opacity 900ms ease;
+}
+#intro.names .intro-names{ opacity:1; }
+.intro-names .name-row{
+  font-family:'Bodoni Moda', serif;
+  font-size:clamp(2.6rem, 8vw, 6.4rem);
+  line-height:1;
+  color:var(--ivory);
+  position:relative;
+  letter-spacing:0.01em;
+  text-transform:uppercase;
+}
+.intro-names .name-row .reflect{
+  position:absolute; top:100%; left:0; right:0;
+  transform:scaleY(-1);
+  color:var(--ivory);
+  opacity:0.16;
+  -webkit-mask-image:linear-gradient(180deg, rgba(0,0,0,0.5), transparent 70%);
+  mask-image:linear-gradient(180deg, rgba(0,0,0,0.5), transparent 70%);
+}
+.intro-names .amp{
+  font-size:0.45em; color:var(--champagne-dim); display:block; margin:0.25em 0;
+  font-family:'Inter', sans-serif; letter-spacing:0.4em;
+}
+.intro-sub{
+  margin-top:26px; opacity:0; transition:opacity 900ms ease;
+}
+#intro.subtitle .intro-sub{ opacity:1; }
+.intro-sub .eyebrow{ display:block; }
+.intro-sub .date{
+  margin-top:10px; font-family:'Bodoni Moda', serif; font-size:14px; letter-spacing:0.35em; color:var(--ivory); opacity:0.8;
+}
+
+/* the doors */
+.mirror-door{
+  position:fixed; top:0; height:100vh; width:50vw; z-index:1;
+  background:
+    linear-gradient(100deg, rgba(255,255,255,0.02), rgba(255,255,255,0.07) 45%, rgba(255,255,255,0.01) 55%, transparent),
+    linear-gradient(180deg, #201f22, #121113 55%, #0b0a0c);
+  transition: transform 1900ms var(--ease-lux);
+}
+.mirror-door.left{ left:0; transform-origin:left center; box-shadow: 40px 0 90px rgba(0,0,0,0.5); }
+.mirror-door.right{ right:0; transform-origin:right center; box-shadow: -40px 0 90px rgba(0,0,0,0.5); }
+#intro.split .mirror-door.left{ transform: translateX(-102%) rotateY(-4deg); }
+#intro.split .mirror-door.right{ transform: translateX(102%) rotateY(4deg); }
+#intro.split .intro-names, #intro.split .intro-sub{ opacity:0; transition:opacity 500ms ease; }
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+nav.site-nav{
+  position:fixed; top:0; left:0; right:0; z-index:500;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:26px clamp(20px, 4vw, 56px);
+  mix-blend-mode:difference;
+  opacity:0; transition:opacity 900ms ease 400ms;
+  pointer-events:none;
+}
+body.intro-complete nav.site-nav{ opacity:1; pointer-events:auto; }
+.nav-mark{ font-family:'Bodoni Moda', serif; font-size:16px; letter-spacing:0.08em; }
+.nav-menu{ font-size:11px; letter-spacing:0.3em; text-transform:uppercase; }
+.nav-menu span{ position:relative; }
+.nav-menu span::after{ content:''; position:absolute; left:0; right:0; bottom:-6px; height:1px; background:currentColor; transform:scaleX(0); transform-origin:left; transition:transform 400ms var(--ease-soft); }
+.nav-menu:hover span::after{ transform:scaleX(1); }
+
+/* ============================================================
+   SHARED SECTION FRAME
+============================================================ */
+main{ position:relative; z-index:1; }
+section{ position:relative; }
+.section-pad{ padding: clamp(90px, 12vw, 160px) clamp(20px, 6vw, 80px); }
+.section-label{ margin-bottom: clamp(40px, 8vw, 90px); text-align:center; }
+.max-w{ max-width:1400px; margin:0 auto; }
+
+/* ============================================================
+   HERO
+============================================================ */
+#hero{
+  height:100svh; min-height:640px;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  position:relative; overflow:hidden;
+  background:var(--charcoal);
+}
+#hero .hero-img{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  filter:grayscale(55%) contrast(1.06) brightness(0.72);
+  transform:scale(1.06);
+  transition:transform 1600ms var(--ease-lux);
+}
+#hero::after{
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(10,10,10,0.15) 0%, rgba(10,10,10,0.05) 40%, rgba(10,10,10,0.85) 100%);
+}
+#hero .hero-content{
+  position:relative; z-index:2; padding: 0 clamp(20px,6vw,64px) clamp(56px,9vw,96px);
+  text-align:center;
+}
+.hero-eyebrow{ margin-bottom:18px; }
+.hero-title{
+  font-family:'Bodoni Moda', serif; font-weight:500;
+  font-size:clamp(2.6rem, 9vw, 7rem); line-height:0.98;
+}
+.hero-amp{ display:block; font-size:0.4em; color:var(--champagne); margin:0.15em 0; }
+.hero-date{ margin-top:18px; font-size:12px; letter-spacing:0.32em; color:rgba(244,240,232,0.72); }
+.hero-statement{
+  margin-top:34px; font-family:'Bodoni Moda', serif; font-style:italic; font-weight:400;
+  font-size:clamp(1rem,1.7vw,1.35rem); color:rgba(244,240,232,0.82); line-height:1.5;
+  max-width:520px; margin-left:auto; margin-right:auto;
+}
+.scroll-cue{
+  position:absolute; bottom:28px; left:50%; transform:translateX(-50%); z-index:2;
+  width:1px; height:44px; background:linear-gradient(180deg, transparent, var(--champagne));
+  opacity:0.6;
+}
+.scroll-cue::after{
+  content:''; position:absolute; left:-2px; top:0; width:5px; height:5px; border-radius:50%;
+  background:var(--champagne); animation: cueDrop 2.2s var(--ease-soft) infinite;
+}
+@keyframes cueDrop{ 0%{ top:0; opacity:1; } 90%,100%{ top:100%; opacity:0; } }
+
+/* ============================================================
+   STORY — two panels converge
+============================================================ */
+#story{ background:var(--ink); }
+.story-stage{
+  position:relative; height:180vh;
+}
+.story-sticky{
+  position:sticky; top:0; height:100svh; display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+.story-panels{ position:relative; width:100%; height:74vh; max-width:1400px; margin:0 auto; display:flex; justify-content:center; }
+.story-panel{
+  position:absolute; top:0; width:min(40vw, 420px); height:100%; overflow:hidden;
+  will-change:transform;
+}
+.story-panel img{ width:100%; height:100%; object-fit:cover; filter:grayscale(50%) contrast(1.05) brightness(0.85); }
+.story-panel.a{ transform: translateX(calc(var(--sp, 0) * -1px)); }
+.story-panel.b{ transform: translateX(calc(var(--sp, 0) * 1px)); }
+.story-center{
+  position:absolute; z-index:3; text-align:center; padding:0 20px;
+  opacity: var(--sc-op, 0); transition:none;
+}
+.story-center .eyebrow{ margin-bottom:14px; }
+.story-center p{ max-width:480px; margin:16px auto 0; font-size:15px; line-height:1.85; color:rgba(244,240,232,0.78); }
+/* h2, not h3: this is the first section heading under the page h1, and
+   skipping a level breaks the outline a screen reader reads out. */
+.story-center h2{ font-size:clamp(1.6rem,3.4vw,2.4rem); }
+
+/* ============================================================
+   DATE — mirrored numerals
+============================================================ */
+#date-section{ background:var(--charcoal); text-align:center; }
+.date-figures{ position:relative; display:inline-block; }
+.date-figures .figure{
+  font-family:'Bodoni Moda', serif; font-weight:500;
+  font-size:clamp(3.6rem, 15vw, 13rem); line-height:0.95; letter-spacing:0.02em;
+}
+.date-reflection{
+  position:relative; height:0.55em; overflow:hidden; margin-top:2px;
+}
+.date-reflection .figure{
+  position:absolute; top:0; left:0; right:0;
+  transform:scaleY(-1);
+  color:var(--ivory);
+  opacity: var(--refl-op, 0.06);
+  -webkit-mask-image:linear-gradient(180deg, rgba(0,0,0,0.55), transparent 75%);
+  mask-image:linear-gradient(180deg, rgba(0,0,0,0.55), transparent 75%);
+  transition: opacity 200ms linear;
+}
+.date-caption{ margin-top:36px; }
+.date-caption p{ margin-top:14px; color:rgba(244,240,232,0.65); font-size:14px; max-width:420px; margin-left:auto; margin-right:auto; line-height:1.8; }
+
+/* ============================================================
+   CEREMONY / CELEBRATION — editorial image + overlay info
+============================================================ */
+.editorial{ position:relative; height:88vh; min-height:560px; overflow:hidden; }
+.editorial img{ width:100%; height:100%; object-fit:cover; filter:grayscale(55%) contrast(1.08) brightness(0.8); }
+.editorial.dark img{ filter:grayscale(70%) contrast(1.1) brightness(0.42); }
+.editorial::after{ content:''; position:absolute; inset:0; background:linear-gradient(0deg, rgba(0,0,0,0.75), rgba(0,0,0,0.05) 45%); }
+.editorial-info{
+  position:absolute; left:clamp(20px,6vw,64px); bottom:clamp(36px,7vw,72px); z-index:2;
+}
+.editorial-info .eyebrow{ margin-bottom:14px; }
+.editorial-info .time{ font-family:'Bodoni Moda', serif; font-size:clamp(2.2rem,6vw,4.2rem); line-height:1; }
+.editorial-info .place{ margin-top:14px; font-size:14px; color:rgba(244,240,232,0.75); letter-spacing:0.02em; }
+.editorial-info .addr{ font-size:12.5px; color:rgba(244,240,232,0.5); margin-top:4px; }
+.detail-btn{
+  margin-top:26px; display:inline-block; font-size:11px; letter-spacing:0.28em; text-transform:uppercase;
+  padding-bottom:6px; border-bottom:1px solid var(--line-strong); position:relative;
+}
+.detail-btn::after{ content:''; position:absolute; left:0; bottom:-1px; width:0; height:1px; background:var(--champagne); transition:width 400ms var(--ease-soft); }
+.detail-btn:hover::after{ width:100%; }
+
+#celebration .section-note{
+  text-align:center; padding: 60px 20px 10px; color:rgba(244,240,232,0.6); font-size:14px; letter-spacing:0.08em;
+}
+
+/* ============================================================
+   GALLERY — the mirror hall
+
+   Framed mirrors standing along a corridor. The recession is a rotateY
+   written per frame by the scroll loop.
+
+   No `transform-style: preserve-3d` anywhere here: it depth-sorts children
+   by transformed position rather than DOM order, which stacks the frames
+   behind the floor. `perspective` on the parent gives the shared vanishing
+   point without that behaviour.
+============================================================ */
+#gallery-stage{ position:relative; background:var(--ink); }
+.gallery-scroll{ position:relative; height:340vh; }
+.gallery-sticky{
+  position:sticky; top:0; height:100svh; overflow:hidden;
+  display:flex; align-items:flex-end;
+}
+
+/* The hall itself — dim vault above, light pooling on the floor below. */
+.gallery-hall{
+  position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(130% 62% at 50% 104%, rgba(198,184,156,0.13), transparent 62%),
+    linear-gradient(180deg, #090809 0%, #141317 44%, #1a181c 62%, #0c0b0d 100%);
+}
+/* The line the mirrors stand on. */
+.gallery-hall::after{
+  content:''; position:absolute; left:0; right:0; bottom:24svh; height:1px;
+  background:linear-gradient(90deg, transparent, var(--line-strong) 20%, var(--line-strong) 80%, transparent);
+}
+
+.gallery-track{
+  position:relative;
+  display:flex; align-items:flex-end;
+  gap:clamp(20px,3.2vw,52px);
+  padding:0 12vw 24svh;
+  perspective:1500px; perspective-origin:50% 40%;
+  will-change:transform;
+}
+
+.gallery-item{
+  position:relative; flex:0 0 auto;
+  transform-origin:50% 100%;
+  will-change:transform;
+}
+.gallery-item.w-narrow{ width:22vw; min-width:210px; }
+.gallery-item.w-wide  { width:34vw; min-width:300px; }
+.gallery-item.w-tall  { width:26vw; min-width:235px; }
+
+/* The mirror: arched crown, dark reveal, a thin gilt bevel inside it. */
+.gallery-frame{
+  position:relative; overflow:hidden; height:52svh;
+  background:var(--charcoal);
+  border-radius:48% 48% 3px 3px / 22% 22% 3px 3px;
+  box-shadow:
+    inset 0 0 0 4px rgba(10,10,10,0.78),     /* dark reveal against the glass */
+    inset 0 0 0 6px rgba(198,184,156,0.78),  /* the gilt bevel */
+    inset 0 0 0 7px rgba(10,10,10,0.55),     /* shadow line under the gilt */
+    inset 0 0 46px rgba(0,0,0,0.45),
+    0 0 0 1px rgba(198,184,156,0.16),        /* lifts the frame off the dark hall */
+    0 26px 58px rgba(0,0,0,0.55);
+}
+.gallery-item.w-wide .gallery-frame{ height:60svh; }
+.gallery-item.w-tall .gallery-frame{ height:66svh; }
+
+.gallery-frame img{
+  width:100%; height:100%; object-fit:cover;
+  filter:grayscale(45%) contrast(1.06) brightness(0.86);
+}
+/* Sheen raking across the glass. */
+.gallery-frame::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(122deg,
+    rgba(244,240,232,0.15) 0%, transparent 32%,
+    transparent 68%, rgba(244,240,232,0.05) 100%);
+}
+
+/* Reflection falls below the floor line, as a real mirror on stone would. */
+.gallery-reflect{
+  position:absolute; left:0; right:0; top:100%; height:20%;
+  background-size:cover; background-position:center;
+  transform:scaleY(-1);
+  filter:blur(3px) grayscale(70%) brightness(0.42);
+  opacity:0.3;
+  -webkit-mask-image:linear-gradient(180deg, rgba(0,0,0,0.7), transparent 88%);
+  mask-image:linear-gradient(180deg, rgba(0,0,0,0.7), transparent 88%);
+}
+
+/* Caption sits on the glass like an engraved plate, so it never collides
+   with the reflection below the frame. */
+.gallery-caption{
+  position:absolute; left:0; right:0; bottom:0; padding:34px 16px 14px;
+  text-align:center; font-size:10px; letter-spacing:0.26em; text-transform:uppercase;
+  /* This text sits over a photograph the couple chose, which may be bright,
+     pale, or busy — the scrim is the only thing guaranteeing it stays
+     readable, so it carries most of the contrast rather than the ink alone. */
+  color:rgba(244,240,232,0.88);
+  background:linear-gradient(180deg, transparent, rgba(10,10,10,0.86));
+}
+
+.gallery-progress{ position:absolute; bottom:26px; left:50%; transform:translateX(-50%); width:min(60vw,420px); height:1px; background:var(--line); }
+.gallery-progress-bar{ height:100%; width:0%; background:var(--champagne); }
+
+/* ============================================================
+   TWO BECOME ONE
+============================================================ */
+#tbo-stage{ background:var(--ink); position:relative; }
+.tbo-scroll{ height:260vh; position:relative; }
+.tbo-sticky{ position:sticky; top:0; height:100svh; display:flex; align-items:center; justify-content:center; overflow:hidden; background:var(--ink); }
+.tbo-light{
+  position:absolute; top:50%; width:2px; height:38vh; transform:translateY(-50%);
+  background:linear-gradient(180deg, transparent, rgba(244,240,232,0.9), transparent);
+}
+.tbo-line{
+  position:absolute; top:50%; left:50%; width:1px; height:0; transform:translate(-50%,-50%);
+  background:linear-gradient(180deg, transparent, var(--ivory), var(--champagne), transparent);
+}
+.tbo-flash{
+  position:absolute; inset:0; background:radial-gradient(circle at center, rgba(244,240,232,0.9), transparent 60%);
+  opacity:0; pointer-events:none;
+}
+.tbo-names{
+  position:relative; z-index:3; text-align:center; opacity:0;
+}
+.tbo-names .row{ font-family:'Bodoni Moda', serif; font-size:clamp(2.2rem,7vw,5.4rem); line-height:1; text-transform:uppercase; }
+.tbo-names .amp{ display:block; font-family:'Inter',sans-serif; font-size:0.3em; letter-spacing:0.5em; color:var(--champagne-dim); margin:0.35em 0; }
+.tbo-label{ margin-top:24px; font-size:11px; letter-spacing:0.4em; text-transform:uppercase; color:var(--champagne); opacity:0; }
+
+/* ============================================================
+   RSVP
+============================================================ */
+#rsvp{
+  position:relative; background:var(--ivory); color:var(--ink);
+  min-height:100svh; display:flex; align-items:center; justify-content:center;
+  padding: clamp(60px,10vw,140px) 20px;
+  overflow:hidden;
+}
+#rsvp::before, #rsvp::after{
+  content:''; position:absolute; top:0; bottom:0; width:50%; background:var(--ink); z-index:1;
+  transition: transform 1400ms var(--ease-lux);
+}
+#rsvp::before{ left:0; transform:translateX(0); }
+#rsvp::after{ right:0; transform:translateX(0); }
+#rsvp.opened::before{ transform:translateX(-100%); }
+#rsvp.opened::after{ transform:translateX(100%); }
+
+.rsvp-inner{ position:relative; z-index:2; max-width:560px; width:100%; text-align:center; }
+.rsvp-kicker{ font-family:'Bodoni Moda', serif; font-style:italic; font-size:clamp(1.2rem,2.4vw,1.7rem); color:var(--charcoal-2); margin-bottom:14px; }
+.rsvp-title{ font-family:'Bodoni Moda', serif; font-size:clamp(2.4rem,5vw,3.6rem); margin-bottom:16px; }
+.rsvp-meta{ font-size:12px; letter-spacing:0.06em; color:var(--charcoal-2); opacity:0.65; margin-bottom:48px; }
+
+.field{ position:relative; margin-bottom:34px; text-align:left; }
+.field label{ display:block; font-size:11px; letter-spacing:0.24em; text-transform:uppercase; color:var(--champagne-dim); margin-bottom:10px; }
+.field input, .field select, .field textarea{
+  width:100%; background:transparent; border:none; border-bottom:1px solid rgba(10,10,10,0.22);
+  font-family:'Inter',sans-serif; font-size:16px; padding:8px 2px 12px; color:var(--ink);
+  transition:border-color 300ms ease;
+}
+.field textarea{ resize:none; min-height:64px; }
+.field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--ink); }
+/* Drop the ring for mouse/touch only — keyboard users keep it (see :focus-visible below). */
+.field input:focus:not(:focus-visible), .field select:focus:not(:focus-visible), .field textarea:focus:not(:focus-visible){ outline:none; }
+.field-line{ position:relative; height:1px; margin-top:-1px; background:transparent; overflow:hidden; }
+.field-line::after{ content:''; position:absolute; left:0; bottom:0; width:0; height:1.5px; background:var(--ink); transition:width 500ms var(--ease-soft); }
+.field:focus-within .field-line::after{ width:100%; }
+
+.rsvp-radio{ display:flex; gap:28px; }
+.rsvp-radio label{ display:flex; align-items:center; gap:8px; font-size:14px; letter-spacing:0.02em; text-transform:none; color:var(--ink); cursor:pointer; }
+.rsvp-radio input{ width:auto; accent-color:var(--ink); }
+
+.rsvp-submit{
+  margin-top:20px; font-size:12px; letter-spacing:0.32em; text-transform:uppercase;
+  padding:16px 40px; border:1px solid var(--ink); background:var(--ink); color:var(--ivory);
+  transition: background 350ms ease, color 350ms ease;
+}
+.rsvp-submit:hover{ background:transparent; color:var(--ink); }
+.rsvp-submit:disabled{ opacity:0.55; cursor:wait; background:var(--ink); color:var(--ivory); }
+
+/* Spam honeypot — off-screen rather than display:none, so bots still fill it. */
+.hp-field{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+
+.rsvp-error{
+  margin-top:18px; font-size:13px; letter-spacing:0.02em; color:#8a2222;
+  border-left:2px solid #8a2222; padding-left:12px;
+}
+.rsvp-error[hidden]{ display:none; }
+
+.rsvp-success{
+  position:absolute; inset:0; z-index:3; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity 900ms ease;
+}
+.rsvp-success.show{ opacity:1; pointer-events:auto; }
+.rsvp-success .merge{ position:relative; width:120px; height:2px; margin-bottom:36px; }
+.merge-dot{ position:absolute; top:50%; width:5px; height:5px; border-radius:50%; background:var(--ink); transform:translateY(-50%); transition: left 1100ms var(--ease-lux), right 1100ms var(--ease-lux), opacity 600ms ease 900ms; }
+.merge-dot.l{ left:0; } .merge-dot.r{ right:0; }
+.rsvp-success.show .merge-dot.l{ left:calc(50% - 2px); }
+.rsvp-success.show .merge-dot.r{ right:calc(50% - 2px); }
+.merge-refl{ position:absolute; top:100%; left:0; right:0; height:16px; background:linear-gradient(180deg, rgba(10,10,10,0.12), transparent); opacity:0; transition:opacity 800ms ease 1200ms; }
+.rsvp-success.show .merge-refl{ opacity:1; }
+.rsvp-success h3{ font-family:'Bodoni Moda', serif; font-size:clamp(1.8rem,4vw,2.6rem); }
+.rsvp-success .d{ margin-top:10px; font-size:13px; letter-spacing:0.24em; color:var(--charcoal-2); }
+.rsvp-success .love{ margin-top:36px; font-size:11px; letter-spacing:0.3em; text-transform:uppercase; color:var(--champagne-dim); }
+.rsvp-success .names2{ margin-top:8px; font-family:'Bodoni Moda', serif; font-style:italic; font-size:1.2rem; }
+
+/* ============================================================
+   CLOSING
+============================================================ */
+#closing{
+  background:var(--ink); height:100svh; display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden;
+}
+.closing-mark{ text-align:center; position:relative; z-index:2; }
+.closing-mark .initials{ font-family:'Bodoni Moda', serif; font-size:clamp(2.4rem,8vw,5.5rem); display:flex; gap:0.4em; justify-content:center; }
+.closing-mark .initials span:last-child{ color:var(--champagne-dim); }
+.closing-line{
+  width:1px; height:60px; margin:26px auto; background:linear-gradient(180deg, var(--champagne), transparent);
+}
+.closing-mirror{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:1px; height:100vh;
+  background:linear-gradient(100deg, rgba(255,255,255,0.02), rgba(255,255,255,0.08) 45%, transparent 55%), linear-gradient(180deg, #201f22, #0d0c0e);
+  opacity:0.5;
+  transition:width 1600ms var(--ease-lux);
+}
+#closing.expand .closing-mirror{ width:70vw; }
+.closing-msg{ margin-top:20px; font-size:12px; letter-spacing:0.4em; text-transform:uppercase; color:rgba(244,240,232,0.55); }
+.replay-btn{ margin-top:38px; font-size:11px; letter-spacing:0.3em; text-transform:uppercase; color:var(--champagne); border-bottom:1px solid var(--champagne-dim); padding-bottom:4px; }
+
+/* ============================================================
+   CURSOR LIGHT (desktop only)
+============================================================ */
+.cursor-light{
+  position:fixed; width:340px; height:340px; border-radius:50%; pointer-events:none; z-index:2;
+  background:radial-gradient(circle, rgba(244,240,232,0.06), transparent 70%);
+  transform:translate(-50%,-50%); opacity:0; transition:opacity 400ms ease;
+}
+
+/* ============================================================
+   AUDIO TOGGLE
+============================================================ */
+.audio-toggle{
+  position:fixed; bottom:26px; right:28px; z-index:400;
+  width:38px; height:38px; border:1px solid var(--line-strong); border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity 700ms ease 800ms, border-color 300ms ease;
+  mix-blend-mode:difference;
+}
+body.intro-complete .audio-toggle{ opacity:1; }
+.audio-toggle:hover{ border-color:var(--champagne); }
+.audio-toggle svg{ width:14px; height:14px; }
+
+.editor-toggle{
+  position:fixed; bottom:26px; left:28px; z-index:9600;
+  display:flex; align-items:center; gap:8px;
+  padding:10px 16px 10px 14px;
+  border:1px solid rgba(244,240,232,0.5);
+  border-radius:30px;
+  background:rgba(10,10,10,0.35);
+  backdrop-filter:blur(6px);
+  color:var(--ivory);
+  font-size:11px; letter-spacing:0.22em; text-transform:uppercase;
+  transition: border-color 300ms ease, background 300ms ease, transform 300ms var(--ease-soft);
+}
+.editor-toggle svg{ width:13px; height:13px; flex-shrink:0; }
+.editor-toggle:hover{ border-color:var(--champagne); background:rgba(10,10,10,0.55); transform:translateY(-1px); }
+
+/* ============================================================
+   TEMPLATE EDITOR
+============================================================ */
+.editor-backdrop{
+  position:fixed; inset:0; z-index:9700;
+  background:rgba(8,8,8,0.55);
+  opacity:0; pointer-events:none;
+  transition:opacity 400ms ease;
+}
+.editor-backdrop.open{ opacity:1; pointer-events:auto; }
+
+.editor-panel{
+  position:fixed; top:0; right:0; bottom:0; z-index:9800;
+  width:min(440px, 94vw);
+  background:var(--charcoal);
+  color:var(--ivory);
+  display:flex; flex-direction:column;
+  transform:translateX(100%);
+  transition: transform 550ms var(--ease-lux);
+  box-shadow:-30px 0 80px rgba(0,0,0,0.5);
+}
+.editor-panel.open{ transform:translateX(0); }
+
+.editor-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:22px 22px 16px; border-bottom:1px solid var(--line);
+  flex-shrink:0;
+}
+.editor-head h2{ font-family:'Bodoni Moda', serif; font-size:20px; font-weight:500; }
+.editor-close{
+  width:30px; height:30px; border-radius:50%; border:1px solid var(--line-strong);
+  display:flex; align-items:center; justify-content:center; font-size:16px; line-height:1;
+  color:var(--ivory); transition:border-color 250ms ease, transform 250ms ease;
+}
+.editor-close:hover{ border-color:var(--champagne); transform:rotate(90deg); }
+
+.editor-tabs{
+  display:flex; gap:2px; overflow-x:auto; flex-shrink:0;
+  padding:12px 14px 0; border-bottom:1px solid var(--line);
+  scrollbar-width:none;
+}
+.editor-tabs::-webkit-scrollbar{ display:none; }
+.editor-tab{
+  flex:0 0 auto; padding:9px 14px 12px; font-size:10.5px; letter-spacing:0.14em; text-transform:uppercase;
+  color:rgba(244,240,232,0.5); border-bottom:2px solid transparent; white-space:nowrap;
+  transition:color 250ms ease, border-color 250ms ease;
+}
+.editor-tab:hover{ color:rgba(244,240,232,0.85); }
+.editor-tab.active{ color:var(--ivory); border-color:var(--champagne); }
+
+.editor-body{ flex:1 1 auto; overflow-y:auto; padding:22px; }
+.editor-section{ display:none; }
+.editor-section.active{ display:block; animation:edFade 350ms ease; }
+@keyframes edFade{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none; } }
+
+.ed-group{ margin-bottom:26px; }
+.ed-group-title{ font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--champagne); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--line); }
+
+.ed-field{ margin-bottom:18px; }
+.ed-field label{ display:block; font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(244,240,232,0.5); margin-bottom:8px; }
+.ed-field input, .ed-field textarea{
+  width:100%; background:rgba(244,240,232,0.05); border:1px solid var(--line-strong); border-radius:4px;
+  color:var(--ivory); font-family:'Inter',sans-serif; font-size:13.5px; padding:10px 12px;
+  transition:border-color 250ms ease, background 250ms ease;
+}
+.ed-field textarea{ resize:vertical; min-height:64px; line-height:1.5; }
+.ed-field input:focus, .ed-field textarea:focus{ border-color:var(--champagne); background:rgba(244,240,232,0.08); }
+.ed-field input:focus:not(:focus-visible), .ed-field textarea:focus:not(:focus-visible){ outline:none; }
+.ed-field .ed-hint{ margin-top:6px; font-size:10.5px; color:rgba(244,240,232,0.62); }
+
+.ed-gallery-item{ border:1px solid var(--line); border-radius:6px; padding:14px; margin-bottom:14px; }
+.ed-gallery-item .ed-gallery-num{ font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--champagne-dim); margin-bottom:10px; }
+
+.editor-foot{
+  padding:18px 22px 22px; border-top:1px solid var(--line); flex-shrink:0;
+}
+.ed-download{
+  width:100%; padding:15px; font-size:11px; letter-spacing:0.24em; text-transform:uppercase;
+  background:var(--ivory); color:var(--ink); border-radius:4px;
+  transition: background 300ms ease;
+}
+.ed-download:hover{ background:var(--champagne); }
+
+.ed-reset{
+  width:100%; margin-top:10px; padding:11px; font-size:10.5px; letter-spacing:0.2em;
+  text-transform:uppercase; background:transparent; color:rgba(244,240,232,0.68);
+  border:1px solid var(--line-strong); border-radius:4px;
+  transition: color 300ms ease, border-color 300ms ease;
+}
+.ed-reset:hover{ color:var(--ivory); border-color:var(--champagne); }
+
+/* Was 10.5px at 0.4 alpha — under 3:1 on this panel and genuinely hard to read. */
+.editor-foot .ed-note{ margin-top:12px; font-size:11px; line-height:1.6; color:rgba(244,240,232,0.66); text-align:center; }
+
+@media (max-width:560px){
+  .editor-panel{ width:100vw; }
+}
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media (max-width: 780px){
+  .story-panels{ height:56vh; }
+  .story-panel{ width:38vw; }
+  .editorial{ height:100vh; }
+  /* Shallower corridor on a phone — a 17° turn at this width throws the
+     outer frames far enough off-axis to look bent rather than receding. */
+  .gallery-track{ perspective:900px; padding:0 16vw 18svh; gap:22px; }
+  .gallery-item.w-wide{ width:64vw; }
+  .gallery-item.w-narrow{ width:50vw; }
+  .gallery-item.w-tall{ width:56vw; }
+  .gallery-frame{ height:54svh; }
+  .gallery-item.w-wide .gallery-frame{ height:60svh; }
+  .gallery-item.w-tall .gallery-frame{ height:64svh; }
+  .gallery-hall::after{ bottom:18svh; }
+  .gallery-caption{ font-size:9px; letter-spacing:0.2em; padding:28px 10px 12px; }
+  .rsvp-radio{ flex-wrap:wrap; gap:16px; }
+  .cursor-light{ display:none; }
+}
+
+/* ============================================================
+   REDUCED MOTION
+============================================================ */
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:200ms !important; scroll-behavior:auto !important; }
+  .reveal{ opacity:1 !important; transform:none !important; }
+  .story-panel{ transform:none !important; }
+
+  /* The hall cannot travel sideways without the scroll animation, so it
+     becomes an upright wall of mirrors instead. Freezing the track on its own
+     would leave every photo past the first screen unreachable. */
+  .gallery-scroll{ height:auto !important; }
+  .gallery-sticky{ position:static !important; height:auto !important; display:block !important; }
+  .gallery-track{
+    transform:none !important; perspective:none !important;
+    flex-wrap:wrap; justify-content:center; gap:28px; padding:0 6vw 10vh;
+  }
+  .gallery-item,
+  .gallery-item.w-narrow,
+  .gallery-item.w-wide,
+  .gallery-item.w-tall{
+    transform:none !important; opacity:1 !important; width:min(320px, 78vw);
+  }
+  .gallery-frame,
+  .gallery-item.w-wide .gallery-frame,
+  .gallery-item.w-tall .gallery-frame{ height:42svh; }
+  .gallery-reflect, .gallery-progress, .gallery-hall::after{ display:none; }
+}
+
+/* ============================================================
+   SHARED-CORE PALETTE BRIDGE
+
+   tailwind.css and wedding-ui.css are built against --c-* and --ui-*
+   tokens. This design is dark, so — exactly as Celestial does — the two
+   ground/ink names invert: --c-cream is the PAGE GROUND (near-black) and
+   --c-charcoal is the PALE TEXT. Renaming them would fork a shared file
+   for one design, so the names stay and the values swap.
+
+   HSL components, no commas, so hsl(var(--c-gold)/.25) works.
+============================================================ */
+:root{
+  --c-cream:      0 0% 4%;      /* page ground — ink */
+  --c-charcoal:  38 33% 93%;    /* pale text — ivory */
+  --c-gold:      40 27% 69%;    /* champagne accent */
+  --c-gold-dark: 41 15% 54%;
+  --c-warmgray:  41 10% 62%;
+  --c-sand:     270 5% 13%;
+  --c-champagne: 40 27% 69%;
+
+  /* Builder chrome, retinted from its light defaults. */
+  --ui-panel-bg:   #141317;
+  --ui-field-bg:   rgba(244,240,232,0.06);
+  --ui-field-text: #f4f0e8;
+  --ui-warn-bg:    rgba(198,184,156,0.12);
+  --ui-warn-text:  #e8dcc2;
+}
+
+/* The shared chrome assumes a light page. Pair-fix per gotcha 5: bg-gold
+   with white text lands at about 1.7:1 on a dark design, so the label goes
+   to ink instead. */
+#builder-bar .bg-gold,
+#builder-bar button.bg-gold,
+#customizer-drawer .bg-gold{ color:#0a0a0a; }
+#customizer-drawer{ background:var(--ui-panel-bg); color:var(--ivory); }
+#customizer-drawer input,
+#customizer-drawer textarea,
+#customizer-drawer select{ background:var(--ui-field-bg); color:var(--ui-field-text); }
+
+/* ============================================================
+   SECTION FURNITURE for the new core-driven sections
+============================================================ */
+.section-title{
+  font-family:'Bodoni Moda', serif; font-weight:400;
+  font-size:clamp(30px,5vw,52px); line-height:1.1; color:var(--ivory);
+  text-align:center; margin:10px 0 46px;
+}
+
+/* ============================================================
+   COUNTDOWN — figures in the same Bodoni as the date
+============================================================ */
+/* ---- The mirror surface -------------------------------------------------
+   A hairline that fades out at both ends, with the countdown's label sitting
+   on it. It marks where the date stops and its reflection begins, so the
+   countdown underneath reads as something the mirror gave back rather than
+   as a second section about the same day. */
+.mirror-line{
+  display:flex; align-items:center; justify-content:center;
+  gap:18px; margin:16px auto 0; max-width:min(520px, 78%);
+}
+.mirror-line::before,
+.mirror-line::after{
+  content:''; flex:1 1 auto; height:1px;
+}
+.mirror-line::before{ background:linear-gradient(90deg, transparent, var(--line-strong)); }
+.mirror-line::after { background:linear-gradient(90deg, var(--line-strong), transparent); }
+.mirror-line-label{
+  font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase;
+  color:var(--champagne-dim); white-space:nowrap;
+  /* Tracked uppercase leaves a trailing gap after the last letter, which
+     pushes the word off-centre between the two rules. */
+  text-indent:0.28em;
+}
+
+/* Below the line everything is the reflection. The numbers are held down in
+   brightness and faded toward the bottom so they sit behind the date rather
+   than competing with it, and kept smaller for the same reason — the date is
+   the subject, this is its echo. */
+#date-section .countdown{ margin:24px 0 0; }
+
+/* The dimming and the downward fade ride on the NUMERALS only, never on the
+   whole block. The numerals are ivory, so they stay legible while carrying
+   the whole reflection effect; the labels underneath are already quiet
+   champagne, and putting the same treatment over them dimmed them twice —
+   once by opacity and again by the tail of the mask, which lands exactly
+   where they sit. That measured 2.4:1 against the section, well under the
+   4.5:1 floor for text this small. Left alone they measure 5.6:1.
+
+   --refl-t is written by the scroll loop: 0 at the edges of the viewport,
+   1 at the centre, the same curve that sharpens the gleam above. The
+   fallback is the bright end, so with no JavaScript this reads at full
+   strength rather than being stuck faint. */
+#date-section .cd-num{
+  font-size:clamp(26px, 4.6vw, 50px);
+  opacity: calc(0.6 + var(--refl-t, 1) * 0.4);
+  transition: opacity 200ms linear;
+  -webkit-mask-image:linear-gradient(180deg, #000 62%, rgba(0,0,0,0.42) 100%);
+          mask-image:linear-gradient(180deg, #000 62%, rgba(0,0,0,0.42) 100%);
+}
+#date-section .cal-links{ margin-top:38px; }
+
+.countdown{
+  display:flex; align-items:flex-start; justify-content:center;
+  gap:clamp(14px,3.4vw,46px); margin:26px 0 40px;
+}
+.cd-unit{ display:flex; flex-direction:column; align-items:center; gap:10px; min-width:64px; }
+.cd-num{
+  font-family:'Bodoni Moda', serif; font-weight:400;
+  font-size:clamp(34px,6vw,68px); line-height:1; color:var(--ivory);
+  font-variant-numeric:tabular-nums;
+}
+.cd-label{
+  font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase;
+  color:var(--champagne-dim);
+}
+.cd-sep{ width:1px; height:clamp(30px,5vw,54px); background:var(--line); margin-top:6px; }
+
+.cal-links{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; }
+.cal-btn{
+  display:inline-flex; align-items:center; gap:9px;
+  padding:13px 24px; border:1px solid var(--line-strong); border-radius:2px;
+  font-size:10px; letter-spacing:0.24em; text-transform:uppercase;
+  color:var(--champagne); text-decoration:none; cursor:pointer;
+  transition:background var(--dur-micro) var(--ease-soft), color var(--dur-micro) var(--ease-soft);
+}
+.cal-btn:hover{ background:var(--champagne); color:var(--ink); }
+.cal-btn i{ font-size:11px; }
+
+/* ============================================================
+   SCHEDULE — one lit thread, events alternating across it.
+   The core sets --gap-px per row from the real time between events.
+============================================================ */
+#schedule{ background:var(--ink); }
+.schedule-timeline{ position:relative; max-width:820px; margin:0 auto; padding:8px 0 20px; }
+.schedule-timeline::before{
+  content:''; position:absolute; top:0; bottom:0; left:50%; width:1px;
+  background:linear-gradient(180deg, transparent, var(--line-strong) 12%, var(--line-strong) 88%, transparent);
+}
+.schedule-row{ position:relative; margin-top:var(--gap-px,0); padding:20px 0; display:flex; }
+.schedule-row.align-left{ justify-content:flex-start; }
+.schedule-row.align-right{ justify-content:flex-end; }
+.schedule-content{
+  position:relative; width:calc(50% - 42px);
+  display:flex; align-items:flex-start; gap:16px;
+}
+.schedule-row.align-right .schedule-content{ flex-direction:row-reverse; text-align:right; }
+
+.schedule-icon{
+  flex:0 0 auto; width:38px; height:38px; border-radius:50%;
+  display:grid; place-items:center;
+  border:1px solid var(--line-strong); background:var(--charcoal);
+  color:var(--champagne); font-size:13px;
+}
+.schedule-time{
+  display:block; font-size:9.5px; letter-spacing:0.26em; text-transform:uppercase;
+  color:var(--champagne-dim); margin-bottom:5px;
+}
+.schedule-title{
+  font-family:'Bodoni Moda', serif; font-weight:400; font-size:clamp(19px,2.4vw,26px);
+  line-height:1.2; color:var(--ivory); margin:0;
+}
+.schedule-venue{ font-size:12px; color:rgba(244,240,232,0.5); margin:5px 0 0; }
+
+/* The measured gap, printed on the thread between two events. */
+.schedule-gap{
+  position:absolute; left:50%; top:calc(var(--gap-px,0) * -0.5);
+  transform:translate(-50%,-50%);
+  font-size:8.5px; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--champagne-dim); background:var(--ink); padding:3px 9px;
+}
+
+/* ============================================================
+   FAQ — hairline rules. The answer opens on a grid-row transition, so it
+   animates without anyone having to measure a pixel height.
+============================================================ */
+#faq-section{ background:var(--ink); }
+.faq-list{ max-width:720px; margin:0 auto; }
+.faq-item{ border-top:1px solid var(--line); }
+.faq-item:last-child{ border-bottom:1px solid var(--line); }
+.faq-question{
+  width:100%; display:flex; align-items:center; justify-content:space-between; gap:18px;
+  padding:24px 4px; background:none; border:0; cursor:pointer; text-align:left;
+  font-family:'Bodoni Moda', serif; font-size:clamp(16px,2vw,21px);
+  color:var(--ivory);
+  transition:color var(--dur-micro) var(--ease-soft);
+}
+.faq-question:hover{ color:var(--champagne); }
+.faq-chevron{
+  flex:0 0 auto; font-size:11px; color:var(--champagne-dim);
+  transition:transform var(--dur-micro) var(--ease-soft);
+}
+.faq-question.faq-question-open .faq-chevron{ transform:rotate(180deg); }
+.faq-answer{
+  display:grid; grid-template-rows:0fr;
+  transition:grid-template-rows var(--dur-micro) var(--ease-soft);
+}
+.faq-answer.faq-answer-open{ grid-template-rows:1fr; }
+.faq-answer > p{
+  overflow:hidden; margin:0;
+  font-size:14px; line-height:1.75; color:rgba(244,240,232,0.62);
+  padding-right:34px;
+}
+.faq-answer.faq-answer-open > p{ padding-bottom:24px; }
+
+/* ============================================================
+   GALLERY LIGHTBOX
+============================================================ */
+.gallery-lightbox{
+  position:fixed; inset:0; z-index:120; display:none;
+  align-items:center; justify-content:center; padding:5vw;
+  background:rgba(6,6,7,0.94);
+}
+.gallery-lightbox.is-open{ display:flex; }
+.gallery-lightbox img{
+  max-width:100%; max-height:88vh; object-fit:contain;
+  box-shadow:0 0 0 1px rgba(198,184,156,0.28), 0 40px 90px rgba(0,0,0,0.6);
+}
+.gallery-lightbox-close{
+  position:absolute; top:22px; right:24px; width:44px; height:44px;
+  display:grid; place-items:center; cursor:pointer;
+  background:none; border:1px solid var(--line-strong); border-radius:50%;
+  color:var(--champagne); font-size:15px;
+}
+.gallery-lightbox-close:hover{ background:var(--champagne); color:var(--ink); }
+
+/* Music failure notice, sitting above the toggle. */
+.music-error-toast{
+  position:fixed; left:24px; bottom:86px; z-index:90;
+  padding:11px 16px; border:1px solid var(--line-strong); background:var(--charcoal);
+  font-size:11px; color:var(--ivory); max-width:260px;
+}
+
+@media (max-width: 780px){
+  .schedule-timeline::before{ left:19px; }
+  .schedule-row,
+  .schedule-row.align-right{ justify-content:flex-start; }
+  .schedule-content,
+  .schedule-row.align-right .schedule-content{
+    width:100%; flex-direction:row; text-align:left;
+  }
+  .schedule-gap{ left:19px; }
+  .cd-sep{ display:none; }
+  .countdown{ gap:18px; flex-wrap:wrap; }
+}
+
+/* The shared bar ships an emerald export button and an amber sandbox warning,
+   both picked for the light designs. On ink they read as stray UI, so they are
+   restated in champagne here. Colour only — the markup stays shared. */
+#builder-bar .bg-emerald-700{ background:var(--champagne); color:#0a0a0a; }
+#builder-bar .bg-emerald-700:hover{ background:var(--ivory); }
+#builder-bar{ background:rgba(12,11,13,0.96); border-bottom:1px solid var(--line); }
+#builder-bar .text-warmgray{ color:rgba(244,240,232,0.6); }
+
+/* The floating nav is offset below the bar by design.js, and needs to move
+   smoothly when the bar reflows rather than jumping. */
+.site-nav{ transition:top var(--dur-micro) var(--ease-soft); }
+
+/* ============================================================
+   BUILDER CHROME — stacking
+
+   The shared chrome is built for designs whose fixed elements sit in the
+   z-index 0-50 range. This one runs much higher: the nav is 500, the audio
+   toggle 400, the loader 9999. At Tailwind's z-50 the drawer sat UNDER the
+   full-width fixed nav, which then intercepted every click across its band —
+   the tab row, the upload buttons, the lot. Nothing in the drawer responded.
+
+   So the chrome is lifted above this design's own layers. The loader and the
+   intro stay higher still, but both go pointer-events:none / visibility:hidden
+   once they finish, so they never block anything.
+============================================================ */
+#builder-bar        { z-index:9850; }
+#exit-preview-btn   { z-index:9870; }
+.music-error-toast  { z-index:9860; }
+#customizer-drawer  { z-index:9900; }
+#share-modal        { z-index:9950; }
+.gallery-lightbox   { z-index:9960; }
+
+/* With the drawer open the nav would still sit over the invitation itself.
+   Drop it out of the way rather than leaving it hovering. */
+body.editor-open .site-nav{ opacity:0; pointer-events:none; }
+
+/* ============================================================
+   BUILDER CHROME — appearance
+
+   The shared markup carries Tailwind utilities picked for the light designs:
+   pill radii, white-on-gold labels, emerald and amber accents. Restated here
+   in this design's own language — 2px corners, hairline borders, letter-spaced
+   uppercase, champagne on ink. Markup stays shared; only the look changes.
+============================================================ */
+
+/* ---- the bar ---- */
+#builder-bar{
+  background:rgba(12,11,13,0.96);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(14px);
+}
+#builder-bar .text-gold{ color:var(--champagne); }
+#builder-bar .text-warmgray{ color:rgba(244,240,232,0.6); }
+#builder-bar button{
+  border-radius:2px;
+  font-size:9.5px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  padding:9px 15px;
+  border:1px solid var(--line-strong);
+  background:transparent;
+  color:var(--ivory);
+  transition:background var(--dur-micro) var(--ease-soft),
+             color var(--dur-micro) var(--ease-soft),
+             border-color var(--dur-micro) var(--ease-soft);
+}
+#builder-bar button:hover{ background:rgba(244,240,232,0.06); border-color:var(--champagne); }
+#builder-bar button i{ color:var(--champagne); font-size:11px; }
+
+/* The two primary actions read as filled champagne. */
+#builder-bar button.bg-gold,
+#builder-bar button.bg-emerald-700{
+  background:var(--champagne); color:#0a0a0a; border-color:var(--champagne);
+}
+#builder-bar button.bg-gold:hover,
+#builder-bar button.bg-emerald-700:hover{ background:var(--ivory); border-color:var(--ivory); }
+#builder-bar button.bg-gold i,
+#builder-bar button.bg-emerald-700 i{ color:#0a0a0a; }
+
+/* ---- the drawer shell ---- */
+#customizer-drawer{
+  background:var(--ui-panel-bg);
+  color:var(--ivory);
+  border-left:1px solid var(--line);
+}
+#customizer-drawer h3,
+#customizer-drawer h4{ font-family:'Bodoni Moda', serif; color:var(--ivory); font-weight:400; }
+#customizer-drawer h4 i{ color:var(--champagne); }
+#customizer-drawer .text-gold{ color:var(--champagne); }
+#customizer-drawer .text-warmgray{ color:rgba(244,240,232,0.6); }
+#customizer-drawer .border-gold\/15,
+#customizer-drawer .border-gold\/20,
+#customizer-drawer .border-gold\/25,
+#customizer-drawer .border-gold\/30{ border-color:var(--line); }
+
+/* Field groups read as panels on ink rather than cream cards. */
+#customizer-drawer .bg-white\/60,
+#customizer-drawer .bg-white\/70,
+#customizer-drawer .bg-white\/80,
+#customizer-drawer .bg-sand\/40,
+#customizer-drawer .bg-sand\/50,
+#customizer-drawer .bg-sand\/60,
+#customizer-drawer .bg-cream\/50{
+  background:rgba(244,240,232,0.035);
+  border-color:var(--line);
+}
+
+/* ---- tabs ---- */
+#customizer-drawer .drawer-tab{
+  border-radius:2px;
+  border:1px solid transparent;
+  color:rgba(244,240,232,0.55);
+  letter-spacing:0.16em;
+  font-size:8.5px;
+  transition:color var(--dur-micro) var(--ease-soft),
+             border-color var(--dur-micro) var(--ease-soft),
+             background var(--dur-micro) var(--ease-soft);
+}
+#customizer-drawer .drawer-tab i{ color:inherit; }
+#customizer-drawer .drawer-tab:hover{ color:var(--ivory); background:rgba(244,240,232,0.04); }
+#customizer-drawer .drawer-tab.is-active{
+  color:var(--champagne);
+  border-color:var(--line-strong);
+  background:rgba(198,184,156,0.08);
+}
+
+/* ---- fields ---- */
+#customizer-drawer input[type="text"],
+#customizer-drawer input[type="date"],
+#customizer-drawer input[type="number"],
+#customizer-drawer textarea,
+#customizer-drawer select{
+  background:var(--ui-field-bg);
+  color:var(--ui-field-text);
+  border:1px solid var(--line);
+  border-radius:2px;
+  font-size:12px;
+  padding:10px 12px;
+}
+#customizer-drawer input:focus,
+#customizer-drawer textarea:focus,
+#customizer-drawer select:focus{
+  outline:none; border-color:var(--champagne);
+}
+#customizer-drawer label{ color:rgba(244,240,232,0.5); letter-spacing:0.16em; }
+#customizer-drawer select option{ background:var(--charcoal); color:var(--ivory); }
+#customizer-drawer input[type="checkbox"]{ accent-color:#c6b89c; }
+
+/* ---- buttons inside the drawer ---- */
+#customizer-drawer button{
+  border-radius:2px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  font-size:9.5px;
+  transition:background var(--dur-micro) var(--ease-soft),
+             color var(--dur-micro) var(--ease-soft),
+             border-color var(--dur-micro) var(--ease-soft);
+}
+/* "Add item" dashed buttons */
+#customizer-drawer button.border-dashed{
+  border:1px dashed var(--line-strong);
+  color:var(--champagne);
+  background:transparent;
+  padding:12px;
+}
+#customizer-drawer button.border-dashed:hover{
+  background:rgba(198,184,156,0.08); border-color:var(--champagne);
+}
+/* Footer pair */
+#customizer-drawer .bg-charcoal{
+  background:transparent; color:var(--ivory); border:1px solid var(--line-strong); padding:11px 18px;
+}
+#customizer-drawer .bg-charcoal:hover{ border-color:var(--champagne); background:rgba(244,240,232,0.05); }
+#customizer-drawer .bg-gold{
+  background:var(--champagne); color:#0a0a0a; border:1px solid var(--champagne); padding:11px 18px;
+}
+#customizer-drawer .bg-gold:hover{ background:var(--ivory); border-color:var(--ivory); }
+
+/* Small icon buttons — reorder, delete, icon picker. */
+#customizer-drawer button.w-8,
+#customizer-drawer button.w-9,
+#customizer-drawer button.h-9,
+#customizer-drawer button.p-2,
+#customizer-drawer button.p-2\.5{
+  border:1px solid var(--line); color:rgba(244,240,232,0.7); background:transparent; padding:7px;
+}
+#customizer-drawer button.w-8:hover,
+#customizer-drawer button.w-9:hover,
+#customizer-drawer button.p-2:hover,
+#customizer-drawer button.p-2\.5:hover{
+  border-color:var(--champagne); color:var(--champagne);
+}
+
+/* ---- file upload controls ----
+   These are <label for> elements driving a visually-hidden file input, so
+   they must stay clickable and must not inherit the button reset above. */
+#customizer-drawer label[for="cfg-hero-photo-file"],
+#customizer-drawer label[for="gallery-file-input"],
+#customizer-drawer label.cursor-pointer{
+  display:inline-flex; align-items:center; gap:8px;
+  border:1px solid var(--line-strong); border-radius:2px;
+  padding:10px 16px; cursor:pointer;
+  background:transparent; color:var(--champagne);
+  font-size:9.5px; letter-spacing:0.18em; text-transform:uppercase;
+  transition:background var(--dur-micro) var(--ease-soft), color var(--dur-micro) var(--ease-soft);
+}
+#customizer-drawer label[for="cfg-hero-photo-file"]:hover,
+#customizer-drawer label[for="gallery-file-input"]:hover,
+#customizer-drawer label.cursor-pointer:hover{ background:var(--champagne); color:#0a0a0a; }
+
+/* ---- share modal ---- */
+#share-modal .bg-cream,
+#share-modal .bg-white,
+#share-modal > div{ background:var(--ui-panel-bg); color:var(--ivory); }
+#share-modal h3, #share-modal h4{ font-family:'Bodoni Moda', serif; font-weight:400; color:var(--ivory); }
+#share-modal input{
+  background:var(--ui-field-bg); color:var(--ui-field-text);
+  border:1px solid var(--line); border-radius:2px;
+}
+#share-modal button{
+  border-radius:2px; letter-spacing:0.18em; text-transform:uppercase; font-size:9.5px;
+}
+#share-modal .bg-gold{ background:var(--champagne); color:#0a0a0a; }
+#share-modal .bg-charcoal{ background:transparent; color:var(--ivory); border:1px solid var(--line-strong); }
+#share-modal .text-gold{ color:var(--champagne); }
+#share-modal .text-warmgray{ color:rgba(244,240,232,0.6); }
+
+/* Sandbox notice — amber on cream by default, unreadable here. */
+#sandbox-domain-warning{
+  background:var(--ui-warn-bg) !important;
+  border-color:rgba(198,184,156,0.35) !important;
+  color:var(--ui-warn-text) !important;
+}
+
+/* Guest-view exit pill. */
+#exit-preview-btn{
+  background:var(--champagne); color:#0a0a0a;
+  border:1px solid var(--champagne); border-radius:2px;
+  letter-spacing:0.2em;
+}
+#exit-preview-btn:hover{ background:var(--ivory); border-color:var(--ivory); }
+
+/* ============================================================
+   BUILDER WIDGETS — gallery tiles, reorder controls, drawer rows
+
+   The core renders these, but their styling has always lived in each
+   design's own stylesheet rather than the shared one, so this design
+   started with none of it and the gallery tab collapsed into a row of
+   bare icons. Ported here in ink and champagne.
+============================================================ */
+
+/* ---- small square controls: move, delete, icon pick ---- */
+.schedule-mini-btn{
+  width:28px; height:28px; flex:0 0 auto;
+  display:inline-flex; align-items:center; justify-content:center;
+  border:1px solid var(--line); border-radius:2px;
+  background:rgba(10,10,10,0.5); color:rgba(244,240,232,0.75);
+  font-size:10px; cursor:pointer;
+  transition:border-color var(--dur-micro) var(--ease-soft),
+             color var(--dur-micro) var(--ease-soft),
+             background var(--dur-micro) var(--ease-soft);
+}
+.schedule-mini-btn:hover:not(:disabled){
+  border-color:var(--champagne); color:var(--champagne); background:rgba(198,184,156,0.12);
+}
+.schedule-mini-btn:disabled{ opacity:0.3; cursor:default; }
+.schedule-mini-btn-danger:hover:not(:disabled){
+  border-color:#c98b7a; color:#e3a695; background:rgba(201,139,122,0.12);
+}
+
+/* ---- schedule + FAQ rows in the drawer ---- */
+.schedule-drawer-item{
+  padding:14px; border:1px solid var(--line); border-radius:2px;
+  background:rgba(244,240,232,0.03);
+}
+.schedule-drawer-item + .schedule-drawer-item{ margin-top:12px; }
+
+/* ---- gallery tiles ---- */
+.gallery-drawer-grid{
+  display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;
+}
+.gallery-drawer-tile{
+  position:relative; aspect-ratio:3/4; overflow:hidden;
+  border:1px solid var(--line); border-radius:2px;
+  background:var(--charcoal);
+}
+.gallery-drawer-tile img{
+  width:100%; height:100%; object-fit:cover; display:block;
+}
+/* A missing file leaves an empty box that reads as a bug; label it instead. */
+.gallery-drawer-tile img[data-placeholder="true"]{ opacity:0.55; }
+
+.gallery-drawer-tile-controls{
+  position:absolute; inset:auto 0 0 0;
+  display:flex; align-items:center; justify-content:center; gap:5px;
+  padding:7px 5px;
+  background:linear-gradient(180deg, transparent, rgba(6,6,7,0.9));
+  opacity:0; transition:opacity var(--dur-micro) var(--ease-soft);
+}
+.gallery-drawer-tile:hover .gallery-drawer-tile-controls,
+.gallery-drawer-tile:focus-within .gallery-drawer-tile-controls{ opacity:1; }
+/* Touch has no hover — leave the controls permanently visible there. */
+@media (hover: none){
+  .gallery-drawer-tile-controls{ opacity:1; }
+}
+.gallery-drawer-tile-controls .schedule-mini-btn{ width:25px; height:25px; font-size:9px; }
+
+.gallery-drawer-add-tile{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px;
+  aspect-ratio:3/4; cursor:pointer;
+  border:1px dashed var(--line-strong); border-radius:2px;
+  background:transparent; color:var(--champagne);
+  font-size:9px; letter-spacing:0.18em; text-transform:uppercase; text-align:center;
+  transition:background var(--dur-micro) var(--ease-soft), border-color var(--dur-micro) var(--ease-soft);
+}
+.gallery-drawer-add-tile:hover{ background:rgba(198,184,156,0.1); border-color:var(--champagne); }
+.gallery-drawer-add-tile i{ font-size:15px; }
+
+/* ---- the little tip boxes ----
+   bg-champagne/40 was chosen against cream; on ink it reads as a muddy
+   grey slab. Restated as a quiet inset note. */
+#customizer-drawer .bg-champagne\/40{
+  background:rgba(198,184,156,0.08);
+  border-color:rgba(198,184,156,0.22);
+  color:rgba(244,240,232,0.6);
+  border-radius:2px;
+}
+
+/* The drawer's own scroll area, so long panels don't clip. */
+#customizer-drawer .overflow-y-auto{ scrollbar-width:thin; }
+
+/* A flex child that scrolls needs min-height:0, or it grows to fit its content
+   instead of scrolling — the tail of a long panel then slides underneath the
+   drawer's footer and cannot be clicked. Bit the last schedule row. */
+#customizer-drawer .overflow-y-auto{ min-height:0; flex:1 1 auto; }
+#customizer-drawer{ overflow:hidden; }
+
+/* ============================================================
+   STORY — two become one, literally
+
+   The pair slide together; as they meet they cross-fade into a single
+   wider photograph of the two of them, and the paragraph settles on top
+   of that. The merged frame is deliberately wider than either portrait:
+   two tall images opening out into one landscape reads as a resolution
+   rather than a swap, and it gives the text room to sit inside the photo
+   instead of spilling over its edges.
+============================================================ */
+.story-panel.a, .story-panel.b{ opacity:var(--ab-op, 1); }
+
+.story-panel.together{
+  width:min(66vw, 720px);
+  opacity:var(--tg-op, 0);
+  z-index:2;                     /* above the pair, below the text */
+}
+
+/* Keeps the paragraph legible once it is sitting on a photograph. */
+.story-panel.together::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(180deg, rgba(8,8,9,0.35), rgba(8,8,9,0.72));
+}
+
+/* Bounded by the merged frame, not the viewport — this is what pushed the
+   paragraph outside the picture before. */
+.story-center{ width:min(60vw, 620px); }
+.story-center p{ max-width:none; }
+
+@media (max-width: 780px){
+  .story-panel.together{ width:86vw; }
+  .story-center{ width:80vw; }
+  .story-center p{ font-size:14px; line-height:1.75; }
+}
+
+/* Bodoni's serifs are hairlines. Past roughly 150px they land on sub-pixel
+   widths and the diagonals stair-step, which reads as a low-resolution
+   image rather than a typeface. Capped, and kept off its own compositor
+   layer once the fade has finished so it rasterises at full device DPI. */
+.loader-mark .initials{
+  font-size:clamp(3rem, 15vw, 150px);
+  will-change:auto;
+}
+
+/* ---- story photo upload tiles ---- */
+.mp-photo-row{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+.mp-photo-slot{ display:flex; flex-direction:column; gap:7px; min-width:0; }
+.mp-photo-thumb{
+  aspect-ratio:3/4; overflow:hidden;
+  border:1px solid var(--line); border-radius:2px; background:var(--charcoal);
+}
+.mp-photo-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+.mp-photo-btn{
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  padding:8px 6px; cursor:pointer;
+  border:1px solid var(--line-strong); border-radius:2px;
+  background:transparent; color:var(--champagne);
+  font-size:8.5px; letter-spacing:0.14em; text-transform:uppercase; text-align:center;
+  transition:background var(--dur-micro) var(--ease-soft), color var(--dur-micro) var(--ease-soft);
+}
+.mp-photo-btn:hover{ background:var(--champagne); color:#0a0a0a; }
+.mp-photo-btn i{ font-size:10px; }
+
+/* .story-center is absolutely positioned inside a flex row, so without
+   offsets its vertical placement is whatever static position the flex
+   container happens to give it — which left the heading poking out of the
+   top edge of the merged photo. Pin it to the centre of the frame. */
+.story-center{ top:50%; left:50%; transform:translate(-50%,-50%); }
+
+/* ============================================================
+   MENU OVERLAY
+
+   The nav's Menu button was decorative — styled, with nothing behind it.
+   Sits below the builder chrome (9850+) so the studio bar stays reachable
+   while it is open.
+============================================================ */
+.menu-overlay{
+  position:fixed; inset:0; z-index:9500;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:rgba(8,8,9,0.97);
+  opacity:0; transition:opacity 520ms var(--ease-soft);
+}
+.menu-overlay[hidden]{ display:none; }
+.menu-overlay.open{ opacity:1; }
+
+.menu-close{
+  position:absolute; top:24px; right:28px;
+  width:44px; height:44px; display:grid; place-items:center;
+  background:none; border:1px solid var(--line); border-radius:50%;
+  color:var(--champagne); font-size:22px; line-height:1; cursor:pointer;
+  transition:border-color var(--dur-micro) var(--ease-soft), transform var(--dur-micro) var(--ease-soft);
+}
+.menu-close:hover{ border-color:var(--champagne); transform:rotate(90deg); }
+
+.menu-links{ display:flex; flex-direction:column; align-items:center; gap:clamp(10px,1.8vh,20px); }
+.menu-links a{
+  font-family:'Bodoni Moda', serif;
+  font-size:clamp(1.5rem, 4.2vw, 2.6rem);
+  line-height:1.1; color:var(--ivory); text-decoration:none;
+  position:relative; padding:2px 6px;
+  opacity:0; transform:translateY(14px);
+  transition:color 320ms var(--ease-soft), opacity 520ms var(--ease-soft), transform 520ms var(--ease-soft);
+}
+.menu-overlay.open .menu-links a{ opacity:1; transform:none; }
+.menu-links a:hover{ color:var(--champagne); }
+/* Underline grows from the left, matching the nav button's own hover. */
+.menu-links a::after{
+  content:''; position:absolute; left:6px; right:6px; bottom:-2px; height:1px;
+  background:var(--champagne); transform:scaleX(0); transform-origin:left;
+  transition:transform 400ms var(--ease-soft);
+}
+.menu-links a:hover::after{ transform:scaleX(1); }
+
+.menu-foot{
+  position:absolute; bottom:36px; left:0; right:0; text-align:center;
+  font-family:'Bodoni Moda', serif; font-style:italic;
+  font-size:14px; color:rgba(244,240,232,0.5);
+}
+.menu-foot-date{
+  display:block; margin-top:8px;
+  font-family:'Inter', sans-serif; font-style:normal;
+  font-size:9.5px; letter-spacing:0.28em; color:var(--champagne-dim);
+}
+
+/* Four photo slots rather than three — 2x2 stays legible in a 512px drawer,
+   where four across would leave each thumbnail about 100px wide. */
+.mp-photo-row{ grid-template-columns:repeat(2, 1fr); }
+
+/* Clears the studio bar, which is stacked above the menu. design.js keeps
+   --mp-bar-h in step with the bar's real height, since its buttons wrap onto
+   extra rows on narrow screens. */
+.menu-close{ top:calc(var(--mp-bar-h, 0px) + 24px); }
+
+/* ============================================================
+   PHONE REFINEMENTS
+
+   Measured at 375x812. The design was laid out for a cursor, and several
+   things a guest has to hit came out well under the 44px that a fingertip
+   actually needs — the Menu button was 17px tall, the RSVP radios 13px.
+
+   Padding is added with matching negative margin where the visual position
+   matters, so the target grows without the layout moving.
+============================================================ */
+@media (max-width: 780px){
+
+  /* ---- navigation ---- */
+  .nav-menu{ padding:14px 6px; margin:-14px -6px; }
+  .skip-btn{ padding:14px 22px; }
+
+  /* ---- the menu overlay ---- */
+  .menu-links{ gap:6px; }
+  .menu-links a{ padding:10px 12px; }        /* 8 links still fit in 812px */
+  .menu-close{ width:48px; height:48px; top:calc(var(--mp-bar-h, 0px) + 16px); right:16px; }
+  .menu-foot{ bottom:24px; }
+
+  /* ---- RSVP ----
+     Radios stack: side by side at this width the two labels sit ~8px apart,
+     which is a mis-tap waiting to happen. */
+  .rsvp-radio{ flex-direction:column; align-items:flex-start; gap:6px; }
+  .rsvp-radio label{ padding:11px 0; font-size:15px; width:100%; }
+  .rsvp-radio input{ width:20px; height:20px; flex:0 0 auto; }
+
+  /* 16px minimum, or iOS zooms the whole page in on focus. */
+  .field input, .field select, .field textarea{ font-size:16px; padding:12px 2px 14px; }
+  .field textarea{ min-height:88px; }
+  .rsvp-submit{ width:100%; padding:18px 24px; }
+
+  /* ---- accent type that lands too small on a phone ---- */
+  .schedule-gap{ font-size:9.5px; padding:3px 7px; }
+  .gallery-caption{ font-size:10px; letter-spacing:0.18em; }
+  .cal-btn{ padding:15px 22px; }
+  /* Side by side these wrap onto two rows at different widths, because the
+     labels are different lengths — two centred buttons of unequal width read
+     as an accident. Stacked and stretched they share one edge. */
+  .cal-links{ gap:10px; flex-direction:column; align-items:stretch; }
+  .cal-btn{ justify-content:center; }
+
+  /* ---- builder drawer, for a bride editing on her phone ----
+     Same iOS zoom rule applies to the editor's own fields. */
+  #customizer-drawer input[type="text"],
+  #customizer-drawer input[type="date"],
+  #customizer-drawer input[type="number"],
+  #customizer-drawer textarea,
+  #customizer-drawer select{ font-size:16px; padding:12px; }
+  #customizer-drawer .drawer-tab{ font-size:9px; padding:10px 6px; }
+  .schedule-mini-btn{ width:34px; height:34px; }
+  .mp-photo-btn{ padding:12px 6px; }
+}
+
+/* The schedule icon picker renders as a row of bare glyphs about 11x20 —
+   unusable on a phone, and the bride may well be editing on one. */
+@media (max-width: 780px){
+  .schedule-icon-btn{
+    min-width:40px; min-height:40px;
+    display:inline-flex; align-items:center; justify-content:center;
+    border:1px solid var(--line); border-radius:2px;
+  }
+  .schedule-icon-btn.is-active{ border-color:var(--champagne); background:rgba(198,184,156,0.12); }
+}
+
+/* The last two guest-facing targets that a fingertip misses. Both use an
+   underline as their affordance, so the padding is added downward and the
+   underline stays where it was drawn. */
+@media (max-width: 780px){
+  .detail-btn{ padding:13px 0; }
+  .replay-btn{ padding:14px 8px; margin-top:30px; }
+}
+
+/* ============================================================
+   STUDIO BAR
+
+   One hairline row of icons at every width — no fills, no rounded boxes,
+   nothing that reads as an admin toolbar bolted onto the invitation. The
+   group is centred so the right-hand side stays clear of the nav's Menu
+   button sitting just below it.
+
+   Labels are the short forms written on by design.js; the full wording
+   survives as each button's title, so hovering still explains them.
+============================================================ */
+#builder-bar{
+  padding:0; gap:0;
+  background:rgba(9,8,10,0.97);
+  border-bottom:1px solid var(--line);
+  box-shadow:none;
+  justify-content:center;
+  backdrop-filter:blur(14px);
+}
+/* "Invitation Studio | Personalize & Share Your Invitation" is decoration. */
+#builder-bar > div:first-child{ display:none; }
+#builder-bar > div:last-child{ display:flex; gap:0; flex-wrap:nowrap; }
+
+#builder-bar button,
+#builder-bar button.bg-gold,
+#builder-bar button.bg-emerald-700{
+  position:relative;
+  flex:0 0 auto; min-width:104px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+  padding:10px 14px 11px;
+  border:0; border-radius:0;
+  background:none; color:var(--champagne-dim);
+  font-size:0;                        /* the long label is replaced below */
+  transition:color var(--dur-micro) var(--ease-soft), background var(--dur-micro) var(--ease-soft);
+}
+#builder-bar button:hover{ color:var(--ivory); background:rgba(244,240,232,0.04); }
+
+/* Icons inherit, or the two that carry a fill on other designs would be
+   painted ink and vanish against this bar. */
+#builder-bar button i,
+#builder-bar button.bg-gold i,
+#builder-bar button.bg-emerald-700 i{ color:inherit; font-size:14px; }
+
+#builder-bar button span[data-short]::after{
+  content:attr(data-short);
+  display:block; font-size:8.5px; letter-spacing:0.16em; text-transform:uppercase;
+}
+
+/* One quiet step of hierarchy: the action she came for. */
+#builder-bar button[data-primary]{ color:var(--ivory); }
+#builder-bar button[data-primary] i{ color:var(--ivory); }
+#builder-bar button:active{ background:rgba(198,184,156,0.1); }
+
+/* Dividers as pseudo-elements: a border-left here loses to the `border:0`
+   on the .bg-gold reset above, since a class selector outranks `button +
+   button`. This also lets the rule sit inset from the bar's edges. */
+#builder-bar button + button::before{
+  content:''; position:absolute; left:0; top:14px; bottom:14px;
+  width:1px; background:var(--line);
+}
+
+@media (max-width: 560px){
+  /* Fill the width rather than centring, so the targets stay finger-sized. */
+  #builder-bar > div:last-child{ width:100%; }
+  #builder-bar button,
+  #builder-bar button.bg-gold,
+  #builder-bar button.bg-emerald-700{ flex:1 1 0; min-width:0; padding:9px 2px 10px; }
+}
+
+/* ============================================================
+   GUEST PREVIEW — nothing but the invitation
+
+   Preview is meant to answer "what will they actually see", so every piece
+   of builder chrome goes: the studio bar, the drawer and its toggle, the
+   share modal, the exit pill. What is left is byte-for-byte the guest view.
+
+   The way back is Escape, or the exit control that fades in on the first
+   mouse move or tap and fades out again — without it a phone has no way
+   out of preview at all, since there is no Escape key to press.
+============================================================ */
+/* Someone opening a shared guest link gets no exit control at all — the
+   core only sets show-exit-btn when preview was entered from the builder,
+   and handing a guest a button into the editing tools would be wrong. */
+body.guest-mode #builder-bar,
+body.guest-mode #customizer-drawer,
+body.guest-mode #share-modal,
+body.guest-mode .editor-toggle{
+  display:none !important;
+}
+
+/* The core shows this whenever preview was entered from the builder. Hidden
+   until asked for, so the first impression is clean. */
+body.guest-mode.show-exit-btn #exit-preview-btn{
+  display:inline-flex !important;
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  z-index:9870;
+  padding:11px 20px;
+  background:rgba(9,8,10,0.9); color:var(--champagne);
+  border:1px solid var(--line-strong); border-radius:2px;
+  font-size:8.5px; letter-spacing:0.22em; text-transform:uppercase;
+  backdrop-filter:blur(10px);
+  opacity:0; pointer-events:none;
+  transition:opacity 420ms var(--ease-soft);
+}
+body.guest-mode.show-exit-btn.show-exit-hint #exit-preview-btn{
+  opacity:1; pointer-events:auto;
+}
+body.guest-mode.show-exit-btn #exit-preview-btn:hover{
+  background:var(--champagne); color:var(--ink); border-color:var(--champagne);
+}
+
+/* The nav sits at the top of the page again with the bar gone. */
+body.guest-mode .site-nav{ top:0 !important; }
+
+/* Discards the local draft. Kept visually quieter than the two actions
+   beside it — it is destructive and should not invite a stray click. */
+.mp-startover{
+  background:none; border:1px solid transparent; border-radius:2px;
+  padding:11px 14px; cursor:pointer;
+  color:rgba(244,240,232,0.58);
+  font-size:9.5px; letter-spacing:0.18em; text-transform:uppercase;
+  transition:color var(--dur-micro) var(--ease-soft), border-color var(--dur-micro) var(--ease-soft);
+}
+.mp-startover:hover{ color:#e3a695; border-color:rgba(201,139,122,0.45); }
+
+/* Sits above the drawer's footer when a draft cannot be fully saved —
+   quota, or a browser blocking storage. Amber-ish rather than red: it is a
+   warning about durability, not an error in what she typed. */
+.mp-draft-notice{
+  margin:0; padding:11px 16px;
+  border-top:1px solid rgba(198,184,156,0.28);
+  background:var(--ui-warn-bg);
+  color:var(--ui-warn-text);
+  font-size:11px; line-height:1.5;
+}
+
+/* ============================================================
+   DRAWER FIELDS
+
+   One markup shape for every field, so the panels read consistently and a
+   new field is three lines rather than a paragraph of Tailwind classes.
+============================================================ */
+.ed-field{ min-width:0; }
+.ed-field label{
+  display:block; margin-bottom:6px;
+  font-size:10px; letter-spacing:0.16em; text-transform:uppercase;
+  color:rgba(244,240,232,0.5);
+}
+.ed-field input[type="text"],
+.ed-field input[type="date"],
+.ed-field textarea,
+.ed-field select{
+  width:100%;
+  background:var(--ui-field-bg); color:var(--ui-field-text);
+  border:1px solid var(--line); border-radius:2px;
+  padding:10px 12px; font-size:12px; font-family:'Inter', sans-serif;
+}
+.ed-field textarea{ resize:vertical; line-height:1.6; }
+.ed-field input:focus, .ed-field textarea:focus, .ed-field select:focus{
+  outline:none; border-color:var(--champagne);
+}
+
+.ed-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.ed-row-4{ grid-template-columns:repeat(4, 1fr); gap:8px; }
+
+/* Guidance under a field: quieter than a label, never mistaken for one. */
+.ed-hint{
+  margin:6px 0 0; font-size:10px; line-height:1.5;
+  color:rgba(244,240,232,0.62);
+}
+/* A note about the whole block, set apart from the fields. */
+.ed-note{
+  margin:0; padding:9px 11px; border-radius:2px;
+  background:rgba(198,184,156,0.07); border:1px solid rgba(198,184,156,0.18);
+  font-size:10.5px; line-height:1.55; color:rgba(244,240,232,0.6);
+}
+/* Divides a long panel into named parts without spawning another tab. */
+.ed-subhead{
+  margin:18px 0 0; padding-top:14px;
+  border-top:1px solid var(--line);
+  font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase;
+  color:var(--champagne);
+}
+.ed-subhead:first-of-type{ margin-top:6px; }
+
+/* Section labels and button text, kept beside the content they label but
+   set back from it — this is the part most couples will never touch. */
+.ed-wording{
+  margin-top:18px; padding-top:14px;
+  border-top:1px dashed var(--line);
+  display:flex; flex-direction:column; gap:12px;
+}
+.ed-wording-head{
+  margin:0; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase;
+  color:rgba(244,240,232,0.62);
+}
+
+.ed-add{
+  width:100%; padding:12px;
+  border:1px dashed var(--line-strong); border-radius:2px;
+  background:transparent; color:var(--champagne); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  font-size:9.5px; letter-spacing:0.18em; text-transform:uppercase;
+  transition:background var(--dur-micro) var(--ease-soft), border-color var(--dur-micro) var(--ease-soft);
+}
+.ed-add:hover{ background:rgba(198,184,156,0.08); border-color:var(--champagne); }
+
+.ed-check{
+  display:flex; align-items:center; gap:10px; cursor:pointer;
+  font-size:12px; color:var(--ivory);
+}
+.ed-check input{ width:16px; height:16px; accent-color:#c6b89c; flex:0 0 auto; }
+
+/* Three story photos: two portraits and the wider merged one below them. */
+.mp-photo-slot-wide{ grid-column:1 / -1; }
+.mp-photo-slot-wide .mp-photo-thumb{ aspect-ratio:16/10; }
+.mp-photo-row-single{ grid-template-columns:1fr; }
+
+/* ============================================================
+   SAMPLE-CONTENT MARKERS
+
+   A field still carrying the wording this template shipped with gets a
+   champagne bar down its left edge. Deliberately not red: sample text is
+   not an error, it is simply unfinished — and a couple who genuinely wants
+   "Villa Cora" should not be nagged.
+============================================================ */
+#customizer-drawer .ed-field.is-sample > input,
+#customizer-drawer .ed-field.is-sample > textarea{
+  border-left:2px solid rgba(198,184,156,0.55);
+  padding-left:10px;
+}
+#customizer-drawer .ed-field.is-sample > label::after{
+  content:'sample';
+  margin-left:8px; padding:1px 5px;
+  border:1px solid rgba(198,184,156,0.3); border-radius:2px;
+  font-size:8px; letter-spacing:0.1em;
+  color:rgba(198,184,156,0.75);
+}
+
+.mp-sample-count{
+  margin:0; flex:1 1 100%; order:-1;
+  padding:0 0 10px;
+  font-size:10px; letter-spacing:0.1em;
+  color:rgba(244,240,232,0.35);
+}
+.mp-sample-count.has-samples{ color:var(--champagne); }
+
+/* ============================================================
+   PEEK
+
+   Above 1100px the drawer narrows the invitation and both are visible at
+   once, so this is only needed on the widths where the drawer covers it.
+============================================================ */
+.mp-peek-btn{
+  display:none;
+  width:38px; height:38px; margin-right:6px;
+  align-items:center; justify-content:center;
+  background:none; border:1px solid var(--line); border-radius:2px;
+  color:var(--champagne); font-size:12px; cursor:pointer;
+  transition:background var(--dur-micro) var(--ease-soft), color var(--dur-micro) var(--ease-soft);
+}
+.mp-peek-btn[aria-pressed="true"]{ background:var(--champagne); color:var(--ink); }
+
+@media (max-width: 1100px){
+  .mp-peek-btn{ display:inline-flex; }
+
+  /* Leaves a strip of the drawer on screen as the way back. */
+  body.mp-peeking #customizer-drawer{
+    transform:translateY(calc(100% - 62px));
+    transition:transform 420ms var(--ease-lux);
+  }
+  body.mp-peeking #customizer-drawer .overflow-y-auto,
+  body.mp-peeking #customizer-drawer .drawer-tabs,
+  body.mp-peeking #customizer-drawer .border-t{ opacity:0; pointer-events:none; }
+}
+
+/* The footer is a no-wrap flex row from the shared markup, so the sample
+   counter was squeezed in beside three buttons and forced "Export for
+   Guests" onto three lines. Let it wrap and the counter takes its own row. */
+#customizer-drawer .border-t{ flex-wrap:wrap; gap:10px; }
+#customizer-drawer .border-t .mp-sample-count{ flex:1 1 100%; order:-1; padding:0; }
+#customizer-drawer .border-t > button{ white-space:nowrap; }
+#customizer-drawer .border-t .bg-gold,
+#customizer-drawer .border-t .bg-charcoal{ flex:0 0 auto; }
+
+/* A label that wraps knocks its row out of alignment with the one beside
+   it. Pin the label to one line and let the field keep its height. */
+.ed-row .ed-field > label{
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+/* The ceremony address now sits directly under the venue name, which is the
+   large serif line — so it needs a little more air than when it followed a
+   smaller description. And the directions link is an <a>, not a <button>. */
+.editorial-info .time + .addr{ margin-top:14px; }
+a.detail-btn{ text-decoration:none; color:var(--champagne); display:inline-block; }
+a.detail-btn:hover{ color:var(--ivory); }
+
+/* ============================================================
+   THE PROGRAMME
+
+   Replaces the alternating timeline. Centred and symmetrical, numbered by
+   act, no icons — the rules and the numerals carry it. The old thread and
+   row styling is left in the file so this can be reverted by deleting this
+   block alone.
+============================================================ */
+.schedule-timeline.programme{ max-width:620px; }
+/* The centre thread belongs to the timeline, not to a programme. */
+.schedule-timeline.programme::before{ display:none; }
+
+.prog-entry{ text-align:center; padding:0 0 clamp(38px,5vw,58px); }
+
+/* Rule with a gap in the middle for the act number. */
+.prog-rule{
+  display:flex; align-items:center; gap:18px;
+  margin:0 0 clamp(20px,3vw,30px);
+  color:var(--champagne-dim);
+}
+.prog-rule::before, .prog-rule::after{
+  content:''; flex:1 1 auto; height:1px; background:var(--line);
+}
+.prog-num{
+  flex:0 0 auto;
+  font-family:'Bodoni Moda', serif; font-size:13px; letter-spacing:0.22em;
+  color:var(--champagne);
+}
+
+.prog-time{
+  font-size:10.5px; letter-spacing:0.34em; text-transform:uppercase;
+  color:var(--champagne-dim);
+  margin-bottom:12px;
+}
+.prog-title{
+  font-family:'Bodoni Moda', serif; font-weight:400;
+  font-size:clamp(1.5rem,3.4vw,2.3rem); line-height:1.15;
+  color:var(--ivory); margin:0;
+}
+.prog-venue{
+  margin:10px 0 0;
+  font-size:12.5px; letter-spacing:0.02em;
+  color:rgba(244,240,232,0.45);
+}
+
+/* The last entry closes the programme rather than trailing off. */
+.prog-entry:last-child{ padding-bottom:0; }
+.prog-entry:last-child::after{
+  content:''; display:block; width:46px; height:1px;
+  margin:clamp(30px,4vw,44px) auto 0; background:var(--line-strong);
+}
+
+@media (max-width: 780px){
+  .prog-rule{ gap:14px; }
+  .prog-entry{ padding-bottom:34px; }
+  .prog-time{ letter-spacing:0.26em; }
+}
+
+/* Tracking pulls a Roman numeral apart — "III" reads as three separate
+   ones. Just enough to breathe, not enough to break the numeral up. */
+.prog-num{ letter-spacing:0.06em; font-size:14px; font-style:italic; }
+
+/* ============================================================
+   THE PROGRAMME — ENTRANCE
+
+   Each act typesets itself: the numeral, then the rules drawing outward
+   from it, then the text settling line by line. Uses the page's own slow
+   easing rather than a quicker fade, which would read as borrowed from a
+   different design.
+
+   Transform and opacity only — both composited, so five of these running
+   at once cost nothing (gotcha 6).
+============================================================ */
+.prog-num,
+.prog-time,
+.prog-title,
+.prog-venue{
+  opacity:0;
+  transform:translateY(12px);
+  transition:opacity 800ms var(--ease-soft), transform 800ms var(--ease-lux);
+}
+.prog-num{ transform:translateY(0) scale(0.82); }
+
+/* The rules grow out of the numeral rather than sliding in from the edges. */
+.prog-rule::before,
+.prog-rule::after{
+  transform:scaleX(0);
+  transition:transform 1000ms var(--ease-lux);
+}
+.prog-rule::before{ transform-origin:right center; }
+.prog-rule::after{ transform-origin:left center; }
+
+.prog-entry.is-in .prog-num{ opacity:1; transform:translateY(0) scale(1); }
+.prog-entry.is-in .prog-rule::before,
+.prog-entry.is-in .prog-rule::after{ transform:scaleX(1); transition-delay:140ms; }
+.prog-entry.is-in .prog-time { opacity:1; transform:none; transition-delay:340ms; }
+.prog-entry.is-in .prog-title{ opacity:1; transform:none; transition-delay:440ms; }
+.prog-entry.is-in .prog-venue{ opacity:1; transform:none; transition-delay:560ms; }
+
+/* The closing rule under the last act waits for that act to finish. */
+.prog-entry:last-child::after{
+  transform:scaleX(0);
+  transition:transform 900ms var(--ease-lux) 700ms;
+}
+.prog-entry:last-child.is-in::after{ transform:scaleX(1); }
+
+/* Applied when the programme re-renders while an act is already on screen —
+   an edit in the drawer must not replay the entrance on every keystroke. */
+.prog-entry.no-anim,
+.prog-entry.no-anim *,
+.prog-entry.no-anim::after{ transition:none !important; }
+
+@media (prefers-reduced-motion: reduce){
+  .prog-num, .prog-time, .prog-title, .prog-venue{ opacity:1 !important; transform:none !important; }
+  .prog-rule::before, .prog-rule::after,
+  .prog-entry:last-child::after{ transform:scaleX(1) !important; }
+}
+
+/* ============================================================
+   RSVP — POLISH
+
+   The form read as a stock web form sitting inside a nicely set header:
+   left-aligned fields under a centred title, native radios, a native
+   select. Centred now, to match the programme, with the two answers and
+   the party size made into things you press rather than form controls.
+============================================================ */
+.visually-hidden{
+  position:absolute; width:1px; height:1px; margin:-1px;
+  padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
+
+.field-centre{ text-align:center; }
+.field-centre > label{ letter-spacing:0.26em; }
+
+/* ---- the two answers ---- */
+.rsvp-choice{
+  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+  max-width:460px; margin:0 auto;
+}
+.choice{ position:relative; display:block; cursor:pointer; }
+.choice input{
+  position:absolute; opacity:0; width:0; height:0;   /* the label is the target */
+}
+.choice-face{
+  display:flex; align-items:center; justify-content:center;
+  min-height:64px; padding:16px 14px;
+  border:1px solid rgba(10,10,10,0.2);
+  font-family:'Bodoni Moda', serif; font-size:15px; line-height:1.3;
+  color:var(--ink); text-align:center;
+  transition:background 420ms var(--ease-soft), color 420ms var(--ease-soft),
+             border-color 420ms var(--ease-soft);
+}
+.choice:hover .choice-face{ border-color:rgba(10,10,10,0.45); }
+.choice input:checked + .choice-face{
+  background:var(--ink); color:var(--ivory); border-color:var(--ink);
+}
+/* Keyboard users still need to see where they are. */
+.choice input:focus-visible + .choice-face{
+  outline:2px solid var(--champagne-dim); outline-offset:3px;
+}
+
+/* ---- party size ---- */
+.rsvp-count{ display:flex; justify-content:center; gap:8px; flex-wrap:wrap; }
+.rsvp-count button{
+  width:46px; height:46px;
+  border:1px solid rgba(10,10,10,0.2); background:none;
+  font-family:'Bodoni Moda', serif; font-size:16px; color:var(--ink);
+  cursor:pointer;
+  transition:background 320ms var(--ease-soft), color 320ms var(--ease-soft),
+             border-color 320ms var(--ease-soft);
+}
+.rsvp-count button:hover{ border-color:rgba(10,10,10,0.45); }
+.rsvp-count button[aria-checked="true"]{
+  background:var(--ink); color:var(--ivory); border-color:var(--ink);
+}
+
+/* ---- the rest, centred ---- */
+#rsvp-form .field input[type="text"],
+#rsvp-form .field textarea{ text-align:center; }
+#rsvp-form .field input::placeholder,
+#rsvp-form .field textarea::placeholder{ text-align:center; }
+
+.rsvp-submit{
+  width:100%; max-width:460px; margin-left:auto; margin-right:auto; display:block;
+}
+
+/* ---- entrance ----
+   The panel is revealed by two doors sliding apart. The contents used to be
+   simply present behind them; now they settle in afterwards, so the reveal
+   has a beginning and an end rather than just an opening. */
+#rsvp .rsvp-kicker,
+#rsvp .rsvp-title,
+#rsvp .rsvp-meta,
+#rsvp .field,
+#rsvp .rsvp-submit{
+  opacity:0; transform:translateY(14px);
+  transition:opacity 760ms var(--ease-soft), transform 760ms var(--ease-lux);
+}
+#rsvp.opened .rsvp-kicker{ opacity:1; transform:none; transition-delay:620ms; }
+#rsvp.opened .rsvp-title { opacity:1; transform:none; transition-delay:720ms; }
+#rsvp.opened .rsvp-meta  { opacity:1; transform:none; transition-delay:820ms; }
+#rsvp.opened .field      { opacity:1; transform:none; }
+#rsvp.opened .field:nth-of-type(1){ transition-delay:900ms; }
+#rsvp.opened .field:nth-of-type(2){ transition-delay:980ms; }
+#rsvp.opened .field:nth-of-type(3){ transition-delay:1060ms; }
+#rsvp.opened .rsvp-submit{ opacity:1; transform:none; transition-delay:1180ms; }
+
+@media (max-width: 560px){
+  .rsvp-choice{ grid-template-columns:1fr; gap:10px; }
+  .choice-face{ min-height:56px; font-size:14px; }
+  .rsvp-count button{ width:44px; height:44px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  #rsvp .rsvp-kicker, #rsvp .rsvp-title, #rsvp .rsvp-meta,
+  #rsvp .field, #rsvp .rsvp-submit{ opacity:1 !important; transform:none !important; }
+}
+
+/* Every field in the RSVP is centred, not just the two that were given a
+   modifier class — a left-aligned "NAME" above a centred input was the
+   thing making it still read as a stock form. */
+#rsvp-form .field{ text-align:center; }
+#rsvp-form .field > label{ letter-spacing:0.26em; }
+
+/* .choice is a <label> inside .field, so it was picking up that rule's
+   uppercase and 0.24em tracking by inheritance. The look is right, but it
+   should not depend on a selector meant for something else — and 0.24em is
+   too loose once it wraps to two words. */
+.choice-face{
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  font-size:12.5px;
+}
+
+/* ============================================================
+   STORY — MERGE, SMOOTHED
+
+   The pair recede very slightly as they hand over, and the merged frame
+   settles up into place rather than simply fading in. Both are scale on a
+   transform that already exists, so nothing extra is composited.
+============================================================ */
+.story-panel.a{ transform: translateX(calc(var(--sp, 0) * -1px)) scale(var(--ab-scale, 1)); }
+.story-panel.b{ transform: translateX(calc(var(--sp, 0) *  1px)) scale(var(--ab-scale, 1)); }
+.story-panel.together{ transform: scale(var(--tg-scale, 1)); }
+
+/* More travel to spend on the sequence. At 180vh the whole merge had about
+   16vh of scroll on a phone; this gives it closer to 40. */
+.story-stage{ height:210vh; }
+
+/* ============================================================
+   PRE-SHIP FIXES
+============================================================ */
+
+/* The exit-preview button was written without the master's utility classes
+   and nothing hid it, so a plain unpositioned button sat at the top of the
+   page on every load — including for guests. It only ever belongs to a
+   preview session started from the builder. */
+#exit-preview-btn{ display:none; }
+
+/* .tbo-names carries the centring, but .tbo-label is its SIBLING inside a
+   bare wrapper, so it fell back to left-aligned. */
+.tbo-label{ text-align:center; }
+
+/* Letter-spacing is added after the last character too, so centred tracked
+   text sits half a space left of true centre. Pull it back by the same
+   amount. Only worth doing where the tracking is wide enough to see. */
+.tbo-label,
+.closing-msg   { text-indent:0.4em; }
+.replay-btn,
+.nav-menu      { text-indent:0.3em; }
+.hero-date     { text-indent:0.32em; }
+
+/* The countdown, schedule and FAQ eyebrows sit directly in .section-pad
+   rather than in a .section-label wrapper, so they stayed left-aligned
+   under a centred .section-title. The two in .editorial-info are a
+   different case — those genuinely belong at the foot of a photograph on
+   the left, and must not be caught by this. */
+.section-pad > .eyebrow{ text-align:center; }
+
+/* .eyebrow is tracked at 0.32em, and the trailing space counts toward the
+   line box — so every centred one sat half a space left. Compensated,
+   except where the eyebrow is deliberately left-aligned. */
+.eyebrow{ text-indent:0.32em; }
+.editorial-info .eyebrow{ text-indent:0; }

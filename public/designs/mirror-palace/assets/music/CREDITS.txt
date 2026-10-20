@@ -1,0 +1,103 @@
+MIRROR PALACE — BACKGROUND MUSIC
+================================
+
+THIS FOLDER IS NOT SHARED.
+
+The other designs keep their music in assets/audio/, which
+sync-core-to-designs.bat mirrors into every design folder. This one is
+assets/music/ deliberately, so these three tracks belong to Mirror Palace
+alone and a core sync cannot overwrite them or add the shared five back.
+
+design.js overrides the core's resolveTrack() to point at this folder. The
+shared wedding-core.js is untouched.
+
+
+WHY THESE THREE
+---------------
+
+The shared set is five solo piano pieces — Chopin, Debussy, Satie, Schumann,
+Ravel. All French and German Romantic, all intimate and dreamy. That suits a
+garden or a night sky. This design is Italian, black tie, architectural:
+gilt, candlelight, mirrors, Bodoni.
+
+Bach answers that. The Goldberg Variations are one theme reflected thirty
+ways — symmetry, inversion, return — which is this design's whole idea in
+musical form. Formal rather than sentimental, and nocturnal: the Goldbergs
+were written, by legend, for a count who could not sleep.
+
+All three are the same pianist, so the set holds together, and the three
+differ enough in temperature that the picker is not monotonous.
+
+
+TRACKS
+------
+
+aria.mp3          J.S. Bach — Aria, from the Goldberg Variations, BWV 988
+                  Serene, poised, the opening statement. 4:59.
+                  Performer: Kimiko Ishizaka (Open Goldberg Variations, 2012)
+                  Licence: CC0 1.0 Universal — public domain dedication
+                  https://commons.wikimedia.org/wiki/File:Kimiko_Ishizaka_-_J.S._Bach-_-Open-_Goldberg_Variations,_BWV_988_(Piano)_-_01_Aria.mp3
+
+prelude-ebm.mp3   J.S. Bach — Prelude No. 8 in E-flat minor, BWV 853
+                  (Well-Tempered Clavier, Book 1)
+                  Dark, solemn, candlelit. The most nocturnal of the three. 3:58.
+                  Performer: Kimiko Ishizaka (Open Well-Tempered Clavier)
+                  Licence: CC0 1.0 Universal — public domain dedication
+                  https://commons.wikimedia.org/wiki/File:Kimiko_Ishizaka_-_Bach_-_Well-Tempered_Clavier,_Book_1_-_15_Prelude_No._8_in_E-flat_minor,_BWV_853.ogg
+
+prelude-csm.mp3   J.S. Bach — Prelude No. 4 in C-sharp minor, BWV 849
+                  (Well-Tempered Clavier, Book 1)
+                  Grave and searching, the most expansive. 2:58.
+                  Performer: Kimiko Ishizaka (Open Well-Tempered Clavier)
+                  Licence: CC0 1.0 Universal — public domain dedication
+                  https://commons.wikimedia.org/wiki/File:Kimiko_Ishizaka_-_Bach_-_Well-Tempered_Clavier,_Book_1_-_07_Prelude_No._4_in_C-sharp_minor,_BWV_849.ogg
+
+
+BOTH LAYERS OF RIGHTS ARE COVERED
+---------------------------------
+
+  1. the composition — Bach died in 1750
+  2. the performance — a recording carries its own copyright, separate from
+     the piece. This is the layer that is easy to get wrong. Both Open Bach
+     projects were crowdfunded specifically to place studio recordings in
+     the public domain under CC0.
+
+These are real studio performances on a Bösendorfer, not MIDI renderings.
+
+
+REJECTED — DO NOT RE-LITIGATE
+-----------------------------
+
+Two obvious-looking candidates were checked and dropped:
+
+  Marcello — Adagio from the Oboe Concerto in D minor
+    The Commons recording is public domain, but it is a MIDI mockup built
+    from the "Evanessence2" oboe library and "Titanic 200 GS" strings. It
+    sounds synthetic, which is wrong for a product sold as luxury.
+
+  Saint-Saëns — Le Cygne (John Michel, cello)
+    CC BY-SA 3.0, not public domain. ShareAlike requires derivative works
+    carry the same licence, which is a bad fit for a paid template, and it
+    breaks the clean PD/CC0 rule the other tracks follow.
+
+  Albinoni — Adagio in G minor
+    Not Albinoni. Remo Giazotto composed it in 1958 and died in 1998, so the
+    composition itself is still in copyright regardless of who performs it.
+    It sounds exactly right for this design, which is why it is worth
+    writing down that it cannot be used.
+
+
+PROCESSING
+----------
+
+Re-encoded from the CC0 sources with ffmpeg:
+
+  - MP3, because Safari does not reliably play .ogg or .opus and guests are
+    overwhelmingly on iPhones
+  - normalised to -19 LUFS, so switching tracks in the builder never jumps
+    in volume — matches the shared set's level
+  - mono, 96 kbps: this is ambient background under a web page, not a
+    listening copy
+
+Regenerate with _fetch-music.sh in the design folder.
+Total: 8.8 MB.

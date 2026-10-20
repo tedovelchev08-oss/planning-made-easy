@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Generic for the same reason as the og tags below: this is what a crawler
+     reads, and design.js replaces it with the couple's names the moment the
+     page runs, so only crawlers ever see this wording. -->
+<title>You&rsquo;re Invited</title>
+<meta name="description" content="Join us as two become one. Kindly RSVP.">
+<meta name="theme-color" content="#0a0a0a">
+
+<!-- Link previews (WhatsApp, iMessage...) read the raw HTML: generic on
+     purpose, no image, no couple's names in the markup. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="You&rsquo;re Invited">
+<meta property="og:description" content="Join us as two become one. Kindly RSVP.">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
+<!-- Favicon: champagne ampersand on ink. Self-contained, no file needed. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0a0a'/%3E%3Ctext x='16' y='23' font-family='Georgia,Times,serif' font-style='italic' font-size='21' fill='%23c6b89c' text-anchor='middle'%3E%26amp;%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0a0a'/%3E%3Ctext x='16' y='23' font-family='Georgia,Times,serif' font-style='italic' font-size='21' fill='%23c6b89c' text-anchor='middle'%3E%26amp;%3C/text%3E%3C/svg%3E">
+
+<!-- Fonts, icons and effects are served by Luma itself (licences beside each
+     file in ../_shared): no third-party requests from a guest's phone. -->
+<link rel="stylesheet" href="../_shared/fonts/fonts.css">
+<link rel="stylesheet" href="../_shared/vendor/fontawesome/css/all.min.css">
+<script src="../_shared/vendor/confetti.browser.min.js"></script>
+<script src="../_shared/vendor/lz-string.min.js"></script>
+<!-- ORDER MATTERS. tailwind.css ships Tailwind Preflight, a full reset that
+     would otherwise flatten this design's headings and images. wedding-design.css
+     loads after it so the Mirror Palace styling always wins the tie, and
+     wedding-ui.css last because it only dresses the builder drawer. -->
+<link rel="stylesheet" href="../_shared/tailwind.css?v=33">
+<link rel="stylesheet" href="wedding-design.css?v=33">
+<link rel="stylesheet" href="../_shared/wedding-ui.css?v=33">
+<!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
+<style>
+  html.luma-loading { background: #0a0a0a; }
+  html.luma-loading body { visibility: hidden; }
+  .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #0a0a0a; color: #ece6da; font-family: 'Inter', sans-serif; }
+  .luma-notice h1 { font-family: 'Bodoni Moda', Georgia, serif; font-size: 34px; font-weight: 400; color: #c6b89c; margin: 0; }
+  .luma-notice p { font-size: 17px; max-width: 30rem; margin: 0; opacity: .8; }
+  .luma-notice a { margin-top: 8px; color: #c6b89c; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+  .luma-check:empty { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ================= LOADER ================= -->
+<div id="loader" aria-hidden="true">
+  <div class="loader-mark">
+    <div class="initials"><span data-initial="one"></span><span>&amp;</span><span data-initial="two"></span></div>
+    <div class="loader-line"></div>
+  </div>
+</div>
+
+<!-- ================= INTRO ================= -->
+<div id="intro" role="presentation">
+  <button class="skip-btn" id="skipBtn" aria-label="Skip intro animation">Skip Intro</button>
+
+  <div class="intro-point" id="introPoint" style="top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+  <div class="intro-line" id="introLine" style="top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+
+  <div class="mirror-surface" id="mirrorSurface">
+    <div class="mirror-noise"></div>
+  </div>
+
+  <div class="light-src light-left" id="lightLeft"></div>
+  <div class="light-src light-right" id="lightRight"></div>
+
+  <div style="position:relative; z-index:2; text-align:center;">
+    <div class="intro-names" id="introNames">
+      <div class="name-row"><span data-sync="personOne"></span><span class="reflect" aria-hidden="true" data-sync="personOne"></span></div>
+      <span class="amp">&amp;</span>
+      <div class="name-row"><span data-sync="personTwo"></span><span class="reflect" aria-hidden="true" data-sync="personTwo"></span></div>
+    </div>
+    <div class="intro-sub" id="introSub">
+      <span class="eyebrow">Save the Date</span>
+      <div class="date" data-sync="date"></div>
+    </div>
+  </div>
+
+  <div class="mirror-door left" id="doorLeft"></div>
+  <div class="mirror-door right" id="doorRight"></div>
+</div>
+
+<!-- ================= CURSOR LIGHT ================= -->
+<div class="cursor-light" id="cursorLight"></div>
+
+<!-- ================= NAV ================= -->
+<nav class="site-nav">
+  <div class="nav-mark"><span data-initial="one"></span>&amp;<span data-initial="two"></span></div>
+  <button class="nav-menu" id="navMenuBtn" aria-expanded="false" aria-controls="menuOverlay"><span>Menu</span></button>
+</nav>
+
+<!-- ================= MENU ================= -->
+<!-- The nav's Menu button had no behaviour behind it. Links are generated
+     from whichever sections actually exist, so the FAQ and gallery drop out
+     of the list on their own when a couple empties them. -->
+<div class="menu-overlay" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Sections" hidden>
+  <button class="menu-close" id="menuClose" aria-label="Close menu">&times;</button>
+  <nav class="menu-links" id="menuLinks"></nav>
+  <div class="menu-foot">
+    <span data-sync="personOne"></span> &amp; <span data-sync="personTwo"></span>
+    <span class="menu-foot-date" data-sync="date"></span>
+  </div>
+</div>
+
+<!-- Background music. The button keeps this design's own look and position;
+     only the behaviour comes from the core, which plays the five bundled
+     recordings rather than the synthesised drone this design shipped with. -->
+<audio id="bg-music-audio" loop preload="none"></audio>
+<button id="music-toggle-btn" onclick="toggleMusic()" class="audio-toggle" style="display:none;" aria-label="Toggle background music">
+  <i class="fas fa-music" id="music-toggle-icon"></i>
+</button>
+
+<main id="mainContent">
+
+  <!-- ================= HERO ================= -->
+  <section id="hero">
+    <img class="hero-img" id="heroImg" fetchpriority="high" decoding="async" src="assets/photos/hero.svg" alt="The couple" onerror="window.photoFallback&&photoFallback(this)">
+    <div class="hero-content">
+      <div class="eyebrow hero-eyebrow reveal" id="heroEyebrow">The Beginning</div>
+      <h1 class="hero-title reveal reveal-delay-1"><span data-sync="personOne"></span><span class="hero-amp">&amp;</span><span data-sync="personTwo"></span></h1>
+      <div class="hero-date reveal reveal-delay-2"><span data-sync="date"></span> &nbsp;·&nbsp; <span id="heroCity"></span></div>
+      <p class="hero-statement reveal reveal-delay-3" id="heroStatement">Two lives. One reflection.<br>One beautiful beginning.</p>
+    </div>
+    <div class="scroll-cue" aria-hidden="true"></div>
+  </section>
+
+  <!-- ================= STORY ================= -->
+  <section id="story">
+    <div class="section-pad section-label">
+      <div class="eyebrow reveal" id="storyEyebrow">The Two of Us</div>
+    </div>
+    <div class="story-stage" id="storyStage">
+      <div class="story-sticky">
+        <div class="story-panels" id="storyPanels">
+          <div class="story-panel a" id="panelA"><img id="panelAImg" loading="lazy" decoding="async" src="assets/photos/story-one.svg" alt="A portrait" onerror="window.photoFallback&&photoFallback(this)"></div>
+          <div class="story-panel b" id="panelB"><img id="panelBImg" loading="lazy" decoding="async" src="assets/photos/story-two.svg" alt="A portrait" onerror="window.photoFallback&&photoFallback(this)"></div>
+          <!-- The two of them. Sits between the pair and the text: as the two
+               portraits meet in the middle they cross-fade into this one. -->
+          <div class="story-panel together" id="panelTogether"><img id="panelTogetherImg" loading="lazy" decoding="async" src="assets/photos/story-together.svg" alt="The couple" onerror="window.photoFallback&&photoFallback(this)"></div>
+          <div class="story-center" id="storyCenter">
+            <h2 class="serif" id="storyTitle">Our Story</h2>
+            <p id="storyText"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DATE ================= -->
+  <section id="date-section">
+    <div class="section-pad">
+      <div class="date-figures" id="dateFigures">
+        <div class="figure" data-sync="date"></div>
+        <!-- The mirrored date is decoration. Without aria-hidden a screen reader
+           announces the date twice in a row. -->
+        <div class="date-reflection" aria-hidden="true"><div class="figure" id="dateReflection" data-sync="date"></div></div>
+      </div>
+      <!-- The mirror surface. Everything below this line belongs to the
+           reflection: instead of repeating the date, what the mirror gives
+           back is how long is left of it. The numbers stay upright because a
+           genuinely mirrored numeral cannot be read — the reflection is
+           carried by the dimming and the downward fade instead.
+
+           This used to be a section of its own, directly under this one,
+           which meant two full stages and two eyebrows both saying "24
+           August 2027". The core writes these four numbers by id once a
+           second, so moving them here needed no change to the core. -->
+      <div class="mirror-line reveal">
+        <span class="mirror-line-label" id="countdownEyebrow">The Wait</span>
+      </div>
+
+      <div class="countdown reveal reveal-delay-1">
+        <div class="cd-unit"><span class="cd-num" id="cd-days">000</span><span class="cd-label" id="cdDaysLabel">Days</span></div>
+        <div class="cd-sep" aria-hidden="true"></div>
+        <div class="cd-unit"><span class="cd-num" id="cd-hours">00</span><span class="cd-label" id="cdHoursLabel">Hours</span></div>
+        <div class="cd-sep" aria-hidden="true"></div>
+        <div class="cd-unit"><span class="cd-num" id="cd-minutes">00</span><span class="cd-label" id="cdMinutesLabel">Minutes</span></div>
+        <div class="cd-sep" aria-hidden="true"></div>
+        <div class="cd-unit"><span class="cd-num" id="cd-seconds">00</span><span class="cd-label" id="cdSecondsLabel">Seconds</span></div>
+      </div>
+
+      <!-- The eyebrow sits under what it names, which is this design's habit
+           everywhere else too. It now labels the whole object above it —
+           the date and its reflection together — rather than just the date. -->
+      <div class="date-caption reveal reveal-delay-2">
+        <div class="eyebrow" id="dateEyebrow">The Day</div>
+        <p id="dateCaptionText"></p>
+      </div>
+
+      <div class="cal-links reveal reveal-delay-3">
+        <a id="gcal-link" target="_blank" rel="noopener" class="cal-btn"><i class="fas fa-calendar-plus"></i> Add to Google Calendar</a>
+        <a id="ics-link" href="#" class="cal-btn"><i class="fas fa-download"></i> Apple / Outlook</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CEREMONY ================= -->
+  <section id="ceremony">
+    <div class="editorial">
+      <img id="ceremonyImg" loading="lazy" decoding="async" src="assets/photos/ceremony.svg" alt="Ceremony venue" onerror="window.photoFallback&&photoFallback(this)">
+      <div class="editorial-info reveal">
+        <div class="eyebrow" id="ceremonyEyebrow">Ceremony</div>
+        <!-- The venue name is the headline here, and it comes from the same
+             field that feeds the calendar invitation - so it cannot disagree
+             with what a guest adds to their diary. Times live in the timeline. -->
+        <div class="time serif" id="ceremonyVenueName"></div>
+        <div class="addr" id="ceremonyVenueAddress"></div>
+        <a class="detail-btn" id="ceremonyDirections" target="_blank" rel="noopener"><span id="detailBtnLabel">Get Directions</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CELEBRATION ================= -->
+  <section id="celebration">
+    <div class="editorial dark">
+      <img id="celebrationImg" loading="lazy" decoding="async" src="assets/photos/celebration.svg" alt="Evening celebration" onerror="window.photoFallback&&photoFallback(this)">
+      <div class="editorial-info reveal">
+        <div class="eyebrow" id="celebrationEyebrow">The Celebration</div>
+        <div class="time serif" id="celebrationPlace">Dinner · Music · Dancing</div>
+        <div class="addr" id="celebrationAddress"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SCHEDULE ================= -->
+  <section id="schedule">
+    <div class="section-pad">
+      <div class="eyebrow reveal" id="scheduleEyebrow">The Evening</div>
+      <h2 class="section-title reveal reveal-delay-1" id="scheduleTitle">How the Day Unfolds</h2>
+      <!-- Rows are built by the core from invitationData.schedule; the gap
+           between them is proportional to the real time between events. -->
+      <!-- No .reveal here: the whole block fading in as one would stack with the
+           per-act entrance below, giving two animations for the same content. -->
+      <div id="schedule-timeline" class="schedule-timeline"></div>
+    </div>
+  </section>
+
+  <!-- ================= GALLERY ================= -->
+  <section id="gallery-stage">
+    <div class="section-pad section-label" style="padding-bottom:0;">
+      <div class="eyebrow reveal" id="galleryEyebrow">The Mirror Gallery</div>
+    </div>
+    <div class="gallery-scroll" id="galleryScroll">
+      <div class="gallery-sticky" id="gallerySticky">
+        <div class="gallery-hall" aria-hidden="true"></div>
+        <div class="gallery-track" id="galleryTrack">
+          <!-- items injected by JS for variety, see script -->
+        </div>
+        <div class="gallery-progress"><div class="gallery-progress-bar" id="galleryProgressBar"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TWO BECOME ONE ================= -->
+  <section id="tbo-stage">
+    <div class="tbo-scroll" id="tboScroll">
+      <div class="tbo-sticky">
+        <div class="tbo-light" id="tboLeft" style="left:6%;"></div>
+        <div class="tbo-light" id="tboRight" style="right:6%;"></div>
+        <div class="tbo-line" id="tboLine"></div>
+        <div class="tbo-flash" id="tboFlash"></div>
+        <div style="position:relative;">
+          <div class="tbo-names" id="tboNames">
+            <div class="row serif"><span data-sync="personOne"></span><span class="amp">&amp;</span><span data-sync="personTwo"></span></div>
+          </div>
+          <div class="tbo-label" id="tboLabel"><span id="tboLabelText">Two Become One</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RSVP ================= -->
+  <section id="rsvp">
+    <div class="rsvp-inner">
+      <div class="rsvp-kicker reveal" id="rsvpKicker">We would love to celebrate with you</div>
+      <h2 class="rsvp-title reveal reveal-delay-1" id="rsvpTitle">RSVP</h2>
+      <div class="rsvp-meta reveal reveal-delay-2" id="rsvpMeta"><span id="rsvpDeadlinePrefix">Kindly respond by</span> <span id="rsvpDeadlineText"></span> &nbsp;·&nbsp; <span id="rsvpEmailText"></span></div>
+
+      <!-- Field names match every other design so replies arrive in the same
+           shape, and the core owns the submit, the plus-one reveal and the
+           guest-count logic. The classes stay this design's own. -->
+      <form id="rsvp-form" name="rsvp" method="POST" onsubmit="submitRSVP(event)">
+        <input type="hidden" name="form-name" value="rsvp">
+        <!-- Spam trap: hidden from people, tempting to bots. Leave it alone. -->
+        <p class="hp-field"><label>Leave this field empty<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+
+        <div class="field">
+          <label for="rName" id="rsvpNameLabel">Name</label>
+          <input type="text" id="rName" name="guest_names" required autocomplete="name" placeholder="Your full name">
+          <div class="field-line"></div>
+        </div>
+
+        <div class="field field-centre">
+          <label id="rsvpAttendanceLabel">Attendance</label>
+          <!-- Still two radios, because the core reads
+               input[name="attending"]:checked and the form posts it. Only the
+               appearance changes: the native dot is clipped away and the
+               label becomes the target, which is also a far bigger thing to
+               tap than a 13px circle. -->
+          <div class="rsvp-choice">
+            <label class="choice">
+              <input type="radio" name="attending" value="yes" checked onchange="handleRsvpAttendingChange()">
+              <span class="choice-face"><span id="rsvpYesLabel">Joyfully attending</span></span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="attending" value="no" onchange="handleRsvpAttendingChange()">
+              <span class="choice-face"><span id="rsvpNoLabel">Regretfully declining</span></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Hidden by the core the moment someone declines. -->
+        <div id="rsvp-attending-extra-fields">
+          <div class="field field-centre">
+            <label for="rsvp-guest-count" id="rsvpGuestsLabel">Number of Guests</label>
+            <!-- Chips are built from the select's own options, so the range
+                 lives in one place. The select itself stays in the DOM and
+                 keeps its id — the core reads its value and the form posts
+                 it — but is clipped rather than display:none, which is the
+                 safer way to keep a control submittable. -->
+            <div class="rsvp-count" id="rsvpCountChips" role="radiogroup" aria-labelledby="rsvpGuestsLabel"></div>
+            <select id="rsvp-guest-count" name="guest_count" class="visually-hidden" tabindex="-1"
+                    onchange="handleRsvpGuestCountChange()">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+            </select>
+          </div>
+
+
+          <div class="field" id="rsvp-plusone-wrap" style="display:none;">
+            <label for="rsvp-plusone-name" id="rsvpPlusOneLabel">Name of Your Guest</label>
+            <input type="text" id="rsvp-plusone-name" name="plusone_name" placeholder="Their full name">
+            <div class="field-line"></div>
+          </div>
+
+          <div class="field">
+            <label for="rMessage" id="rsvpNotesLabel">Dietary Requirements &amp; Notes</label>
+            <textarea id="rMessage" name="notes" rows="2" placeholder="Allergies, access needs, anything else"></textarea>
+            <div class="field-line"></div>
+          </div>
+        </div>
+
+        <p class="rsvp-error hidden" id="rsvp-error" role="alert"><span id="rsvpErrorText">That didn't send. Check your connection and try again.</span></p>
+
+        <button type="submit" class="rsvp-submit"><span id="rsvpSubmitLabel">Send RSVP</span></button>
+      </form>
+    </div>
+
+    <div class="rsvp-success hidden" id="rsvp-success">
+      <div class="merge">
+        <div class="merge-dot l"></div>
+        <div class="merge-dot r"></div>
+        <div class="merge-refl"></div>
+      </div>
+      <i id="rsvp-success-icon" class="fas fa-check" aria-hidden="true"></i>
+      <h3 class="serif" id="rsvp-success-heading">We'll See You There</h3>
+      <p id="rsvp-success-message">Your response has been saved. We look forward to celebrating with you.</p>
+      <div class="d" data-sync="date"></div>
+      <div class="love">With Love,</div>
+      <div class="names2"><span data-sync="personOne"></span> &amp; <span data-sync="personTwo"></span></div>
+    </div>
+  </section>
+  <!-- ================= FAQ ================= -->
+  <!-- Sits after the RSVP deliberately: the ask comes first, the
+       practicalities after it, so nothing delays the reply. -->
+  <section id="faq-section" style="display:none;">
+    <div class="section-pad">
+      <div class="eyebrow reveal" id="faqEyebrow">Practicalities</div>
+      <h2 class="section-title reveal reveal-delay-1" id="faqTitle">Questions</h2>
+      <div id="faq-list" class="reveal faq-list"></div>
+    </div>
+  </section>
+
+  <section id="closing">
+    <div class="closing-mirror" id="closingMirror"></div>
+    <div class="closing-mark">
+      <div class="initials reveal"><span data-initial="one"></span><span>&amp;</span><span data-initial="two"></span></div>
+      <div class="closing-line"></div>
+      <div class="closing-msg reveal" id="closingMsg">Until We Meet</div>
+      <button class="replay-btn" id="replayBtn"><span id="replayBtnLabel">Replay the Opening</span></button>
+    </div>
+  </section>
+
+</main>
+
+<!-- Gallery lightbox, opened from the mirror hall. -->
+<div id="gallery-lightbox" class="gallery-lightbox" onclick="closeGalleryLightbox()">
+  <button type="button" class="gallery-lightbox-close" onclick="closeGalleryLightbox()" aria-label="Close">
+    <i class="fas fa-times"></i>
+  </button>
+  <img id="gallery-lightbox-img" src="" alt="">
+</div>
+
+<p id="music-error-toast" class="music-error-toast hidden">Music couldn't load — check your internet connection.</p>
+
+<!-- ============================================================
+     THE INVITATION DATA — the single source of truth.
+
+     The core reads and writes this, and serialises it whole into share
+     links and downloads, so the design-specific keys below the core ones
+     travel with it without the core needing to know they exist.
+============================================================ -->
+<script id="invitation-data-script">
+let invitationData = {
+    /* Filled from Luma by luma-bridge.js (window.lumaBoot) before the first
+       render. The couple's own wording, photos and gallery come with it;
+       below are only the shapes, and this design's generic labels. */
+    partner1: "", partner2: "", hashtag: "", date: "", time: "",
+    venueName: "", venueAddress: "", dressCode: "", dressCodeNote: "", rsvpDeadline: "",
+    music: { enabled: false, track: "aria" },
+    heroPhoto: "", story1: "", story2: "",
+    gallery: [], schedule: [], faq: [],
+    storyPhotoOne: "", storyPhotoTwo: "", storyPhotoTogether: "", ceremonyPhoto: "", celebrationPhoto: "",
+    heroCity: "", heroQuote: "", dateCaptionText: "", celebrationPlace: "", celebrationAddress: "",
+    rsvpEmailText: "", closingMsg: "", siteUrl: "",
+    heroEyebrow: "The Beginning",
+    storyEyebrow: "The Two of Us",
+    storyTitle: "Our Story",
+    rsvpKicker: "We would love to celebrate with you",
+    tboLabelText: "Two Become One",
+    dateEyebrow: "The Day",
+    countdownEyebrow: "The Wait",
+    cdDaysLabel: "Days",
+    cdHoursLabel: "Hours",
+    cdMinutesLabel: "Minutes",
+    cdSecondsLabel: "Seconds",
+    ceremonyEyebrow: "Ceremony",
+    detailBtnLabel: "Get Directions",
+    celebrationEyebrow: "The Celebration",
+    scheduleEyebrow: "The Evening",
+    scheduleTitle: "How the Day Unfolds",
+    galleryEyebrow: "The Mirror Gallery",
+    rsvpTitle: "RSVP",
+    rsvpDeadlinePrefix: "Kindly respond by",
+    rsvpNameLabel: "Name",
+    rsvpAttendanceLabel: "Attendance",
+    rsvpYesLabel: "Joyfully attending",
+    rsvpNoLabel: "Regretfully declining",
+    rsvpGuestsLabel: "Number of Guests",
+    rsvpPlusOneLabel: "Name of Your Guest",
+    rsvpPlusOneLabelPlural: "Names of Your Guests",
+    rsvpNotesLabel: "Dietary Requirements & Notes",
+    rsvpSubmitLabel: "Send RSVP",
+    rsvpErrorText: "That didn't send. Check your connection and try again.",
+    faqEyebrow: "Practicalities",
+    faqTitle: "Questions",
+    replayBtnLabel: "Replay the Opening",
+    shareTitleSuffix: "You're Invited",
+    shareDescription: "Join us as two become one. Kindly RSVP.",
+    isGuestView: true
+};
+</script>
+
+<!-- Luma first: the core awaits window.lumaBoot -->
+<script src="../_shared/luma-bridge.js?v=1"></script>
+
+<!-- Shared behaviour for every design: builder, save and share, countdown,
+     calendar, gallery, FAQ, RSVP, music, export. Fix something here and every
+     design inherits it. Loaded after the data block because it reads it. -->
+<script src="../_shared/wedding-core.js?v=33"></script>
+
+<!-- This design only: opening sequence, mirror hall, Two Become One, scroll.
+     Loaded after the core so it can override the core's gallery renderer. -->
+<script src="design.js?v=33"></script>
+
+<!-- Luma: what this design shows beyond the shared engine (its extra photos,
+     the story text) and hiding what the couple left empty. -->
+<script src="luma.js?v=1"></script>
+</body>
+</html>

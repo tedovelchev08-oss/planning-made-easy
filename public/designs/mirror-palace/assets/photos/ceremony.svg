@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" width="1200" height="1500" role="img">
+  <defs>
+    <radialGradient id="bloom" cx="50%" cy="30%" r="70%">
+      <stop offset="0%"   stop-color="#e8d9b8" stop-opacity="0.55"/>
+      <stop offset="38%"  stop-color="#c6b89c" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#0a0a0a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#1b1a1e"/>
+      <stop offset="55%"  stop-color="#121114"/>
+      <stop offset="100%" stop-color="#080809"/>
+    </linearGradient>
+    <radialGradient id="vig" cx="50%" cy="50%" r="75%">
+      <stop offset="55%"  stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.72"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" result="n"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="1500" fill="url(#fall)"/>
+
+  <ellipse cx="600" cy="430" rx="700" ry="700" fill="url(#bloom)"/>
+  <g fill="none" stroke="#c6b89c" stroke-opacity="0.3" stroke-width="3">
+    <path d="M150 1140 V620 a150 150 0 0 1 300 0 v520"/>
+    <path d="M525 1140 V560 a165 165 0 0 1 330 0 v580"/>
+    <path d="M930 1140 V640 a140 140 0 0 1 280 0 v500"/>
+  </g>
+  <path d="M525 1140 V560 a165 165 0 0 1 330 0 v580 z" fill="#e8d9b8" opacity="0.07"/>
+  <rect y="1140" width="1200" height="360" fill="#0a0a0a"/>
+  <ellipse cx="690" cy="1148" rx="330" ry="20" fill="#c6b89c" opacity="0.11"/>
+  <rect width="1200" height="1500" fill="url(#vig)"/>
+  <rect width="1200" height="1500" filter="url(#grain)" opacity="0.07" style="mix-blend-mode:overlay"/>
+</svg>

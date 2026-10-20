@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1300" width="1000" height="1300" role="img">
+  <defs>
+    <radialGradient id="bloom" cx="50%" cy="26%" r="70%">
+      <stop offset="0%"   stop-color="#e8d9b8" stop-opacity="0.55"/>
+      <stop offset="38%"  stop-color="#c6b89c" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#0a0a0a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#1b1a1e"/>
+      <stop offset="55%"  stop-color="#121114"/>
+      <stop offset="100%" stop-color="#080809"/>
+    </linearGradient>
+    <radialGradient id="vig" cx="50%" cy="50%" r="75%">
+      <stop offset="55%"  stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.72"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="18"/></filter>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" result="n"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </defs>
+  <rect width="1000" height="1300" fill="url(#fall)"/>
+
+  <ellipse cx="640" cy="380" rx="560" ry="620" fill="url(#bloom)"/>
+  <rect x="470" y="150" width="330" height="740" rx="165" fill="#100f12" opacity="0.7"/>
+  <rect x="470" y="150" width="330" height="740" rx="165" fill="none" stroke="#c6b89c" stroke-opacity="0.3" stroke-width="3"/>
+  <line x1="635" y1="150" x2="635" y2="890" stroke="#c6b89c" stroke-opacity="0.18" stroke-width="2"/>
+  <g filter="url(#soft)">
+    <path d="M300 1300 V690 a86 86 0 0 1 172 0 v610 z" fill="#050506"/>
+    <circle cx="386" cy="628" r="70" fill="#050506"/>
+  </g>
+  <rect width="1000" height="1300" fill="url(#vig)"/>
+  <rect width="1000" height="1300" filter="url(#grain)" opacity="0.07" style="mix-blend-mode:overlay"/>
+</svg>
