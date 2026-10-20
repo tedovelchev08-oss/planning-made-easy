@@ -58,6 +58,16 @@ describe("studio designs: the catalogue", () => {
     expect(d.gallery).toEqual([]);
   });
 
+  it("Riviera is part of Luxe, with a postcard gallery and its contact line", () => {
+    const rv = studioDesignOf("studio:riviera")!;
+    expect(planAllows("luxe", rv)).toBe(true);
+    expect(planAllows("celebration", rv)).toBe(false);
+    const d = toInvitationData({ slug: "a", names: "A & B", date: "2027-06-12T14:00:00Z", invitation: { template_id: "studio:riviera", design_data: { texts: { rsvpEmailText: "ana@example.com" } } } }, rv);
+    expect(d.rsvpEmailText).toBe("ana@example.com");
+    expect(d.heroPlace).toBe("");
+    expect((d.heroPhoto as string).startsWith("data:image/svg+xml")).toBe(true);
+  });
+
   it("a guest's link keeps the token, the slug and the source", () => {
     expect(studioInviteUrl(celestial, { token: "t-1", src: "whatsapp" })).toBe("/designs/celestial/index.html?token=t-1&src=whatsapp");
     expect(studioInviteUrl(celestial, { slug: "ana-boris" })).toBe("/designs/celestial/index.html?slug=ana-boris");

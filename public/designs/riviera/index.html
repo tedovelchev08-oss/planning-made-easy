@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Generic on purpose: crawlers read this, and the edge function swaps in the
+     couple's real names server-side. Only crawlers ever see this wording. -->
+<title>Rien ne va plus - A Wedding Invitation</title>
+<meta name="description" content="A Riviera wedding. Spin the wheel to find the day. You are invited.">
+<meta name="theme-color" content="#f2eee3">
+
+
+<!-- Link previews read the raw HTML: generic on purpose, no image, no names. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="You&rsquo;re Invited">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23f2eee3'/%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23c39a45' stroke-width='4'/%3E%3Ccircle cx='47' cy='18' r='6' fill='%231d5c45'/%3E%3C/svg%3E">
+
+<!-- Gloock carries the names (a high-contrast Didone, the casino-card face),
+     Libre Caslon supplies the italic for the ampersand and the date, Albert
+     Sans the small type. None is used by another design in this catalogue. -->
+<link rel="stylesheet" href="../_shared/fonts/fonts.css">
+<!-- Font Awesome: the shared builder drawer renders its icons with it. -->
+<link rel="stylesheet" href="../_shared/vendor/fontawesome/css/all.min.css">
+<!-- LZ-String compresses the share-link payload. No confetti: the reply is
+     confirmed by the ball dropping, not by paper. -->
+<script src="../_shared/vendor/lz-string.min.js"></script>
+
+<!-- ORDER MATTERS. tailwind.css ships Preflight (a full reset); this design's
+     sheet loads after it so it always wins, and wedding-ui.css last because it
+     only dresses the builder drawer. -->
+<link rel="stylesheet" href="../_shared/tailwind.css?v=4">
+<link rel="stylesheet" href="wedding-design.css?v=4">
+<link rel="stylesheet" href="../_shared/wedding-ui.css?v=4">
+<!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
+<style>
+  html.luma-loading { background: #f3eee2; }
+  html.luma-loading body { visibility: hidden; }
+  .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #f3eee2; color: #232e29; font-family: 'Albert Sans', sans-serif; }
+  .luma-notice h1 { font-family: 'Gloock', Georgia, serif; font-size: 34px; font-weight: 400; color: #a8202b; margin: 0; }
+  .luma-notice p { font-size: 17px; max-width: 30rem; margin: 0; opacity: .8; }
+  .luma-notice a { margin-top: 8px; color: #a8202b; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+  .luma-check:empty { display: none; }
+</style>
+</head>
+<body>
+
+<button id="exit-preview-btn" onclick="toggleGuestPreview()">Exit preview</button>
+
+<audio id="bg-music-audio" loop preload="none"></audio>
+<button id="music-toggle-btn" onclick="toggleMusic()" class="audio-toggle" style="display:none;" aria-label="Toggle background music">
+  <i class="fas fa-music" id="music-toggle-icon"></i>
+</button>
+<main id="main">
+
+  <!-- ============================================================
+       00 - THE INVITATION
+       The wheel is built once by design.js and lives HERE, in the hero.
+       During the opening it is lifted to the middle of the screen by a
+       transform; when the ball lands, the transform is released and it
+       settles into the ring around the names. Two copies of the same
+       drawing: #wheelBack passes behind the first name, #wheelFront (its
+       lower half only) in front of the second.
+       ============================================================ -->
+  <section id="hero">
+    <figure class="hero-photo" id="heroPhoto">
+      <img id="heroImg" src="" alt="">
+    </figure>
+
+    <div class="wheel back" id="wheelBack" role="button" tabindex="-1" aria-label="Spin the wheel"></div>
+
+    <h1 class="hero-names">
+      <span class="hn hn1" data-sync="one"></span>
+      <span class="hn hn2"><span class="amp">&amp;</span><span data-sync="two"></span></span>
+    </h1>
+
+    <div class="wheel front" id="wheelFront" aria-hidden="true"></div>
+
+    <div class="hero-details">
+      <p class="hero-when" data-sync="dateWords"></p>
+      <p class="hero-where" id="heroPlace"></p>
+      <a class="btn-baize" href="#rsvp" id="heroCta">Reply</a>
+    </div>
+
+    <!-- THE OPENING. Shown only when design.js adds body.has-intro, so a page
+         whose script fails still shows the invitation. -->
+    <div id="intro" aria-live="polite">
+      <div class="intro-photo" aria-hidden="true"><img id="introImg" src="" alt=""></div>
+      <div class="intro-veil" aria-hidden="true"></div>
+      <div class="intro-call">
+        <p class="intro-line" id="introLine">Faites vos jeux</p>
+        <button type="button" class="intro-spin" id="introSpin">Spin the wheel</button>
+      </div>
+      <button type="button" class="intro-skip" id="introSkip">Skip</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       01 - OUR STORY (a narrow editorial column)
+       ============================================================ -->
+  <section class="sec" id="story">
+    <div class="story-col">
+      <h2 class="sec-title" id="storyTitle">How it began</h2>
+      <p class="story-p" id="storyP1"></p>
+      <p class="story-p" id="storyP2"></p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       02 - THE DAY
+       The winning pocket again, large: the day number on gold.
+       ============================================================ -->
+  <section class="sec" id="the-day">
+    <div class="day-wrap">
+      <div class="day-chip" aria-hidden="true"><span data-sync="day"></span></div>
+      <div class="day-info">
+        <p class="day-when" data-sync="dateWords"></p>
+        <p class="day-time" id="dayTime">4:00 PM</p>
+        <h2 class="day-venue" id="dayVenue"></h2>
+        <p class="day-addr" id="dayAddr"></p>
+        <p class="day-dress" id="dayDress">Black tie</p>
+        <div class="day-links">
+          <a id="venueLink" href="#" target="_blank" rel="noopener">Directions</a>
+          <a id="gcal-link" href="#" target="_blank" rel="noopener">Google Calendar</a>
+          <a id="ics-link" href="#">Apple Calendar</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       03 - THE TABLE
+       The order of the day laid out on green baize, a gold chip per event.
+       ============================================================ -->
+  <section class="sec" id="schedule">
+    <h2 class="sec-title on-baize" id="scheduleHeading">The order of the day</h2>
+    <ol class="table-row" id="tlItems"></ol>
+  </section>
+
+  <!-- ============================================================
+       04 - POSTCARDS
+       ============================================================ -->
+  <section class="sec" id="gallery">
+    <h2 class="sec-title" id="galleryHeading">Postcards from the Riviera</h2>
+    <div class="postcards"></div>
+  </section>
+
+  <!-- ============================================================
+       05 - QUESTIONS (rendered by the core into #faq-list)
+       ============================================================ -->
+  <section class="sec" id="faq-section">
+    <h2 class="sec-title" id="faqHeading">Things you might ask</h2>
+    <div id="faq-list"></div>
+  </section>
+
+  <!-- ============================================================
+       06 - RSVP
+       ============================================================ -->
+  <section class="sec" id="rsvp">
+    <div class="rsvp-card">
+      <p class="eyebrow" id="rsvpLead">We would love to have you with us</p>
+      <h2 class="sec-title" id="rsvpTitle">Will you join us?</h2>
+      <p class="rsvp-deadline" id="rsvpDeadline"></p>
+
+      <form class="rsvp-form" id="rsvp-form" name="rsvp" method="POST" novalidate>
+        <input type="hidden" name="form-name" value="rsvp">
+        <p class="hp-field" aria-hidden="true"><label>Leave this field empty<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+        <div class="field">
+          <label for="rsvpName" id="rsvpNameLabel">Your name</label>
+          <input type="text" id="rsvpName" name="guest_names" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <span class="field-label" id="joinLabel">Will you be there?</span>
+          <div class="rsvp-choice" role="radiogroup" aria-labelledby="joinLabel">
+            <label class="choice selected"><input type="radio" name="attending" value="yes" class="visually-hidden" checked><span id="rsvpYesLabel">Oui, with pleasure</span></label>
+            <label class="choice"><input type="radio" name="attending" value="no" class="visually-hidden"><span id="rsvpNoLabel">Avec regret</span></label>
+          </div>
+        </div>
+        <div class="field" id="rsvp-guests-wrap">
+          <label for="rsvpGuests" id="rsvpGuestsLabel">How many of you</label>
+          <input type="number" id="rsvpGuests" min="1" max="6" value="2" inputmode="numeric">
+          <select id="rsvp-guest-count" name="guest_count" class="visually-hidden" tabindex="-1" aria-hidden="true">
+            <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          </select>
+        </div>
+        <div class="field" id="rsvp-plusone-wrap" style="display:none">
+          <label for="rsvp-plusone-name" id="rsvpPlusOneLabel">Your guest's name</label>
+          <input type="text" id="rsvp-plusone-name" name="plusone_name">
+        </div>
+        <div class="field">
+          <label for="rsvpMessage" id="rsvpNotesLabel">A note for us, or any dietary needs</label>
+          <textarea id="rsvpMessage" name="notes" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn-baize wide" id="rsvpSubmit"><span id="rsvpSubmitLabel">Send reply</span></button>
+        <p class="rsvp-error" id="rsvp-error" role="alert" hidden></p>
+      </form>
+
+      <!-- Replaces the form once a reply is accepted. -->
+      <div class="rsvp-done" id="rsvp-confirmed" hidden>
+        <div class="done-wheel" aria-hidden="true">
+          <svg viewBox="-60 -60 120 120"><circle r="48" class="dw-ring"/><circle r="40" class="dw-ring thin"/><circle class="dw-ball" r="6" cy="-44"/></svg>
+        </div>
+        <p class="done-title" id="rsvpDoneTitle">Rien ne va plus.</p>
+        <p class="done-sub" id="rsvpDoneSub">Your reply is with us. We will see you there.</p>
+        <button type="button" class="done-again" id="rsvpAgain">Send a different reply</button>
+      </div>
+
+      <p class="rsvp-contact" id="rsvpContact"></p>
+    </div>
+  </section>
+
+  <footer class="site-foot">
+    <span class="foot-names" id="footNames"></span>
+    <span class="foot-tag" id="footTag"></span>
+  </footer>
+</main>
+
+<script id="invitation-data-script">
+let invitationData = {
+    /* Filled from Luma by luma-bridge.js (window.lumaBoot) before the first
+       render: the couple's details, photos and wording. Below are only the
+       shapes, and this design's generic labels. */
+    partner1: "", partner2: "", hashtag: "", date: "", time: "",
+    venueName: "", venueAddress: "", dressCode: "", dressCodeNote: "", rsvpDeadline: "",
+    music: { enabled: false, track: "gnossienne" },
+    heroPhoto: "", story1: "", story2: "",
+    gallery: [], schedule: [], faq: [],
+    photoTone: true,
+    ceremonyNote: "",
+    introCall: "Faites vos jeux",
+    introButton: "Spin the wheel",
+    introLanded: "Rien ne va plus",
+    heroCta: "Reply",
+    heroPlace: "",
+    dateWords: "",
+    storyTitle: "How it began",
+    scheduleHeading: "The order of the day",
+    galleryHeading: "Postcards from the Riviera",
+    faqHeading: "Things you might ask",
+    rsvpKicker: "We would love to have you with us",
+    rsvpTag: "Will you join us?",
+    rsvpDeadlinePrefix: "Kindly reply by",
+    rsvpEmailText: "",
+    rsvpNameLabel: "Your name",
+    rsvpAttendanceLabel: "Will you be there?",
+    rsvpYesLabel: "Oui, with pleasure",
+    rsvpNoLabel: "Avec regret",
+    rsvpGuestsLabel: "How many of you",
+    rsvpPlusOneLabel: "Your guest's name",
+    rsvpNotesLabel: "A note for us, or any dietary needs",
+    rsvpSubmitLabel: "Send reply",
+    rsvpNameMissing: "Please add your name so we know who is replying.",
+    rsvpDoneYes: "Your reply is with us. We will see you there.",
+    rsvpDoneNo: "Your reply is with us. You will be missed.",
+    isGuestView: true
+};
+</script>
+
+<!-- Luma first: the core awaits window.lumaBoot -->
+<script src="../_shared/luma-bridge.js?v=2"></script>
+
+
+<!-- Shared behaviour for every design. Loaded after the data. -->
+<script src="../_shared/wedding-core.js?v=4"></script>
+<!-- This design only: the wheel, the opening, and the seam onto the core. -->
+<script src="design.js?v=4"></script>
+
+<!-- Luma: the after-render hook this design's own render needs, and what it
+     leaves to its old builder. -->
+<script src="luma.js?v=1"></script>
+</body>
+</html>

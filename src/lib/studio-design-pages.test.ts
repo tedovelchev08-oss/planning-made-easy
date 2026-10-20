@@ -35,3 +35,30 @@ describe.each(STUDIO_DESIGNS.map((d) => [d.id]))("public/designs/%s", (id) => {
     expect(html).not.toContain('id="builder-bar"');
   });
 });
+
+/*
+ * Designs with their own RSVP handler (patched for Luma) must read the form
+ * BEFORE disabling its fields: disabled fields are left out of FormData, so
+ * the answer would arrive empty (it did, once, in Riviera's first patch).
+ */
+const own = STUDIO_DESIGNS.map((d) => d.id).filter((id) => {
+  const js = resolve(__dirname, `../../public/designs/${id}/design.js`);
+  return existsSync(js) && readFileSync(js, "utf8").includes("reply goes to /api/rsvp");
+});
+
+describe.each(own.map((id) => [id]))("public/designs/%s/design.js: its own RSVP handler", (id) => {
+  const js = readFileSync(resolve(__dirname, `../../public/designs/${id}/design.js`), "utf8");
+  const block = js.slice(js.indexOf("reply goes to /api/rsvp"));
+
+  it("reads the answers before disabling the fields", () => {
+    const read = block.indexOf("new FormData(form)");
+    const disable = block.indexOf(".disabled = true");
+    expect(read).toBeGreaterThan(0);
+    expect(disable).toBeGreaterThan(read);
+  });
+
+  it("waits for the answer instead of confirming regardless", () => {
+    expect(block).toMatch(/\.then\(function\s*\(res\)/);
+    expect(block).toMatch(/res\.ok/);
+  });
+});
