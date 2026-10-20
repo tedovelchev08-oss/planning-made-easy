@@ -61,7 +61,12 @@ function boot(search: string, live: Record<string, unknown> = {}, reload?: () =>
   });
   vi.stubGlobal("fetch", network);
   // Turnstile, already loaded, passes straight away
-  w.turnstile = { render: (_el: Element, o: { callback: (t: string) => void }) => { o.callback("human-ok"); return "w1"; }, reset: vi.fn() } as never;
+  // like Cloudflare's widget: a token on render, and a fresh one after each reset
+  let issue: (t: string) => void = () => {};
+  w.turnstile = {
+    render: (_el: Element, o: { callback: (t: string) => void }) => { issue = o.callback; issue("human-ok"); return "w1"; },
+    reset: vi.fn(() => issue("human-ok")),
+  } as never;
   if (!reload) { new Function(BRIDGE)(); return; }
   // jsdom's location can't be stubbed: give the script a window whose location.reload is a spy
   const loc = { search: location.search, href: location.href, reload, replace: vi.fn() };
@@ -177,6 +182,30 @@ describe("luma-bridge: the planner's preview follows the couple's edits", () => 
     window.dispatchEvent(new StorageEvent("storage", { key: "luma.cache.x" }));
     vi.advanceTimersByTime(1000);
     expect(reload).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+});
+
+describe("luma-bridge: forms with a dietary field", () => {
+  it("passes it on in the note, only for a yes", async () => {
+    boot("?slug=ana-boris");
+    await w.lumaBoot;
+    await fetch("/", { method: "POST", body: "form-name=rsvp&guest_names=Priya&attending=yes&guest_count=1&dietary=Vegetarian&notes=See+you" });
+    await fetch("/", { method: "POST", body: "form-name=rsvp&guest_names=Raj&attending=no&dietary=Vegan" });
+    expect(rsvpBodies[0].note).toBe("Dietary: Vegetarian · See you");
+    expect(rsvpBodies[1].note).toBeNull();
+  });
+});
+
+describe("luma-bridge: never leaves an invitation hidden", () => {
+  it("shows the page even if the design never calls back", async () => {
+    vi.useFakeTimers();
+    boot("?slug=ana-boris");
+    await vi.waitFor(() => expect(network).toHaveBeenCalled());
+    await w.lumaBoot;
+    expect(document.documentElement.classList.contains("luma-loading")).toBe(true);
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(document.documentElement.classList.contains("luma-loading")).toBe(false);
     vi.useRealTimers();
   });
 });

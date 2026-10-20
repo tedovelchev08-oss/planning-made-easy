@@ -1,0 +1,628 @@
+/* ============================================================
+   THE RED THREAD
+   ------------------------------------------------------------
+   An old story says a red thread ties those who are meant to meet.
+   The whole invitation hangs off that one idea: two threads enter at
+   the top of the page, pass through a brass ring, and then run the
+   entire document as a single drawn line, crossing at every section
+   boundary and finally tying above the RSVP.
+
+   The thread is NOT decoration. design.js generates it from the real
+   pixel positions of the sections, so it always wraps the content that
+   is actually there. Everything else in this file stays quiet so that
+   one line can carry the page.
+   ============================================================ */
+
+/* ============================================================
+   PALETTE
+   The seven --c-* values drive the SHARED tailwind.css and
+   wedding-ui.css as well as this file. This is a LIGHT design, so they
+   keep their natural orientation: --c-cream is the paper, --c-charcoal
+   is the ink. (Dark designs in this catalogue invert that pair. Do not
+   copy that pattern here.)
+   ============================================================ */
+:root{
+  --c-gold:      38 44% 52%;   /* brass: rules, ring, small marks */
+  --c-gold-dark: 38 44% 40%;
+  --c-cream:     40 47% 92%;   /* the paper */
+  --c-charcoal:  345 45% 13%;  /* the ink */
+  --c-warmgray:  350 22% 34%;  /* muted text, still AA on paper */
+  --c-champagne: 40 40% 88%;   /* soft panel fill */
+  --c-sand:      38 36% 86%;   /* input + card fill */
+
+  /* Shared drawer chrome. The fallbacks inside wedding-ui.css assume a
+     dark ground, so a light design has to state these or its hairlines
+     disappear into the paper. */
+  --line:        rgba(47,18,25,.14);
+  --line-strong: rgba(47,18,25,.26);
+  --g-tag:       #8a6c33;
+
+  /* This design's own names */
+  --paper:      #f6efe1;
+  --paper-lit:  #fcf8ee;
+  --paper-dp:   #ece2ce;
+  --paper-deep: #e3d7bf;
+  --thread:     #7e2230;
+  --thread-lit: #a02c3c;
+  --ink:        #2f1219;
+  --ink-soft:   #6b4249;
+  --ink-faint:  #7a565c;
+  --brass:      #b9954f;
+  --brass-dp:   #7b5e2d;
+  --brass-lit:  #e8cf95;
+
+  --display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --support: 'Outfit', system-ui, -apple-system, sans-serif;
+
+  --ease:      cubic-bezier(.65,0,.15,1);
+  --ease-soft: cubic-bezier(.22,1,.36,1);
+
+  --gut: clamp(22px, 5vw, 112px);   /* page side margin */
+  --col: 1140px;                    /* content column */
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*{ box-sizing:border-box }
+html{ -webkit-text-size-adjust:100% }
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--support);
+  font-weight:300;
+  font-size:17px;
+  line-height:1.65;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+.serif{ font-family:var(--display) }
+h1,h2,h3{ margin:0; font-family:var(--display); font-weight:200; letter-spacing:-.015em; text-wrap:balance }
+p{ margin:0 }
+a{ color:inherit }
+img{ max-width:100%; display:block }
+::selection{ background:rgba(126,34,48,.16) }
+
+/* The paper's own tone, and its grain. Both are fixed and
+   pointer-events:none so neither costs a repaint while scrolling. */
+body::before{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(140% 80% at 50% -10%, var(--paper-lit) 0%, transparent 55%),
+    radial-gradient(120% 90% at 50% 108%, var(--paper-deep) 0%, transparent 52%);
+}
+body::after{
+  content:''; position:fixed; inset:0; z-index:1; pointer-events:none;
+  opacity:.30; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   SHARED TYPE ATOMS
+   ============================================================ */
+.eyebrow{
+  font-size:11px; letter-spacing:.4em; text-transform:uppercase;
+  color:var(--ink-soft); font-weight:400;
+}
+.brass-rule{ width:34px; height:1px; background:var(--brass); border:0; margin:0 }
+.lede{
+  font-family:var(--display); font-style:italic; font-weight:300;
+  font-size:clamp(17px,1.5vw,20px); line-height:1.7; color:var(--ink-soft);
+  padding-bottom:4px;   /* italic descender clearance */
+}
+
+/* ============================================================
+   LAYOUT SHELL
+   #main is the positioning context for the thread rail, so the rail's
+   pixel geometry and the sections' offsetTop share one origin.
+   ============================================================ */
+/* wedding-core.js writes an inline padding-top onto #main to push the page below
+   its fixed studio bar. This design does not want that: the bar is a floating
+   overlay, the hero is a full-viewport composition, and 169px of dead space at
+   the top would cost the hero its bottom third. Neutralise it here (a stylesheet
+   !important still beats the core's inline declaration) and let the hero pad
+   itself by the bar's real height instead, which is 0 in guest view. */
+#main{ position:relative; z-index:2; padding-top:0 !important }
+.sec{ position:relative; z-index:2; padding:clamp(96px,13vh,168px) var(--gut) }
+.wrap{ max-width:var(--col); margin:0 auto }
+
+/* ============================================================
+   THE THREAD RAIL
+   design.js writes the viewBox and both path d-attributes at real pixel
+   scale, so no non-uniform transform ever touches the stroke width.
+   ============================================================ */
+#thread-rail{
+  position:absolute; top:0; left:0; width:100%; height:100%;
+  z-index:0; pointer-events:none; overflow:visible;
+}
+#thread-rail .rail-shadow{ stroke:#5a2a20; stroke-width:3; fill:none; opacity:.13 }
+#thread-rail .rail-line{
+  stroke:var(--thread); stroke-width:2.2; fill:none;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+
+/* ============================================================
+   RSVP CONFIRMATION
+   The two threads finish the gesture they began in the hero. The knot
+   draws itself once, and only after a reply has actually been accepted.
+   ============================================================ */
+#closing{
+  position:fixed; inset:0; z-index:9500; background:var(--paper);
+  display:none; flex-direction:column; align-items:center; justify-content:center;
+  gap:clamp(24px,5vh,52px); padding:32px;
+}
+#closing.on{ display:flex }
+.cl-svg{ width:min(360px,72vw); height:auto; overflow:visible }
+.cl-line{ fill:none; stroke:var(--thread); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round }
+/* Which figure is drawn depends on the answer: a tie for yes, an unbroken pass
+   for no. The other one is never rendered, so it cannot flash before the class
+   is applied. */
+#clKnot, #clOpenA, #clOpenB, #clRing{ display:none }
+#closing.is-yes #clKnot, #closing.is-yes #clRing{ display:block }
+#closing.is-no  #clOpenA, #closing.is-no #clOpenB{ display:block }
+.cl-copy{ text-align:center; opacity:0 }
+.cl-close{
+  position:absolute; bottom:34px; left:50%; transform:translateX(-50%);
+  background:none; border:0; cursor:pointer; font-family:var(--support);
+  font-size:11px; letter-spacing:.26em; text-transform:uppercase; color:var(--ink-faint);
+  padding:10px 14px;
+}
+.cl-close:hover{ color:var(--ink) }
+.cl-close:focus-visible{ outline:2px solid var(--brass); outline-offset:3px }
+
+/* The RSVP section once a reply has been accepted. */
+.rsvp-done{ margin-top:clamp(40px,6vh,66px) }
+.rd-line{ font-family:var(--display); font-weight:200; font-size:clamp(24px,3.2vw,36px);
+  line-height:1.2; color:var(--thread) }
+.rd-sub{ margin-top:12px; font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--ink-soft) }
+.rd-again{
+  margin-top:26px; background:none; cursor:pointer; color:var(--ink);
+  border:1px solid var(--line-strong); padding:11px 20px; border-radius:0;
+  font-family:var(--support); font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  transition:background .25s var(--ease-soft), border-color .25s var(--ease-soft), color .25s var(--ease-soft);
+}
+.rd-again:hover{ background:var(--thread); border-color:var(--thread); color:var(--paper) }
+.rd-again:focus-visible{ outline:2px solid var(--brass); outline-offset:3px }
+.cf-title{ font-family:var(--display); font-weight:200; font-size:clamp(30px,5vw,54px); color:var(--thread); line-height:1.1 }
+.cf-sub{ margin-top:18px; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--ink-soft) }
+.cf-names{ margin-top:8px; font-family:var(--display); font-size:clamp(18px,2.2vw,24px); font-weight:300; color:var(--ink) }
+
+/* ============================================================
+   00 - HERO
+   A centred hero is normally the lazy answer, but here the message IS
+   the design: two names and the line that ties them. The threads
+   arriving from opposite corners and meeting at the ring are the whole
+   thesis of the page, so nothing is allowed to compete with them.
+   ============================================================ */
+/* The hero distributes rather than stacks. wedding-core.js writes an inline
+   padding-top onto #main to clear the fixed studio bar, so the hero subtracts
+   that (design.js mirrors the measured value into --main-pad) or its foot would
+   hang below the fold while the builder is open. In guest view the bar is gone
+   and --main-pad is 0. */
+#hero{
+  position:relative; z-index:2;
+  min-height:100dvh;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:space-between;
+  padding:calc(clamp(40px,5.2vh,72px) + var(--bar-h,0px)) var(--gut) clamp(24px,3.6vh,44px);
+  text-align:center;
+}
+.hero-top, .hero-mid{ display:flex; flex-direction:column; align-items:center; width:100% }
+.hero-eyebrow{ margin-bottom:14px }
+.hero-names{
+  font-family:var(--display); font-weight:200; color:var(--thread);
+  line-height:1; letter-spacing:-.02em;
+  padding-bottom:.1em;   /* line-height:1 clips the J and g descenders */
+}
+.hero-name{ display:block; font-size:clamp(44px,7.6vw,104px) }
+.hero-amp{
+  display:block; font-family:var(--display); font-style:italic; font-weight:300;
+  font-size:clamp(17px,1.9vw,26px); color:var(--brass-dp);
+  letter-spacing:.01em; line-height:1.3;
+  margin:clamp(8px,1.4vh,16px) 0 clamp(4px,.8vh,10px);
+}
+/* The ring sits in the hero's flow so design.js can anchor the rail to
+   its measured centre rather than to a guessed percentage. */
+.hero-ring{ width:56px; height:56px; flex:none; margin-top:clamp(14px,2.4vh,38px) }  /* spacer only: the ring is painted into #thread-rail */
+.hero-foot{
+  width:100%; max-width:var(--col);
+  display:flex; justify-content:space-between; align-items:flex-end;
+  gap:32px; text-align:left;
+}
+.hero-legend{ max-width:34ch }
+.hero-meta{
+  display:flex; flex-direction:column; align-items:flex-end; gap:12px;
+  text-align:right; font-size:11px; letter-spacing:.26em;
+  text-transform:uppercase; color:var(--ink-soft);
+}
+.hero-meta b{ font-weight:500; color:var(--ink) }
+
+/* ============================================================
+   01 - THE BEGINNING (asymmetric split)
+   ============================================================ */
+#beginning .wrap{
+  display:grid; grid-template-columns:1fr 1fr; gap:clamp(40px,6vw,96px);
+  align-items:center;
+}
+#beginning .b-copy{ max-width:38ch }
+.sec-title{ font-size:clamp(30px,4.4vw,56px); line-height:1.06; color:var(--ink) }
+.sec-text{ margin-top:22px; color:var(--ink-soft); max-width:52ch }
+/* ============================================================
+   PHOTOGRAPHS: THE COUPLE'S, NOT THE DESIGN'S
+
+   The samples that ship with this template are duotoned hard, because their
+   only job is to sell the look. A buyer's own photographs are a different
+   thing entirely, and they get a much lighter touch.
+
+   This value was chosen by comparing four strengths against real photographs
+   with faces in them. Anything stronger turned skin sallow: at roughly double
+   this, a bride's face goes yellow. So the treatment only calms saturation and
+   warms very slightly, which is enough to stop a bright phone snap fighting
+   the paper, and not enough for anyone to feel their photographs were altered.
+
+   On by default, and one checkbox turns it off completely.
+   ============================================================ */
+:root{ --photo-tone: saturate(.90) sepia(.14) contrast(1.02) }
+body.photos-as-taken{ --photo-tone: none }
+.frame img, .g-item .ph img{ filter:var(--photo-tone) }
+
+/* Photographs sit ABOVE the thread. The thread runs across paper, not across
+   somebody's face: where it meets a picture it passes behind it. */
+.frame{ position:relative; background:var(--paper-dp); aspect-ratio:4/5; overflow:hidden }
+.frame .ph{ position:relative; width:100%; height:100% }
+.frame img{ width:100%; height:100%; object-fit:cover }
+.frame::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  box-shadow:inset 0 0 0 1px rgba(47,18,25,.10);
+}
+.frame .ph-tag{ display:none }   /* no labels overlaid on photographs */
+
+/* ============================================================
+   02 - YOU AND ME (full-width typographic moment)
+   ============================================================ */
+#us{ text-align:center }
+#us .u-words{
+  display:flex; align-items:baseline; justify-content:center;
+  gap:clamp(18px,4vw,64px); font-family:var(--display); font-weight:200;
+  color:var(--thread); line-height:1;
+}
+#us .u-w{ font-size:clamp(38px,7vw,96px); letter-spacing:-.02em }
+#us .u-amp{ font-size:clamp(16px,1.8vw,24px); font-style:italic; font-weight:300; color:var(--brass-dp) }
+#us .u-us{
+  margin-top:clamp(6px,1.4vh,20px); font-family:var(--display); font-weight:200;
+  font-size:clamp(56px,10.5vw,148px); line-height:1; letter-spacing:-.025em; color:var(--ink);
+  padding-bottom:.06em;
+}
+#us .u-text{ margin:clamp(34px,5vh,58px) auto 0; max-width:46ch; color:var(--ink-soft) }
+
+/* ============================================================
+   03 - THE DAY
+   ============================================================ */
+#the-day .wrap{ max-width:760px; text-align:center }
+.day-date{
+  font-family:var(--display); font-weight:200; color:var(--thread);
+  font-size:clamp(34px,5.4vw,68px); line-height:1; letter-spacing:.01em;
+}
+.day-venue{ margin-top:26px; font-family:var(--display); font-size:clamp(21px,2.4vw,30px); font-weight:300 }
+.day-addr{ margin-top:8px; color:var(--ink-soft) }
+.day-dress{ margin-top:20px; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--ink-soft) }
+.day-links{ margin-top:38px; display:flex; justify-content:center; flex-wrap:wrap; gap:12px }
+.day-links a{
+  font-family:var(--support); font-size:12px; letter-spacing:.16em;
+  text-transform:uppercase; text-decoration:none; color:var(--ink);
+  border:1px solid var(--line-strong); padding:12px 22px;
+  transition:background .25s var(--ease-soft), border-color .25s var(--ease-soft),
+             color .25s var(--ease-soft), transform .12s ease;
+}
+.day-links a:hover{ background:var(--thread); border-color:var(--thread); color:var(--paper) }
+.day-links a:active{ transform:translateY(1px) }
+.day-links a:focus-visible{ outline:2px solid var(--brass); outline-offset:3px }
+
+/* ============================================================
+   04 - THE SCHEDULE
+   The thread already draws a line down this section, so the rows carry
+   no rules of their own. Time and name sit either side of it and a
+   brass bead marks each hour.
+   ============================================================ */
+#schedule{ text-align:center }
+#schedule .wrap{ max-width:900px }
+.sched{ display:flex; flex-direction:column; gap:clamp(34px,5.2vh,66px); margin-top:clamp(44px,6vh,76px) }
+.tl-item{
+  display:grid; grid-template-columns:1fr 62px 1fr; align-items:center;
+  opacity:0; transform:translateY(18px);
+}
+.tl-item.in{ opacity:1; transform:none; transition:opacity .7s var(--ease-soft), transform .7s var(--ease-soft) }
+.tl-time{
+  font-family:var(--display); font-size:clamp(23px,2.7vw,34px); font-weight:200;
+  color:var(--thread); line-height:1;
+}
+.tl-title{ font-size:15px; letter-spacing:.02em; color:var(--ink-soft) }
+.tl-dot{ justify-self:center; width:7px; height:7px; border-radius:50%; background:var(--brass) }
+/* One reading direction for every row. The thread is already doing the
+   zig-zagging; making the rows alternate too just costs legibility. */
+.tl-time{ text-align:right }
+.tl-title{ text-align:left }
+
+/* ============================================================
+   05 - THE DETAILS (gallery)
+   Deliberately not four equal tiles: one tall lead frame, then three at
+   mixed sizes.
+   ============================================================ */
+#gallery .gallery-grid{
+  margin-top:clamp(44px,6vh,76px);
+  display:grid; grid-template-columns:1.25fr 1fr 1fr;
+  grid-auto-rows:minmax(190px,auto); gap:clamp(12px,1.6vw,22px);
+}
+.g-item{ position:relative; opacity:0; transform:translateY(22px); min-height:190px }
+.g-item.in{ opacity:1; transform:none; transition:opacity .8s var(--ease-soft), transform .8s var(--ease-soft) }
+.g-item .ph{ position:relative; width:100%; height:100%; background:var(--paper-dp); overflow:hidden }
+.g-item .ph img{ width:100%; height:100%; object-fit:cover }
+.g-item .ph::after{ content:''; position:absolute; inset:0; box-shadow:inset 0 0 0 1px rgba(47,18,25,.10) }
+.g-item .ph-tag{ display:none }
+.g1{ grid-row:span 2 }
+.g4{ grid-column:2 / span 2 }
+.g-extra{ display:none }
+
+/* ============================================================
+   06 - RSVP
+   ============================================================ */
+#rsvp{ text-align:center }
+#rsvp .wrap{ max-width:620px }
+.rsvp-title{ font-size:clamp(34px,5.4vw,64px); color:var(--thread); line-height:1 }
+.rsvp-lead{ margin-bottom:18px }
+.rsvp-form{ margin-top:clamp(40px,6vh,66px); text-align:left }
+.field{ position:relative; margin-bottom:30px }
+.field label{
+  display:block; margin-bottom:9px; font-size:11px; letter-spacing:.24em;
+  text-transform:uppercase; color:var(--ink-soft); font-weight:400;
+}
+.field input, .field textarea{
+  width:100%; background:transparent; border:0; border-bottom:1px solid var(--line-strong);
+  padding:9px 0; font-family:var(--support); font-size:16px; font-weight:300;
+  color:var(--ink); border-radius:0;
+}
+.field textarea{ resize:vertical }
+.field input::placeholder, .field textarea::placeholder{ color:var(--ink-faint) }
+.field input:focus, .field textarea:focus{ outline:0; border-bottom-color:var(--thread) }
+.field input:focus-visible, .field textarea:focus-visible{ outline:2px solid var(--brass); outline-offset:4px }
+.field-underline{ display:none }
+
+/* The shared .visually-hidden utility sizes itself to 1px WITHOUT !important, so
+   the `.field input{width:100%}` rule above outranked it and let the hidden
+   radios and the hidden guest-count select stretch to the full column. On a
+   phone that was 104px of real horizontal scroll, hidden only by the body's
+   overflow-x. Restate the clip at higher specificity. */
+.field .visually-hidden, .rsvp-choice .visually-hidden{
+  position:absolute !important; width:1px !important; height:1px !important;
+  margin:-1px !important; padding:0 !important; overflow:hidden !important;
+  border:0 !important; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap;
+}
+
+.rsvp-choice{ display:flex; gap:10px }
+.choice-btn{
+  flex:1; text-align:center; cursor:pointer; padding:13px 10px;
+  border:1px solid var(--line-strong); font-family:var(--display);
+  font-size:17px; font-weight:300; color:var(--ink-soft);
+  transition:background .25s var(--ease-soft), color .25s var(--ease-soft), border-color .25s var(--ease-soft);
+}
+.choice-btn.selected{ background:var(--thread); border-color:var(--thread); color:var(--paper) }
+
+.rsvp-submit{
+  width:100%; margin-top:12px; padding:17px 20px; cursor:pointer;
+  background:var(--thread); border:1px solid var(--thread); color:var(--paper);
+  font-family:var(--support); font-size:12px; font-weight:500;
+  letter-spacing:.24em; text-transform:uppercase; border-radius:0;
+  transition:background .25s var(--ease-soft), transform .12s ease;
+}
+.rsvp-submit:hover{ background:#6c1d28 }
+.rsvp-submit:active{ transform:translateY(1px) }
+.rsvp-submit:focus-visible{ outline:2px solid var(--brass); outline-offset:3px }
+.rsvp-error{ color:#8d2634 }
+
+footer{
+  position:relative; z-index:2;
+  padding:56px var(--gut) 64px; display:flex; justify-content:space-between;
+  gap:20px; flex-wrap:wrap; border-top:1px solid var(--line);
+  font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--ink-faint);
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+#site-nav{
+  position:fixed; top:var(--bar-h,0px); left:0; right:0; z-index:40; height:72px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 var(--gut); pointer-events:none;
+}
+#site-nav > *{ pointer-events:auto }
+/* Once the page scrolls under it the index needs a ground of its own, or the
+   monogram sits on top of whatever heading happens to be passing. */
+#site-nav::before{
+  content:''; position:absolute; inset:0; z-index:-1; opacity:0;
+  background:hsl(var(--c-cream) / .90);
+  -webkit-backdrop-filter:blur(9px); backdrop-filter:blur(9px);
+  box-shadow:0 1px 0 var(--line);
+  transition:opacity .3s var(--ease-soft);
+}
+#site-nav.is-stuck::before{ opacity:1 }
+@media (prefers-reduced-transparency: reduce){
+  #site-nav::before{ background:hsl(var(--c-cream)); -webkit-backdrop-filter:none; backdrop-filter:none }
+}
+#nav-sentinel{ position:absolute; top:0; left:0; width:1px; height:1px; pointer-events:none }
+.nav-mark{ font-family:var(--display); font-size:16px; color:var(--thread); letter-spacing:.04em }
+.nav-index-btn{
+  display:flex; align-items:center; gap:10px; background:none; border:0; cursor:pointer;
+  font-family:var(--support); font-size:11px; letter-spacing:.26em;
+  text-transform:uppercase; color:var(--ink-soft); padding:8px 0;
+}
+.nav-index-btn .dot{ width:5px; height:5px; border-radius:50%; background:var(--brass) }
+.nav-index-btn:focus-visible{ outline:2px solid var(--brass); outline-offset:4px }
+
+#index-menu{
+  position:fixed; inset:0; z-index:60; background:var(--paper);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; visibility:hidden; transition:opacity .45s var(--ease-soft), visibility .45s;
+}
+#index-menu.open{ opacity:1; visibility:visible }
+.index-close{
+  position:absolute; top:26px; right:var(--gut); background:none; border:0; cursor:pointer;
+  font-family:var(--support); font-size:11px; letter-spacing:.26em;
+  text-transform:uppercase; color:var(--ink-soft);
+}
+.index-inner{ display:flex; flex-direction:column; gap:14px }
+.index-item{
+  display:flex; align-items:baseline; gap:20px; cursor:pointer;
+  font-family:var(--display); font-weight:200; color:var(--ink);
+  transition:color .2s ease, transform .3s var(--ease-soft);
+}
+.index-item:hover{ color:var(--thread); transform:translateX(6px) }
+.index-item .num{ font-size:12px; color:var(--brass-dp); width:26px }
+.index-item .label{ font-size:clamp(26px,4vw,44px); line-height:1.12 }
+
+/* ============================================================
+   LOADER AND ENTRY
+   The entry is the page's thesis performed once at full size: two
+   threads come down, meet at the ring, and the names appear on the line
+   they make. It ends in exactly the hero's composition so the overlay
+   can dissolve without anything appearing to move.
+   ============================================================ */
+#loader{
+  position:fixed; inset:0; z-index:9999; background:var(--paper);
+  display:flex; align-items:center; justify-content:center;
+}
+#loader .loader-track{ width:1px; height:120px; background:var(--line) }
+#loader .loader-fill{ width:1px; height:0; background:var(--thread) }
+#loader .loader-num{ display:none }
+
+#intro{
+  position:fixed; inset:0; z-index:9998; background:var(--paper);
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+#intro .ov-svg{ position:absolute; inset:0; width:100%; height:100% }
+#intro .ov-line{ stroke:var(--thread); stroke-width:2.2; fill:none; stroke-linecap:round }
+#intro .ov-ring{ fill:none; stroke:var(--brass); stroke-width:3.2 }
+#intro .ov-glint{ fill:none; stroke:var(--brass-lit); stroke-width:1 }
+.ov-copy{ position:relative; z-index:2; text-align:center; transform:translateY(-11vh) }
+.ov-eyeb{ font-size:11px; letter-spacing:.4em; text-transform:uppercase; color:var(--ink-soft); opacity:0 }
+.ov-names{
+  margin-top:20px; font-family:var(--display); font-weight:200; color:var(--thread);
+  line-height:1; letter-spacing:-.02em;
+}
+.ov-names span[data-sync]{ display:block; font-size:clamp(44px,8vw,104px); opacity:0 }
+.ov-amp{
+  display:block; font-family:var(--display); font-style:italic; font-weight:300;
+  font-size:clamp(15px,1.7vw,22px); color:var(--brass-dp); margin:12px 0 8px;
+  line-height:1.3; opacity:0;
+}
+.intro-skip{
+  position:absolute; bottom:38px; left:50%; transform:translateX(-50%);
+  background:none; border:0; cursor:pointer; font-family:var(--support);
+  font-size:11px; letter-spacing:.26em; text-transform:uppercase; color:var(--ink-faint);
+}
+.intro-skip:focus-visible{ outline:2px solid var(--brass); outline-offset:4px }
+
+/* ============================================================
+   GUEST PREVIEW
+   The core only adds body.guest-mode. Hiding the studio chrome and
+   revealing the exit control is this file's job.
+   ============================================================ */
+body.guest-mode #builder-bar,
+body.guest-mode #customizer-drawer,
+body.guest-mode #hud{ display:none !important }
+body.guest-mode{ padding-top:0 !important }
+#exit-preview-btn{
+  display:none; position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+  z-index:9000; padding:12px 26px; cursor:pointer;
+  background:var(--thread); color:var(--paper); border:1px solid var(--thread);
+  font-family:var(--support); font-size:11px; font-weight:500;
+  letter-spacing:.22em; text-transform:uppercase; border-radius:0;
+  box-shadow:0 10px 30px rgba(47,18,25,.18);
+}
+body.guest-mode.show-exit-btn #exit-preview-btn{ display:block }
+#exit-preview-btn:focus-visible{ outline:2px solid var(--brass); outline-offset:3px }
+
+/* Builder chrome: restate the pairings baked into the shared markup so
+   they read on paper rather than on Tailwind's own defaults. */
+#builder-bar{ background:hsl(var(--c-charcoal) / .96) !important; color:var(--paper) !important }
+#customizer-drawer{ background:var(--paper) !important; color:var(--ink) !important }
+/* wedding-core.js shows this with an inline display:flex, but never centred what
+   is inside it, so the note sat 12.5px left of the middle of its own circle.
+   The centring lives here because the core owns the display value. */
+.audio-toggle{
+  position:fixed; right:22px; bottom:22px; z-index:8000; width:44px; height:44px;
+  align-items:center; justify-content:center; padding:0; line-height:1;
+  border-radius:50%; cursor:pointer; background:var(--paper);
+  border:1px solid var(--line-strong); color:var(--ink-soft);
+  box-shadow:0 6px 18px rgba(47,18,25,.10);
+  transition:background .25s var(--ease-soft), color .25s var(--ease-soft),
+             border-color .25s var(--ease-soft), transform .12s ease;
+}
+.audio-toggle i{ font-size:14px; line-height:1; display:block }
+/* Optical, not geometric. Font Awesome's note is centred by its bounding box
+   but not by its mass: measured at 10x, the ink box sits dead centre while the
+   centroid is 0.077em to the right, because the beam is heavier than the two
+   noteheads. Half that correction balances it without pulling it visibly left.
+   fa-pause is symmetric on both measures and is deliberately left alone. */
+.audio-toggle i.fa-music{ transform:translateX(-0.04em) }
+.audio-toggle:hover{ border-color:var(--thread); color:var(--thread) }
+.audio-toggle:active{ transform:translateY(1px) }
+.audio-toggle:focus-visible{ outline:2px solid var(--brass); outline-offset:3px }
+/* The core adds .is-playing while a track is running. */
+.audio-toggle.is-playing{ background:var(--thread); border-color:var(--thread); color:var(--paper) }
+
+/* Keep it clear of the exit-preview control, which sits centred at the bottom. */
+body.guest-mode.show-exit-btn .audio-toggle{ bottom:76px }
+
+/* ============================================================
+   RESPONSIVE
+   Below 900px the two threads stop embracing the content and become a
+   braided spine down the left margin. design.js switches its anchor
+   geometry at the same breakpoint; these rules move the content off it.
+   ============================================================ */
+/* ============================================================
+   RESPONSIVE
+   A phone gets the SAME composition, scaled: the two threads still embrace
+   every section and still cross at every boundary. The only change is that the
+   column narrows so the bow has somewhere to run. --gut is what buys that
+   room, and design.js reads the resulting column width, so the two stay in
+   step without either hardcoding the other.
+   ============================================================ */
+@media (max-width:900px){
+  :root{ --gut:42px }
+  body{ font-size:16px }
+  .sec{ padding-top:clamp(74px,10vh,120px); padding-bottom:clamp(74px,10vh,120px) }
+  #hero{ padding-top:calc(var(--bar-h,0px) + 92px) }
+  .hero-foot{ flex-direction:column; align-items:center; gap:22px; text-align:center }
+  .hero-legend{ max-width:32ch }
+  .hero-meta{ align-items:center; text-align:center; gap:10px }
+  #beginning .wrap{ grid-template-columns:1fr; gap:30px }
+  #beginning .b-copy{ max-width:none }
+  .sec-text{ max-width:none }
+  #us .u-words{ gap:16px }
+  .day-links{ gap:10px }
+  .day-links a{ padding:11px 16px; letter-spacing:.12em }
+  /* Keep the three-column row so the hours stay on the thread's centre line. */
+  .tl-item{ grid-template-columns:1fr 32px 1fr }
+  #gallery .gallery-grid{ grid-template-columns:1fr }
+  .g1{ grid-row:auto; grid-column:1 }
+  .g4{ grid-column:1 }
+}
+@media (max-width:560px){
+  :root{ --gut:34px }
+  .rsvp-choice{ flex-direction:column }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   The thread is content, not decoration, so it is never hidden. Under
+   reduced motion it is simply already drawn, and nothing scrubs.
+   ============================================================ */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important; scroll-behavior:auto !important;
+  }
+  .tl-item, .g-item{ opacity:1 !important; transform:none !important }
+  #intro, #loader{ display:none !important }
+}

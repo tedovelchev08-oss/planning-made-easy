@@ -72,6 +72,23 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       ],
     },
   },
+  {
+    id: "red-thread", name: "The Red Thread", plan: "celebration", motif: "frame",
+    blurb: "A red thread draws itself down the page and ties the two of you together",
+    placeholder: { from: "#F6EFE1", to: "#E3D7BF", ink: "#9E2B3A" },
+    tracks: [
+      { id: "gnossienne", name: "Gnossienne No. 1", composer: "Satie" },
+      { id: "clairdelune", name: "Clair de lune", composer: "Debussy" },
+    ],
+    extras: {
+      photos: [],
+      gallery: 4,
+      texts: [
+        { key: "heroPlace", label: "Where, in a few words", max: 60, placeholder: "Villa Serrano, Lake Como" },
+        { key: "heroQuote", label: "Opening lines", max: 200, multiline: true, placeholder: "An old story says a red thread ties those who are meant to meet…", fallback: "An old story says a red thread ties those who are meant to meet. It may stretch. It may tangle. It never breaks." },
+      ],
+    },
+  },
   { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Palm fronds and fine gilded lines, in sage and ivory", motif: "frame", placeholder: { from: "#F5F9F6", to: "#DDEBE2", ink: "#4E8A6C" } },
 ];
 

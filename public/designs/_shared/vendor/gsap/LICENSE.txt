@@ -1,0 +1,6 @@
+GSAP 3.13.0 (gsap.min.js, ScrollTrigger.min.js), from the npm package gsap@3.13.0.
+Copyright (c) 2008-2025, GreenSock. All rights reserved.
+Used under GreenSock's Standard "no charge" license: https://gsap.com/standard-license
+(free for commercial use since 3.13; not to be used in a no-code visual
+animation builder that competes with Webflow, which these invitation pages are not).
+Used by: red-thread (and other studio designs that animate with GSAP).
