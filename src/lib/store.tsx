@@ -310,6 +310,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   /** whose queue this is: the signed-in account, set when their workspace boots */
   const ownerRef = useRef<{ uid: string; email: string } | null>(null);
   const lastRsvpPull = useRef<number>(Date.now());
+  /** whose workspace is loaded (or loading): booting again for the same person only paints stale data */
+  const bootedUid = useRef<string | null>(null);
   const dbRef = useRef(db); dbRef.current = db;
   const weddingIdRef = useRef(weddingId); weddingIdRef.current = weddingId;
   const userRef = useRef(user); userRef.current = user;
@@ -534,6 +536,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   /* ------------------------------ cloud boot ------------------------------ */
 
   const bootFor = useCallback(async (uid: string, email: string | null) => {
+    bootedUid.current = uid;
     setBooting(true);
     try {
       await acceptPendingInvites().catch(() => {});
@@ -591,8 +594,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         subscription = authApi.onAuthChange((id, email) => {
           if (id) {
             setUser({ name: email?.split("@")[0] ?? "You", email: email ?? "" });
-            void bootFor(id, email);
+            // Supabase reports SIGNED_IN / TOKEN_REFRESHED for the same person
+            // whenever the tab comes back into view. Booting again repainted the
+            // offline copy and then a fetch that could predate an edit just
+            // saved, so the screen showed old data. Only a different person
+            // (or a first sign-in) loads a workspace; changes made elsewhere
+            // arrive through Realtime and the RSVP poll.
+            if (id !== bootedUid.current) void bootFor(id, email);
           } else {
+            bootedUid.current = null;
             setUser(null);
             setWeddingId(null);
             setNeedsOnboarding(false);
@@ -750,6 +760,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
    * performs the same reset when it does fire, which is harmless.
    */
   const signOut = useCallback(() => {
+    bootedUid.current = null;
     if (mode === "cloud") {
       void authApi.signOut().catch(() => {});
       // Drop the queued write-behind batch and its timer first: a pending
