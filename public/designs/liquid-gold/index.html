@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Generic for the same reason as the og tags below: this is what a crawler
+     reads, and design.js replaces it with the couple's names the moment the
+     page runs, so only crawlers ever see this wording. -->
+<title>You&rsquo;re Invited</title>
+<meta name="description" content="Join us as two become one. Kindly RSVP.">
+<meta name="theme-color" content="#050403">
+
+<!-- ============================================================
+     LINK PREVIEW — what guests see when the link is shared on
+     WhatsApp, iMessage, Facebook or in an email.
+
+     NOTHING HERE NEEDS EDITING, and it is generic on purpose.
+     WhatsApp and Facebook do NOT run this page's JavaScript, so
+     whatever is written here is exactly what gets shared. Names
+     typed into the setup drawer can never reach these tags, so a
+     couple who never opened this file would have been sharing a
+     stranger's names. Generic text cannot be wrong. Their own
+     names still travel with the link as text, from the og tags
+     design.js rewrites for anything that does run JavaScript.
+
+     og:url is deliberately ABSENT. With no og:url every crawler
+     falls back to the address it actually fetched — the couple's
+     own site, always right. A hard-coded one would send guests who
+     tap the preview to the demo site instead.
+
+     og:image is RELATIVE here and gets turned into a full address
+     by netlify/edge-functions/og-image.js, which knows the address
+     the page was actually served from. That is the only way to get
+     this right: og:image must be absolute, no crawler runs the
+     JavaScript that could fill it in, and every couple has a
+     different domain. It needs no setup and cannot point at anyone
+     else's server.
+
+     It used to be hard-coded to the demo site. Do not go back to
+     that — preview.jpg was not deployed there, so every shared link
+     showed a blank grey box, and even working it would have made
+     every couple depend on a server they do not control.
+============================================================ -->
+
+<!-- Favicon: champagne ampersand on ink. Self-contained, no file needed. -->
+<!-- Link previews read the raw HTML: generic on purpose, no image, no names. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="You&rsquo;re Invited">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill=%27%23050403%27/%3E%3Ctext x='16' y='23' font-family='Georgia,Times,serif' font-style='italic' font-size='21' fill=%27%23d4a94f%27 text-anchor='middle'%3E%26amp;%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill=%27%23050403%27/%3E%3Ctext x='16' y='23' font-family='Georgia,Times,serif' font-style='italic' font-size='21' fill=%27%23d4a94f%27 text-anchor='middle'%3E%26amp;%3C/text%3E%3C/svg%3E">
+
+<link rel="stylesheet" href="../_shared/fonts/fonts.css">
+<!-- Font Awesome: the shared core renders schedule and FAQ icons with it. -->
+<link rel="stylesheet" href="../_shared/vendor/fontawesome/css/all.min.css">
+<!-- Confetti on a "yes" RSVP; LZ-String compresses the share-link payload. -->
+<script src="../_shared/vendor/confetti.browser.min.js"></script>
+<script src="../_shared/vendor/lz-string.min.js"></script>
+
+<!-- ORDER MATTERS. tailwind.css ships Tailwind Preflight, a full reset that
+     would otherwise flatten this design's headings and images. wedding-design.css
+     loads after it so the Liquid Gold styling always wins the tie, and
+     wedding-ui.css last because it only dresses the builder drawer. -->
+<link rel="stylesheet" href="../_shared/tailwind.css?v=70">
+<link rel="stylesheet" href="wedding-design.css?v=70">
+<link rel="stylesheet" href="../_shared/wedding-ui.css?v=70">
+<!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
+<style>
+  html.luma-loading { background: #0b0907; }
+  html.luma-loading body { visibility: hidden; }
+  .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #0b0907; color: #efe6d2; font-family: 'Manrope', sans-serif; }
+  .luma-notice h1 { font-family: 'Bodoni Moda', Georgia, serif; font-size: 34px; font-weight: 400; color: #d4af6a; margin: 0; }
+  .luma-notice p { font-size: 17px; max-width: 30rem; margin: 0; opacity: .8; }
+  .luma-notice a { margin-top: 8px; color: #d4af6a; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+  .luma-check:empty { display: none; }
+</style>
+</head>
+<body>
+
+
+<!-- Background music. The button keeps this design's own look and position;
+     only the behaviour comes from the core, which plays the five bundled
+     recordings rather than the synthesised drone this design shipped with. -->
+
+<audio id="bg-music-audio" loop preload="none"></audio>
+<button id="music-toggle-btn" onclick="toggleMusic()" class="audio-toggle" style="display:none;" aria-label="Toggle background music">
+  <i class="fas fa-music" id="music-toggle-icon"></i>
+</button>
+
+<!-- ============================================================
+     LIQUID GOLD · the invitation itself
+
+     Almost every string in here is written by renderInvitationFromData()
+     in design.js, which reads the shared invitationData and pours it into
+     the `wedding` config this design's engine runs on. The markup below is
+     therefore mostly empty containers with ids - that is deliberate, not
+     unfinished.
+
+     The ids the SHARED CORE owns are marked CORE. Do not rename them: the
+     core finds them by id, and the RSVP, gallery, schedule and FAQ all stop
+     working if they move.
+     ============================================================ -->
+
+<div id="goldfield" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<div id="grain" aria-hidden="true"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="gStroke" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4d3610"/><stop offset=".35" stop-color="#8a6420"/>
+      <stop offset=".55" stop-color="#ecd39d"/><stop offset=".75" stop-color="#8a6420"/>
+      <stop offset="1" stop-color="#4d3610"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- THE OPENING.
+     The original ran on the shader and was therefore never once seen on a
+     phone. Same choreography, rebuilt in CSS so it plays everywhere: a
+     glint wanders the dark, a drop of gold falls and lands, the gold
+     floods out from where it struck, the initials resolve inside it, and
+     then the gold splits like curtains onto the photograph.
+     One timeline, all of it declared in wedding-design.css. -->
+<div id="intro" aria-hidden="true">
+  <div id="introGlint"></div>
+  <div id="introDrop"></div>
+  <div id="introRing"></div>
+  <!-- Warm light spilling through the widening gap. Sits BEFORE the gold in
+       the DOM so it paints beneath the halves and is only seen through the
+       opening, which is the whole point of it. -->
+  <div id="openGlow"></div>
+  <div id="introGold">
+    <div class="lq lql"></div>
+    <div class="lq lqr"></div>
+  </div>
+  <div id="introMark" class="engraved"><span class="m1" id="introMarkA"></span><span class="m2" id="introMarkB"></span></div>
+</div>
+
+<a id="brand" href="#s-hero"></a>
+<button id="menuBtn" aria-haspopup="true" aria-expanded="false" aria-controls="menu">Menu</button>
+<div id="scrollCue">Scroll to discover</div>
+<div id="skipHint" aria-hidden="true">tap, scroll or press any key to skip</div>
+
+<nav id="menu" aria-label="Navigation">
+  <div id="menuVeil"></div>
+  <button id="menuClose">Close</button>
+  <ol id="menuList"></ol>
+  <p id="menuDate"></p>
+</nav>
+
+<main class="layer" id="world">
+
+  <!-- One spoken summary of the whole invitation, for a screen reader that
+       would otherwise have to walk the entire page to learn the basics.
+       buildContent() writes it; the element had been lost when the sections
+       around it were removed, leaving set('srTitle') writing into nothing. -->
+  <p class="sr" id="srTitle"></p>
+
+  <!-- ================= HERO ================= -->
+  <section id="s-hero" aria-label="Invitation">
+    <figure id="heroFig" aria-hidden="true">
+      <img alt="" id="heroImg" fetchpriority="high" decoding="async">
+    </figure>
+    <div class="wrap hero-inner">
+      <p class="hero-eyebrow" id="heroEyebrow"></p>
+      <!-- h1, not h2: this is the page's one true heading. There was no h1
+           anywhere in the document, so every screen reader and every crawler
+           saw a page whose outline started at level 2. -->
+      <h1 class="hero-names" id="heroNames"></h1>
+      <p class="hero-date" id="heroDate"></p>
+      <p class="hero-state" id="heroState"></p>
+    </div>
+  </section>
+
+  <!-- ================= STORY ================= -->
+  <section id="s-story" aria-label="Our story">
+    <p class="tag rv" id="storyTag">Our Story</p>
+    <p class="statement-row small rv" id="storyOpener">EVERYTHING BEGAN QUIETLY</p>
+    <div class="story-line goldline rv" style="--d:.12s"></div>
+    <h2 class="statement-row rv"><span class="maskline"><span id="storyTitle">OUR STORY</span></span></h2>
+    <div id="statements"></div>
+
+    <!-- The couple's story in prose. The rising lines above are the design's
+         voice; these two paragraphs are theirs. The drawer has always had
+         Paragraph 1 and Paragraph 2 - until now they had nowhere to land. -->
+    <div class="story-prose rv" id="storyProse" style="--d:.08s">
+      <p id="storyP1"></p>
+      <p id="storyP2"></p>
+    </div>
+  </section>
+
+  <!-- ================= TWO BECOME ONE ================= -->
+  <!-- TWO BECOME ONE. Kept, because it is the one idea in the middle of the
+       page worth stopping for - but it is a reveal now, not a stage. It was
+       230vh of sticky scroll driving a shader across two words; it is two
+       words that arrive, and the second one is gold. -->
+  <section id="s-transform" aria-label="Two become one">
+    <div class="wrap word-stage">
+      <div class="giant rv" id="wordTwo" aria-label="Two"></div>
+      <div class="giant rv" id="wordOne" style="--d:.24s" aria-label="One"></div>
+    </div>
+  </section>
+
+  <!-- ================= THE DAY ================= -->
+  <section id="s-day" aria-label="The day">
+    <div class="wrap">
+      <p class="tag rv" id="dayTag">The Day</p>
+      <div class="date-stack rv" id="dateStack" style="--d:.08s"></div>
+      <p class="label day-cap rv" style="--d:.2s" id="dayCaption">One evening, cast in gold</p>
+
+      <!-- WHERE, AND WHAT TO WEAR.
+           These three lived on the ceremony card, and when that card was
+           removed the venue, the street address and the dress code went with
+           it - leaving three drawer fields that edited nothing and a guest
+           with no address to travel to. The calendar links still carried the
+           venue, but nobody reads an invitation by downloading the .ics.
+           This is the practical section, so they belong here. -->
+      <p class="d-venue rv" style="--d:.16s" id="cerVenue"></p>
+      <p class="d-addr rv" style="--d:.2s" id="cerAddr"></p>
+      <p class="d-dress rv" style="--d:.24s" id="cerDress"></p>
+
+      <!-- Add to Calendar. Both links are written by the core; the ics one
+           needs the netlify/ folder deployed, which is why iPhones only get
+           a working sheet from a real address. -->
+      <div class="cal-row rv" style="--d:.28s">
+        <a id="gcal-link" class="cal-btn" href="#" target="_blank" rel="noopener">
+          <span>Add to Google Calendar</span>
+        </a>
+        <a id="ics-link" class="cal-btn" href="#">
+          <span>Apple / Outlook</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ================= THE EVENING, HOUR BY HOUR =================
+       VERTICAL, because the reader is scrolling vertically.
+
+       This was a horizontal track panned by vertical scroll. That fights
+       the gesture - the thumb goes one way and the content goes another -
+       and it is where the half-panned opening and the over-travel at the
+       far end both came from. Read down a line instead: the hour is the
+       structure, so the hour is set large, and the rule down the middle
+       is the evening itself.
+
+       Hidden entirely when every row is deleted, rather than leaving a
+       heading over nothing. renderScheduleTimeline() sets the display. -->
+  <section id="schedule-timeline-section" aria-label="The evening, hour by hour">
+    <div class="tl-wrap">
+      <p class="tl-heading rv" id="scheduleHeading">The course of the evening</p>
+      <div id="tlTrack"><div id="tlLine" aria-hidden="true"></div></div>
+      <!-- CORE reads this id. The engine renders into #tlTrack; this stays
+           as the element the core hands rows to. -->
+      <div id="schedule-timeline" hidden></div>
+    </div>
+  </section>
+
+  <!-- ================= PHOTOGRAPHS =================
+       The centrepiece now. This is what a bride actually wants to send
+       her friends, and it used to be four screens that showed almost
+       nothing for most of their length. Full-bleed frames, generous
+       type, one quiet fade each. -->
+  <section id="gallery-section" aria-label="Photographs">
+    <div class="gal-head">
+      <h2 class="big sec-title rv" id="galleryTag">Photographs</h2>
+    </div>
+    <div id="gallery"></div>
+    <!-- CORE reads this id for its own gallery plumbing; this design lays the
+         photographs out itself in #gallery. -->
+    <div id="gallery-carousel-track" hidden></div>
+  </section>
+
+
+  <!-- ================= RSVP =================
+       Field NAMES match every other design in this set, so replies land in
+       Netlify in the same shape no matter which invitation a couple bought.
+       The core owns the submit, the decline handling, the plus-one reveal
+       and the guest-count chips. Only the appearance below is this design's. -->
+  <section id="s-rsvp" aria-label="RSVP">
+    <div class="wrap rsvp-wrap">
+      <p class="tag rv" id="rsvpTag">RSVP</p>
+      <!-- The RSVP is the one thing this product exists to do, and it was
+           a heading and some fields floating in an empty section. It is now
+           a framed panel in the same language as the rest of the design:
+           a hairline of gold around a dark card, with the reply living
+           inside it like a card in an envelope. -->
+      <div class="rsvp-frame rv" style="--d:.08s">
+        <div class="rsvp-inner">
+          <span class="rsvp-orn" aria-hidden="true"></span>
+      <h2 class="big rv rsvp-head" id="rsvpKicker">WE WOULD LOVE TO HAVE YOU WITH US</h2>
+      <p class="rsvp-meta rv" style="--d:.12s">
+        <span id="rsvpDeadlinePrefix">Kindly answer before</span>
+        <span id="rsvpDeadlineText"></span>
+        <span class="sep">&middot;</span>
+        <span id="rsvpEmailText"></span>
+      </p>
+
+      <form id="rsvp-form" name="rsvp" method="POST"
+            onsubmit="submitRSVP(event)"
+            class="rv" style="--d:.16s" novalidate>
+        <input type="hidden" name="form-name" value="rsvp">
+        <!-- Spam trap: invisible to people, tempting to bots. Leave it alone. -->
+        <p class="hp-field"><label>Leave this field empty<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+
+        <div class="field">
+          <label for="rName" id="rsvpNameLabel">Name</label>
+          <input type="text" id="rName" name="guest_names" required autocomplete="name" placeholder=" ">
+        </div>
+
+        <div class="field field-static">
+            <label id="rsvpAttendanceLabel">Attendance</label>
+          <!-- Two radios, because the core reads input[name="attending"]:checked
+               and the form posts it. The native dot is clipped away and the
+               whole label becomes the target - a far bigger thing to tap. -->
+          <div class="rsvp-choice">
+            <label class="choice">
+              <input type="radio" name="attending" value="yes" checked onchange="handleRsvpAttendingChange()">
+              <span class="choice-face"><span id="rsvpYesLabel">Joyfully accepts</span></span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="attending" value="no" onchange="handleRsvpAttendingChange()">
+              <span class="choice-face"><span id="rsvpNoLabel">Regretfully declines</span></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- The core hides all of this the moment somebody declines. -->
+        <div id="rsvp-attending-extra-fields">
+          <div class="field field-static">
+            <label for="rsvp-guest-count" id="rsvpGuestsLabel">Number of guests</label>
+            <!-- Chips are built from the select's own options, so the range
+                 lives in one place. The select keeps its id and stays in the
+                 DOM - the core reads it and the form posts it - but is
+                 clipped rather than display:none, which is the safe way to
+                 keep a control submittable. -->
+            <div class="rsvp-count" id="rsvpCountChips" role="radiogroup" aria-labelledby="rsvpGuestsLabel"></div>
+            <select id="rsvp-guest-count" name="guest_count" class="visually-hidden" tabindex="-1"
+                    onchange="handleRsvpGuestCountChange()">
+              <option value="1">1</option><option value="2">2</option>
+              <option value="3">3</option><option value="4">4</option>
+              <option value="5">5</option><option value="6">6</option>
+            </select>
+          </div>
+
+          <div class="field" id="rsvp-plusone-wrap" style="display:none;">
+            <label for="rsvp-plusone-name" id="rsvpPlusOneLabel">Name of your guest</label>
+            <input type="text" id="rsvp-plusone-name" name="plusone_name" placeholder=" ">
+          </div>
+
+          <div class="field">
+            <label for="rMessage" id="rsvpNotesLabel">Dietary requirements &amp; notes</label>
+            <textarea id="rMessage" name="notes" rows="2" placeholder=" "></textarea>
+          </div>
+        </div>
+
+        <p class="rsvp-error hidden" id="rsvp-error" role="alert"><span id="rsvpErrorText">That didn&rsquo;t send. Check your connection and try again.</span></p>
+
+        <!-- aria-describedby ties the failure message to the control that caused
+             it. role="alert" already announces the text once; this is what lets
+             someone who tabs BACK to the button hear why it did not work. -->
+        <button type="submit" id="rsvpSubmit" aria-describedby="rsvp-error"><span id="rsvpSubmitLabel">Confirm RSVP</span></button>
+      </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="rsvp-success" class="hidden" aria-live="polite">
+      <svg id="inf" viewBox="0 0 200 100" aria-hidden="true">
+        <path id="infPath" d="M100,50 C82,20 40,18 28,42 C18,62 40,84 62,74 C80,66 120,34 138,26 C160,16 182,38 172,58 C160,82 118,80 100,50 Z"/>
+      </svg>
+      <i id="rsvp-success-icon" class="fas fa-check" aria-hidden="true"></i>
+      <p class="rd-line" id="rsvp-success-heading">SEE YOU THERE</p>
+      <p class="rd-small" id="rsvp-success-message">Your response has been saved.</p>
+      <p class="rd-names" id="rdNames"></p>
+      <div class="flow-bar" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- ================= QUESTIONS =================
+       Starts hidden. renderFaqPublic() shows it only when there is at least
+       one question, so an emptied list never leaves a heading over nothing. -->
+  <section id="faq-section" aria-label="Questions" style="display:none;">
+    <div class="wrap">
+      <p class="tag rv" id="faqTag">Questions</p>
+      <h2 class="big rv" id="faqHeading">THINGS YOU MIGHT ASK</h2>
+      <div id="faq-list" class="faq-list rv" style="--d:.12s"></div>
+    </div>
+  </section>
+  <!-- ================= CLOSE =================
+       FOREVER moved here from the deleted ring section, so the word still
+       lands - it simply arrives as type rather than as a shader event. -->
+  <section id="s-close" aria-label="Forever">
+    <div class="wrap end-wrap">
+      <div id="endCard">
+        <p id="endForever" class="goldtext rv">FOREVER</p>
+        <p class="end-names rv" id="endNames" style="--d:.16s"></p>
+        <button id="restart" class="rv" style="--d:.32s" onclick="resetEnvelopeIntro()">Begin again</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Gallery lightbox. Opened by tapping any photograph; design.js adds the
+     paging controls, since the core only ever showed a single image. -->
+<div id="gallery-lightbox" class="gallery-lightbox" onclick="closeGalleryLightbox()">
+  <button type="button" class="gallery-lightbox-close" onclick="closeGalleryLightbox()" aria-label="Close">
+    <i class="fas fa-times"></i>
+  </button>
+  <img id="gallery-lightbox-img" src="" alt="">
+</div>
+
+<p id="music-error-toast" class="music-error-toast hidden">Music couldn't load — check your internet connection.</p>
+
+    <script id="invitation-data-script">
+let invitationData = {
+    /* Filled from Luma by luma-bridge.js (window.lumaBoot) before the first
+       render: the couple's details, photos and wording. Below are only the
+       shapes, and this design's generic labels. */
+    partner1: "", partner2: "", hashtag: "", date: "", time: "",
+    venueName: "", venueAddress: "", dressCode: "", dressCodeNote: "", rsvpDeadline: "",
+    music: { enabled: false, track: "gnossienne" },
+    heroPhoto: "", story1: "", story2: "",
+    gallery: [], schedule: [], faq: [],
+    photoTone: true,
+    ceremonyNote: "",
+    heroEyebrow: "The Beginning",
+    heroQuote: "Two lives. One promise.\nOne beautiful beginning.",
+    storyTag: "Our Story",
+    storyTitle: "Our Story",
+    storyStatements: "It started with two\nTwo lives\nOne unexpected moment\nAnd now\nUs",
+    storyOpener: "Everything began quietly",
+    celebrationPlace: "",
+    celebrationAddress: "",
+    rsvpKicker: "We would love to celebrate with you",
+    rsvpEmailText: "",
+    tboLabelText: "Two Become One",
+    closingMsg: "Until We Meet",
+    heroCity: "",
+    dayTag: "The Day",
+    dayCaption: "One evening, cast in gold",
+    countdownEyebrow: "The Wait",
+    cdDaysLabel: "Days",
+    cdHoursLabel: "Hours",
+    cdMinutesLabel: "Minutes",
+    cdSecondsLabel: "Seconds",
+    detailBtnLabel: "Get Directions",
+    scheduleHeading: "The course of the evening",
+    scheduleTitle: "How the Day Unfolds",
+    galleryTag: "Photographs",
+    rsvpTag: "RSVP",
+    rsvpDeadlinePrefix: "Kindly respond by",
+    rsvpNameLabel: "Name",
+    rsvpAttendanceLabel: "Attendance",
+    rsvpYesLabel: "Joyfully attending",
+    rsvpNoLabel: "Regretfully declining",
+    rsvpGuestsLabel: "Number of Guests",
+    rsvpPlusOneLabel: "Name of Your Guest",
+    rsvpNotesLabel: "Dietary Requirements & Notes",
+    rsvpSubmitLabel: "Send RSVP",
+    rsvpErrorText: "That didn't send. Check your connection and try again.",
+    faqTag: "Questions",
+    faqHeading: "Things you might ask",
+    replayBtnLabel: "Replay the Opening",
+    isGuestView: true
+};
+</script>
+
+<!-- Luma first: the core awaits window.lumaBoot -->
+<script src="../_shared/luma-bridge.js?v=2"></script>
+
+
+<!-- Shared behaviour for every design: builder, save and share, countdown,
+     calendar, gallery, FAQ, RSVP, music, export. Fix something here and every
+     design inherits it. Loaded after the data block because it reads it. -->
+<script src="../_shared/wedding-core.js?v=70"></script>
+
+<!-- This design only: the opening sequence, the reveal engine, the gallery
+     viewer and the seam onto the shared core.
+     Loaded after the core so it can override the core's gallery renderer. -->
+<script src="design.js?v=70"></script>
+
+<!-- Luma: the after-render hook this design's own render needs, and what it
+     leaves to its old builder. -->
+<script src="luma.js?v=1"></script>
+</body>
+</html>

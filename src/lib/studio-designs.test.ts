@@ -95,6 +95,16 @@ describe("studio designs: the catalogue", () => {
     expect(d.storyPhoto).toBe("");
   });
 
+  it("Liquid Gold is part of Luxe and paints its own hero until the couple adds a photo", () => {
+    const lg = studioDesignOf("studio:liquid-gold")!;
+    expect(planAllows("luxe", lg)).toBe(true);
+    expect(planAllows("celebration", lg)).toBe(false);
+    const d = toInvitationData({ slug: "a", names: "A & B", date: "2027-06-12T14:00:00Z", invitation: { template_id: "studio:liquid-gold", design_data: { musicTrack: "pavane" } } }, lg);
+    expect(d.heroPhoto).toBe("");
+    expect(d.music).toEqual({ enabled: true, track: "pavane" });
+    expect(d.storyStatements).toBe("It started with two\nTwo lives\nOne unexpected moment\nAnd now\nUs");
+  });
+
   it("a guest's link keeps the token, the slug and the source", () => {
     expect(studioInviteUrl(celestial, { token: "t-1", src: "whatsapp" })).toBe("/designs/celestial/index.html?token=t-1&src=whatsapp");
     expect(studioInviteUrl(celestial, { slug: "ana-boris" })).toBe("/designs/celestial/index.html?slug=ana-boris");
