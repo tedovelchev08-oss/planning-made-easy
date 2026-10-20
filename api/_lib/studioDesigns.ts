@@ -28,6 +28,8 @@ export interface StudioDesign {
   tracks?: readonly StudioTrack[];
   /** until the couple adds a photo: their initials, or the design's own drawn plate */
   heroPlaceholder?: "initials" | "design";
+  /** where the couple's main photo goes (default heroPhoto); a design whose hero is its own material puts it elsewhere */
+  mainPhotoKey?: string;
   /** what this design shows beyond the shared details */
   extras?: {
     /** photos besides the main one (invitation_config.photo), by invitationData key */
@@ -36,6 +38,8 @@ export interface StudioDesign {
     gallery: number;
     /** wording only this design has; `fallback` is shown when left empty, otherwise it's hidden */
     texts: { key: string; label: string; max: number; placeholder: string; multiline?: boolean; fallback?: string }[];
+    /** a pick from the design's own options (e.g. a backdrop); the first is the default */
+    choices?: { key: string; label: string; options: { value: string; label: string }[] }[];
   };
 }
 
@@ -123,6 +127,32 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       ],
     },
   },
+  {
+    id: "glasshouse", name: "The Glasshouse", plan: "celebration", motif: "frame", heroPlaceholder: "design", mainPhotoKey: "storyPhoto",
+    blurb: "A morning under glass: palms, ferns and warm light, with your names over the canopy",
+    placeholder: { from: "#DFE7E0", to: "#B9C9BD", ink: "#2E4A3A" },
+    tracks: [
+      { id: "gnossienne", name: "Gnossienne No. 1", composer: "Satie" },
+      { id: "clairdelune", name: "Clair de lune", composer: "Debussy" },
+    ],
+    extras: {
+      photos: [],
+      gallery: 4,
+      choices: [{
+        key: "backdrop", label: "The glasshouse",
+        options: [
+          { value: "assets/backdrops/backdrop-3.jpg", label: "Palm canopy" },
+          { value: "assets/backdrops/backdrop-1.jpg", label: "Misted panes" },
+          { value: "assets/backdrops/backdrop-2.jpg", label: "Deep planting" },
+        ],
+      }],
+      texts: [
+        { key: "storyTitle", label: "Story heading", max: 80, placeholder: "It started with a plant neither of us could keep alive.", fallback: "How it began." },
+        { key: "heroQuote", label: "Opening lines", max: 200, multiline: true, placeholder: "A glasshouse is where things are kept growing out of season…", fallback: "A glasshouse is where things are kept growing out of season. Come and stand in ours for an evening." },
+        { key: "rsvpEmailText", label: "Contact for questions", max: 80, placeholder: "An email or phone number, if you'd like" },
+      ],
+    },
+  },
   { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Palm fronds and fine gilded lines, in sage and ivory", motif: "frame", placeholder: { from: "#F5F9F6", to: "#DDEBE2", ink: "#4E8A6C" } },
 ];
 
@@ -189,6 +219,8 @@ export interface DesignData {
   texts?: Record<string, string>;
   /** the design's gallery (extras.gallery) */
   gallery?: { photo?: string; caption?: string }[];
+  /** the design's choices (extras.choices), by key */
+  choices?: Record<string, string>;
   schedule?: { time?: string; title?: string; venue?: string; icon?: string }[];
   faq?: { question?: string; answer?: string }[];
 }
@@ -284,7 +316,9 @@ export function toInvitationData(w: PublicWedding, design: StudioDesign): Record
     })),
     faq: (dd.faq ?? []).slice(0, 12).map((f, i) => ({ id: i + 1, question: f.question ?? "", answer: f.answer ?? "" })),
     // the couple's own photo; until then their initials, or the design's own drawn plate
-    heroPhoto: photoUrl(w.invitation?.photo) || (design.heroPlaceholder === "design" ? "" : placeholderPhoto(design, partner1, partner2)),
+    heroPhoto: (design.mainPhotoKey ?? "heroPhoto") !== "heroPhoto" ? ""
+      : photoUrl(w.invitation?.photo) || (design.heroPlaceholder === "design" ? "" : placeholderPhoto(design, partner1, partner2)),
+    ...(design.mainPhotoKey && design.mainPhotoKey !== "heroPhoto" ? { [design.mainPhotoKey]: photoUrl(w.invitation?.photo) } : {}),
     ...extrasOf(design, dd),
     rsvpOpen: w.invitation?.collect_rsvp !== false,
     isGuestView: true,
@@ -300,6 +334,10 @@ function extrasOf(design: StudioDesign, dd: DesignData): Record<string, unknown>
   for (const t of x.texts) {
     const v = typeof dd.texts?.[t.key] === "string" ? dd.texts[t.key].trim().slice(0, t.max) : "";
     out[t.key] = v || t.fallback || "";
+  }
+  for (const c of x.choices ?? []) {
+    const v = dd.choices?.[c.key];
+    out[c.key] = c.options.some((o) => o.value === v) ? v : c.options[0].value;
   }
   if (x.gallery > 0) {
     out.gallery = (dd.gallery ?? [])

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Generic on purpose: crawlers read this, and the edge function swaps in the
+     couple's real names server-side. Only crawlers ever see this wording. -->
+<title>The Glasshouse - A Wedding Invitation</title>
+<meta name="description" content="A glasshouse is where things are kept growing out of season. You are invited.">
+<meta name="theme-color" content="#e6eae2">
+
+
+<!-- Link previews read the raw HTML: generic on purpose, no image, no names. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="You&rsquo;re Invited">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23e6eae2'/%3E%3Cpath d='M12 54 L12 26 L32 10 L52 26 L52 54 Z' fill='none' stroke='%2317251b' stroke-width='2.6'/%3E%3Cpath d='M32 10 L32 54 M12 32 L52 32' stroke='%232f5741' stroke-width='2'/%3E%3C/svg%3E">
+
+<!-- Sora carries the display type and Archivo the rest. A contemporary
+     grotesque against Victorian glasshouse architecture is the tension the
+     design is built on, and it keeps the photographs doing the emotional work.
+     Neither face is used by another design in this catalogue. -->
+<link rel="stylesheet" href="../_shared/fonts/fonts.css">
+<!-- Font Awesome: the shared builder drawer renders its icons with it. -->
+<link rel="stylesheet" href="../_shared/vendor/fontawesome/css/all.min.css">
+<!-- LZ-String compresses the share-link payload. No confetti library: this
+     invitation confirms an RSVP by clearing the glass. -->
+<script src="../_shared/vendor/lz-string.min.js"></script>
+<!-- This design's motion engine. Must load BEFORE design.js. -->
+<script src="../_shared/vendor/gsap/gsap.min.js"></script>
+<script src="../_shared/vendor/gsap/ScrollTrigger.min.js"></script>
+
+<!-- ORDER MATTERS. tailwind.css ships Preflight (a full reset) that would flatten
+     this design; wedding-design.css loads after it so The Glasshouse always wins,
+     and wedding-ui.css last because it only dresses the builder drawer. -->
+<link rel="stylesheet" href="../_shared/tailwind.css?v=33">
+<link rel="stylesheet" href="wedding-design.css?v=33">
+<link rel="stylesheet" href="../_shared/wedding-ui.css?v=33">
+<!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
+<style>
+  html.luma-loading { background: #dfe7e0; }
+  html.luma-loading body { visibility: hidden; }
+  .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #dfe7e0; color: #0b1510; font-family: 'Archivo', sans-serif; }
+  .luma-notice h1 { font-family: 'Sora', Georgia, serif; font-size: 34px; font-weight: 400; color: #b5772f; margin: 0; }
+  .luma-notice p { font-size: 17px; max-width: 30rem; margin: 0; opacity: .8; }
+  .luma-notice a { margin-top: 8px; color: #b5772f; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+  .luma-check:empty { display: none; }
+</style>
+</head>
+<body>
+
+
+<audio id="bg-music-audio" loop preload="none"></audio>
+<button id="music-toggle-btn" onclick="toggleMusic()" class="audio-toggle" style="display:none;" aria-label="Toggle background music">
+  <i class="fas fa-music" id="music-toggle-icon"></i>
+</button>
+<!-- ============================================================
+     LOADER
+     ============================================================ -->
+<div id="loader" aria-hidden="true">
+  <div class="loader-num">01</div>
+  <div class="loader-track"><div class="loader-fill" id="loaderFill"></div></div>
+</div>
+
+<!-- ============================================================
+     ENTRY
+     The page's one idea, performed once: the glass is fogged, and it
+     clears. It ends on the same photograph the hero uses, so the
+     overlay can dissolve without anything appearing to move.
+     ============================================================ -->
+<div id="intro" aria-hidden="true">
+  <div class="ov-shot"><img id="ovShot" src="assets/backdrops/backdrop-3.jpg" alt=""></div>
+  <div class="ov-fog" id="ovFog"></div>
+  <div class="ov-copy">
+    <div class="ov-eyeb" id="ovEyeb">Together with their families</div>
+    <div class="ov-names">
+      <span data-sync="one"></span>
+      <span class="ov-amp">and</span>
+      <span data-sync="two"></span>
+    </div>
+  </div>
+  <button class="intro-skip" id="introSkip">Skip</button>
+</div>
+
+<!-- ============================================================
+     NAVIGATION
+     ============================================================ -->
+<header id="site-nav">
+  <div class="nav-mark"></div>
+  <button class="nav-index-btn" id="indexOpen" aria-haspopup="true" aria-expanded="false" aria-controls="index-menu">
+    <span>Index</span>
+  </button>
+</header>
+
+<nav id="index-menu" aria-label="Site index">
+  <button class="index-close" id="indexClose" aria-label="Close index">Close</button>
+  <div class="index-inner">
+    <button type="button" class="index-item" data-target="#hero"><span class="num">00</span><span class="label">The Invitation</span></button>
+    <button type="button" class="index-item" data-target="#beginning"><span class="num">01</span><span class="label">The Beginning</span></button>
+    <button type="button" class="index-item" data-target="#us"><span class="num">02</span><span class="label">Under Glass</span></button>
+    <button type="button" class="index-item" data-target="#the-day"><span class="num">03</span><span class="label">The Day</span></button>
+    <button type="button" class="index-item" data-target="#schedule"><span class="num">04</span><span class="label">The Order of the Day</span></button>
+    <button type="button" class="index-item" data-target="#gallery"><span class="num">05</span><span class="label">Photographs</span></button>
+    <button type="button" class="index-item" data-target="#rsvp"><span class="num">06</span><span class="label">RSVP</span></button>
+  </div>
+</nav>
+
+<!-- The glazing bars the whole page is seen through. Fixed, so the frame holds
+     still while the content moves behind it. -->
+<!-- THE LIGHT. Four fixed layers, crossfaded by scroll position, that take
+     the page from four o.clock daylight to lamplight. Behind everything. -->
+<div class="daylight" aria-hidden="true"><b class="l1"></b><b class="l2"></b><b class="l3"></b><b class="l4"></b></div>
+<div class="glazing" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+
+<main id="main">
+
+  <div id="nav-sentinel" aria-hidden="true"></div>
+
+  <!-- ============================================================
+       00 - THE INVITATION
+       The photograph is the hero, not an ornament beside the type. The
+       backdrop is the design's own material and is chosen from a set in
+       the editor rather than uploaded freely, because the gradients and
+       the type placement are tuned to it.
+       ============================================================ -->
+  <section id="hero">
+    <div class="shot">
+      <img id="heroBackdrop" src="assets/backdrops/backdrop-3.jpg" alt="">
+      <!-- The fog is a real element, not a pseudo-element. A ::before carrying
+           backdrop-filter would not take an opacity change from an ancestor
+           class in Chrome, so the glass never cleared. A real node can also be
+           set directly from finishEntry, which is the failsafe path. -->
+      <div class="shot-fog" id="shotFog"></div>
+      <!-- THE CONDENSATION. A canvas holding a blurred, misted copy of the same
+           photograph, sitting over the sharp one. Wiping it erases holes and the
+           picture comes through. It re-mists slowly, so the hero is something you
+           can put a hand on rather than something you scroll past. -->
+      <canvas class="shot-glass" id="fogCanvas" aria-hidden="true"></canvas>
+    </div>
+
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <div class="rule"></div>
+        <h1 class="hero-names">
+          <span class="hero-name" data-sync="one"></span>
+          <span class="hero-amp">and</span>
+          <span class="hero-name" data-sync="two"></span>
+        </h1>
+        <p class="hero-sub" id="heroSub">A glasshouse is where things are kept growing out of season. Come and stand in ours for an evening.</p>
+      </div>
+
+      <div class="hero-meta">
+        <div id="heroWhen">The twentieth of June<b>Four o'clock</b></div>
+        <div id="heroWhere"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       01 - THE BEGINNING
+       ============================================================ -->
+  <section class="sec glass" id="beginning">
+    <div class="wrap">
+      <div class="b-copy">
+        <h2 class="sec-title" id="storyTitle"></h2>
+        <p class="sec-text" id="storyP1">We met in a nursery, arguing quietly about whether it needed more light or less.</p>
+      </div>
+      <div class="frame" id="heroPhoto">
+        <div class="ph"><div class="ph-tag"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       02 - UNDER GLASS
+       ============================================================ -->
+  <section class="sec glass" id="us" style="--plate:url('assets/backdrops/backdrop-3.jpg')" aria-labelledby="usHeading">
+    <h2 class="visually-hidden-real" id="usHeading">Under glass</h2>
+    <div class="wrap">
+      <div class="u-words">
+        <span class="u-w" id="word-you">Warm</span>
+        <span class="u-w u-amp" id="story-amp">in</span>
+        <span class="u-w" id="word-me">December</span>
+      </div>
+      <div class="u-us" id="story-us">Still growing</div>
+      <p class="u-text" id="storyP2">Everything since has been an attempt to build a warmer room and stay in it.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       03 - THE DAY
+       ============================================================ -->
+  <!-- Everything in a nursery is labelled: what it is, where it sits, when it
+       flowers, and a line of notes. So the facts of the day are set on a label
+       rather than in a centred stack of type. It is the one printed object on
+       an otherwise photographic page, and it hangs on its string. -->
+  <section class="sec glass" id="the-day" style="--plate:url('assets/backdrops/backdrop-2.jpg')" aria-labelledby="dayHeading">
+    <h2 class="visually-hidden-real" id="dayHeading">The day</h2>
+    <div class="wrap day-wrap">
+      <div class="label-card">
+        <span class="lc-string" aria-hidden="true"></span>
+        <span class="lc-hole" aria-hidden="true"></span>
+        <div class="lc-issuer" id="dayIssuer"></div>
+        <div class="lc-species">
+          <span data-sync="one"></span><i>&amp;</i><span data-sync="two"></span>
+        </div>
+        <div class="lc-date" data-sync="date"></div>
+        <dl class="lc-rows">
+          <div><dt>Ceremony</dt><dd id="dayTime">4:00 pm</dd></div>
+          <div><dt>Position</dt><dd id="dayVenue"></dd></div>
+          <div><dt>Address</dt><dd id="dayAddr"></dd></div>
+          <div><dt>Notes</dt><dd id="dayDress">Summer dress</dd></div>
+        </dl>
+      </div>
+      <div class="day-links">
+        <a id="venueLink" href="#" target="_blank" rel="noopener">Directions</a>
+        <a id="gcal-link" href="#" target="_blank" rel="noopener">Google Calendar</a>
+        <a id="ics-link" href="#">Apple Calendar</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       04 - THE ORDER OF THE DAY
+       ============================================================ -->
+  <section class="sec glass" id="schedule" style="--plate:url('assets/backdrops/backdrop-1.jpg')">
+    <div class="wrap">
+      <h2 class="sec-title" id="schedHeading">The order of the day.</h2>
+      <div class="sched" id="tlItems"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       05 - PHOTOGRAPHS
+       ============================================================ -->
+  <section class="sec glass" id="gallery">
+    <div class="wrap">
+      <h2 class="sec-title">A few of ours.</h2>
+      <div class="gallery-grid"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       06 - RSVP
+       ============================================================ -->
+  <section class="sec glass" id="rsvp">
+    <div class="wrap">
+      <div class="rsvp-lead" id="rsvpLead">Now, we would love to have you with us</div>
+      <h2 class="rsvp-title">RSVP</h2>
+
+      <form class="rsvp-form" id="rsvp-form" name="rsvp" method="POST" novalidate>
+        <input type="hidden" name="form-name" value="rsvp">
+        <p class="hp-field" aria-hidden="true" style="position:absolute;left:-9999px;height:0;overflow:hidden"><label>Leave this field empty<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+        <div class="field">
+          <label for="rsvpName" id="rsvpNameLabel">Your Name</label>
+          <input type="text" id="rsvpName" name="guest_names" placeholder="Full name" autocomplete="name" required>
+          <span class="field-underline"></span>
+        </div>
+        <div class="field">
+          <label id="joinLabel">Will You Join Us?</label>
+          <div class="rsvp-choice" role="radiogroup" aria-labelledby="joinLabel">
+            <label class="choice-btn selected"><input type="radio" name="attending" value="yes" class="visually-hidden" checked><span id="rsvpYesLabel">Yes</span></label>
+            <label class="choice-btn"><input type="radio" name="attending" value="no" class="visually-hidden"><span id="rsvpNoLabel">No</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="rsvpGuests" id="rsvpGuestsLabel">Number of Guests</label>
+          <input type="number" id="rsvpGuests" min="1" max="6" value="2" placeholder="1" inputmode="numeric">
+          <span class="field-underline"></span>
+          <select id="rsvp-guest-count" name="guest_count" class="visually-hidden" tabindex="-1" aria-hidden="true">
+            <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          </select>
+        </div>
+        <div class="field" id="rsvp-plusone-wrap" style="display:none">
+          <label for="rsvp-plusone-name" id="rsvpPlusOneLabel">Name of your guest</label>
+          <input type="text" id="rsvp-plusone-name" name="plusone_name" placeholder="Optional">
+          <span class="field-underline"></span>
+        </div>
+        <div class="field">
+          <label for="rsvpDietary" id="rsvpDietaryLabel">Dietary Requirements</label>
+          <input type="text" id="rsvpDietary" name="dietary" placeholder="Optional">
+          <span class="field-underline"></span>
+        </div>
+        <div class="field">
+          <label for="rsvpMessage" id="rsvpNotesLabel">A Message for the Couple</label>
+          <textarea id="rsvpMessage" name="notes" rows="2" placeholder="Optional"></textarea>
+          <span class="field-underline"></span>
+        </div>
+        <button type="submit" class="rsvp-submit" id="rsvpSubmit"><span id="rsvpSubmitLabel">Confirm RSVP</span></button>
+        <p class="rsvp-error" id="rsvp-error" role="alert" style="display:none;margin-top:14px;font-size:12px"></p>
+        <!-- The two things a guest looks for after the button: when they have to
+             answer by, and how to reach the couple if the form will not play. -->
+        <p class="rsvp-foot">
+          <span id="rsvpDeadlineLine">Kindly reply by 1st May, 2027</span>
+          <a id="rsvpEmailLink" href="#"></a>
+        </p>
+      </form>
+
+      <!-- Stands in for the form once a reply has been accepted, so the section
+           never looks as though nothing was sent. -->
+      <div class="rsvp-done" id="rsvp-confirmed" hidden>
+        <p class="rd-line" id="rsvpDoneTitle">Your reply is with us.</p>
+        <p class="rd-sub" id="rsvpDoneSub">Thank you.</p>
+        <button type="button" class="rd-again" id="rsvpAgain">Send a different reply</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span id="footNames"></span>
+    <span>The Glasshouse</span>
+  </footer>
+
+</main>
+
+<!-- ============================================================
+     RSVP CONFIRMATION
+     The glass clears completely, once, and the message is behind it.
+     ============================================================ -->
+<div id="closing" role="dialog" aria-modal="true" aria-labelledby="closeText" aria-hidden="true">
+  <div class="cl-shot"><img id="clShot" src="assets/backdrops/backdrop-1.jpg" alt=""></div>
+  <div class="cl-copy">
+    <div class="cf-title" id="closeText">See you there</div>
+    <div class="cf-sub" id="closeSub">With love,</div>
+    <div class="cf-names" id="closeNames"></div>
+  </div>
+  <button type="button" class="cl-close" id="closeDismiss">Close</button>
+</div>
+<script id="invitation-data-script">
+let invitationData = {
+    /* Filled from Luma by luma-bridge.js (window.lumaBoot) before the first
+       render: the couple's details, photos and wording. Below are only the
+       shapes, and this design's generic labels. */
+    partner1: "", partner2: "", hashtag: "", date: "", time: "",
+    venueName: "", venueAddress: "", dressCode: "", dressCodeNote: "", rsvpDeadline: "",
+    music: { enabled: false, track: "gnossienne" },
+    heroPhoto: "", story1: "", story2: "",
+    gallery: [], schedule: [], faq: [],
+    photoTone: true,
+    ceremonyNote: "",
+    backdrop: "assets/backdrops/backdrop-3.jpg",
+    storyPhoto: "",
+    heroEyebrow: "Together with their families",
+    heroPlace: "",
+    heroQuote: "A glasshouse is where things are kept growing out of season. Come and stand in ours for an evening.",
+    storyTitle: "",
+    glassLine: "Warm in December",
+    glassNote: "Still growing",
+    scheduleHeading: "The order of the day.",
+    rsvpKicker: "Now, we would love to have you with us",
+    rsvpEmailText: "",
+    rsvpDeadlinePrefix: "Kindly reply by",
+    rsvpNameLabel: "Your Name",
+    rsvpAttendanceLabel: "Will You Join Us?",
+    rsvpYesLabel: "Yes",
+    rsvpNoLabel: "No",
+    rsvpGuestsLabel: "Number of Guests",
+    rsvpPlusOneLabel: "Name of your guest",
+    rsvpNotesLabel: "A Message for the Couple",
+    rsvpSubmitLabel: "Confirm RSVP",
+    rsvpErrorText: "That didn't send. Check your connection and try again.",
+    isGuestView: true
+};
+</script>
+
+<!-- Luma first: the core awaits window.lumaBoot -->
+<script src="../_shared/luma-bridge.js?v=2"></script>
+
+
+<!-- Shared behaviour for every design: builder, save and share, countdown,
+     calendar, gallery, RSVP post, music, export. Loaded after the data. -->
+<script src="../_shared/wedding-core.js?v=33"></script>
+<!-- This design only: the opening sequence, the GSAP scroll timelines, and the
+     seam onto the shared core. Loaded after the core so it can override by name. -->
+<script src="design.js?v=33"></script>
+
+<!-- Luma: the after-render hook this design's own render needs, and what it
+     leaves to its old builder. -->
+<script src="luma.js?v=1"></script>
+</body>
+</html>
