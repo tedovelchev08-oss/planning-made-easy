@@ -172,6 +172,27 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       ],
     },
   },
+  {
+    id: "cinema", name: "The Picture House", plan: "luxe", motif: "frame", heroPlaceholder: "design",
+    blurb: "Your wedding as a film: velvet curtains, a three-act story and a ticket to tear",
+    placeholder: { from: "#120E0B", to: "#2A2018", ink: "#C99B4C" },
+    tracks: [
+      { id: "gnossienne", name: "Gnossienne No. 1", composer: "Satie" },
+      { id: "clairdelune", name: "Clair de lune", composer: "Debussy" },
+      { id: "pavane", name: "Pavane", composer: "Ravel" },
+    ],
+    extras: {
+      photos: [
+        { key: "storyPhotoOne", label: "A portrait of one of you", hint: "\"Starring\" in Act I" },
+        { key: "storyPhotoTwo", label: "A portrait of the other" },
+        { key: "storyPhotoTogether", label: "The two of you" },
+      ],
+      gallery: 6,
+      texts: [
+        { key: "heroEyebrow", label: "The opening slate", max: 60, placeholder: "Scene 01 — Ext. Lake Como — Dusk", fallback: "Scene 01 — The Wedding" },
+      ],
+    },
+  },
   { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Palm fronds and fine gilded lines, in sage and ivory", motif: "frame", placeholder: { from: "#F5F9F6", to: "#DDEBE2", ink: "#4E8A6C" } },
 ];
 

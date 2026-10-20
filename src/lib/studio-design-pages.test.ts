@@ -51,7 +51,7 @@ describe.each(own.map((id) => [id]))("public/designs/%s/design.js: its own RSVP 
   const block = js.slice(js.indexOf("reply goes to /api/rsvp"));
 
   it("reads the answers before disabling the fields", () => {
-    const read = block.indexOf("new FormData(form)");
+    const read = block.search(/new FormData\(\w+\)/);
     const disable = block.indexOf(".disabled = true");
     expect(read).toBeGreaterThan(0);
     expect(disable).toBeGreaterThan(read);
