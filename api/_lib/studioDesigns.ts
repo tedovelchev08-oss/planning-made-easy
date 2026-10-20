@@ -153,6 +153,25 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       ],
     },
   },
+  {
+    id: "liquid-gold", name: "Liquid Gold", plan: "luxe", motif: "frame", heroPlaceholder: "design",
+    blurb: "Molten gold on black: your names cast like a ring, the story rising line by line",
+    placeholder: { from: "#0B0907", to: "#2A2116", ink: "#D4AF6A" },
+    tracks: [
+      { id: "gnossienne", name: "Gnossienne No. 1", composer: "Satie" },
+      { id: "clairdelune", name: "Clair de lune", composer: "Debussy" },
+      { id: "pavane", name: "Pavane", composer: "Ravel" },
+    ],
+    extras: {
+      photos: [],
+      gallery: 5,
+      texts: [
+        { key: "heroQuote", label: "Opening line", max: 80, placeholder: "Two lives. One promise.", fallback: "Two lives. One promise." },
+        { key: "storyStatements", label: "The rising lines, one per line", max: 200, multiline: true, placeholder: "It started with two\nTwo lives\nOne unexpected moment\nAnd now\nUs", fallback: "It started with two\nTwo lives\nOne unexpected moment\nAnd now\nUs" },
+        { key: "rsvpEmailText", label: "Contact for questions", max: 80, placeholder: "An email or phone number, if you'd like" },
+      ],
+    },
+  },
   { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Palm fronds and fine gilded lines, in sage and ivory", motif: "frame", placeholder: { from: "#F5F9F6", to: "#DDEBE2", ink: "#4E8A6C" } },
 ];
 

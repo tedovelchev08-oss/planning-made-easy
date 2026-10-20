@@ -119,3 +119,33 @@ describe("Mirror Palace on Luma (luma.js)", () => {
     expect(document.getElementById("celebrationImg")!.getAttribute("src")).toBe("assets/photos/celebration.svg");
   });
 });
+
+/* ------------------------------ public/designs/liquid-gold/luma.js ------------------------------ */
+
+const LG_JS = readFileSync(resolve(__dirname, "../../public/designs/liquid-gold/luma.js"), "utf8");
+function runLg(data: Record<string, unknown>) {
+  document.body.innerHTML = `<p id="line"><span id="rsvpDeadlinePrefix">Kindly answer before</span> <span id="rsvpDeadlineText">${data.rsvpDeadline ?? ""}</span> <span class="sep">&middot;</span> <span id="rsvpEmailText">${data.rsvpEmailText ?? ""}</span></p>`;
+  const w = window as unknown as Record<string, unknown>;
+  w.invitationData = data;
+  w.renderInvitationFromData = vi.fn();
+  w.lumaAfterRender = vi.fn();
+  new Function(LG_JS)();
+  (w.renderInvitationFromData as () => void)();
+  return w.lumaAfterRender as ReturnType<typeof vi.fn>;
+}
+const visible = (sel: string) => (document.querySelector(sel) as HTMLElement).style.display !== "none";
+
+describe("Liquid Gold on Luma (luma.js)", () => {
+  it("shows the RSVP line's parts only when given, the separator only between two", () => {
+    runLg({ rsvpDeadline: "1 May 2027", rsvpEmailText: "" });
+    expect([visible("#rsvpDeadlineText"), visible(".sep"), visible("#rsvpEmailText"), visible("#line")]).toEqual([true, false, false, true]);
+    runLg({ rsvpDeadline: "1 May 2027", rsvpEmailText: "ana@example.com" });
+    expect([visible(".sep"), visible("#rsvpEmailText")]).toEqual([true, true]);
+    runLg({ rsvpDeadline: "", rsvpEmailText: "" });
+    expect(visible("#line")).toBe(false);
+  });
+
+  it("calls the bridge's after-render step", () => {
+    expect(runLg({})).toHaveBeenCalled();
+  });
+});
