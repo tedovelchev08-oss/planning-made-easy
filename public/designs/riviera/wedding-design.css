@@ -529,3 +529,128 @@ body.intro-on .audio-toggle{ display:none !important }
 }
 .day-links a:hover{ background:none !important; opacity:.75 }
 .day-links a{ color:var(--baize) !important }
+
+/* ============================================================
+   A POSTCARD FROM THE COAST
+   The roulette wheel is gone. The opening is a real 1960s postcard of
+   the harbour (generated for this design, assets/CREDITS.txt); turned
+   over, the back carries the couple's note in their hand, a stamp and
+   a postmark. The page keeps the same paper, green and gold, with the
+   postcards doing what the chips and baize did.
+   ============================================================ */
+:root{ --hand: 'Caveat', 'Bradley Hand', cursive }
+
+/* ---------- the opening ---------- */
+.pc-stage{
+  position:absolute; left:50%; top:44%; transform:translate(-50%,-50%);
+  width:min(88vw, 560px); aspect-ratio:4/3; perspective:1600px;
+}
+.pc-card{
+  position:relative; width:100%; height:100%; cursor:pointer;
+  transform-style:preserve-3d; transform:rotate(-3deg);
+  transition:transform 1.3s var(--ease);
+}
+.pc-card.turned{ transform:rotate(1.5deg) rotateY(180deg) }
+.pc-card:focus-visible{ outline:2px solid var(--gold); outline-offset:8px }
+.pc-face{
+  position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 26px 40px -18px rgba(40,30,15,.55), 0 2px 5px rgba(40,30,15,.25);
+  background:#f4ecda;
+}
+.pc-front{ padding:3.2%; }
+.pc-front img{ display:block; width:100%; height:100%; object-fit:cover; filter:var(--photo-tone) }
+.pc-back{
+  transform:rotateY(180deg);
+  background:#efe6d2 url("assets/card-back.jpg") center / cover;
+  display:grid; grid-template-columns:1.15fr 1fr; padding:5.5% 5% 5% 6%; gap:6%;
+}
+/* the printed divider every postcard back has */
+.pc-back::before{
+  content:""; position:absolute; left:53.5%; top:11%; bottom:11%; width:1px; background:rgba(90,70,50,.35);
+}
+.pc-note{ font-family:var(--hand); font-weight:500; color:#24364a; line-height:1.18; font-size:clamp(15px, 3.9vw, 23px); align-self:center }
+.pc-note p + p{ margin-top:.35em }
+.pc-note .pc-love{ margin-top:.6em }
+.pc-note .pc-sign{ font-weight:600; font-size:1.12em }
+.pc-side{ position:relative; display:flex; flex-direction:column; align-items:flex-end }
+.pc-to{
+  margin-top:auto; width:100%; display:grid; gap:.1em;
+  font-family:var(--hand); font-weight:500; color:#24364a; font-size:clamp(14px, 3.4vw, 20px);
+}
+.pc-to span{ border-bottom:1px solid rgba(90,70,50,.35); padding:0 .2em .08em }
+.pc-to span:empty{ display:none }
+
+/* a stamp: a real photograph with a perforated edge */
+.stamp{
+  display:block; width:clamp(48px, 13vw, 78px); aspect-ratio:4/5; padding:5px; background:#fbf6ea;
+  /* solid inside the paper border; holes punched only round the edge */
+  -webkit-mask:linear-gradient(#000 0 0) content-box, radial-gradient(circle 2.6px, transparent 96%, #000) -4px -4px / 8px 8px round;
+          mask:linear-gradient(#000 0 0) content-box, radial-gradient(circle 2.6px, transparent 96%, #000) -4px -4px / 8px 8px round;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.2));
+}
+.stamp img{ display:block; width:100%; height:100%; object-fit:cover; filter:saturate(.85) sepia(.12) }
+/* the postmark: ink, slightly off-true, struck across the stamp's edge */
+.postmark{
+  position:absolute; top:6%; right:24%; z-index:2;
+  width:clamp(58px, 15vw, 92px); aspect-ratio:1; border-radius:50%;
+  border:1.5px solid rgba(36,54,74,.62); color:rgba(36,54,74,.72);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  transform:rotate(-14deg); font-family:var(--support); text-align:center; line-height:1.1;
+}
+.postmark::before{ content:""; position:absolute; inset:5px; border-radius:50%; border:1px solid rgba(36,54,74,.4) }
+.postmark b{ font-weight:600; font-size:clamp(8px, 2vw, 11px); letter-spacing:.12em }
+.postmark i{ font-style:normal; font-size:clamp(6px, 1.5vw, 8px); letter-spacing:.14em; max-width:80%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis }
+
+.intro-call{ top:calc(44% + min(88vw, 560px) * 3 / 8 + 3svh) }
+.intro-line:empty{ min-height:0 }
+
+/* ---------- the hero: their photograph, franked ---------- */
+.wheel{ display:none }
+.hero-names{ top:calc(var(--photo-h) + 4.5svh); white-space:normal }
+.hero-details{ top:calc(var(--photo-h) + 4.5svh + var(--names-size) * var(--fit) * 2.15 + 2svh) }
+@media (min-width:900px) and (min-aspect-ratio:1/1){
+  .hero-names{ top:24vh }
+  .hero-details{ top:calc(24vh + var(--names-size) * var(--fit) * 2.15 + 3vh) }
+}
+.hero-stamp{ position:absolute; z-index:5; right:18px; top:calc(var(--photo-h) - 52px) }
+.hero-stamp .stamp{ width:clamp(56px, 14vw, 86px); transform:rotate(4deg) }
+.hero-stamp .postmark{ top:auto; bottom:-18px; right:auto; left:-38px }
+@media (min-width:900px) and (min-aspect-ratio:1/1){
+  .hero-stamp{ top:32px; right:auto; left:calc(var(--photo-w) - 56px) }
+}
+
+/* ---------- the day: a postcard of the beach beside the details ---------- */
+.day-card{
+  margin:0; width:min(100%, 380px); padding:12px 12px 30px; background:#f4ecda; justify-self:center;
+  transform:rotate(-2.5deg);
+  box-shadow:0 22px 34px -20px rgba(40,30,15,.5), 0 2px 4px rgba(40,30,15,.18);
+}
+.day-card img{ display:block; width:100%; aspect-ratio:4/3; object-fit:cover; filter:var(--photo-tone) }
+
+/* ---------- the order of the day: written on the back of a card ---------- */
+#schedule{ background:var(--paper); box-shadow:none }
+#schedule::before{ display:none }
+.sec-title.on-baize{ color:var(--baize) }
+.table-row{
+  display:block; max-width:620px; padding:clamp(26px, 6vw, 44px) clamp(22px, 6vw, 48px);
+  background:#efe6d2 url("assets/card-back.jpg") center / cover;
+  box-shadow:0 24px 36px -22px rgba(40,30,15,.5), 0 2px 4px rgba(40,30,15,.16);
+  transform:rotate(.6deg);
+}
+.tl-item{
+  display:grid; grid-template-columns:5.2em 1fr; gap:2px 14px; align-items:baseline;
+  text-align:left; color:#24364a; padding:10px 0; border-bottom:1px solid rgba(90,70,50,.28);
+}
+.tl-item:last-child{ border-bottom:0 }
+.tl-chip{ width:auto; height:auto; margin:0; display:block; background:none; box-shadow:none; border-radius:0 }
+.tl-chip::before, .tl-chip::after{ display:none }
+.tl-time{ font-family:var(--display); font-size:20px; color:var(--baize) }
+.tl-title{ font-family:var(--hand); font-style:normal; font-weight:500; font-size:clamp(22px, 5vw, 26px); color:#24364a }
+.tl-venue{ grid-column:2; margin-top:-2px; color:var(--ink-soft); letter-spacing:.16em }
+
+/* ---------- the reply: the back of a card too ---------- */
+.rsvp-card{ background:#efe6d2 url("assets/card-back.jpg") center / cover !important; padding-top:clamp(34px, 7vw, 52px) !important }
+.done-postmark{ position:relative; height:100px; margin:0 auto 10px; width:100px }
+.done-postmark .postmark{ position:relative; top:auto; right:auto; width:96px; transform:rotate(-12deg) }
+
+@media (prefers-reduced-motion:reduce){ .pc-card{ transition:none } }

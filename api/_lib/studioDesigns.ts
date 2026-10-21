@@ -97,7 +97,7 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
   },
   {
     id: "riviera", name: "Riviera", plan: "luxe", motif: "frame",
-    blurb: "Rien ne va plus: guests spin a roulette wheel that lands on your wedding day",
+    blurb: "A 1960s postcard from the coast: guests turn it over to find your note, stamped and postmarked with your date",
     placeholder: { from: "#2F5D6A", to: "#9FB7B0", ink: "#F3EEE2" },
     tracks: [
       { id: "gnossienne", name: "Gnossienne No. 1", composer: "Satie" },
@@ -107,7 +107,9 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       photos: [],
       gallery: 4,
       texts: [
-        { key: "heroPlace", label: "Where, in a few words", max: 60, placeholder: "Portovenere, Liguria" },
+        { key: "heroPlace", label: "Where, in a few words (on the postmark)", max: 60, placeholder: "Portovenere, Liguria" },
+        { key: "postcardGreeting", label: "The postcard's first line", max: 30, placeholder: "Dear you,", fallback: "Dear you," },
+        { key: "postcardNote", label: "Your note on the back of the postcard", max: 220, multiline: true, placeholder: "We're getting married on Saturday the twelfth of June, at Villa Lago. Come and celebrate with us by the sea. (written from your date and venue if left empty)" },
         { key: "rsvpEmailText", label: "Contact for questions", max: 80, placeholder: "An email or phone number, if you'd like" },
       ],
     },
