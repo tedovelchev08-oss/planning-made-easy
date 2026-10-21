@@ -92,6 +92,14 @@ describe("a design's own photos, gallery and wording", () => {
     expect(screen.queryByRole("region", { name: /photos$/ })).toBeNull();
   });
 
+  it("The Crossing: a photo per moment, and no music section (it has no player)", () => {
+    mount(STUDIO_DESIGNS.find((d) => d.id === "map")!);
+    fireEvent.click(screen.getByRole("button", { name: /Add a moment/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Upload Moment 1: photo" }));
+    expect(latest.designData?.schedule?.[0].photo).toBe(url("Moment 1: photo"));
+    expect(screen.queryByRole("region", { name: "Music" })).toBeNull();
+  });
+
   it("a design without extras doesn't show them", () => {
     mount(celestial);
     expect(screen.queryByRole("region", { name: /photos$/ })).toBeNull();

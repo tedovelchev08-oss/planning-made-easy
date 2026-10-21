@@ -9,7 +9,7 @@ import { PLANS } from "../../lib/plans";
 import { playChime } from "../../lib/sound";
 import { Field, Pill, btn, inputCls } from "../ui";
 import { PhotoUpload } from "./PhotoUpload";
-import { isUploadedPhoto } from "../../lib/api";
+import { deletePhoto, isUploadedPhoto } from "../../lib/api";
 
 /**
  * The owner's own invitation designs in the planner (Block 18b): a gallery
@@ -157,7 +157,13 @@ const small = `${inputCls} !px-3 !py-2 !text-[0.85rem]`;
 export function StudioDetails({ cfg, setCfg, design }: {
   cfg: InvitationConfig; setCfg: (p: Partial<InvitationConfig>) => void; design: StudioDesign;
 }) {
+  const { mode, weddingId } = useApp();
   const dd: DesignData = cfg.designData ?? {};
+  const momentPhotos = !!design.extras?.schedulePhotos;
+  /** a removed moment takes its uploaded photo with it */
+  const forgetPhoto = (url?: string) => {
+    if (url && isUploadedPhoto(url) && mode === "cloud" && weddingId) void deletePhoto(weddingId, url).catch(() => {});
+  };
   const set = (p: Partial<DesignData>) => setCfg({ designData: { ...dd, ...p } });
   const schedule = dd.schedule ?? [];
   const faq = dd.faq ?? [];
@@ -205,7 +211,7 @@ export function StudioDetails({ cfg, setCfg, design }: {
             <div className="grid grid-cols-[84px_1fr_auto] gap-2">
               <input className={small} maxLength={L.time} placeholder="16:00" aria-label={`Moment ${i + 1}: time`} value={s.time ?? ""} onChange={(e) => set({ schedule: setItem(schedule, i, { time: e.target.value }) })} />
               <input className={small} maxLength={L.title} placeholder="Ceremony" aria-label={`Moment ${i + 1}: what happens`} value={s.title ?? ""} onChange={(e) => set({ schedule: setItem(schedule, i, { title: e.target.value }) })} />
-              <button onClick={() => set({ schedule: schedule.filter((_, j) => j !== i) })} aria-label={`Remove moment ${i + 1}`} className="rounded-full p-2 text-ink-mute transition hover:text-blush-deep cursor-pointer"><Trash2 size={14} /></button>
+              <button onClick={() => { forgetPhoto(s.photo); set({ schedule: schedule.filter((_, j) => j !== i) }); }} aria-label={`Remove moment ${i + 1}`} className="rounded-full p-2 text-ink-mute transition hover:text-blush-deep cursor-pointer"><Trash2 size={14} /></button>
             </div>
             <div className="grid grid-cols-[1fr_110px] gap-2">
               <input className={small} maxLength={L.venue} placeholder="Where (optional)" aria-label={`Moment ${i + 1}: where`} value={s.venue ?? ""} onChange={(e) => set({ schedule: setItem(schedule, i, { venue: e.target.value }) })} />
@@ -213,6 +219,10 @@ export function StudioDetails({ cfg, setCfg, design }: {
                 {ICONS.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
               </select>
             </div>
+            {momentPhotos && (
+              <PhotoUpload compact photo={s.photo ?? null} label={`Moment ${i + 1}: photo`}
+                onChange={(url) => set({ schedule: setItem(schedule, i, { photo: url ?? undefined }) })} />
+            )}
           </div>
         ))}
         {schedule.length < L.items && (
@@ -240,6 +250,7 @@ export function StudioDetails({ cfg, setCfg, design }: {
         )}
       </section>
 
+      {tracksOf(design).length > 0 && (
       <section className={`${card} space-y-2`} aria-label="Music">
         <div className="flex items-center justify-between">
           <h3 className={label}>Music</h3>
@@ -259,6 +270,7 @@ export function StudioDetails({ cfg, setCfg, design }: {
           </button>
         ))}
       </section>
+      )}
     </>
   );
 }

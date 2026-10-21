@@ -24,7 +24,7 @@ export interface StudioDesign {
   placeholder: { from: string; to: string; ink: string };
   /** the planner's card: a starfield, or a fine double frame */
   motif: "stars" | "frame";
-  /** the design's own music; the shared STUDIO_TRACKS when absent */
+  /** the design's own music; the shared STUDIO_TRACKS when absent, none when empty (no player) */
   tracks?: readonly StudioTrack[];
   /** until the couple adds a photo: their initials, or the design's own drawn plate */
   heroPlaceholder?: "initials" | "design";
@@ -38,6 +38,8 @@ export interface StudioDesign {
     gallery: number;
     /** wording only this design has; `fallback` is shown when left empty, otherwise it's hidden */
     texts: { key: string; label: string; max: number; placeholder: string; multiline?: boolean; fallback?: string }[];
+    /** each moment of the day may carry the couple's own photo */
+    schedulePhotos?: boolean;
     /** a pick from the design's own options (e.g. a backdrop); the first is the default */
     choices?: { key: string; label: string; options: { value: string; label: string }[] }[];
   };
@@ -193,6 +195,26 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       ],
     },
   },
+  {
+    id: "map", name: "The Crossing", plan: "celebration", motif: "frame", heroPlaceholder: "design",
+    blurb: "A folded sea chart, opened: your day plotted as a passage, each moment its own piece of the chart",
+    placeholder: { from: "#DFE9E6", to: "#C7DCD6", ink: "#14304F" },
+    tracks: [],
+    extras: {
+      photos: [],
+      gallery: 5,
+      schedulePhotos: true,
+      texts: [
+        { key: "fromPlace", label: "From (on the chart)", max: 40, placeholder: "Where you start, e.g. your town" },
+        { key: "toPlace", label: "To (on the chart)", max: 40, placeholder: "Where you arrive, e.g. the venue" },
+        { key: "chartTitle", label: "Above your names", max: 40, placeholder: "The outer islands" },
+        { key: "storyHeadline", label: "Story headline", max: 80, placeholder: "They met queuing for the wrong boat." },
+        { key: "scheduleHeading", label: "Schedule heading", max: 80, placeholder: "The day, as a passage.", fallback: "The day, as a passage." },
+        { key: "scheduleLede", label: "A line under it", max: 200, multiline: true, placeholder: "Everything before dinner is walkable." },
+        { key: "galleryHeading", label: "Photographs heading", max: 80, placeholder: "A few of ours.", fallback: "A few of ours." },
+      ],
+    },
+  },
   { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Palm fronds and fine gilded lines, in sage and ivory", motif: "frame", placeholder: { from: "#F5F9F6", to: "#DDEBE2", ink: "#4E8A6C" } },
 ];
 
@@ -261,7 +283,7 @@ export interface DesignData {
   gallery?: { photo?: string; caption?: string }[];
   /** the design's choices (extras.choices), by key */
   choices?: Record<string, string>;
-  schedule?: { time?: string; title?: string; venue?: string; icon?: string }[];
+  schedule?: { time?: string; title?: string; venue?: string; icon?: string; photo?: string }[];
   faq?: { question?: string; answer?: string }[];
 }
 
@@ -329,7 +351,8 @@ export function toInvitationData(w: PublicWedding, design: StudioDesign): Record
   const { date, time } = dayAndTime(w.date, w.timezone, w.locale);
   const dd = w.invitation?.design_data ?? {};
   const music = w.invitation?.music ?? {};
-  const uploaded = music.url && music.track === "upload";
+  // a design without a player (no tracks) plays nothing, the couple's song included
+  const uploaded = music.url && music.track === "upload" && tracksOf(design).length > 0;
   // silent unless the couple picked one of the design's tracks (as the designs ship)
   const track = tracksOf(design).some((t) => t.id === dd.musicTrack) ? dd.musicTrack! : null;
 
@@ -348,11 +371,12 @@ export function toInvitationData(w: PublicWedding, design: StudioDesign): Record
     story2: dd.story2 ?? "",
     music: uploaded
       ? { enabled: true, track: "couple", coupleUrl: music.url, coupleName: music.uploadName ?? "Our song" }
-      : { enabled: !!track, track: track ?? tracksOf(design)[0].id },
+      : { enabled: !!track, track: track ?? tracksOf(design)[0]?.id ?? "" },
     // the design's own sample photos are never shown: only the couple's
     gallery: [],
     schedule: (dd.schedule ?? []).slice(0, 12).map((s, i) => ({
       id: i + 1, time: s.time ?? "", icon: s.icon ?? "fa-heart", venue: s.venue ?? "", title: s.title ?? "",
+      ...(design.extras?.schedulePhotos ? { photo: photoUrl(s.photo) } : {}),
     })),
     faq: (dd.faq ?? []).slice(0, 12).map((f, i) => ({ id: i + 1, question: f.question ?? "", answer: f.answer ?? "" })),
     // the couple's own photo; until then their initials, or the design's own drawn plate

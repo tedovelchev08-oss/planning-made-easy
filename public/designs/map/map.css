@@ -1,0 +1,423 @@
+/* ============================================================
+   THE CROSSING  —  admiralty chart
+   ------------------------------------------------------------
+   A folded chart. Three panels on two cut creases, folded to one
+   and opened out.
+
+   What makes it a chart rather than a card with folds:
+
+     1  A sheet chart is paper laminated to linen and CUT along
+        every fold, so the creases are real gaps with the linen
+        showing. Because the printing is continuous across them,
+        every panel carries a full copy of the artwork offset by
+        its own position and clipped to its own edges.
+
+     2  Charts letter by convention, not by taste: land features
+        upright, hydrographic features SLANTED, depths in a
+        figure face, regions in tracked capitals. The type here
+        follows that, which is why there are three cases and two
+        styles rather than one display face doing everything.
+
+     3  The title never floats over the water. It sits in a
+        cleared TITLE BLOCK with a double rule, carrying the
+        chart name and then its scale, soundings unit and date.
+        That block is the hero of the sheet, and the first crease
+        folds across it the way it does on a real chart.
+
+     4  Magenta is not an accent chosen to look good. On an
+        admiralty chart magenta means lights, buoys and tracks,
+        so it carries the passage and the marks at its two ends,
+        and nothing else but the ampersand, which is the sheet's
+        single flourish.
+   ============================================================ */
+
+:root{
+  --water:      #dfe9e6;
+  --water-deep: #c7dcd6;
+  --paper:      #eef0e7;
+  --paper-lit:  #f7f8f1;
+  --land:       #14304f;
+  --land-soft:  #2b4a6b;
+
+  /* the linen backing, which only shows in the cut creases */
+  --linen:      #bda98a;
+  --linen-deep: #9c855f;
+
+  --ink:      #14304f;
+  --ink-soft: #47657f;
+  --rule:     rgba(20,48,79,.42);
+  --rule-soft:rgba(20,48,79,.2);
+
+  /* lights, buoys and cautions. Nothing else. */
+  --magenta:  #c2185b;
+
+  /* Playfair for the engraved title and the slanted hydrographic
+     lettering; Azeret Mono for every number on the sheet, because
+     soundings and scales are set in a figure face. */
+  --display: "Playfair Display", "Libre Caslon Text", Georgia, serif;
+  --util:    "Azeret Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --pw: max(258px, min(84vw, 40dvh, 440px));
+  --ph: calc(var(--pw) * 0.72);
+  --gap: 3px;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0 }
+html{ -webkit-text-size-adjust:100%; background:#766f5e }
+body{
+  font-family:var(--util);
+  color:var(--ink);
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ============================================================
+   THE TABLE
+   A real surface, because the chart has to be lying ON
+   something. It was a two-stop grey-green radial, which had no
+   material in it and no relationship to the paper, sand and
+   photographs the rest of the page is made of.
+
+   Warmed toward teak and kept MID tone: the sheet is pale and
+   has to sit on top of this, and a dark table would take the
+   whole opening dark.
+
+   Two layers over it. A warm pool of light at the upper left,
+   because the sheet's own shadow already falls down and right
+   and the light has to agree with it; then a fall-off to the
+   edges, so the table has depth instead of being a fill.
+   ============================================================ */
+.table{
+  position:fixed; inset:0; z-index:0; overflow:hidden;
+  background:#766f5e url("assets/table.jpg") 50% 50% / cover no-repeat;
+}
+.table .fall{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(74% 62% at 24% 12%,
+      rgba(255,240,206,.34) 0%, rgba(255,240,206,.12) 40%,
+      rgba(255,240,206,0) 66%),
+    radial-gradient(108% 82% at 42% 28%,
+      rgba(22,16,9,0) 24%, rgba(22,16,9,.30) 58%,
+      rgba(18,12,6,.60) 82%, rgba(14,9,4,.80) 100%);
+}
+
+/* ---------- THE STAGE ---------- */
+.scene{
+  position:relative; z-index:2;
+  min-height:100dvh;
+  display:flex; align-items:center; justify-content:center;
+  padding:clamp(18px,3.6dvh,44px) clamp(12px,3.4vw,32px);
+  perspective:1700px;
+}
+
+.map{
+  position:relative;
+  width:var(--pw);
+  height:calc(var(--ph) * 3 + var(--gap) * 2);
+  transform-style:preserve-3d;
+  transform:rotate(-.5deg);
+}
+
+/* ---------- THE PANELS ---------- */
+.panel{
+  position:absolute; left:0; right:0;
+  height:var(--ph);
+  overflow:hidden;
+  background:var(--water);
+  /* Lying on wood now, so the sheet needs a contact shadow AND
+     a long soft one, both warm: the old cool shadow vanished
+     into the grain and the chart read as pasted on. */
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.46) inset,
+    0 1px 2px rgba(30,19,8,.46),
+    0 10px 18px -8px rgba(30,19,8,.5),
+    0 34px 54px -24px rgba(24,14,5,.66);
+  transition:transform 1100ms cubic-bezier(.32,.04,.2,1),
+             opacity 180ms linear;
+  /* only while there is still a fold to open — see body.settled */
+  will-change:transform;
+}
+.panel .face{
+  position:absolute; left:0; width:100%;
+  height:calc(var(--ph) * 3 + var(--gap) * 2);
+}
+.panel.mid{ top:calc(var(--ph) + var(--gap)); z-index:3 }
+.panel.mid .face{ top:calc((var(--ph) + var(--gap)) * -1) }
+
+.panel.top{
+  top:0; transform-origin:50% 100%; transform:rotateX(-180deg); z-index:2;
+}
+.panel.top .face{ top:0 }
+.panel.bot{
+  top:calc((var(--ph) + var(--gap)) * 2);
+  transform-origin:50% 0; transform:rotateX(180deg); z-index:1;
+}
+.panel.bot .face{ top:calc((var(--ph) + var(--gap)) * -2) }
+
+/* A folded panel is simply not there. backface-visibility alone
+   left a ghost of the top panel's printing above the folded
+   sheet; it fades in over 180ms as it begins to swing out, which
+   is right anyway since it is coming from behind. */
+body:not(.opened) .panel.top,
+body:not(.opened) .panel.bot{ opacity:0 }
+body.opened .panel.top{ transform:rotateX(0deg); opacity:1 }
+body.opened .panel.bot{
+  transform:rotateX(0deg); opacity:1;
+  transition-delay:0ms, 420ms;
+}
+
+/* the linen in the cut */
+.map::before, .map::after{
+  content:""; position:absolute; left:0; right:0;
+  height:var(--gap); z-index:0;
+  background:linear-gradient(180deg, var(--linen-deep), var(--linen));
+}
+.map::before{ top:var(--ph) }
+.map::after{ top:calc(var(--ph) * 2 + var(--gap)) }
+
+/* the paper's fibre, and the light across a sheet that has been
+   folded and will not lie flat again */
+.panel .grain{
+  position:absolute; inset:0; z-index:4; pointer-events:none;
+  opacity:.3; mix-blend-mode:multiply;
+}
+.panel .grain img{ width:100%; height:100%; object-fit:cover; display:block }
+.panel::after{
+  content:""; position:absolute; inset:0; z-index:5; pointer-events:none;
+  background:linear-gradient(176deg,
+    rgba(14,28,36,.11) 0%, rgba(14,28,36,0) 8%,
+    rgba(255,255,255,.16) 46%,
+    rgba(14,28,36,0) 92%, rgba(14,28,36,.13) 100%);
+}
+
+/* ---------- THE ARTWORK ---------- */
+.art{ position:absolute; inset:0; width:100%; height:100%; z-index:1 }
+.art .water{ fill:var(--water) }
+.art .shoal{ fill:var(--water-deep) }
+.art .land{ fill:var(--land) }
+.art .landEdge{ fill:none; stroke:#0c2038; stroke-width:.4 }
+.art .snd{ font:300 3.05px "Azeret Mono", monospace; fill:#4e6b86; text-anchor:middle }
+.art .snd.big{ font-size:3.5px; fill:#3d5d7c }
+.art .rose{ fill:none; stroke:var(--ink); stroke-width:.45 }
+.art .rose .pt{ fill:var(--ink); stroke:none }
+.art .rose .ring{ stroke-width:.3; opacity:.7 }
+.art .buoy{ fill:var(--magenta); stroke:var(--paper-lit); stroke-width:.35 }
+.art .rt{ fill:none; stroke:var(--magenta); stroke-width:.38; stroke-dasharray:2 1.4 }
+.art .contour{ fill:none; stroke:#96b4bb; stroke-width:.32; opacity:.85 }
+
+/* THE CHART BORDER.
+   Every chart has one: a double rule with minute ticks along it.
+   It is furniture, and it is most of what stops a chart reading
+   as a blank rectangle. */
+.face .border{
+  position:absolute; inset:calc(var(--pw) * .026);
+  z-index:2; pointer-events:none;
+  border:1px solid var(--rule);
+  box-shadow:
+    0 0 0 calc(var(--pw) * .009) var(--paper),
+    0 0 0 calc(var(--pw) * .0125) var(--rule);
+}
+.face .ticks{
+  position:absolute; inset:calc(var(--pw) * .026); z-index:2; pointer-events:none;
+  background-repeat:repeat-x, repeat-x, repeat-y, repeat-y;
+  background-position:top left, bottom left, left top, right top;
+  background-size:calc(var(--pw) * .0555) 4px, calc(var(--pw) * .0555) 4px,
+                  4px calc(var(--pw) * .0555), 4px calc(var(--pw) * .0555);
+  background-image:
+    linear-gradient(90deg, var(--rule) 1px, transparent 1px),
+    linear-gradient(90deg, var(--rule) 1px, transparent 1px),
+    linear-gradient(180deg, var(--rule) 1px, transparent 1px),
+    linear-gradient(180deg, var(--rule) 1px, transparent 1px);
+}
+
+/* ============================================================
+   THE TITLE BLOCK
+   The hero of the sheet. Cleared ground, double rule, and a
+   stack that goes: region in tracked caps, the chart's name,
+   the passage it covers in slanted lettering, then its scale,
+   soundings unit and date as separate ruled lines.
+
+   The first crease folds across it, which is what happens to a
+   real chart's title block and which is the interlock.
+   ============================================================ */
+.face .title{
+  position:absolute; z-index:3;
+  left:8%; right:20%; top:28.8%;
+  background:linear-gradient(176deg, rgba(247,248,241,.97), rgba(238,240,231,.95));
+  padding:calc(var(--pw) * .052) calc(var(--pw) * .048) calc(var(--pw) * .042);
+  text-align:center;
+  /* the double rule a chart block is drawn with: a heavy outer
+     line, a gap of cleared paper, then a hairline */
+  box-shadow:
+    0 0 0 1px var(--rule),
+    0 0 0 calc(var(--pw) * .0115) rgba(247,248,241,.97),
+    0 0 0 calc(var(--pw) * .0145) var(--rule-soft),
+    0 3px 10px -6px rgba(14,26,32,.34);
+}
+.face .title .region{
+  font-family:var(--util); font-weight:400;
+  font-size:calc(var(--pw) * .0235);
+  letter-spacing:.34em; text-transform:uppercase;
+  color:var(--ink-soft);
+}
+.face .title h1,
+.face .title .nm{
+  font-family:var(--display); font-weight:500;
+  font-size:calc(var(--pw) * .108);
+  line-height:1.1; letter-spacing:.055em;
+  text-transform:uppercase; color:var(--ink);
+  margin:calc(var(--pw) * .032) 0 0;
+  overflow-wrap:break-word;
+}
+/* the ampersand is the sheet's only flourish, and it is the same
+   face's italic rather than a second family */
+.face .title :is(h1, .nm) .amp{
+  display:block;
+  font-family:var(--display); font-style:italic; font-weight:400;
+  font-size:calc(var(--pw) * .058);
+  line-height:1.8; letter-spacing:.02em;
+  text-transform:none; color:var(--magenta);
+}
+/* hydrographic lettering: slanted, by convention */
+.face .title .passage{
+  font-family:var(--display); font-style:italic; font-weight:400;
+  font-size:calc(var(--pw) * .04);
+  line-height:1.45; letter-spacing:.01em;
+  color:var(--land-soft);
+  margin-top:calc(var(--pw) * .026);
+}
+.face .title .spec{
+  margin-top:calc(var(--pw) * .038);
+  padding-top:calc(var(--pw) * .03);
+  border-top:1px solid var(--rule-soft);
+  display:grid; gap:calc(var(--pw) * .011);
+  font-family:var(--util); font-weight:300;
+  font-size:calc(var(--pw) * .0225);
+  letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-soft);
+}
+.face .title .spec b{ font-weight:400; color:var(--ink) }
+
+/* ---------- THE SHEET'S OTHER LETTERING ---------- */
+/* land features: upright, tracked */
+.face .place{
+  position:absolute; z-index:3;
+  font-family:var(--util); font-weight:400;
+  font-size:calc(var(--pw) * .025);
+  letter-spacing:.24em; text-transform:uppercase;
+  color:var(--paper-lit);
+}
+.face .place.a{ left:9.5%; top:5.4% }
+.face .place.b{ right:12%; bottom:3.2% }
+/* hydrographic features: slanted */
+.face .sea{
+  position:absolute; z-index:3;
+  font-family:var(--display); font-style:italic;
+  font-size:calc(var(--pw) * .035);
+  letter-spacing:.04em; color:var(--ink-soft);
+}
+.face .sea.a{ right:9%; top:68% }
+
+.face .sheetno{
+  position:absolute; z-index:3; left:9.5%; bottom:2.6%; text-align:left;
+  font-family:var(--util); font-weight:300;
+  font-size:calc(var(--pw) * .0225);
+  letter-spacing:.1em; color:var(--ink-soft); line-height:1.9;
+}
+
+/* THE DETAIL BLOCK.
+   The second cleared panel, carrying what a guest actually needs,
+   drawn with the same double rule so the sheet has one convention
+   rather than two. */
+.face .detail{
+  position:absolute; z-index:3;
+  left:18%; right:8%; bottom:8%;
+  background:linear-gradient(176deg, rgba(247,248,241,.97), rgba(238,240,231,.95));
+  padding:calc(var(--pw) * .036) calc(var(--pw) * .04);
+  box-shadow:
+    0 0 0 1px var(--rule),
+    0 0 0 calc(var(--pw) * .0115) rgba(247,248,241,.97),
+    0 0 0 calc(var(--pw) * .0145) var(--rule-soft),
+    0 3px 10px -6px rgba(14,26,32,.34);
+}
+.face .detail .cap{
+  font-family:var(--util); font-weight:400;
+  font-size:calc(var(--pw) * .0215);
+  letter-spacing:.3em; text-transform:uppercase; color:var(--land-soft);
+  padding-bottom:calc(var(--pw) * .024);
+  border-bottom:1px solid var(--rule-soft);
+}
+.face .detail dl{
+  display:grid; grid-template-columns:calc(var(--pw) * .19) 1fr;
+  font-family:var(--util);
+  font-size:calc(var(--pw) * .024);
+}
+.face .detail dt{
+  padding:calc(var(--pw) * .021) 0;
+  font-weight:300; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-soft);
+  border-bottom:1px solid var(--rule-soft);
+}
+.face .detail dd{
+  padding:calc(var(--pw) * .021) 0;
+  font-weight:400; letter-spacing:.02em; color:var(--ink);
+  border-bottom:1px solid var(--rule-soft);
+}
+.face .detail dl > :nth-last-child(-n+2){ border-bottom:0 }
+
+/* the scale bar, drawn the way a chart's is */
+.face .scale{
+  position:absolute; z-index:3;
+  left:9%; top:68.5%;
+  display:flex; align-items:center; gap:calc(var(--pw) * .022);
+  font-family:var(--util); font-weight:300;
+  font-size:calc(var(--pw) * .0205);
+  letter-spacing:.12em; color:var(--ink-soft);
+}
+.face .scale i{
+  display:block; width:calc(var(--pw) * .19); height:5px;
+  background:repeating-linear-gradient(90deg,
+    var(--ink) 0 20%, var(--paper-lit) 20% 40%);
+  box-shadow:0 0 0 1px var(--rule);
+}
+
+/* ---------- THE PROMPT ---------- */
+.hint{
+  position:fixed; z-index:14; left:0; right:0;
+  bottom:clamp(10px,2.6dvh,24px);
+  text-align:center;
+  font-size:10px; letter-spacing:.28em; text-transform:uppercase;
+  color:#eef4f6;
+  text-shadow:0 1px 8px rgba(16,28,34,.66);
+  min-height:44px; display:flex; align-items:center; justify-content:center;
+  transition:opacity 600ms ease-out;
+  animation:breathe 3.6s ease-in-out infinite;
+}
+@keyframes breathe{ 0%,100%{opacity:.54} 50%{opacity:1} }
+body.opened .hint{ opacity:0; pointer-events:none; animation:none }
+.hint:focus-visible{ outline:2px solid #eef4f6; outline-offset:3px }
+
+/* ---------- REDUCED MOTION ---------- */
+@media (prefers-reduced-motion:reduce){
+  .panel{ transition:none !important }
+  .hint{ animation:none }
+}
+
+/* The date is the one line of the spec a guest is actually reading,
+   so it is set a step larger and separated from the two lines that
+   are genuinely chart data. It stays inside the spec rather than
+   becoming a fourth display line, because on a chart the date IS
+   part of the block's specification. */
+.face .title .spec .when{
+  font-size:calc(var(--pw) * .029);
+  letter-spacing:.2em; color:var(--ink);
+  padding-bottom:calc(var(--pw) * .016);
+  margin-bottom:calc(var(--pw) * .006);
+  border-bottom:1px solid var(--rule-soft);
+}
+.face .title .spec .when b{ font-weight:400 }
+
+/* Once the sheet is open and the panels have come to rest there is
+   nothing left to animate, so the compositor layers are released. */
+body.settled .panel{ will-change:auto }
