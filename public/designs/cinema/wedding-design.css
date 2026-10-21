@@ -837,3 +837,9 @@ body.editor-open .site-nav{ transition:right .3s ease; }
    the story stands as text alone, centred */
 .story-grid figure[hidden], .story-together[hidden]{ display:none !important }
 .story-grid:not(:has(figure:not([hidden]))){ grid-template-columns:1fr !important; max-width:640px; margin-left:auto; margin-right:auto }
+
+/* ---- showtime: the day and the hour, printed as a cinema prints them ---- */
+.showtime{display:inline-block;margin:44px auto 52px;padding:14px 26px;
+  border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);
+  font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--champ);white-space:pre}
+@media (max-width:480px){.showtime{font-size:11px;letter-spacing:.24em;padding:12px 14px}}

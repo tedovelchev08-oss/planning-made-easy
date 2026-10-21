@@ -587,6 +587,15 @@
     galleryResizeTimer = setTimeout(() => { measureGallery(); measureStory(); }, 150);
   });
 
+  /* The header gets its backing once the opening photograph has gone by. */
+  const heroEl = document.getElementById('hero');
+  function backNav(){
+    const past = heroEl ? heroEl.getBoundingClientRect().bottom < 90 : window.scrollY > 300;
+    body.classList.toggle('nav-backed', past);
+  }
+  window.addEventListener('scroll', backNav, { passive:true });
+  backNav();
+
   /* ---------------- CURSOR LIGHT ---------------- */
   if (!isTouch && !reduceMotion){
     const cursorLight = document.getElementById('cursorLight');
@@ -786,6 +795,17 @@
 
     document.querySelectorAll('[data-sync="personOne"]').forEach(el => { el.textContent = p1; });
     document.querySelectorAll('[data-sync="personTwo"]').forEach(el => { el.textContent = p2; });
+    /* The mirror line: the weekday and the hour, e.g. "Saturday · 16:00".
+       The weekday comes from the date parts, never from new Date(iso),
+       which reads a bare date as UTC. */
+    const when = document.getElementById('mirrorWhen');
+    if (when){
+      const dp = String(invitationData.date || '').split('-');
+      const day = dp.length === 3 ? new Date(+dp[0], +dp[1] - 1, +dp[2]) : null;
+      const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      when.textContent = [day && !isNaN(day) ? DAYS[day.getDay()] : '', invitationData.time || '']
+        .filter(Boolean).join(' \u00b7 ');
+    }
     document.querySelectorAll('[data-sync="date"]').forEach(el => {
       el.textContent = mpFormatDate(invitationData.date);
     });

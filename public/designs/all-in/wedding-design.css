@@ -531,20 +531,105 @@ body.deck .audio-toggle{ display:none !important }
    THE TABLE
    The order of the day and the photographs are dealt onto real green
    baize (assets/baize.jpg, photographed for this design and mirrored
-   into a seamless tile, so it stays at its real scale), so the cards
+   into a seamless tile, so it stays at its real scale, and recoloured
+   to the felt of the card table in the opening photograph), so the cards
    finally have a table to land on. The edge is a soft fall into shadow,
    the way a lamp lights the middle of a card table. The invitation
    itself, the reply and the questions stay on the paper.
    ============================================================ */
 .felt{
   position:relative; z-index:1;
-  background:#1f4a36 url("assets/baize.jpg") center top / 450px 450px repeat;
+  background:#123e15 url("assets/baize.jpg") center top / 450px 450px repeat;
   box-shadow:inset 0 22px 34px -22px rgba(0,0,0,.55), inset 0 -22px 34px -22px rgba(0,0,0,.55);
 }
 .felt::before{
   content:""; position:absolute; inset:0; pointer-events:none;
-  background:radial-gradient(120% 80% at 50% 40%, transparent 45%, rgba(4,18,11,.42) 100%);
+  /* lit like the table at the top of the page: a warm pool from the lamp,
+     the felt falling away into shadow at the edges */
+  background:
+    radial-gradient(70% 55% at 50% 38%, rgba(150,168,74,.20), transparent 70%),
+    radial-gradient(120% 80% at 50% 40%, transparent 40%, rgba(3,12,6,.55) 100%);
 }
 .felt .sec{ position:relative }
 .felt .sec-title{ color:#f6f1e4; text-shadow:0 1px 14px rgba(0,0,0,.35) }
 .felt .ev-card, .felt .pcard{ box-shadow:0 14px 26px -12px rgba(0,0,0,.6), 0 2px 4px rgba(0,0,0,.25) }
+.felt .pcard figcaption{ color:rgba(246,241,228,.86) }
+
+/* ============================================================
+   REAL CARDS
+   Every card used to be a cream rectangle with a drawn gold frame and
+   a back of crossed CSS lines. They are photographed stock now:
+   - card-face.jpg: blank ivory linen-finish card stock;
+   - card-back.jpg: a navy and gold-foil lattice back with an empty oval,
+     where the couple's monogram is set as if foiled.
+   The ranks, suits and names stay type, which is how real cards are
+   printed, but multiply into the paper so its grain shows through the
+   ink. The drawn inner frame is gone; real cards don't have one.
+   ============================================================ */
+.face{
+  background:#f7f2e6 url("assets/card-face.jpg") center / cover;
+  border:0;
+  box-shadow:
+    inset 0 0 0 1px rgba(150,118,52,.32),      /* the faint gilt edge */
+    0 1px 1px rgba(20,24,30,.22),
+    0 10px 22px -6px rgba(20,24,30,.32);
+}
+.face::after{ display:none }
+.face .idx, .face .court, .face .pip-big, .face .ev-body{ mix-blend-mode:multiply }
+.court{ border-color:transparent }
+
+.back{
+  background:#1c2a4e url("assets/card-back.jpg") center / 100% 100%;
+  border:0; outline:0;
+  box-shadow:0 1px 1px rgba(20,24,30,.25), 0 10px 22px -6px rgba(20,24,30,.35);
+}
+.back .mono{
+  background:none; border:0; width:auto; aspect-ratio:auto;
+  color:#e9cf8a;
+  text-shadow:0 1px 0 rgba(0,0,0,.45), 0 -1px 0 rgba(255,236,180,.25);
+}
+
+.pcard .frame{
+  background:#f7f2e6 url("assets/card-face.jpg") center / cover;
+  border:0;
+  box-shadow:inset 0 0 0 1px rgba(150,118,52,.32), 0 1px 1px rgba(20,24,30,.22), 0 12px 24px -8px rgba(20,24,30,.35);
+}
+.pcard .pc-idx{ background:none; mix-blend-mode:multiply }
+
+/* ============================================================
+   THE TABLE THE HAND IS DEALT ON
+   The opening is a real card table under a brass lamp (table-tall.jpg
+   on a phone, table-wide.jpg on a wider screen), not paper. The type
+   over it turns ivory and gold, and the foot of the photograph is
+   darkened so the names and the date read over the felt.
+   ============================================================ */
+/* The photograph is drawn 16% taller than the screen and pinned to the
+   foot, so the lamp stands above the deck rather than behind it. */
+#hero{ background:#0b1d14 }
+#hero::before{
+  content:""; position:absolute; top:-16%; left:0; right:0; bottom:0; z-index:0; pointer-events:none;
+  background:
+    linear-gradient(180deg, rgba(6,14,10,.15) 0%, rgba(6,14,10,.05) 40%, rgba(6,14,10,.55) 72%, rgba(6,14,10,.8) 100%),
+    url("assets/table-tall.jpg") center top / cover;
+}
+@media (min-aspect-ratio:4/5){
+  #hero::before{
+    background:
+      linear-gradient(180deg, rgba(6,14,10,.15) 0%, rgba(6,14,10,.05) 40%, rgba(6,14,10,.55) 72%, rgba(6,14,10,.8) 100%),
+      url("assets/table-wide.jpg") center top / cover;
+  }
+}
+#hero .hero-names{ color:#f6f1e4; text-shadow:0 2px 18px rgba(0,0,0,.45) }
+#hero .hero-names .amp{ color:#e9cf8a }
+#hero .hero-when{ color:#f6f1e4 }
+#hero .hero-where{ color:#e9cf8a }
+#hero .call-line{ color:#f6f1e4; text-shadow:0 1px 12px rgba(0,0,0,.5) }
+#hero .call-deal{ color:#f6f1e4 }
+#hero .intro-skip{ color:rgba(246,241,228,.75) }
+
+.big-card{
+  background:#f7f2e6 url("assets/card-face.jpg") center / cover; border:0;
+  box-shadow:inset 0 0 0 1px rgba(150,118,52,.32), 0 1px 1px rgba(20,24,30,.2), 0 22px 44px -14px rgba(20,24,30,.35);
+}
+.big-card::after{ display:none }
+.big-card .idx, .big-card .big-body{ mix-blend-mode:multiply }

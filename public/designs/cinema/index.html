@@ -33,7 +33,7 @@
      this design; wedding-design.css loads after it so The Picture House always wins,
      and wedding-ui.css last because it only dresses the builder drawer. -->
 <link rel="stylesheet" href="../_shared/tailwind.css?v=13">
-<link rel="stylesheet" href="wedding-design.css?v=14">
+<link rel="stylesheet" href="wedding-design.css?v=15">
 <link rel="stylesheet" href="../_shared/wedding-ui.css?v=13">
 <!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
 <style>
@@ -165,12 +165,7 @@
     <div class="date-card">
       <p class="date-big rv-blur" data-sync="date"></p>
       <p class="date-sub rv" style="--d:.2s">Now showing · one afternoon only</p>
-      <div class="cd rv" style="--d:.3s" role="timer" aria-label="Countdown to the ceremony">
-        <div class="cd-cell"><span class="cd-num" id="cdD">00</span><span class="cd-lab">Days</span></div>
-        <div class="cd-cell"><span class="cd-num" id="cdH">00</span><span class="cd-lab">Hours</span></div>
-        <div class="cd-cell"><span class="cd-num" id="cdM">00</span><span class="cd-lab">Minutes</span></div>
-        <div class="cd-cell"><span class="cd-num" id="cdS">00</span><span class="cd-lab">Seconds</span></div>
-      </div>
+      <p class="showtime rv" style="--d:.3s" id="showtime"></p>
       <div class="venue rv" style="--d:.2s">
         <p class="venue-name" id="venueName"></p>
         <p class="venue-addr" id="venueAddr"></p>
@@ -413,7 +408,7 @@ let invitationData = {
 <script src="../_shared/wedding-core.js?v=14"></script>
 <!-- This design only: the opening sequence, the reveal engine, the tear, and the
      seam onto the shared core. Loaded after the core so it can override by name. -->
-<script src="design.js?v=14"></script>
+<script src="design.js?v=15"></script>
 
 <!-- Luma: the after-render hook this design's own render needs, and what it
      leaves to its old builder. -->
