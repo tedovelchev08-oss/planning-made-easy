@@ -1,0 +1,21 @@
+PLASTER — credits for the grounds
+=================================
+
+Both files here come from Pexels, under the Pexels licence: free for
+commercial use, no attribution required, modification permitted. Selling
+unaltered copies is not permitted, which is why each has been cropped and
+colour-graded at file level. Neither shows a person or a place.
+
+wall.jpg
+  Source   Pexels photo 11236688, close-up of an orange stucco wall.
+  Change   Graded toward warm terracotta (saturation +68%, warm channel
+           balance), resized to 1400x1400.
+
+stock.jpg  (the envelope and card paper)
+  Source   Pexels photo 20899958, textured white paper.
+  Change   Cropped to a 1300x867 region, brightened and desaturated so the
+           CSS multiply tints carry the colour; resized to 1000x667.
+
+The original design's sample photographs (a couple and Andalusian
+courtyards, also Pexels) are not shipped: on Luma every photograph on the
+page is the couple's own upload.

@@ -1,0 +1,14 @@
+/* ============================================================
+   PLASTER ON LUMA
+   The couple's photograph is pinned to the wall as the print when
+   they have one; until then the leaf of paper hangs by itself. A
+   section they leave empty takes itself away.
+   ============================================================ */
+#beginning.nophoto .print{ display:none }
+#beginning.nophoto .lean{ display:block }
+#beginning.nophoto .leaf{ width:min(100%, 560px); margin:0 auto }
+
+/* a note with nothing to say is not pinned up */
+.wallnote:empty{ display:none !important }
+
+.luma-empty{ display:none !important }

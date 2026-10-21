@@ -231,6 +231,21 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       ],
     },
   },
+  {
+    id: "plaster", name: "Plaster", plan: "celebration", motif: "frame", heroPlaceholder: "design",
+    blurb: "A sealed envelope on a sunlit terracotta wall: the wax breaks, the flap lifts and your card rises out",
+    placeholder: { from: "#E7B79F", to: "#C4826F", ink: "#B8296B" },
+    tracks: [],
+    extras: {
+      photos: [],
+      gallery: 6,
+      texts: [
+        { key: "storyHeadline", label: "Story headline", max: 120, placeholder: "A wrong turn, and a flat tyre outside somebody else's olive grove." },
+        { key: "scheduleHeading", label: "Schedule heading", max: 60, placeholder: "Saturday, from five o'clock (worked out from your first moment)" },
+        { key: "galleryHeading", label: "Photographs heading", max: 60, placeholder: "Before any of this was arranged", fallback: "Before any of this was arranged" },
+      ],
+    },
+  },
   { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Palm fronds and fine gilded lines, in sage and ivory", motif: "frame", placeholder: { from: "#F5F9F6", to: "#DDEBE2", ink: "#4E8A6C" } },
 ];
 
