@@ -220,7 +220,8 @@ function buildContent(){
         +'&location='+encodeURIComponent(loc);
     }
     if(ics){
-      if(location.protocol==='file:'){
+      /* LUMA: no calendar function on Luma either, so the same fallback */
+      if(location.protocol==='file:' || window.lumaBoot){
         /* No backend when the file is opened directly. Fall back to the core's
            in-browser download. */
         ics.removeAttribute('href'); ics.style.cursor='pointer';

@@ -39,6 +39,13 @@ describe.each(STUDIO_DESIGNS.map((d) => [d.id]))("public/designs/%s", (id) => {
   });
 
   // the template's stock lines, which read as generated rather than written
+  // the original kit's calendar link pointed at a Netlify function Luma doesn't have
+  it("never sends a guest to a Netlify calendar function", () => {
+    const js = existsSync(resolve(__dirname, `../../public/designs/${id}/design.js`)) ? readFileSync(resolve(__dirname, `../../public/designs/${id}/design.js`), "utf8") : "";
+    const branch = js.indexOf("/.netlify/functions/calendar");
+    if (branch > -1) expect(js.slice(Math.max(0, branch - 700), branch)).toMatch(/window\.lumaBoot/);
+  });
+
   it("carries none of the template's stock lines", () => {
     expect(html).not.toMatch(/Counting Down to Forever|The Celebration Schedule|Frequently Asked Questions|A Few Favorite Moments|Eleanor &(amp;)? James|Joyfully Accepts|Regretfully Declines|"We can't wait to celebrate with you\."|Warm in December/);
   });
