@@ -48,7 +48,7 @@ export interface StudioDesign {
 export interface StudioTrack { id: string; name: string; composer: string }
 
 export const STUDIO_DESIGNS: StudioDesign[] = [
-  { id: "celestial", name: "Celestial", plan: "luxe", blurb: "The night sky above your venue, drawn from your date", motif: "stars", placeholder: { from: "#0B1026", to: "#1E2650", ink: "#E8C87E" } },
+  { id: "celestial", name: "Celestial", plan: "luxe", blurb: "The real sky above your venue on your wedding night: the stars, the moon, and the evening marked as the sky turns", motif: "stars", placeholder: { from: "#0B1026", to: "#1E2650", ink: "#E8C87E" } },
   {
     id: "mirror-palace", name: "Mirror Palace", plan: "luxe", motif: "frame", heroPlaceholder: "design",
     blurb: "Gilt, candlelight and mirrors, opening like palace doors",
