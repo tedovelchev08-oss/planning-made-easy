@@ -1,10 +1,13 @@
-ART DECO: PALM ARTWORK
-======================
+ART DECO — the photographs
+==========================
 
-palm-frame.jpg, palm-frame-sm.jpg, frond-a.jpg, frond-b.jpg, frond-c.jpg
+sunburst.jpg  the brass sunburst the opening gates are made of, and the
+              panel behind the names
+marble.jpg    Nero Marquina marble: the order of the day and the close
+gilt.jpg      gold leaf on black lacquer: the rules and the medallion
 
-Palm illustration designed by rawpixel.com / Freepik (https://www.freepik.com).
-Used under the Freepik licence, which requires this attribution; it is shown
-in the invitation's footer ("Palm illustration designed by rawpixel.com /
-Freepik"). Licence use confirmed by the owner on 13 Aug 2026 (PROJECT-NOTES).
-Keep the footer credit if these files are kept.
+All generated for this design (Seedream 5 Lite on ElevenLabs, under a paid
+plan's commercial licence, from Luma's own art direction) and graded at
+file level: no third-party artwork, no people, owned by Luma. (The earlier
+palm illustration by rawpixel.com / Freepik is no longer used, so its
+credit is no longer shown.)
