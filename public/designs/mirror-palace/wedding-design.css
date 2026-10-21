@@ -2245,3 +2245,24 @@ a.detail-btn:hover{ color:var(--ivory); }
   box-shadow:inset 0 0 0 1px rgba(198,184,156,.28), inset 0 0 60px rgba(0,0,0,.6);
 }
 #closing.expand .closing-mirror{ width:min(70vw, 560px); }
+#date-section .countdown[hidden]{ display:none; }
+
+/* ============================================================
+   HEADER BACKING
+   The header was bare type in a colour-inverting blend, so over the
+   cream reply panel and the questions it printed straight across the
+   text ("A&B" over "Where should we stay?"). Past the opening photograph
+   it now sits on an ink bar with a hairline under it, like the frame of
+   one of the mirrors; over the photograph it stays bare.
+   ============================================================ */
+nav.site-nav{
+  mix-blend-mode:normal; color:var(--ivory, #f4f0e8);
+  padding-top:18px; padding-bottom:18px;
+  background:transparent; border-bottom:1px solid transparent;
+  transition:opacity 900ms ease 400ms, background 450ms ease, border-color 450ms ease, top var(--dur-micro) var(--ease-soft);
+}
+body.nav-backed nav.site-nav{
+  background:rgba(10,10,10,.94);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  border-bottom-color:rgba(198,184,156,.22);
+}
