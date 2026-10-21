@@ -267,7 +267,7 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
     },
   },
   { id: "amalfi", name: "Amalfi", plan: "celebration", blurb: "Green shutters open onto the sea, with azulejo blue and terracotta down the page", motif: "frame", placeholder: { from: "#F7F2EA", to: "#CFE5EC", ink: "#2A6491" } },
-  { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Palm fronds and fine gilded lines, in sage and ivory", motif: "frame", placeholder: { from: "#F5F9F6", to: "#DDEBE2", ink: "#4E8A6C" } },
+  { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Brass gates part on a lacquer plaque: ivory card stock, marble and gold leaf, in the spirit of 1925", motif: "frame", placeholder: { from: "#F5F1E8", to: "#C9A15A", ink: "#17130F" } },
 ];
 
 export const STUDIO_PREFIX = "studio:";

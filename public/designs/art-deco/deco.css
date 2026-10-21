@@ -1,0 +1,256 @@
+/* ============================================================
+   ART DECO, rebuilt in its own materials
+   ------------------------------------------------------------
+   Ivory card stock for the page; black lacquer, brass, Nero
+   Marquina marble and gold leaf where the period would put them,
+   all photographed (assets/CREDITS.txt). Symmetry, stepped
+   corners and spaced capitals carry the 1920s; nothing is drawn
+   to imitate a material.
+   ============================================================ */
+:root{
+  --ivory:   hsl(42 33% 95%);
+  --ivory-2: hsl(40 28% 90%);
+  --ink:     hsl(30 14% 9%);
+  --ink-2:   hsl(30 8% 30%);
+  --brass:   hsl(38 48% 50%);
+  --brass-d: hsl(34 46% 34%);
+  --lacquer: hsl(30 18% 6%);
+  --display: 'Poiret One', 'Josefin Sans', sans-serif;
+  --label:   'Josefin Sans', system-ui, sans-serif;
+  --serif:   'Cormorant Garamond', Georgia, serif;
+  /* a stepped corner, the period's signature, used on every framed panel */
+  --step: polygon(14px 0, calc(100% - 14px) 0, calc(100% - 14px) 6px, calc(100% - 6px) 6px, calc(100% - 6px) 14px, 100% 14px,
+                  100% calc(100% - 14px), calc(100% - 6px) calc(100% - 14px), calc(100% - 6px) calc(100% - 6px), calc(100% - 14px) calc(100% - 6px), calc(100% - 14px) 100%,
+                  14px 100%, 14px calc(100% - 6px), 6px calc(100% - 6px), 6px calc(100% - 14px), 0 calc(100% - 14px),
+                  0 14px, 6px 14px, 6px 6px, 14px 6px);
+}
+body.paper-grain{ background:var(--ivory); color:var(--ink) }
+
+/* ---------- THE GATES: the brass sunburst, parting ---------- */
+.deco-gate-face{
+  background:var(--lacquer) url("assets/sunburst.jpg") no-repeat;
+  background-size:auto 100%;
+}
+.deco-gate-left  .deco-gate-face{ background-position:right center }
+.deco-gate-right .deco-gate-face{ background-position:left center }
+@media (min-aspect-ratio:16/9){ .deco-gate-face{ background-size:200% auto } }
+.deco-rays, .deco-chevrons{ display:none }
+.deco-gate-edge{ width:6px; background:url("assets/gilt.jpg") center / 400% auto; box-shadow:0 0 12px rgba(0,0,0,.55) }
+.deco-medallion-ring{
+  border:0; background:var(--lacquer);
+  box-shadow:0 0 0 3px var(--lacquer), 0 0 0 7px transparent, 0 18px 40px rgba(0,0,0,.6);
+}
+.deco-medallion-ring::before{
+  content:""; position:absolute; inset:-7px; border-radius:50%; z-index:-1;
+  background:url("assets/gilt.jpg") center / cover;
+}
+.deco-monogram{ font-family:var(--display); font-weight:400; font-size:clamp(1.5rem, 3.4vw, 2.3rem); color:hsl(40 60% 72%); letter-spacing:.06em }
+.deco-hint{ color:hsl(40 50% 86%); font-size:.78rem }
+.deco-reveal{ background:var(--ivory) }
+.deco-names{ font-family:var(--display); font-weight:400; letter-spacing:.08em; color:var(--ink) }
+.deco-eyebrow, .deco-meta{ font-size:.78rem; color:var(--ink-2) }
+.deco-rule span{ height:2px; background:url("assets/gilt.jpg") center / 300% auto }
+.deco-rule i{ border-color:var(--brass) }
+
+/* ---------- THE PAGE ---------- */
+.dc{
+  position:relative; z-index:1;
+  max-width:880px; margin:0 auto;
+  padding:96px max(18px, env(safe-area-inset-left, 0px)) 24px max(18px, env(safe-area-inset-right, 0px));
+  font-family:var(--serif); color:var(--ink);
+}
+.dc [hidden]{ display:none !important }
+.dc-quiet{ color:var(--ink-2) }
+.dc-h{
+  font-family:var(--display); font-weight:400; text-align:center; text-transform:uppercase;
+  font-size:clamp(26px, 6.4vw, 40px); letter-spacing:.14em; line-height:1.2; text-wrap:balance;
+}
+.dc-sec{ padding-block:clamp(52px, 10vw, 96px) }
+
+/* the gilt rule: a band of real gold leaf between two hairlines */
+.dc-gilt-rule{
+  height:10px; margin:0 auto; width:min(100%, 640px);
+  background:
+    linear-gradient(var(--brass-d), var(--brass-d)) top / 100% 1px no-repeat,
+    linear-gradient(var(--brass-d), var(--brass-d)) bottom / 100% 1px no-repeat,
+    url("assets/gilt.jpg") center / 140% auto;
+  background-clip:padding-box;
+  clip-path:polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  -webkit-mask:linear-gradient(#000 0 1px, transparent 1px 3px, #000 3px 7px, transparent 7px 9px, #000 9px);
+          mask:linear-gradient(#000 0 1px, transparent 1px 3px, #000 3px 7px, transparent 7px 9px, #000 9px);
+}
+.dc-gilt-rule.short{ width:min(60%, 260px); margin-top:16px; margin-bottom:24px }
+
+/* ---------- THE PLATE ---------- */
+.dc-hero{ padding-top:clamp(18px, 4vw, 34px) }
+.dc-plate{
+  margin:0; position:relative;
+  min-height:clamp(440px, 72vw, 620px);
+  display:flex; align-items:center; justify-content:center;
+  padding:clamp(28px, 6vw, 56px) clamp(14px, 5vw, 56px);
+  background:var(--lacquer) url("assets/sunburst.jpg") center bottom / cover no-repeat;
+  clip-path:var(--step);
+}
+.dc-plate::after{
+  /* a thin inset line of brass a few pixels inside the edge, like a frame's fillet */
+  content:""; position:absolute; inset:18px; pointer-events:none;
+  border:1px solid hsl(40 55% 70% / .55); clip-path:var(--step);
+}
+.dc-plaque{
+  position:relative; text-align:center;
+  max-width:540px; width:100%;
+  padding:clamp(26px, 6vw, 46px) clamp(18px, 5vw, 44px);
+  background:linear-gradient(180deg, hsl(30 16% 8% / .94), hsl(30 18% 5% / .96));
+  box-shadow:0 0 0 1px hsl(40 50% 60% / .5), 0 0 0 7px hsl(30 18% 6% / .9), 0 0 0 8px hsl(40 50% 60% / .45), 0 30px 60px rgba(0,0,0,.55);
+  color:hsl(40 30% 92%);
+}
+.dc-eyebrow{ font-family:var(--label); font-size:12px; letter-spacing:.36em; text-transform:uppercase; color:hsl(40 50% 72%) }
+.dc-names{
+  margin-top:clamp(14px, 3vw, 22px);
+  font-family:var(--display); font-weight:400; text-transform:uppercase;
+  font-size:clamp(40px, 11vw, 74px); line-height:1.02; letter-spacing:.08em;
+  color:hsl(42 40% 94%);
+}
+.dc-names > span{ display:block }
+.dc-names .dc-amp{ font-family:var(--serif); font-style:italic; text-transform:none; font-size:.48em; color:hsl(40 60% 66%); margin:.18em 0 .12em; letter-spacing:0 }
+.dc-invite{ margin-top:clamp(14px, 3vw, 20px); font-style:italic; font-size:clamp(17px, 4.2vw, 20px); color:hsl(40 22% 80%) }
+
+/* ---------- WHEN, WHERE, DRESS ---------- */
+.dc-details{ padding-top:clamp(36px, 7vw, 60px) }
+.dc-facts{ display:grid; gap:0; margin:0 auto; max-width:760px; text-align:center }
+@media (min-width:680px){ .dc-facts{ grid-template-columns:repeat(3, 1fr) } .dc-facts > div + div{ border-left:1px solid hsl(38 48% 50% / .45) } }
+.dc-facts > div{ padding:22px 14px; display:grid; gap:4px; align-content:start }
+@media (max-width:679px){ .dc-facts > div + div{ border-top:1px solid hsl(38 48% 50% / .35) } }
+.dc-facts dt, .dc-field label, .dc-label{
+  font-family:var(--label); font-size:12px; letter-spacing:.3em; text-transform:uppercase; color:var(--brass-d);
+}
+.dc-facts dd{ margin:0; font-size:21px; line-height:1.35 }
+.dc-facts dd.dc-quiet{ font-size:16.5px; font-style:italic }
+.dc-facts dd:empty, .dc-facts div:has(> dd:first-of-type:empty){ display:none }
+.dc-links{ margin-top:18px; display:flex; flex-wrap:wrap; justify-content:center; gap:0 28px }
+.dc-links a{
+  display:inline-flex; align-items:center; min-height:44px; cursor:pointer;
+  font-family:var(--label); font-size:12.5px; letter-spacing:.24em; text-transform:uppercase; color:var(--brass-d);
+  text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:7px;
+}
+
+/* ---------- HOW IT BEGAN ---------- */
+.dc-story{ display:grid; gap:clamp(26px, 5vw, 48px); align-items:center }
+@media (min-width:720px){ .dc-story{ grid-template-columns:5fr 6fr } }
+.dc-print{
+  margin:0; justify-self:center; width:min(100%, 360px);
+  padding:10px; background:var(--lacquer); clip-path:var(--step);
+}
+.dc-print img{ display:block; width:100%; aspect-ratio:4/5; object-fit:cover; clip-path:var(--step) }
+.dc-words .dc-h{ text-align:left }
+.dc-words p{ margin-top:14px; font-size:clamp(19px, 4.6vw, 21px); line-height:1.6; color:var(--ink) }
+.dc-story:not(:has(.dc-print:not([hidden]) img[src]:not([src=""]))) .dc-words{ text-align:center; max-width:560px; margin:0 auto }
+.dc-story:not(:has(.dc-print:not([hidden]) img[src]:not([src=""]))) .dc-words .dc-h{ text-align:center }
+
+/* ---------- THE EVENING, ON MARBLE ---------- */
+.dc-marble{
+  padding:clamp(34px, 7vw, 60px) clamp(18px, 6vw, 56px);
+  /* a lacquer wash over the stone, so the veins stay but never cross a word at full white */
+  background:linear-gradient(hsl(30 18% 5% / .62), hsl(30 18% 5% / .62)), var(--lacquer) url("assets/marble.jpg") center / cover;
+  color:hsl(42 30% 92%); clip-path:var(--step);
+  box-shadow:inset 0 0 0 1px hsl(40 50% 60% / .4);
+}
+.dc-marble .dc-h{ color:hsl(42 40% 94%) }
+.dc .dc-moments{ max-width:560px; margin:0 auto; counter-reset:m }
+.dc .dc-moments .schedule-row{
+  position:static !important; display:block !important; margin:0 !important; padding:14px 0 !important;
+  border-bottom:1px solid hsl(40 40% 70% / .22); text-align:center !important; --gap-px:0px !important;
+}
+.dc .dc-moments .schedule-row:last-child{ border-bottom:0 }
+.dc .dc-moments .schedule-row::before, .dc .dc-moments .schedule-row::after,
+.dc .dc-moments::before, .dc .dc-moments::after{ display:none !important; content:none !important }
+.dc .dc-moments .schedule-content{
+  display:block !important; width:100% !important; max-width:none !important; padding:0 !important; margin:0 !important;
+  background:none !important; border:0 !important; box-shadow:none !important; transform:none !important; grid-column:auto !important;
+}
+.dc .dc-moments .schedule-icon{ display:none !important }
+.dc .dc-moments .schedule-text{ display:grid; gap:2px; text-align:center !important }
+.dc .dc-moments .schedule-time{ font-family:var(--label); font-size:14px; letter-spacing:.24em; color:hsl(40 60% 68%) !important }
+.dc .dc-moments .schedule-title{ font-family:var(--display); font-weight:400; text-transform:uppercase; letter-spacing:.12em; font-size:clamp(20px, 5vw, 25px); color:hsl(42 40% 94%); margin:0 !important }
+.dc .dc-moments .schedule-venue{ font-style:italic; font-size:17px; color:hsl(40 20% 76%); margin:0 !important }
+.dc .dc-moments .schedule-gap{ display:none !important }
+
+/* ---------- PHOTOGRAPHS: prints in thin lacquer frames ---------- */
+.dc .dc-prints{ margin-top:clamp(22px, 5vw, 34px) }
+.dc .dc-prints .gallery-nav-btn{ display:none !important }
+.dc .dc-prints .gallery-carousel-wrap{ height:auto !important; overflow:visible !important; perspective:none !important; mask:none !important; -webkit-mask:none !important }
+.dc .dc-prints .gallery-carousel-track{
+  position:static !important; height:auto !important; transform:none !important;
+  display:grid !important; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px;
+}
+@media (min-width:720px){ .dc .dc-prints .gallery-carousel-track{ grid-template-columns:repeat(3, minmax(0, 1fr)); gap:18px } }
+.dc .dc-prints .gallery-carousel-item{
+  position:relative !important; left:auto !important; top:auto !important; inset:auto !important;
+  transform:none !important; opacity:1 !important; pointer-events:auto !important; z-index:auto !important;
+  width:auto !important; height:auto !important; margin:0 !important; padding:6px !important;
+  background:var(--lacquer) !important; border:0 !important; border-radius:0 !important; box-shadow:none !important; cursor:zoom-in;
+}
+.dc .dc-prints .gallery-carousel-item::before, .dc .dc-prints .gallery-carousel-item::after{ display:none !important; content:none !important }
+.dc .dc-prints .gallery-carousel-item img{ display:block; width:100% !important; height:auto !important; aspect-ratio:4/5; object-fit:cover; border-radius:0 !important; filter:none !important }
+
+/* ---------- QUESTIONS ---------- */
+.dc-asks{ margin:clamp(20px, 4vw, 30px) auto 0; max-width:640px }
+.dc .dc-asks .faq-item{ background:none !important; border:0 !important; border-bottom:1px solid hsl(38 48% 50% / .4) !important; border-radius:0 !important; box-shadow:none !important; margin:0 !important }
+.dc .dc-asks .faq-item:first-child{ border-top:1px solid hsl(38 48% 50% / .4) !important }
+.dc .dc-asks .faq-question{ padding:16px 2px !important; font-family:var(--serif) !important; font-size:20px !important; color:var(--ink) !important; background:none !important; width:100%; display:flex; justify-content:space-between; gap:16px; align-items:center; text-align:left }
+.dc .dc-asks .faq-chevron{ color:var(--brass-d) }
+.dc .dc-asks .faq-answer p{ font-size:18px; color:var(--ink-2); padding:0 2px 16px }
+
+/* ---------- THE REPLY CARD ---------- */
+.dc-card{
+  position:relative; max-width:560px; margin:0 auto; text-align:center;
+  padding:clamp(34px, 7vw, 52px) clamp(20px, 6vw, 44px);
+  background:var(--ivory-2);
+  clip-path:var(--step);
+  box-shadow:inset 0 0 0 2px var(--ink), inset 0 0 0 8px var(--ivory-2), inset 0 0 0 9px var(--brass);
+}
+.dc-by{ margin-top:8px; font-style:italic; font-size:18px }
+.dc-form{ margin-top:clamp(20px, 5vw, 30px); text-align:left; display:grid; gap:20px }
+#rsvp-attending-extra-fields{ display:grid; gap:20px }
+.dc-field{ display:grid; gap:6px }
+.dc-field input[type=text], .dc-field select, .dc-field textarea{
+  width:100%; padding:10px 2px; background:transparent; color:var(--ink);
+  border:0; border-bottom:1px solid hsl(38 48% 40% / .55); border-radius:0; font-family:var(--serif); font-size:20px;
+}
+.dc-field input:focus, .dc-field select:focus, .dc-field textarea:focus{ outline:none; border-bottom-color:var(--ink) }
+.dc-field .dc-choice label{ font:inherit; text-transform:none; letter-spacing:0 }
+.dc-choice{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+.dc-choice label{ position:relative; cursor:pointer }
+.dc-choice input{ position:absolute; opacity:0; pointer-events:none }
+.dc-choice span{
+  display:block; text-align:center; padding:12px 8px; border:1px solid var(--ink);
+  font-family:var(--serif); font-size:19px; color:var(--ink); transition:background .2s, color .2s;
+}
+.dc-choice input:checked + span{ background:var(--ink); color:hsl(40 50% 80%) }
+.dc-choice input:focus-visible + span{ outline:2px solid var(--brass); outline-offset:2px }
+.dc-send{
+  margin-top:6px; padding:16px; border:0; cursor:pointer; background:var(--ink); color:hsl(40 55% 74%);
+  font-family:var(--label); font-size:12.5px; letter-spacing:.3em; text-transform:uppercase;
+}
+.dc-send:hover, .dc-send:focus-visible{ background:var(--brass-d); color:var(--ivory) }
+.dc-error{ color:#9a3b26; font-size:16px; text-align:center }
+.dc-done p{ margin-top:8px; font-style:italic; font-size:19px; color:var(--ink-2) }
+
+/* ---------- THE CLOSE ---------- */
+.dc-close{
+  margin-top:clamp(40px, 8vw, 72px); text-align:center;
+  padding:clamp(52px, 10vw, 90px) 20px clamp(44px, 8vw, 70px);
+  background:linear-gradient(hsl(30 18% 5% / .55), hsl(30 18% 5% / .55)), var(--lacquer) url("assets/marble.jpg") center / cover;
+  color:hsl(42 30% 90%); font-family:var(--serif);
+}
+.dc-medal{
+  width:96px; height:96px; margin:0 auto; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; gap:4px;
+  background:var(--lacquer);
+  box-shadow:0 0 0 2px var(--lacquer), 0 0 0 5px hsl(40 55% 58%), 0 0 0 7px var(--lacquer), 0 16px 30px rgba(0,0,0,.5);
+  font-family:var(--display); font-size:26px; color:hsl(40 60% 72%); letter-spacing:.04em;
+}
+.dc-medal i{ font-family:var(--serif); font-style:italic; font-size:.7em; color:hsl(40 40% 60%) }
+.dc-close-names{ margin-top:20px; font-family:var(--display); text-transform:uppercase; letter-spacing:.14em; font-size:22px }
+.dc-close-meta{ margin-top:6px; font-family:var(--label); font-size:11.5px; letter-spacing:.24em; text-transform:uppercase; color:hsl(40 20% 72%) }
+#footer-hashtag.dc-close-meta{ text-transform:none; letter-spacing:.06em; font-size:14px }
