@@ -12,3 +12,17 @@
 .tablet .who small{ display:none }
 
 .luma-empty{ display:none !important }
+
+/* ============================================================
+   LUMA POLISH
+   Below the inscription the page was set small and pale: 9px
+   capitals and 14px grey text on grey stone. It is read on a
+   phone, in daylight, by somebody's grandmother. Same faces,
+   same colours, darker and larger.
+   ============================================================ */
+.eyebrow{ font-size:11px !important; letter-spacing:.3em !important }
+.body, .tablet .note, .asks details p{
+  font-size:clamp(16.5px,4.3vw,18px) !important; line-height:1.75 !important; color:#4f4840 !important;
+}
+.hour p{ font-size:clamp(15px,3.9vw,16.5px) !important; color:#4f4840 !important }
+.asks summary{ font-size:clamp(15px,3.9vw,17.5px) !important }

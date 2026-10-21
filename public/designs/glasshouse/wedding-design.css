@@ -919,3 +919,19 @@ body.guest-mode.show-exit-btn .audio-toggle{ bottom:76px }
     rgba(233,237,229,.95) 0%, rgba(233,237,229,.80) 36%,
     rgba(233,237,229,.32) 70%, rgba(233,237,229,0) 100%);
 }
+
+/* ============================================================
+   LUMA POLISH
+   The opening lines stand clear of the foliage, the day's links are
+   underlined words, and the pane lines stay off the photographs.
+   ============================================================ */
+.day-links{ gap:0 28px !important }
+.day-links a{
+  border:0 !important; background:none !important; padding:12px 2px !important; min-height:44px;
+  display:inline-flex; align-items:center;
+  text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:7px;
+}
+.day-links a:hover{ background:none !important; opacity:.75 }
+.day-links a{ color:var(--pale) !important }
+.hero-sub{ color:var(--pale) !important; font-size:clamp(15px,1.25vw,17px) !important; text-shadow:0 0 18px rgba(236,241,233,.95), 0 0 2px rgba(236,241,233,.9) }
+.hero-names{ font-weight:300 !important }

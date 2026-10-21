@@ -1,0 +1,116 @@
+/* ============================================================
+   LUMA REFINE: the base layout, made to read like stationery
+   ------------------------------------------------------------
+   Loaded by the designs built on the engine's base layout (Amalfi,
+   Art Deco, Celestial), after their own wedding-design.css. Every
+   colour comes from the design's own tokens, so each keeps its
+   palette; what changes is the furniture:
+
+     - no pills, no rounded app cards, no glass panels
+     - the countdown is one line in words, not four boxes
+     - form fields are ruled lines on paper, like a reply card
+     - links are underlined words, not buttons with icons
+   ============================================================ */
+
+/* the names: the script "&" in Pinyon draws as an "Et" ligature that
+   reads as a stray glyph, so it is set in the display face's italic */
+body.luma-refine h1 .font-script,
+body.luma-refine header .font-script{
+  font-family:var(--display, var(--serif, Georgia, serif)) !important;
+  font-style:italic; font-weight:400;
+}
+body.luma-refine h1 .font-script{ font-size:.62em !important; margin:0 .14em !important; vertical-align:.04em }
+
+/* "Save the date": small capitals, not a pill */
+body.luma-refine .save-date{
+  display:inline-block; margin-bottom:22px;
+  font-family:var(--support, var(--sans, system-ui, sans-serif)); font-size:12px; font-weight:500;
+  letter-spacing:.32em; text-transform:uppercase; color:hsl(var(--c-gold));
+}
+body.luma-refine h1 + p{ text-wrap:balance }
+
+/* the facts strip: legible labels */
+body.luma-refine #details .text-\[10px\]{ font-size:11.5px !important; letter-spacing:.22em !important }
+
+/* calendar links: words, underlined */
+body.luma-refine #gcal-link,
+body.luma-refine #ics-link{
+  border:0 !important; border-radius:0 !important; background:none !important;
+  padding:12px 2px !important; gap:0 !important; min-height:44px;
+  font-size:12px !important; letter-spacing:.2em !important; color:hsl(var(--c-gold)) !important;
+  text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:6px;
+}
+body.luma-refine #gcal-link i,
+body.luma-refine #ics-link i{ display:none }
+
+/* the countdown, as a sentence */
+body.luma-refine .refined-count{
+  background:none !important; border:0 !important; box-shadow:none !important; backdrop-filter:none !important;
+  margin:clamp(28px, 6vw, 56px) auto; padding:0 !important;
+}
+body.luma-refine .count-line{
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  font-family:var(--display, var(--serif, Georgia, serif)); color:hsl(var(--c-charcoal));
+}
+body.luma-refine .count-days{
+  font-size:clamp(64px, 18vw, 120px); line-height:.9; font-weight:300; color:hsl(var(--c-gold));
+  font-variant-numeric:lining-nums;
+}
+body.luma-refine .count-words{ font-style:italic; font-size:clamp(19px, 4.6vw, 24px); color:hsl(var(--c-warmgray)) }
+
+/* the story photograph: a print, square-cornered, with a thin border */
+body.luma-refine #our-story .aspect-\[4\/5\]{
+  border-radius:2px !important; box-shadow:0 26px 40px -28px rgba(0,0,0,.55) !important;
+}
+
+/* the order of the day: no gap labels (the engine no longer writes
+   them), and the icon bubble quieter */
+body.luma-refine .schedule-gap{ display:none !important }
+
+/* questions: ruled rows, not boxes */
+body.luma-refine #faq-list > *{
+  border-radius:0 !important; box-shadow:none !important; background:transparent !important;
+  border:0 !important; border-top:1px solid hsl(var(--c-gold) / .25) !important;
+}
+body.luma-refine #faq-list > *:last-child{ border-bottom:1px solid hsl(var(--c-gold) / .25) !important }
+
+/* the reply card: paper, not a glass panel */
+body.luma-refine #rsvp > .reveal{
+  border-radius:2px !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  box-shadow:0 30px 50px -36px rgba(0,0,0,.5) !important;
+}
+body.luma-refine #rsvp-form label.block{
+  font-size:11.5px !important; letter-spacing:.2em !important; font-weight:500 !important; color:hsl(var(--c-warmgray)) !important;
+}
+body.luma-refine #rsvp-form input[type=text],
+body.luma-refine #rsvp-form select,
+body.luma-refine #rsvp-form textarea{
+  border-radius:0 !important; background:transparent !important;
+  border:0 !important; border-bottom:1px solid hsl(var(--c-gold) / .45) !important;
+  padding:10px 2px !important; font-family:var(--serif, Georgia, serif) !important; font-size:19px !important;
+}
+body.luma-refine #rsvp-form input[type=text]:focus,
+body.luma-refine #rsvp-form select:focus,
+body.luma-refine #rsvp-form textarea:focus{ border-bottom-color:hsl(var(--c-gold)) !important }
+body.luma-refine #rsvp-form .peer + div{
+  border-radius:0 !important; text-transform:none !important; letter-spacing:.02em !important;
+  font-family:var(--serif, Georgia, serif) !important; font-size:18px !important; padding:12px 8px !important;
+}
+body.luma-refine #rsvp-form button[type=submit]{
+  border-radius:0 !important; box-shadow:none !important; font-weight:500 !important; letter-spacing:.26em !important;
+}
+body.luma-refine #rsvp-success-icon-wrap{ display:none }
+
+/* the header's reply link: a word, not a pill */
+body.luma-refine .nav-reply{
+  padding:12px 2px; font-family:var(--support, var(--sans, system-ui, sans-serif)); font-size:12px;
+  letter-spacing:.24em; text-transform:uppercase; color:hsl(var(--c-gold));
+  text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:6px;
+}
+
+/* the hashtag under the names: in the display italic, not the script,
+   which turned "#AnaAndBoris" into an unreadable flourish */
+body.luma-refine #footer-hashtag{
+  font-family:var(--display, var(--serif, Georgia, serif)) !important; font-style:italic;
+  font-size:19px !important; letter-spacing:.02em;
+}

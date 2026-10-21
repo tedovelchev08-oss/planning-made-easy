@@ -832,3 +832,8 @@ body.editor-open .site-nav{ transition:right .3s ease; }
 #sandbox-domain-warning,
 #sandbox-domain-warning *{ color:#451a03 !important; }
 #sandbox-domain-warning strong{ font-weight:700 !important; }
+
+/* LUMA: stills the couple hasn't added are left out; with neither portrait
+   the story stands as text alone, centred */
+.story-grid figure[hidden], .story-together[hidden]{ display:none !important }
+.story-grid:not(:has(figure:not([hidden]))){ grid-template-columns:1fr !important; max-width:640px; margin-left:auto; margin-right:auto }

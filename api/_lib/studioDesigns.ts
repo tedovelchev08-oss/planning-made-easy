@@ -69,7 +69,7 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       gallery: 5,
       texts: [
         { key: "heroCity", label: "City", max: 40, placeholder: "Florence" },
-        { key: "heroQuote", label: "Opening lines", max: 120, multiline: true, placeholder: "Two lives. One reflection.", fallback: "Two lives. One reflection.\nOne beautiful beginning." },
+        { key: "heroQuote", label: "Opening lines", max: 120, multiline: true, placeholder: "Two lives. One reflection." },
         { key: "dateCaptionText", label: "A line about the day", max: 300, multiline: true, placeholder: "One afternoon in late August, we ask you to stand beside us…" },
         { key: "celebrationPlace", label: "The celebration", max: 60, placeholder: "Dinner · Music · Dancing", fallback: "Dinner · Music · Dancing" },
         { key: "celebrationAddress", label: "Where it is", max: 120, placeholder: "The Orangery, Villa Cora" },
@@ -151,6 +151,8 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       texts: [
         { key: "storyTitle", label: "Story heading", max: 80, placeholder: "It started with a plant neither of us could keep alive.", fallback: "How it began." },
         { key: "heroQuote", label: "Opening lines", max: 200, multiline: true, placeholder: "A glasshouse is where things are kept growing out of season…", fallback: "A glasshouse is where things are kept growing out of season. Come and stand in ours for an evening." },
+        { key: "glassLine", label: "The big line under glass", max: 40, placeholder: "Your names (e.g. Warm in December)" },
+        { key: "glassNote", label: "A small line under it", max: 40, placeholder: "Still growing" },
         { key: "rsvpEmailText", label: "Contact for questions", max: 80, placeholder: "An email or phone number, if you'd like" },
       ],
     },
@@ -168,7 +170,7 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       photos: [],
       gallery: 5,
       texts: [
-        { key: "heroQuote", label: "Opening line", max: 80, placeholder: "Two lives. One promise.", fallback: "Two lives. One promise." },
+        { key: "heroQuote", label: "Opening line", max: 80, placeholder: "Two lives. One promise." },
         { key: "storyStatements", label: "The rising lines, one per line", max: 200, multiline: true, placeholder: "It started with two\nTwo lives\nOne unexpected moment\nAnd now\nUs", fallback: "It started with two\nTwo lives\nOne unexpected moment\nAnd now\nUs" },
         { key: "rsvpEmailText", label: "Contact for questions", max: 80, placeholder: "An email or phone number, if you'd like" },
       ],

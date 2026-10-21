@@ -12,3 +12,11 @@
 .wallnote:empty{ display:none !important }
 
 .luma-empty{ display:none !important }
+
+/* LUMA POLISH: words set straight on the wall are larger and carry a
+   firmer shadow, so they read in daylight rather than only on a
+   bright screen indoors */
+.body.on-cloth{
+  color:#fff6ea !important; font-size:clamp(17px,4.4vw,19px) !important; line-height:1.7 !important;
+  text-shadow:0 1px 2px rgba(78,32,18,.55), 0 2px 16px rgba(78,32,18,.6) !important;
+}

@@ -2187,3 +2187,14 @@ a.detail-btn:hover{ color:var(--ivory); }
    except where the eyebrow is deliberately left-aligned. */
 .eyebrow{ text-indent:0.32em; }
 .editorial-info .eyebrow{ text-indent:0; }
+
+/* ============================================================
+   LUMA POLISH
+   The date is one line on a phone ("12 · 06 ·" then "2027" read as
+   a mistake), and the small grey capitals on black are lifted to a
+   size and tone that can actually be read.
+   ============================================================ */
+@media (max-width:640px){
+  .date-figures .figure{ font-size:clamp(2.4rem, 11.4vw, 4rem); white-space:nowrap }
+}
+.mirror-line-label, .eyebrow{ font-size:max(11.5px, .72rem) !important; opacity:1 !important }

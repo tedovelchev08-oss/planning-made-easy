@@ -30,6 +30,8 @@
     <!-- This design's own look. To build a new design, copy this file and
          wedding-design.css and restyle freely - wedding-core.js is untouched. -->
     <link rel="stylesheet" href="wedding-design.css?v=45">
+    <!-- Luma: the shared refinements for the base layout (copy, countdown, reply card) -->
+    <link rel="stylesheet" href="../_shared/luma-refine.css?v=1">
 
     <!-- Builder chrome (drawer tabs, editor layout). Shared by every design. -->
     <link rel="stylesheet" href="../_shared/wedding-ui.css?v=45">
@@ -44,7 +46,7 @@
         .luma-check:empty { display: none; }
     </style>
 </head>
-<body class="min-h-screen relative paper-grain selection:bg-gold/20 selection:text-charcoal pb-12">
+<body class="luma-refine min-h-screen relative paper-grain selection:bg-gold/20 selection:text-charcoal pb-12">
 
     <!-- Decorative only: eucalyptus sprigs framing the page corners. -->
     <div class="botanical-frame" aria-hidden="true"><span class="sprig sprig-tl"></span><span class="sprig sprig-br"></span></div>
@@ -75,7 +77,7 @@
             </nav>
 
             <div class="shrink-0 flex items-center gap-2">
-                <a href="#rsvp" class="nowrap px-5 py-2 rounded-full bg-charcoal text-cream text-xs font-sans uppercase tracking-widest hover:bg-gold transition shadow-sm">
+                <a href="#rsvp" class="nowrap nav-reply">
                     RSVP
                 </a>
             </div>
@@ -154,7 +156,7 @@
     <main class="pt-32 pb-16 px-4 md:px-8 max-w-5xl mx-auto">
         <!-- Hero Section -->
         <section class="text-center py-12 md:py-20 relative">
-            <div class="reveal inline-block px-4 py-1.5 rounded-full border border-gold/30 bg-champagne/50 text-gold text-xs uppercase tracking-[0.3em] font-medium mb-6">
+            <div class="reveal save-date">
                 Save The Date
             </div>
 
@@ -163,7 +165,7 @@
             </h1>
 
             <p class="reveal reveal-d2 font-serif italic text-xl md:text-2xl text-warmgray font-light max-w-xl mx-auto mb-8">
-                Together with their families, invite you to celebrate their wedding day
+                Together with their families, ask you to join them as they marry
             </p>
 
             <!-- Key Event Banner Grid -->
@@ -188,37 +190,19 @@
             <!-- Add to Calendar Buttons -->
             <div class="reveal reveal-d3 flex flex-wrap items-center justify-center gap-4 mt-6">
                 <a id="gcal-link" target="_blank" rel="noopener" class="px-5 py-2.5 rounded-full border border-gold/40 hover:bg-gold/10 text-charcoal text-xs font-sans tracking-widest uppercase transition flex items-center gap-2">
-                    <i class="far fa-calendar-plus text-gold"></i> <span>Add to Google Calendar</span>
+                    <span>Google Calendar</span>
                 </a>
                 <a id="ics-link" href="#" class="px-5 py-2.5 rounded-full border border-gold/40 hover:bg-gold/10 text-charcoal text-xs font-sans tracking-widest uppercase transition flex items-center gap-2">
-                    <i class="fas fa-apple-alt text-gold"></i> <span>Apple / iCal (.ics)</span>
+                    <span>Apple Calendar</span>
                 </a>
             </div>
         </section>
 
-        <!-- Countdown Section -->
-        <section class="reveal countdown-card my-12 p-8 md:p-12 rounded-2xl bg-white/70 backdrop-blur-md text-center shadow-sm">
-            <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold mb-2 block">The Countdown</span>
-            <h2 class="font-serif text-3xl md:text-4xl text-charcoal mb-8 font-light">Until we say I do</h2>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
-                <div class="p-4 rounded-xl bg-sand/50 border border-gold/15">
-                    <span id="cd-days" class="font-serif text-4xl md:text-5xl font-light text-gold block">00</span>
-                    <span class="font-sans text-[10px] uppercase tracking-widest text-warmgray">Days</span>
-                </div>
-                <div class="p-4 rounded-xl bg-sand/50 border border-gold/15">
-                    <span id="cd-hours" class="font-serif text-4xl md:text-5xl font-light text-gold block">00</span>
-                    <span class="font-sans text-[10px] uppercase tracking-widest text-warmgray">Hours</span>
-                </div>
-                <div class="p-4 rounded-xl bg-sand/50 border border-gold/15">
-                    <span id="cd-minutes" class="font-serif text-4xl md:text-5xl font-light text-gold block">00</span>
-                    <span class="font-sans text-[10px] uppercase tracking-widest text-warmgray">Minutes</span>
-                </div>
-                <div class="p-4 rounded-xl bg-sand/50 border border-gold/15">
-                    <span id="cd-seconds" class="font-serif text-4xl md:text-5xl font-light text-gold block">00</span>
-                    <span class="font-sans text-[10px] uppercase tracking-widest text-warmgray">Seconds</span>
-                </div>
-            </div>
+        <!-- Countdown: one line, in words. Boxes of days, hours, minutes and
+             seconds are the most template thing a wedding page can show. -->
+        <section class="reveal countdown-card refined-count text-center">
+            <p class="count-line"><span id="cd-days" class="count-days">00</span> <span class="count-words">days until we marry</span></p>
+            <span hidden><span id="cd-hours"></span><span id="cd-minutes"></span><span id="cd-seconds"></span></span>
         </section>
 
         <!-- Story Section -->
@@ -227,18 +211,14 @@
                 <div class="reveal relative">
                     <div class="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-gold/20 relative group">
                         <img id="story-hero-img" data-field="heroPhoto" src="" onerror="this.onerror=null; this.removeAttribute('src'); this.style.background='linear-gradient(135deg, #e9dfcd, #c5a880)';" alt="Couple" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
                     </div>
                 </div>
 
                 <div class="reveal reveal-d1 space-y-6">
-                    <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Our Journey</span>
-                    <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light leading-tight">How We Met</h2>
+                    <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Our story</span>
+                    <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light leading-tight">How it began</h2>
                     <p id="story-text-1" data-field="story1" class="font-serif text-lg text-warmgray leading-relaxed font-light"></p>
                     <p id="story-text-2" data-field="story2" class="font-serif text-lg text-warmgray leading-relaxed font-light"></p>
-                    <div class="pt-4 border-t border-gold/15">
-                        <p class="font-script text-3xl text-gold">"We can't wait to celebrate with you."</p>
-                    </div>
                 </div>
             </div>
         </section>
@@ -246,7 +226,7 @@
         <!-- Photo Gallery Section (hidden automatically until photos are added) -->
         <section id="gallery-section" class="py-16 md:py-24 border-t border-gold/15" style="display:none;">
             <div class="reveal text-center max-w-xl mx-auto mb-12">
-                <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Gallery</span>
+                <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Photographs</span>
                 <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light mt-2">Photographs</h2>
             </div>
             <div class="reveal gallery-carousel-outer">
@@ -266,7 +246,7 @@
         <section id="schedule" class="py-16 md:py-24 border-t border-gold/15">
             <div class="schedule-leaves" aria-hidden="true"><span class="lf-1"></span><span class="lf-2"></span><span class="lf-3"></span><span class="lf-4"></span></div>
             <div class="reveal text-center max-w-xl mx-auto mb-16">
-                <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Timeline</span>
+                <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">The day</span>
                 <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light mt-2">How the day runs</h2>
             </div>
 
@@ -276,7 +256,7 @@
         <!-- FAQ Section (hidden automatically until at least one question exists) -->
         <section id="faq-section" class="py-16 md:py-24 border-t border-gold/15" style="display:none;">
             <div class="reveal text-center max-w-xl mx-auto mb-12">
-                <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Good to Know</span>
+                <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Good to know</span>
                 <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light mt-2">Things you might be wondering</h2>
             </div>
             <div id="faq-list" class="reveal max-w-2xl mx-auto space-y-3"></div>
@@ -286,31 +266,31 @@
         <section id="rsvp" class="py-16 md:py-24 border-t border-gold/15">
             <div class="reveal max-w-2xl mx-auto p-8 md:p-12 rounded-3xl bg-white/80 border border-gold/30 shadow-xl backdrop-blur-md">
                 <div class="text-center mb-10">
-                    <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Kindly Respond</span>
-                    <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light mt-2">RSVP</h2>
+                    <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">RSVP</span>
+                    <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light mt-2">Will you join us?</h2>
                     <p id="rsvp-deadline-text" data-field="rsvpDeadlineText" class="font-serif italic text-warmgray mt-2">Please reply by March 1st, 2027</p>
                 </div>
 
                 <form id="rsvp-form" name="rsvp" method="POST" onsubmit="submitRSVP(event)" class="space-y-6">
                     <input type="hidden" name="form-name" value="rsvp">
                     <div>
-                        <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Full Name(s)</label>
-                        <input type="text" name="guest_names" required placeholder="e.g. Eleanor & James Vance" class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal placeholder:text-warmgray/50 focus:outline-none focus:border-gold font-sans text-sm">
+                        <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Your name, or both of yours</label>
+                        <input type="text" name="guest_names" required placeholder="As it is on your invitation" class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal placeholder:text-warmgray/50 focus:outline-none focus:border-gold font-sans text-sm">
                     </div>
 
                     <div>
-                        <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Attending</label>
+                        <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Will you be there?</label>
                         <div class="grid grid-cols-2 gap-4">
                             <label class="cursor-pointer">
                                 <input type="radio" name="attending" value="yes" checked onchange="handleRsvpAttendingChange()" class="peer sr-only-focusable">
                                 <div class="py-3 px-4 text-center rounded-xl border border-gold/25 peer-checked:bg-gold peer-checked:text-white font-sans text-xs uppercase tracking-widest transition">
-                                    Joyfully Accepts
+                                    With pleasure
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="attending" value="no" onchange="handleRsvpAttendingChange()" class="peer sr-only-focusable">
                                 <div class="py-3 px-4 text-center rounded-xl border border-gold/25 peer-checked:bg-gold peer-checked:text-white font-sans text-xs uppercase tracking-widest transition">
-                                    Regretfully Declines
+                                    Sadly, no
                                 </div>
                             </label>
                         </div>
@@ -318,7 +298,7 @@
 
                     <div id="rsvp-attending-extra-fields" class="space-y-6">
                         <div>
-                            <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Party Size</label>
+                            <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">How many of you</label>
                             <select name="guest_count" id="rsvp-guest-count" onchange="handleRsvpGuestCountChange()" class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal focus:outline-none focus:border-gold font-sans text-sm">
                                 <option value="1">1</option>
                                 <option value="2">2</option>
@@ -330,16 +310,16 @@
                         </div>
                         <div id="rsvp-plusone-wrap" style="display:none;">
                             <label for="rsvp-plusone-name" id="rsvpPlusOneLabel" class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Plus-One Name</label>
-                            <input type="text" name="plusone_name" id="rsvp-plusone-name" placeholder="e.g. James Carter" class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal placeholder:text-warmgray/50 focus:outline-none focus:border-gold font-sans text-sm">
+                            <input type="text" name="plusone_name" id="rsvp-plusone-name" placeholder="Their full name" class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal placeholder:text-warmgray/50 focus:outline-none focus:border-gold font-sans text-sm">
                         </div>
                         <div>
-                            <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Dietary Restrictions & Allergies</label>
-                            <textarea name="notes" rows="3" placeholder="Let us know about any allergies or dietary needs..." class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal placeholder:text-warmgray/50 focus:outline-none focus:border-gold font-sans text-sm"></textarea>
+                            <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Anything we should know?</label>
+                            <textarea name="notes" rows="3" placeholder="Allergies, dietary needs, or a note for us" class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal placeholder:text-warmgray/50 focus:outline-none focus:border-gold font-sans text-sm"></textarea>
                         </div>
                     </div>
 
                     <button type="submit" class="w-full py-4 rounded-xl bg-charcoal text-cream hover:bg-gold font-sans text-xs tracking-[0.2em] uppercase font-bold transition shadow-lg">
-                        Send Response
+                        Send our reply
                     </button>
 
                     <p id="rsvp-error" class="hidden text-center text-xs text-red-600 font-sans">
@@ -389,6 +369,6 @@
          countdown, calendar, gallery, FAQ, RSVP, export. Fix something here
          and all designs inherit it. Loaded after the data block above because
          it reads invitationData. -->
-    <script src="../_shared/wedding-core.js?v=45"></script>
+    <script src="../_shared/wedding-core.js?v=46"></script>
 </body>
 </html>

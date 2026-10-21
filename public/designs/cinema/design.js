@@ -360,14 +360,24 @@ var reelIO = new IntersectionObserver(function(es){
 },{rootMargin:'-45% 0px -45% 0px', threshold:0});
 document.querySelectorAll('[data-reel]').forEach(function(el){ reelIO.observe(el); });
 
+/* ---------- the start, from the couple's own date and time ----------
+   LUMA: read when it is needed, not when this file loads (the couple's
+   details may not be in yet, which showed NaN in every box), and from
+   their time rather than a fixed 15:30 in Italy. Local to the guest's
+   device, like every other design on Luma. */
+function weddingStart(){
+  var p = String(invitationData.date || '').split('-');
+  if(p.length < 3) return null;
+  var m = /^(\d{1,2})[:.h]?(\d{2})?\s*([ap])?/i.exec(String(invitationData.time || ''));
+  var h = m ? +m[1] : 16, mi = m ? +(m[2] || 0) : 0, ap = m ? (m[3] || '').toLowerCase() : '';
+  if(ap === 'p' && h < 12) h += 12;
+  if(ap === 'a' && h === 12) h = 0;
+  var dt = new Date(+p[0], +p[1]-1, +p[2], h, mi, 0);
+  return isNaN(dt.getTime()) ? null : dt;
+}
+
 /* ---------- countdown ---------- */
 (function(){
-  var parts = String(invitationData.date).split('-');
-  /* Anchor to the VENUE's local time, not the viewer's. 15:30 CEST == 13:30 UTC,
-     so the countdown reads identically for a guest in Florence or New York and
-     agrees with the .ics start below. (Adjust the UTC hour if the venue isn't
-     Italy/CEST — this becomes a proper timezone field in core integration.) */
-  var target = Date.UTC(+parts[0], +parts[1]-1, +parts[2], 13, 30, 0);
   var els = { d:document.getElementById('cdD'), h:document.getElementById('cdH'), m:document.getElementById('cdM'), s:document.getElementById('cdS') };
   function setNum(el, v){
     if(!el || el.textContent===v) return;
@@ -376,7 +386,9 @@ document.querySelectorAll('[data-reel]').forEach(function(el){ reelIO.observe(el
     el.classList.remove('tick'); void el.offsetWidth; el.classList.add('tick');
   }
   function tick(){
-    var s = Math.max(0, Math.floor((target - Date.now())/1000));
+    var start = weddingStart();
+    if(!start) return;
+    var s = Math.max(0, Math.floor((start.getTime() - Date.now())/1000));
     setNum(els.d, pad2(Math.floor(s/86400)));
     setNum(els.h, pad2(Math.floor(s/3600)%24));
     setNum(els.m, pad2(Math.floor(s/60)%60));
@@ -389,28 +401,28 @@ document.querySelectorAll('[data-reel]').forEach(function(el){ reelIO.observe(el
 (function(){
   var calBtn = document.getElementById('calBtn');
   if(!calBtn) return;
-  var parts = String(invitationData.date).split('-');
-  var y = +parts[0], mo = +parts[1], d = +parts[2];
-  // Ceremony 15:30–23:59 local time, matches the schedule above — adjust here if the day's plan changes.
+  /* floating local time: the calendar shows it at the hour on the invitation */
   function fmt(dt){
-    return dt.getUTCFullYear() + pad2(dt.getUTCMonth()+1) + pad2(dt.getUTCDate()) + 'T' + pad2(dt.getUTCHours()) + pad2(dt.getUTCMinutes()) + '00Z';
+    return dt.getFullYear() + pad2(dt.getMonth()+1) + pad2(dt.getDate()) + 'T' + pad2(dt.getHours()) + pad2(dt.getMinutes()) + '00';
   }
-  var start = new Date(Date.UTC(y, mo-1, d, 13, 30, 0)); // 15:30 CEST == 13:30 UTC (adjust if venue isn't Italy/CEST)
-  var end = new Date(Date.UTC(y, mo-1, d, 22, 0, 0));
-  var title = encodeURIComponent(invitationData.partner1 + ' & ' + invitationData.partner2 + ' — The Wedding');
-  var details = encodeURIComponent('A love story in three acts. Dress code: black tie, with a touch of velvet.');
-  var loc = encodeURIComponent(document.getElementById('venueAddr') ? document.getElementById('venueAddr').textContent : '');
   calBtn.addEventListener('click', function(e){
     e.preventDefault();
-    var ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Picture House Invite//EN','BEGIN:VEVENT',
-      'UID:'+Date.now()+'@picturehouse.invite','DTSTAMP:'+fmt(new Date()),
+    var start = weddingStart();
+    if(!start) return;
+    var end = new Date(start.getTime() + 8*3600*1000);
+    var title = invitationData.partner1 + ' & ' + invitationData.partner2 + ', wedding';
+    var dress = [invitationData.dressCode, invitationData.dressCodeNote].filter(function(x){ return x && String(x).trim(); }).join('. ');
+    var loc = document.getElementById('venueAddr') ? document.getElementById('venueAddr').textContent : '';
+    var now = new Date();
+    var ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Luma//The Picture House//EN','BEGIN:VEVENT',
+      'UID:'+Date.now()+'@luma.invite','DTSTAMP:'+fmt(now),
       'DTSTART:'+fmt(start), 'DTEND:'+fmt(end),
-      'SUMMARY:'+decodeURIComponent(title), 'DESCRIPTION:'+decodeURIComponent(details),
-      'LOCATION:'+decodeURIComponent(loc), 'END:VEVENT','END:VCALENDAR'].join('\r\n');
+      'SUMMARY:'+title, dress ? 'DESCRIPTION:Dress code: '+dress : '',
+      'LOCATION:'+loc, 'END:VEVENT','END:VCALENDAR'].filter(Boolean).join('\r\n');
     var blob = new Blob([ics], {type:'text/calendar'});
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'alexandra-julian-wedding.ics';
+    a.download = 'wedding.ics';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   });
 })();

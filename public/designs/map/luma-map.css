@@ -45,3 +45,11 @@
 .art.excerpt .snd.big{ font-size:2px; fill:#46647f }
 .art.excerpt .landEdge{ stroke-width:.25 }
 .art.excerpt .contour{ stroke-width:.22 }
+
+/* LUMA POLISH: on a phone, a moment drawn from the chart is a band of
+   it, not a full plate; four full plates in a row read as the same
+   picture four times, and the soundings were too small to read anyway */
+@media (max-width:859px){
+  .stop .plate.charted{ aspect-ratio:16/6 }
+  .stop{ margin-bottom:clamp(28px,5dvh,52px) }
+}

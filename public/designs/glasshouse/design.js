@@ -117,7 +117,9 @@ function buildContent(){
   document.title = w.couple.personOne+' and '+w.couple.personTwo+' - The Glasshouse';
 
   var mark=document.querySelector('.nav-mark');
-  if(mark) mark.textContent = txt(d.venueName,'').split(/[,\s]+/)[0]; /* LUMA: no sample venue */
+  /* LUMA: the couple's initials. The venue's first word made "VILLA" or
+     "THE" the mark of half the weddings on it. */
+  if(mark) mark.textContent = [txt(d.partner1,''), txt(d.partner2,'')].map(function(n){ return n.charAt(0).toUpperCase(); }).filter(Boolean).join(' \u00b7 ');
 
   /* Whether the couple's own photographs are settled into the palette. Default
      on. Explicit false is respected. */
@@ -156,7 +158,10 @@ function buildContent(){
   /* UNDER GLASS. One line, split on its middle word so the connector can be
      set in amber at a smaller size. Two words means no connector to find. */
   (function(){
-    var line = txt(d.glassLine,'Warm in December').split(/\s+/);
+    /* LUMA: by default the couple themselves, "Ana and Boris", with the
+       "and" in amber. The sample's "Warm in December" showed on every
+       wedding, June ones included. */
+    var line = txt(d.glassLine, [txt(d.partner1,''), 'and', txt(d.partner2,'')].join(' ')).split(/\s+/);
     var a=document.getElementById('word-you'), m=document.getElementById('story-amp'),
         b=document.getElementById('word-me');
     if(a && m && b){
@@ -193,7 +198,7 @@ function buildContent(){
   setText('rsvpNoLabel', txt(d.rsvpNoLabel,'No'));
   setText('rsvpGuestsLabel', txt(d.rsvpGuestsLabel,'Number of Guests'));
   setText('rsvpNotesLabel', txt(d.rsvpNotesLabel,'A Message for the Couple'));
-  setText('rsvpSubmitLabel', txt(d.rsvpSubmitLabel,'Confirm RSVP'));
+  setText('rsvpSubmitLabel', txt(d.rsvpSubmitLabel,'Send our reply'));
 
   /* Reply-by and the email fallback. The core stores both and no section on
      this page was showing either, so a guest never learned the deadline. */
