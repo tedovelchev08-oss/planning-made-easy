@@ -228,3 +228,18 @@
   .cel-dial .mk{ r:6px }
   .cel-dial .mk-glow{ r:15px }
 }
+
+/* ---------- THE SKY BEHIND THE PAGE ----------
+   A photograph of a real night sky, in place of the drawn star layers.
+   It turns slowly as the page scrolls (design.js sets --band-turn), the
+   way the sky turns through the evening; the horizon is cropped out of
+   the file so it never tilts. */
+body .page-band{
+  --band-angle: 0deg;
+  top:-35%; left:-60%; width:220%; height:170%;
+  background:#070b1c url("assets/night-sky.jpg") center / cover no-repeat;
+  /* quieter than the photograph: the chart's stars are the ones that
+     matter, and the text has to sit on it */
+  opacity:.5;
+}
+body .page-sky-far, body .page-sky-near{ display:none }
