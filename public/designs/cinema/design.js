@@ -376,25 +376,21 @@ function weddingStart(){
   return isNaN(dt.getTime()) ? null : dt;
 }
 
-/* ---------- countdown ---------- */
+/* ---------- showtime ----------
+   Was four ticking boxes of days, hours, minutes and seconds - the one
+   piece of every wedding template that says template. A cinema prints the
+   day and the time the film starts, so this does. Rewritten each second
+   only because the couple's details can arrive after this file loads. */
 (function(){
-  var els = { d:document.getElementById('cdD'), h:document.getElementById('cdH'), m:document.getElementById('cdM'), s:document.getElementById('cdS') };
-  function setNum(el, v){
-    if(!el || el.textContent===v) return;
-    el.textContent = v;
-    if(RM) return;
-    el.classList.remove('tick'); void el.offsetWidth; el.classList.add('tick');
-  }
-  function tick(){
+  var el = document.getElementById('showtime');
+  if(!el) return;
+  var DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  function write(){
     var start = weddingStart();
-    if(!start) return;
-    var s = Math.max(0, Math.floor((start.getTime() - Date.now())/1000));
-    setNum(els.d, pad2(Math.floor(s/86400)));
-    setNum(els.h, pad2(Math.floor(s/3600)%24));
-    setNum(els.m, pad2(Math.floor(s/60)%60));
-    setNum(els.s, pad2(s%60));
+    var v = start ? DAYS[start.getDay()] + '  \u00b7  Showtime ' + pad2(start.getHours()) + ':' + pad2(start.getMinutes()) : '';
+    if(el.textContent !== v) el.textContent = v;
   }
-  tick(); setInterval(tick, 1000);
+  write(); setInterval(write, 1000);
 })();
 
 /* ---------- add to calendar ---------- */
