@@ -32,7 +32,7 @@
      sheet loads after it so it always wins, and wedding-ui.css last because it
      only dresses the builder drawer. -->
 <link rel="stylesheet" href="../_shared/tailwind.css?v=1">
-<link rel="stylesheet" href="wedding-design.css?v=2">
+<link rel="stylesheet" href="wedding-design.css?v=3">
 <link rel="stylesheet" href="../_shared/wedding-ui.css?v=1">
 <!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
 <style>
@@ -166,6 +166,9 @@
     </div>
   </section>
 
+  <!-- The order of the day and the photographs are laid out on the table:
+       one stretch of photographed green baize under both. -->
+  <div class="felt">
   <!-- ============================================================
        03 - THE ORDER OF PLAY (a card per event, its time as the rank)
        ============================================================ -->
@@ -181,6 +184,8 @@
     <h2 class="sec-title" id="galleryHeading">A few of ours</h2>
     <div class="photo-hand"></div>
   </section>
+
+  </div>
 
   <!-- ============================================================
        05 - QUESTIONS (rendered by the core into #faq-list)
