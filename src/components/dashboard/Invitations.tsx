@@ -15,7 +15,7 @@ import { PhotoUpload } from "./PhotoUpload";
 import { playChime, useChimeLoop } from "../../lib/sound";
 import { DesignFrame, Field, Modal, Pill, PlanTag, SafeImg, btn, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
-import { STUDIO_DESIGNS, studioDesignOf } from "../../../api/_lib/studioDesigns";
+import { STUDIO_DESIGNS, studioDesignOf, tracksOf } from "../../../api/_lib/studioDesigns";
 import { StudioDetails, StudioGallery, StudioPreviewPane, openStudioPreview, writePreview } from "./StudioDesigns";
 
 /* ------------------------------ palette & font presets ------------------------------ */
@@ -576,7 +576,8 @@ export default function Invitations() {
             </div>
           </section>
 
-          <LuxeStudio cfg={cfg} setCfg={setCfg} unlocked={luxeUnlocked} songOnly={!!studio} />
+          {/* a studio design without music (no player) has no song to upload either */}
+          {(!studio || tracksOf(studio).length > 0) && <LuxeStudio cfg={cfg} setCfg={setCfg} unlocked={luxeUnlocked} songOnly={!!studio} />}
 
           {!studio && template.photo && (
             <section className="rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md">

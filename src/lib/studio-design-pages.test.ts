@@ -15,11 +15,14 @@ describe.each(STUDIO_DESIGNS.map((d) => [d.id]))("public/designs/%s", (id) => {
 
   it("exists", () => expect(html).not.toBe(""));
 
-  it("loads the bridge before the shared engine", () => {
+  // most designs run the shared engine; a few (Map) are standalone pages with their own renderer
+  const engine = html.includes('src="../_shared/wedding-core.js');
+
+  it("loads the bridge before whatever draws the page", () => {
     const bridge = html.indexOf('src="../_shared/luma-bridge.js');
-    const core = html.indexOf('src="../_shared/wedding-core.js');
+    const drawer = engine ? html.indexOf('src="../_shared/wedding-core.js') : html.search(/src="luma-[a-z]+\.js/);
     expect(bridge).toBeGreaterThan(0);
-    expect(core).toBeGreaterThan(bridge);
+    expect(drawer).toBeGreaterThan(bridge);
   });
 
   it("asks nothing of other hosts (only a credit link may point out)", () => {
@@ -29,7 +32,7 @@ describe.each(STUDIO_DESIGNS.map((d) => [d.id]))("public/designs/%s", (id) => {
   });
 
   it("starts empty and guest-only, with no stock photo or sample story", () => {
-    expect(html).toContain("isGuestView: true");
+    if (engine) expect(html).toContain("isGuestView: true");
     expect(html).not.toMatch(/unsplash|pexels/i);
     expect(html).not.toMatch(/<p id="story-text-[12]"[^>]*>\s*[^<\s]/);
     expect(html).not.toContain('id="builder-bar"');

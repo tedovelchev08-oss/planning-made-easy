@@ -1,0 +1,47 @@
+/* ============================================================
+   MAP ON LUMA
+   The design's six passage plates and its story, folio and reply
+   photographs were stock. On Luma each moment of the day gets a
+   piece of the chart instead (drawn by luma-map.js in the hero's
+   own lettering and colours), and the couple's photographs go
+   wherever they have one.
+   ============================================================ */
+
+/* a moment of the day, drawn as an excerpt of the chart */
+.stop .plate .art.excerpt{
+  position:absolute; inset:0; width:100%; height:100%; display:block;
+  background:var(--water);
+}
+.stop .plate.charted{ background:var(--water) }
+
+/* the story without a photograph: the chart, and the words in ink */
+.bleed > .art.excerpt{
+  position:absolute; inset:0; z-index:0; width:100%; height:100%;
+}
+.bleed.charted::before{
+  background:linear-gradient(to top right, rgba(241,239,231,.94) 0%, rgba(241,239,231,.82) 38%, rgba(241,239,231,0) 72%) !important;
+}
+.bleed.charted .words .d1,
+.bleed.charted .words .col,
+.bleed.charted .words .col p{ color:var(--ink) !important; text-shadow:none !important }
+.bleed.charted .stamp{ color:var(--magenta) !important }
+
+/* the reply, without the stock sunset: the sound at dusk */
+.replyscene{
+  background:
+    radial-gradient(120% 70% at 50% 100%, #f2a35c 0%, rgba(242,163,92,0) 55%),
+    linear-gradient(to bottom, #2b3a52 0%, #5a5b72 45%, #c57a5a 78%, #1d2c3f 100%);
+}
+
+/* names in the register are the couple's own; no birth years */
+.sand .who .born{ display:none }
+
+/* a section the couple has left empty takes itself away */
+.luma-empty{ display:none !important }
+
+/* the excerpts are drawn at chart scale: soundings in the same small
+   figure the folded sheet uses, not blown up with the plate */
+.art.excerpt .snd{ font-size:1.7px; fill:#5d7891 }
+.art.excerpt .snd.big{ font-size:2px; fill:#46647f }
+.art.excerpt .landEdge{ stroke-width:.25 }
+.art.excerpt .contour{ stroke-width:.22 }

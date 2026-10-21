@@ -117,6 +117,25 @@ describe("studio designs: the catalogue", () => {
     expect(d.heroPhoto).toBe("");
   });
 
+  it("The Crossing (Map) is part of Celebration: a photo per moment, no music", () => {
+    const mp = studioDesignOf("studio:map")!;
+    expect(planAllows("celebration", mp)).toBe(true);
+    const up = "https://abc.supabase.co/storage/v1/object/public/media/w1/photos/m.jpg";
+    const d = toInvitationData({ slug: "a", names: "A & B", date: "2027-06-12T14:00:00Z", invitation: {
+      template_id: "studio:map", music: { track: "upload", url: "https://x/song.mp3" },
+      design_data: { schedule: [{ time: "16:00", title: "Ceremony", photo: up }, { time: "19:00", title: "Dinner", photo: "javascript:x" }] } } }, mp);
+    const sched = d.schedule as { photo?: string }[];
+    expect(sched.map((s) => s.photo)).toEqual([up, ""]);
+    expect(d.music).toEqual({ enabled: false, track: "" });
+    expect(d.heroPhoto).toBe("");
+  });
+
+  it("a design without moment photos never passes one on", () => {
+    const cel = studioDesignOf("studio:celestial")!;
+    const d = toInvitationData({ slug: "a", names: "A & B", date: "2027-06-12T14:00:00Z", invitation: { template_id: "studio:celestial", design_data: { schedule: [{ title: "Ceremony", photo: "https://x/p.jpg" }] } } }, cel);
+    expect((d.schedule as Record<string, unknown>[])[0]).not.toHaveProperty("photo");
+  });
+
   it("a guest's link keeps the token, the slug and the source", () => {
     expect(studioInviteUrl(celestial, { token: "t-1", src: "whatsapp" })).toBe("/designs/celestial/index.html?token=t-1&src=whatsapp");
     expect(studioInviteUrl(celestial, { slug: "ana-boris" })).toBe("/designs/celestial/index.html?slug=ana-boris");
