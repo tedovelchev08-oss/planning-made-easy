@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!-- Generic on purpose: crawlers read this, and the edge function swaps in the
      couple's real names server-side. Only crawlers ever see this wording. -->
-<title>Rien ne va plus - A Wedding Invitation</title>
-<meta name="description" content="A Riviera wedding. Spin the wheel to find the day. You are invited.">
+<title>A Postcard - A Wedding Invitation</title>
+<meta name="description" content="A postcard from the Riviera. You are invited.">
 <meta name="theme-color" content="#f2eee3">
 
 
@@ -32,7 +32,7 @@
      sheet loads after it so it always wins, and wedding-ui.css last because it
      only dresses the builder drawer. -->
 <link rel="stylesheet" href="../_shared/tailwind.css?v=4">
-<link rel="stylesheet" href="wedding-design.css?v=5">
+<link rel="stylesheet" href="wedding-design.css?v=7">
 <link rel="stylesheet" href="../_shared/wedding-ui.css?v=4">
 <!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
 <style>
@@ -57,26 +57,26 @@
 
   <!-- ============================================================
        00 - THE INVITATION
-       The wheel is built once by design.js and lives HERE, in the hero.
-       During the opening it is lifted to the middle of the screen by a
-       transform; when the ball lands, the transform is released and it
-       settles into the ring around the names. Two copies of the same
-       drawing: #wheelBack passes behind the first name, #wheelFront (its
-       lower half only) in front of the second.
+       A postcard from the coast. It arrives face up (a real 1960s view of
+       the harbour); turned over, the couple's note is on the back in their
+       hand, under a stamp and a postmark with their date. Then the page:
+       their photograph, the same stamp, their names.
        ============================================================ -->
   <section id="hero">
     <figure class="hero-photo" id="heroPhoto">
       <img id="heroImg" src="" alt="">
     </figure>
 
-    <div class="wheel back" id="wheelBack" role="button" tabindex="-1" aria-label="Spin the wheel"></div>
+    <!-- the stamp from the postcard, franked with their date -->
+    <div class="hero-stamp" aria-hidden="true">
+      <span class="stamp"><img src="assets/stamp.jpg" alt=""></span>
+      <span class="postmark"><b data-sync="pmDate"></b><i data-sync="pmPlace"></i></span>
+    </div>
 
     <h1 class="hero-names">
       <span class="hn hn1" data-sync="one"></span>
       <span class="hn hn2"><span class="amp">&amp;</span><span data-sync="two"></span></span>
     </h1>
-
-    <div class="wheel front" id="wheelFront" aria-hidden="true"></div>
 
     <div class="hero-details">
       <p class="hero-when" data-sync="dateWords"></p>
@@ -89,9 +89,24 @@
     <div id="intro" aria-live="polite">
       <div class="intro-photo" aria-hidden="true"><img id="introImg" src="" alt=""></div>
       <div class="intro-veil" aria-hidden="true"></div>
+      <div class="pc-stage">
+        <div class="pc-card" id="pcCard" role="button" tabindex="0" aria-label="Turn the postcard over">
+          <div class="pc-face pc-front">
+            <img src="assets/postcard-harbour.jpg" alt="An old postcard of a harbour on the Riviera">
+          </div>
+          <div class="pc-face pc-back">
+            <div class="pc-note" id="pcNote"></div>
+            <div class="pc-side">
+              <span class="stamp"><img src="assets/stamp.jpg" alt=""></span>
+              <span class="postmark"><b data-sync="pmDate"></b><i data-sync="pmPlace"></i></span>
+              <p class="pc-to"><span>To everyone</span><span>we love</span><span data-sync="pmPlace"></span></p>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="intro-call">
-        <p class="intro-line" id="introLine">Faites vos jeux</p>
-        <button type="button" class="intro-spin" id="introSpin">Spin the wheel</button>
+        <p class="intro-line" id="introLine">A postcard for you</p>
+        <button type="button" class="intro-spin" id="introSpin">Turn it over</button>
       </div>
       <button type="button" class="intro-skip" id="introSkip">Skip</button>
     </div>
@@ -114,7 +129,7 @@
        ============================================================ -->
   <section class="sec" id="the-day">
     <div class="day-wrap">
-      <div class="day-chip" aria-hidden="true"><span data-sync="day"></span></div>
+      <figure class="day-card" aria-hidden="true"><img src="assets/postcard-beach.jpg" alt=""></figure>
       <div class="day-info">
         <p class="day-when" data-sync="dateWords"></p>
         <p class="day-time" id="dayTime">4:00 PM</p>
@@ -200,10 +215,8 @@
 
       <!-- Replaces the form once a reply is accepted. -->
       <div class="rsvp-done" id="rsvp-confirmed" hidden>
-        <div class="done-wheel" aria-hidden="true">
-          <svg viewBox="-60 -60 120 120"><circle r="48" class="dw-ring"/><circle r="40" class="dw-ring thin"/><circle class="dw-ball" r="6" cy="-44"/></svg>
-        </div>
-        <p class="done-title" id="rsvpDoneTitle">Rien ne va plus.</p>
+        <div class="done-postmark" aria-hidden="true"><span class="postmark"><b data-sync="pmDate"></b><i data-sync="pmPlace"></i></span></div>
+        <p class="done-title" id="rsvpDoneTitle">Posted.</p>
         <p class="done-sub" id="rsvpDoneSub">Your reply is with us. We will see you there.</p>
         <button type="button" class="done-again" id="rsvpAgain">Send a different reply</button>
       </div>
@@ -230,9 +243,9 @@ let invitationData = {
     gallery: [], schedule: [], faq: [],
     photoTone: true,
     ceremonyNote: "",
-    introCall: "Faites vos jeux",
-    introButton: "Spin the wheel",
-    introLanded: "Rien ne va plus",
+    introCall: "A postcard for you",
+    introButton: "Turn it over",
+    introLanded: "Posted",
     heroCta: "Reply",
     heroPlace: "",
     dateWords: "",
@@ -265,8 +278,8 @@ let invitationData = {
 
 <!-- Shared behaviour for every design. Loaded after the data. -->
 <script src="../_shared/wedding-core.js?v=5"></script>
-<!-- This design only: the wheel, the opening, and the seam onto the core. -->
-<script src="design.js?v=5"></script>
+<!-- This design only: the postcard, the opening, and the seam onto the core. -->
+<script src="design.js?v=7"></script>
 
 <!-- Luma: the after-render hook this design's own render needs, and what it
      leaves to its old builder. -->

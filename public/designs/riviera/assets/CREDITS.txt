@@ -1,0 +1,14 @@
+RIVIERA — the postcards
+=======================
+
+postcard-harbour.jpg  the postcard the invitation arrives as (and the hero
+                      photograph until the couple add their own)
+postcard-beach.jpg    the postcard beside the day's details
+card-back.jpg         the back of a postcard: the note, the order of the
+                      day, the reply
+stamp.jpg             the stamp, cut from a third postcard of a hill village
+
+All generated for this design (Seedream 5 Lite on ElevenLabs, under a paid
+plan's commercial licence, from Luma's own art direction) and graded at
+file level: no third-party photograph, no recognisable people, owned by
+Luma.

@@ -264,7 +264,8 @@ function buildCalendarLinks(d, w){
       +'&location='+encodeURIComponent(loc);
   }
   if(ics){
-    if(location.protocol==='file:'){
+    /* LUMA: there is no calendar function on Luma; the core makes the file in the browser */
+    if(location.protocol === 'file:' || window.lumaBoot){
       ics.removeAttribute('href'); ics.style.cursor='pointer';
       ics.onclick=function(e){ e.preventDefault(); if(typeof window.downloadICS==='function') window.downloadICS(); };
     } else {
