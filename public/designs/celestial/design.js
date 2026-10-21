@@ -361,6 +361,135 @@
         apply();
     }
 
+    /* ---------- the rim, engraved ----------
+       Hour marks of right ascension, which turn with the sky (so the rim is
+       true for that night, not a decorative dial), and the night itself
+       written round the top: where, when. */
+    var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+    function txt(v) { return String(v == null ? '' : v).trim(); }
+
+    function inscription() {
+        var data = (typeof invitationData === 'object' && invitationData) ? invitationData : {};
+        var parts = txt(data.date).split('-');
+        var bits = [];
+        if (txt(data.venueName)) bits.push('Above ' + txt(data.venueName));
+        if (parts.length === 3) {
+            var dt = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+            bits.push(DAYS[dt.getDay()] + ' ' + (+parts[2]) + ' ' + MONTHS[+parts[1] - 1] + ' ' + parts[0]);
+        }
+        if (txt(data.time)) bits.push(txt(data.time));
+        return bits.join('  ·  ');
+    }
+
+    function drawRing(lst) {
+        var svg = document.getElementById('sky-ring');
+        if (!svg) return;
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+        svg.appendChild(el('circle', { cx: CX, cy: CY, r: R + 8, class: 'rim2' }));
+        for (var h = 0; h < 24; h += 0.5) {
+            var major = h % 1 === 0;
+            var a = (lst - h) * 15 * Math.PI / 180;
+            var r1 = R + 1, r2 = R + (major ? 7 : 4);
+            svg.appendChild(el('line', {
+                class: 'tick' + (major ? ' major' : ''),
+                x1: (CX + r1 * Math.sin(a)).toFixed(2), y1: (CY - r1 * Math.cos(a)).toFixed(2),
+                x2: (CX + r2 * Math.sin(a)).toFixed(2), y2: (CY - r2 * Math.cos(a)).toFixed(2)
+            }));
+            if (h % 3 === 0) {
+                var rt = R + 16;
+                var t = el('text', {
+                    class: 'hour', 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+                    x: (CX + rt * Math.sin(a)).toFixed(2), y: (CY - rt * Math.cos(a)).toFixed(2)
+                });
+                t.textContent = h + 'h';
+                svg.appendChild(t);
+            }
+        }
+        // the inscription rides a circle over the top of the chart
+        var rr = R + 32;
+        var defs = el('defs', {});
+        defs.appendChild(el('path', {
+            id: 'ring-path',
+            d: 'M ' + (CX - rr) + ' ' + CY + ' A ' + rr + ' ' + rr + ' 0 0 1 ' + (CX + rr) + ' ' + CY
+        }));
+        svg.appendChild(defs);
+        var words = el('text', { class: 'inscr', 'text-anchor': 'middle' });
+        var tp = el('textPath', { href: '#ring-path', startOffset: '50%' });
+        tp.textContent = inscription().toUpperCase();
+        words.appendChild(tp);
+        svg.appendChild(words);
+    }
+
+    /* ---------- the evening, as the sky turns ----------
+       The sky turns fifteen degrees an hour. Each moment of the day is
+       marked on an arc at the angle the sky had turned since the first one,
+       so the gaps are true: a long dinner is a long stretch of arc. */
+    function drawDial() {
+        var svg = document.getElementById('evening-dial');
+        var cap = document.getElementById('evening-turn');
+        if (!svg) return;
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+        var data = (typeof invitationData === 'object' && invitationData) ? invitationData : {};
+        var items = (data.schedule || []).filter(function (s) { return s && txt(s.title); });
+        if (!items.length) { if (cap) cap.textContent = ''; return; }
+
+        var hours = items.map(function (s) { return hoursFromTime(s.time); });
+        for (var i = 1; i < hours.length; i++) {
+            while (hours[i] < hours[i - 1]) hours[i] += 24;   // past midnight
+        }
+        var turn = (hours[hours.length - 1] - hours[0]) * 15;   // degrees
+        var scale = turn > 160 ? 160 / turn : 1;
+        var span = turn * scale;
+        var cx = 300, cy = 268, r = 236;
+        function at(deg, rad) {
+            var a = (-90 - span / 2 + deg * scale) * Math.PI / 180;   // 0 deg = straight up
+            return { x: cx + rad * Math.cos(a), y: cy + rad * Math.sin(a) };
+        }
+        function arc(from, to, rad) {
+            var p = at(from, rad), q = at(to, rad);
+            var large = Math.abs(to - from) * scale > 180 ? 1 : 0;
+            return 'M ' + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ' A ' + rad + ' ' + rad + ' 0 ' + large + ' 1 ' + q.x.toFixed(1) + ' ' + q.y.toFixed(1);
+        }
+        svg.appendChild(el('line', { class: 'hz', x1: 20, y1: cy, x2: 580, y2: cy }));
+        svg.appendChild(el('path', { class: 'arc', d: 'M ' + (cx - r) + ' ' + cy + ' A ' + r + ' ' + r + ' 0 0 1 ' + (cx + r) + ' ' + cy }));
+        if (turn > 0) svg.appendChild(el('path', { class: 'arc-lit', d: arc(0, turn, r) }));
+        hours.forEach(function (h, i) {
+            var deg = (h - hours[0]) * 15;
+            var p = at(deg, r), n = at(deg, r + 26), l = at(deg, r - 30);
+            svg.appendChild(el('circle', { class: 'mk-glow', cx: p.x.toFixed(1), cy: p.y.toFixed(1), r: 10 }));
+            svg.appendChild(el('circle', { class: 'mk', cx: p.x.toFixed(1), cy: p.y.toFixed(1), r: 3.6 }));
+            var num = el('text', { class: 'num', x: n.x.toFixed(1), y: (n.y + 4).toFixed(1) });
+            num.textContent = String(i + 1);
+            svg.appendChild(num);
+            var lbl = el('text', { class: 'lbl', x: l.x.toFixed(1), y: (l.y + 4).toFixed(1) });
+            lbl.textContent = txt(items[i].time);
+            svg.appendChild(lbl);
+        });
+        if (cap) {
+            cap.textContent = items.length > 1 && turn > 0
+                ? 'Between the first of these and the last, the sky turns ' + Math.round(turn) + '°.'
+                : '';
+        }
+    }
+
+    /* the photographs are laid flat as prints, so a tap enlarges one
+       straight away rather than first turning a carousel to it */
+    function bindPrints() {
+        var track = document.getElementById('gallery-carousel-track');
+        if (!track) return;
+        track.addEventListener('click', function (e) {
+            var item = e.target.closest && e.target.closest('.gallery-carousel-item');
+            if (!item || typeof openGalleryLightbox !== 'function') return;
+            var i = parseInt(item.getAttribute('data-gallery-index'), 10);
+            var g = ((typeof invitationData === 'object' && invitationData.gallery) || [])[i];
+            if (!g) return;
+            e.preventDefault(); e.stopPropagation();
+            openGalleryLightbox(g.id);
+        }, true);
+    }
+
     /* ---------- wiring ---------- */
 
     // Sidereal time, written out as a real clock reading. It is the number
@@ -414,6 +543,8 @@
             if (svg) drawSky(svg, ev.lst);
         });
 
+        drawRing(ev.lst);
+        drawDial();
         drawMoon(moonAge(ev.jd));
         buildMeteors(activeShower(ev.month, ev.day));
 
@@ -431,6 +562,7 @@
         });
         observeSchedule();
         bindScrollSky();
+        bindPrints();
         render();
     }
 
@@ -444,4 +576,14 @@
     // DOMContentLoaded has already gone. Redraw once that has landed.
     window.addEventListener('load', render);
     window.renderCelestialSky = render;
+
+    /* LUMA: the couple's details arrive from Luma after the page loads, and
+       on a slow connection after the load event too, which left the chart
+       drawn for the sample date. Redraw after every render the engine does
+       with their data. */
+    var afterRender = window.lumaAfterRender;
+    window.lumaAfterRender = function (d) {
+        if (typeof afterRender === 'function') afterRender(d);
+        render();
+    };
 })();

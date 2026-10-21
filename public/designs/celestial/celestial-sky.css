@@ -1,0 +1,230 @@
+/* ============================================================
+   CELESTIAL: the rebuilt page
+   ------------------------------------------------------------
+   One column on the night. The chart opens the page at the size
+   of a printed plate, the night it shows engraved round its rim;
+   after it, the record of that night: where and when, the evening
+   as the sky turns through it, how it began, the photographs, the
+   reply. No cards, no pills, no countdown. Gold is for what was
+   in the sky; everything else is pale ink on dark.
+   ============================================================ */
+.cel{
+  --gold:  hsl(var(--c-gold));
+  --ink:   hsl(var(--c-charcoal));
+  --dim:   hsl(var(--c-warmgray));
+  --line:  hsl(var(--c-gold) / .22);
+  --star:  hsl(var(--c-star));
+  --display: 'Italiana', 'Cormorant Garamond', Georgia, serif;
+  --serif:   'Cormorant Garamond', Georgia, serif;
+  --label:   'Jost', system-ui, sans-serif;
+  position:relative; z-index:2;
+  max-width:760px; margin:0 auto;
+  padding:92px max(20px, env(safe-area-inset-left, 0px)) 40px max(20px, env(safe-area-inset-right, 0px));
+  color:var(--ink); font-family:var(--serif);
+}
+.cel-quiet{ color:var(--dim) }
+.cel [hidden]{ display:none !important }
+
+/* ---------- THE SKY ---------- */
+.cel-sky{ text-align:center; padding-bottom:clamp(40px, 8vw, 72px) }
+.cel-chart{ position:relative; width:min(100%, 560px); margin:0 auto; aspect-ratio:1 }
+.cel-chart svg{ position:absolute; inset:0; width:100%; height:100%; overflow:visible }
+.cel-ring{ color:var(--gold); pointer-events:none }
+.cel-ring .tick{ stroke:currentColor; stroke-width:.6; opacity:.55 }
+.cel-ring .tick.major{ stroke-width:.9; opacity:.85 }
+.cel-ring .hour{ fill:var(--dim); font-family:var(--label); font-size:7px; letter-spacing:.06em }
+.cel-ring .rim2{ fill:none; stroke:currentColor; stroke-width:.5; opacity:.5 }
+.cel-ring .inscr{ fill:var(--gold); font-family:var(--label); font-size:9.6px; letter-spacing:.32em; text-transform:uppercase }
+
+.cel-names{
+  margin-top:clamp(18px, 4vw, 30px);
+  font-family:var(--display); font-weight:400; line-height:1.02;
+  font-size:clamp(46px, 13vw, 92px); letter-spacing:.01em; color:var(--star);
+}
+.cel-names .cel-amp{ font-family:var(--serif); font-style:italic; color:var(--gold); font-size:.62em; margin:0 .08em }
+.cel-invite{ margin-top:10px; font-style:italic; font-size:clamp(19px, 4.6vw, 23px); color:var(--dim) }
+
+.cel-readings{
+  display:flex; flex-wrap:wrap; justify-content:center; gap:14px 36px;
+  margin-top:clamp(24px, 5vw, 36px);
+}
+.cel-readings div{ display:grid; gap:4px; justify-items:center }
+.cel-readings dt, .cel-log dt, .cel-label, .cel-field label{
+  font-family:var(--label); font-size:11.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--dim);
+}
+.cel-readings dd{ margin:0; font-size:20px; display:flex; align-items:center; gap:10px }
+.cel-moon svg{ flex:none }
+.cel-shower{ margin-top:16px; font-style:italic; color:var(--gold) }
+
+/* ---------- SECTIONS ---------- */
+.cel-sec{ padding-block:clamp(48px, 9vw, 88px); border-top:1px solid var(--line) }
+.cel-h{
+  font-family:var(--display); font-weight:400; color:var(--star);
+  font-size:clamp(30px, 7vw, 44px); line-height:1.12; text-align:center; text-wrap:balance;
+}
+
+/* where and when: an observing log */
+.cel-log{ margin:clamp(22px, 5vw, 34px) auto 0; max-width:520px }
+.cel-log div{
+  display:grid; grid-template-columns:104px 1fr; gap:2px 16px; align-items:baseline;
+  padding:12px 0; border-bottom:1px solid var(--line);
+}
+.cel-log div:first-child{ border-top:1px solid var(--line) }
+.cel-log dd{ margin:0; grid-column:2; font-size:21px; line-height:1.35 }
+.cel-log dd.cel-quiet{ font-size:17px; font-style:italic }
+.cel-log div:has(> dd:empty:only-of-type){ display:none }
+.cel-log dd:empty{ display:none }
+.cel-links{ margin-top:22px; display:flex; flex-wrap:wrap; justify-content:center; gap:0 28px }
+.cel-links a{
+  display:inline-flex; align-items:center; min-height:44px; cursor:pointer;
+  font-family:var(--label); font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--gold);
+  text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:7px;
+}
+
+/* the evening: a dial of the sky's turn, then the moments */
+.cel-dial{ margin:clamp(18px, 4vw, 28px) auto 0; max-width:600px }
+.cel-dial svg{ display:block; width:100%; height:auto; overflow:visible }
+.cel-dial .arc{ fill:none; stroke:var(--line); stroke-width:1 }
+.cel-dial .arc-lit{ fill:none; stroke:var(--gold); stroke-width:1.4; stroke-dasharray:2 5; stroke-linecap:round }
+.cel-dial .hz{ stroke:var(--line); stroke-width:1 }
+.cel-dial .mk{ fill:var(--star) }
+.cel-dial .mk-glow{ fill:var(--gold); opacity:.22 }
+.cel-dial .num{ fill:var(--gold); font-family:var(--label); font-size:13px; text-anchor:middle }
+.cel-dial .lbl{ fill:var(--dim); font-family:var(--label); font-size:11px; letter-spacing:.08em; text-anchor:middle }
+.cel-dial figcaption{ margin-top:6px; text-align:center; font-style:italic; font-size:17px }
+
+.cel-moments{ margin:clamp(18px, 4vw, 28px) auto 0; max-width:560px; counter-reset:m }
+.cel .cel-moments .schedule-row{
+  position:static !important; margin:0 !important; padding:14px 0 !important; display:block !important;
+  border-bottom:1px solid var(--line); counter-increment:m; text-align:left !important;
+  --gap-px:0px !important;
+}
+.cel .cel-moments .schedule-row:first-child{ border-top:1px solid var(--line) }
+.cel .cel-moments .schedule-row::before, .cel .cel-moments .schedule-row::after,
+.cel .cel-moments::before, .cel .cel-moments::after{ display:none !important; content:none !important }
+.cel .cel-moments .schedule-content{
+  display:grid !important; grid-template-columns:34px 1fr; gap:0 14px; align-items:baseline;
+  flex-direction:row !important; text-align:left !important; padding:0 !important; margin:0 !important;
+  background:none !important; border:0 !important; box-shadow:none !important; transform:none !important;
+  width:100% !important; max-width:none !important; justify-self:stretch !important; grid-column:auto !important; float:none !important;
+}
+.cel .cel-moments .schedule-content::before{
+  content:counter(m); font-family:var(--label); font-size:13px; color:var(--gold);
+  width:26px; height:26px; border:1px solid hsl(var(--c-gold) / .6); border-radius:50%;
+  display:flex; align-items:center; justify-content:center; align-self:center;
+}
+.cel .cel-moments .schedule-icon{ display:none !important }
+.cel .cel-moments .schedule-text{ display:grid; grid-template-columns:62px 1fr; gap:0 14px; align-items:baseline; text-align:left !important }
+.cel .cel-moments .schedule-time{ font-family:var(--label); font-size:14px; letter-spacing:.06em; color:var(--gold); order:0 }
+.cel .cel-moments .schedule-title{ font-family:var(--serif); font-weight:500; font-size:22px; color:var(--ink); margin:0 !important; text-transform:none !important; letter-spacing:0 !important }
+.cel .cel-moments .schedule-venue{ grid-column:2; font-style:italic; font-size:17px; color:var(--dim); margin:0 !important }
+.cel .cel-moments .schedule-gap{ display:none !important }
+
+/* how it began */
+.cel-story{ display:grid; gap:clamp(26px, 5vw, 44px); align-items:center }
+@media (min-width:720px){ .cel-story{ grid-template-columns:5fr 6fr } }
+.cel-print{ margin:0; justify-self:center; width:min(100%, 360px); padding:8px; background:hsl(var(--c-star) / .06); border:1px solid var(--line) }
+.cel-print img{ display:block; width:100%; aspect-ratio:4/5; object-fit:cover }
+.cel-print:has(img:not([src])), .cel-print:has(img[src=""]){ display:none }
+.cel-words .cel-h{ text-align:left }
+.cel-words p{ margin-top:14px; font-size:clamp(19px, 4.6vw, 21px); line-height:1.6; color:var(--ink) }
+.cel-story:not(:has(.cel-print:not([hidden]) img[src]:not([src=""]))) .cel-words{ text-align:center; max-width:560px; margin:0 auto }
+.cel-story:not(:has(.cel-print:not([hidden]) img[src]:not([src=""]))) .cel-words .cel-h{ text-align:center }
+
+/* photographs: the engine's carousel, laid flat as prints */
+.cel .cel-prints{ margin-top:clamp(22px, 5vw, 34px) }
+.cel .cel-prints .gallery-nav-btn{ display:none !important }
+.cel .cel-prints .gallery-carousel-wrap{ height:auto !important; overflow:visible !important; perspective:none !important; mask:none !important; -webkit-mask:none !important }
+.cel .cel-prints .gallery-carousel-track{
+  position:static !important; height:auto !important; transform:none !important;
+  display:grid !important; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px;
+}
+@media (min-width:720px){ .cel .cel-prints .gallery-carousel-track{ grid-template-columns:repeat(3, minmax(0, 1fr)); gap:18px } }
+.cel .cel-prints .gallery-carousel-item{
+  position:relative !important; left:auto !important; top:auto !important; inset:auto !important;
+  transform:none !important; opacity:1 !important; pointer-events:auto !important; z-index:auto !important;
+  width:auto !important; height:auto !important; padding:6px !important; margin:0 !important;
+  background:hsl(var(--c-star) / .06) !important; border:1px solid var(--line) !important; border-radius:0 !important; box-shadow:none !important;
+  cursor:zoom-in;
+}
+.cel .cel-prints .gallery-carousel-item::before, .cel .cel-prints .gallery-carousel-item::after{ display:none !important; content:none !important }
+.cel .cel-prints .gallery-carousel-item img{ display:block; width:100% !important; height:auto !important; aspect-ratio:4/5; object-fit:cover; border-radius:0 !important; filter:none !important }
+
+/* questions: ruled rows */
+.cel-asks{ margin:clamp(20px, 4vw, 30px) auto 0; max-width:620px }
+.cel .cel-asks .faq-item{ background:none !important; border:0 !important; border-bottom:1px solid var(--line) !important; border-radius:0 !important; box-shadow:none !important; margin:0 !important }
+.cel .cel-asks .faq-item:first-child{ border-top:1px solid var(--line) !important }
+.cel .cel-asks .faq-question{ padding:16px 2px !important; font-family:var(--serif) !important; font-size:20px !important; color:var(--ink) !important; background:none !important; text-align:left; width:100%; display:flex; justify-content:space-between; gap:16px; align-items:center }
+.cel .cel-asks .faq-chevron{ color:var(--gold) }
+.cel .cel-asks .faq-answer p{ font-size:18px; color:var(--dim); padding:0 2px 16px }
+
+/* the reply */
+.cel-reply{ max-width:540px; margin:0 auto; text-align:center }
+#rsvp-deadline-text{ margin-top:8px; font-style:italic; font-size:18px }
+.cel-form{ margin-top:clamp(20px, 5vw, 30px); text-align:left; display:grid; gap:20px }
+#rsvp-attending-extra-fields{ display:grid; gap:20px }
+.cel-field{ display:grid; gap:6px }
+.cel-field input[type=text], .cel-field select, .cel-field textarea{
+  width:100%; padding:10px 2px; background:transparent; color:var(--ink);
+  border:0; border-bottom:1px solid hsl(var(--c-gold) / .45); border-radius:0;
+  font-family:var(--serif); font-size:20px;
+}
+.cel-field select option{ color:#111 }
+.cel-field input::placeholder, .cel-field textarea::placeholder{ color:hsl(var(--c-warmgray) / .7) }
+.cel-field input:focus, .cel-field select:focus, .cel-field textarea:focus{ outline:none; border-bottom-color:var(--gold) }
+.cel-choice{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+.cel-choice label{ position:relative; cursor:pointer }
+.cel-choice input{ position:absolute; opacity:0; pointer-events:none }
+.cel-field .cel-choice label{ font:inherit; text-transform:none; letter-spacing:0 }
+.cel-choice span{
+  display:block; text-align:center; padding:12px 8px; border:1px solid hsl(var(--c-gold) / .4);
+  font-family:var(--serif); font-size:19px; letter-spacing:.01em; text-transform:none; color:var(--ink); transition:background .2s, color .2s;
+}
+.cel-choice input:checked + span{ background:var(--gold); color:hsl(var(--c-night-deep)); border-color:var(--gold) }
+.cel-choice input:focus-visible + span{ outline:2px solid var(--star); outline-offset:2px }
+.cel-send{
+  margin-top:6px; padding:16px; border:1px solid var(--gold); background:transparent; color:var(--gold); cursor:pointer;
+  font-family:var(--label); font-size:12.5px; letter-spacing:.28em; text-transform:uppercase;
+  transition:background .25s, color .25s;
+}
+.cel-send:hover, .cel-send:focus-visible{ background:var(--gold); color:hsl(var(--c-night-deep)) }
+.cel-error{ color:#f0a08c; font-size:16px; text-align:center }
+.cel-done{ padding-top:10px }
+.cel-done p{ margin-top:8px; font-style:italic; font-size:19px; color:var(--dim) }
+
+/* ---------- THE CLOSE ---------- */
+.cel-close{
+  position:relative; z-index:2; text-align:center;
+  padding:clamp(56px, 10vw, 96px) 20px clamp(48px, 8vw, 72px);
+  border-top:1px solid hsl(var(--c-gold) / .22);
+  font-family:'Cormorant Garamond', Georgia, serif; color:hsl(var(--c-charcoal));
+}
+.cel-close-mark{
+  display:inline-flex; align-items:center; gap:22px;
+  font-family:'Italiana', serif; font-size:30px; color:hsl(var(--c-star)); letter-spacing:.06em;
+}
+.cel-close-mark i{ width:46px; height:1px; background:hsl(var(--c-gold) / .7); position:relative }
+.cel-close-mark i::before, .cel-close-mark i::after{
+  content:""; position:absolute; top:-2.5px; width:6px; height:6px; border-radius:50%;
+  background:hsl(var(--c-star)); box-shadow:0 0 10px hsl(var(--c-gold));
+}
+.cel-close-mark i::before{ left:-3px } .cel-close-mark i::after{ right:-3px }
+.cel-close-names{ margin-top:16px; font-size:24px }
+.cel-close .cel-quiet{ margin-top:6px; font-family:'Jost', sans-serif; font-size:11.5px; letter-spacing:.22em; text-transform:uppercase; color:hsl(var(--c-warmgray)) }
+#footer-hashtag.cel-quiet{ text-transform:none; letter-spacing:.04em; font-size:14px }
+
+@media (prefers-reduced-motion:reduce){
+  .cel-send, .cel-choice span{ transition:none }
+}
+
+/* On a phone the chart and the dial are drawn at about half their size,
+   so their lettering is set larger in the drawings' own units to land at
+   a readable size on screen. */
+@media (max-width:600px){
+  .cel-ring .inscr{ font-size:12.5px; letter-spacing:.2em }
+  .cel-ring .hour{ font-size:9.5px }
+  .cel-dial .num{ font-size:24px }
+  .cel-dial .lbl{ font-size:20px; letter-spacing:.02em }
+  .cel-dial .mk{ r:6px }
+  .cel-dial .mk-glow{ r:15px }
+}
