@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>You&rsquo;re Invited</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#ddded9">
+
+<!-- Fonts served by Luma (licences beside each file in ../_shared/fonts) -->
+<link rel="stylesheet" href="../_shared/fonts/fonts.css">
+<link rel="stylesheet" href="stone.css?v=8">
+<link rel="stylesheet" href="page.css?v=3">
+<!-- Luma: the couple's own words and photographs, and the page held back
+     until they are in -->
+<link rel="stylesheet" href="luma-ins.css?v=1">
+<style>
+  html.luma-loading { background: #ddded9; }
+  html.luma-loading body { visibility: hidden; }
+  .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #e6e6e1; color: #3b3632; font-family: 'Libre Franklin', sans-serif; }
+  .luma-notice h1 { font-family: 'Cinzel', Georgia, serif; font-size: 30px; font-weight: 500; color: #9e3b2c; margin: 0; letter-spacing: .06em; }
+  .luma-notice p { font-size: 16px; max-width: 30rem; margin: 0; opacity: .8; }
+  .luma-notice a { margin-top: 8px; color: #9e3b2c; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+  .luma-check:empty { display: none; }
+</style>
+</head>
+<body>
+
+<!-- THE SLAB. A photograph of real white marble, cropped and graded
+     at file level. Fixed, so the whole page happens on one stone. -->
+<div class="slab" aria-hidden="true">
+  <img src="assets/stone.jpg" alt="">
+  <div class="rake"></div>
+  <div class="fall"></div>
+</div>
+
+<!-- ============================================================
+     THE INDEX
+     Cut at the head of the page, the way a line of smaller capitals
+     sits above a dedication. Arrives with the light.
+     ============================================================ -->
+<nav class="index" id="site-nav" aria-label="Sections">
+  <a class="mono" href="#hero" aria-label="Top"></a>
+  <ul>
+    <li><a href="#beginning">Story</a></li>
+    <li><a href="#the-day">The day</a></li>
+    <li><a href="#schedule">Order</a></li>
+    <li><a href="#gallery">Plates</a></li>
+    <li><a href="#rsvp">Reply</a></li>
+  </ul>
+</nav>
+
+<main id="main">
+<section class="scene" id="hero">
+
+  <div class="inscription">
+    <p class="above"></p>
+
+    <h1 class="cut"></h1>
+
+    <div class="rule" aria-hidden="true"></div>
+
+    <p class="below cut"></p>
+
+    <!-- the marble's own veining, carried over the letters, so the
+         stone runs through the inscription rather than stopping at it -->
+    <span class="vein" aria-hidden="true"><img src="assets/stone.jpg" alt=""></span>
+  </div>
+
+</section>
+
+<!-- ============================================================
+     01 — HOW IT STARTED
+     The photograph is let INTO the stone, in a recess with its own
+     cut edges, and the words sit on a panel dressed smoother than
+     the surface around it. The two overlap, because they share one
+     wall.
+     ============================================================ -->
+<section class="sec" id="beginning">
+  <div class="wrap lean">
+    <figure class="niche" data-reveal>
+      <img class="couple" alt="The two of you" hidden>
+    </figure>
+    <div class="words" data-reveal>
+      <p class="eyebrow">How it started</p>
+      <h2 id="storyHeadline"></h2>
+      <p class="body" id="storyP1"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     02 — THE DEDICATION
+     A dedication tablet, with a cut hairline border and the two
+     names in cut capitals. Centred, because a dedication is the
+     one form on this page that genuinely is.
+     ============================================================ -->
+<section class="sec tight" id="us">
+  <div class="wrap">
+    <div class="tablet" data-tablet>
+      <div class="pair">
+        <p class="who cut" id="whoOne"></p>
+        <p class="join">and</p>
+        <p class="who cut" id="whoTwo"></p>
+      </div>
+      <p class="note" id="storyP2"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     03 — THE DAY
+     Cut straight into the stone, with cut hairlines between the
+     entries. No panel and no plate: the plainest block on the
+     page, which is why it can be the widest.
+     ============================================================ -->
+<section class="sec" id="the-day">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">The day itself</p>
+      <h2 id="dayTitle"></h2>
+    </div>
+    <dl class="facts off-l" data-reveal></dl>
+    <p class="links off-l">
+      <a id="venueLink" href="#" target="_blank" rel="noopener">Directions</a>
+      <a id="gcal-link" href="#" target="_blank" rel="noopener">Google Calendar</a>
+      <a id="ics-link" href="#">Apple Calendar</a>
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================
+     04 — THE ORDER OF THE DAY
+     A cut channel down the side with the hours beside it in larger
+     capitals, the way the important line of an inscription is
+     always cut deeper. The channel is scored downward as you
+     arrive.
+     ============================================================ -->
+<section class="sec" id="schedule">
+  <div class="wrap">
+    <div class="head r">
+      <h2 id="scheduleHeading"></h2>
+    </div>
+    <div class="hours off-r" id="tlItems" data-hours>
+      <span class="channel" aria-hidden="true"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     05 — PLATES
+     Photographs let into the stone in a row, each in its own
+     recess, running off both edges.
+     ============================================================ -->
+<section class="sec" id="gallery">
+  <div class="wrap">
+    <div class="head r">
+      <h2 id="galleryHeading"></h2>
+    </div>
+    <div class="plates" data-reveal>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     06 — WORTH ASKING
+     ============================================================ -->
+<section class="sec tight" id="faq">
+  <div class="wrap">
+    <div class="head">
+      <h2>Worth asking</h2>
+    </div>
+    <div class="asks off-l" id="faq-drawer-list" data-reveal>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     07 — REPLY
+     The payoff of the whole idea. When a guest replies, their own
+     name is cut into the stone, with the same incision and the
+     same ochre as the two in the hero.
+     ============================================================ -->
+<section class="sec" id="rsvp">
+  <div class="wrap">
+    <div class="head r">
+      <p class="eyebrow">Reply</p>
+      <h2>Have your name cut with ours</h2>
+    </div>
+
+    <div class="reply off-l" id="reply" data-reveal>
+      <form class="rform" id="rsvp-form" name="rsvp" method="POST" novalidate>
+        <input type="hidden" name="form-name" value="rsvp">
+        <p class="hp" aria-hidden="true"><label>Leave this field empty<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+
+        <div class="field">
+          <label for="rsvpName">Your name</label>
+          <input type="text" id="rsvpName" name="guest_names" placeholder="As you would like it cut" autocomplete="name" required>
+        </div>
+
+        <div class="field">
+          <label id="joinLabel">Will you be there?</label>
+          <div class="choice" role="radiogroup" aria-labelledby="joinLabel">
+            <label class="opt selected"><input type="radio" name="attending" value="yes" class="visually-hidden" checked><span>Gladly</span></label>
+            <label class="opt"><input type="radio" name="attending" value="no" class="visually-hidden"><span>Sadly not</span></label>
+          </div>
+        </div>
+
+        <div class="field two">
+          <span>
+            <label for="rsvpGuests">How many</label>
+            <input type="number" id="rsvpGuests" min="1" max="6" value="2" inputmode="numeric">
+            <select id="rsvp-guest-count" name="guest_count" class="visually-hidden" tabindex="-1" aria-hidden="true">
+              <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            </select>
+          </span>
+          <span>
+            <label for="rsvpDietary">Anything you avoid</label>
+            <input type="text" id="rsvpDietary" name="dietary" placeholder="Optional">
+          </span>
+        </div>
+
+        <div class="field" id="rsvp-plusone-wrap" hidden>
+          <label for="rsvp-plusone-name">Name of your guest</label>
+          <input type="text" id="rsvp-plusone-name" name="plusone_name" placeholder="Optional">
+        </div>
+
+        <div class="field">
+          <label for="rsvpMessage">A note, if you like</label>
+          <textarea id="rsvpMessage" name="notes" rows="2" placeholder="Optional"></textarea>
+        </div>
+
+        <button type="submit" class="send" id="rsvpSubmit">Cut it in</button>
+        <p class="err" id="rsvp-error" role="alert" hidden></p>
+      </form>
+
+      <!-- Stands in for the form once a reply is accepted, so the
+           section never looks as though nothing was sent. -->
+      <div class="struck" id="rsvp-confirmed" hidden>
+        <p class="lead" id="cutLead"></p>
+        <p class="name cut" id="rsvpCutName"></p>
+        <p class="after">It is on the stone with ours. There is nothing else to do.</p>
+        <button type="button" class="again" id="rsvpAgain">Change your reply</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span id="footNames"></span>
+  <span>The Inscription</span>
+</footer>
+</main>
+
+<p class="hint" id="hint">Tap to bring the light</p>
+
+<script src="../_shared/luma-bridge.js?v=2"></script>
+<script src="luma-ins.js?v=1"></script>
+</body>
+</html>

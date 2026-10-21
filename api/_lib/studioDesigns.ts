@@ -215,6 +215,22 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       ],
     },
   },
+  {
+    id: "inscription", name: "The Inscription", plan: "celebration", motif: "frame", heroPlaceholder: "design",
+    blurb: "Your names cut in red into white marble, and each guest's name cut beside yours when they reply",
+    placeholder: { from: "#E6E6E1", to: "#CFCFC8", ink: "#9E3B2C" },
+    tracks: [],
+    extras: {
+      photos: [],
+      gallery: 6,
+      texts: [
+        { key: "inscriptionAbove", label: "The line above your names", max: 40, placeholder: "They are to be married", fallback: "They are to be married" },
+        { key: "storyHeadline", label: "Story headline", max: 100, placeholder: "She was cataloguing the wrong villa." },
+        { key: "scheduleHeading", label: "Schedule heading", max: 60, placeholder: "From half past four (worked out from your first moment)" },
+        { key: "galleryHeading", label: "Photographs heading", max: 60, placeholder: "Before any of it was arranged", fallback: "Before any of it was arranged" },
+      ],
+    },
+  },
   { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Palm fronds and fine gilded lines, in sage and ivory", motif: "frame", placeholder: { from: "#F5F9F6", to: "#DDEBE2", ink: "#4E8A6C" } },
 ];
 
