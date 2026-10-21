@@ -199,13 +199,18 @@ function buildWedding(){
     hero:{
       eyebrow:   txt(d.heroEyebrow,'The Wedding Of').toUpperCase(),
       /* heroQuote is two lines in the shared data; this design shows one. */
-      statement: txt((d.heroQuote||'').split('\n')[0],'A beautiful beginning.')
+      /* LUMA: without their own line, the place they marry, not a stock motto */
+      statement: txt((d.heroQuote||'').split('\n')[0], txt(d.venueName,'') ? 'At ' + txt(d.venueName,'') : '')
     },
     story:{
       title:      txt(d.storyTitle,'Our Story').toUpperCase(),
-      opener:     txt(d.storyOpener,'EVERYTHING BEGAN QUIETLY').toUpperCase(),
+      opener:     txt(d.storyOpener,'HOW IT BEGAN').toUpperCase(),
+      /* LUMA: by default the rising lines are theirs (their names, then the
+         month they marry) instead of "Two lives / One unexpected moment" */
       statements: listOf(d.storyStatements,
-                    'IT STARTED WITH TWO,TWO LIVES,ONE UNEXPECTED MOMENT,AND NOW,US')
+                    [txt(d.partner1,''), 'AND', txt(d.partner2,''),
+                     (function(){ var m = /^\d{4}-(\d{2})/.exec(txt(d.date,'')); return m ? 'ONE DAY IN ' + ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][+m[1]-1] : ''; })(),
+                     'US'].filter(Boolean).join(','))
                     .map(s => s.toUpperCase())
     },
     ceremony:{

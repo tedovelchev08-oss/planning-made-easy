@@ -626,3 +626,21 @@ body.guest-mode.show-exit-btn .audio-toggle{ bottom:76px }
   .tl-item, .g-item{ opacity:1 !important; transform:none !important }
   #intro, #loader{ display:none !important }
 }
+
+/* ============================================================
+   LUMA POLISH
+   The day's links are underlined words, not boxed buttons; the
+   order of the day is set at reading size; and the words the
+   thread passes behind get a little paper of their own, so the
+   thread never crosses through a sentence.
+   ============================================================ */
+.day-links{ gap:0 28px !important }
+.day-links a{
+  border:0 !important; background:none !important; padding:12px 2px !important; min-height:44px;
+  display:inline-flex; align-items:center;
+  text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:7px;
+}
+.day-links a:hover{ background:none !important; opacity:.75 }
+.day-links a{ color:var(--thread) !important }
+.tl-title{ font-family:var(--display); font-size:clamp(19px,2.1vw,25px); font-weight:300; color:var(--ink); letter-spacing:0 }
+.rsvp-lead, footer span{ position:relative; z-index:3; background:var(--paper); padding:4px 12px; box-decoration-break:clone; -webkit-box-decoration-break:clone }

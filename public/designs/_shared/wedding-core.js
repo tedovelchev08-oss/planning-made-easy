@@ -430,6 +430,24 @@
         // Renders the guest-facing alternating timeline. Even-indexed items
         // sit on the left, odd on the right (mobile collapses both to a
         // single left-aligned column via CSS).
+        // LUMA: the planner has no icon picker, so a moment without one gets
+        // the icon its name suggests. The same heart on every line is what
+        // made the timeline read as a template.
+        const ICON_WORDS = [
+            [/ceremon|vows|chapel|church|\bi do\b|aisle/i, 'fa-ring'],
+            [/drink|cocktail|aperitivo|aperitif|toast|champagne|prosecco|sherry|welcome/i, 'fa-champagne-glasses'],
+            [/dinner|lunch|brunch|breakfast|supper|meal|feast|table|banquet|reception/i, 'fa-utensils'],
+            [/cake|dessert/i, 'fa-cake-candles'],
+            [/danc|party|music|band|dj|first dance/i, 'fa-music'],
+            [/photo|portrait|picture/i, 'fa-camera'],
+            [/send.?off|farewell|goodbye|leav|depart|car|taxi|bus|shuttle|transfer/i, 'fa-car-side'],
+            [/fireworks|sparkler|star|night/i, 'fa-star']
+        ];
+        function iconFor(title) {
+            const hit = ICON_WORDS.find(([re]) => re.test(String(title || '')));
+            return hit ? hit[1] : 'fa-heart';
+        }
+
         // Turns "1h 30m" into something a guest reads at a glance.
         function formatGap(minutes) {
             if (minutes <= 0) return '';
@@ -485,15 +503,16 @@
                     : Math.round(Math.min(SCHEDULE_MAX_GAP_PX,
                         Math.max(SCHEDULE_MIN_GAP_PX, gapMinutes * SCHEDULE_PX_PER_MIN)));
 
-                const gapLabel = gapMinutes > 0
-                    ? `<span class="schedule-gap" aria-hidden="true">${escapeHtml(formatGap(gapMinutes))}</span>`
-                    : '';
+                // LUMA: no "1 hr 30 min" labels between moments. The spacing
+                // already shows the shape of the day; the labels read like a
+                // route planner.
+                const gapLabel = '';
 
                 return `
                 <div class="schedule-row ${align}" style="--gap-px:${gapPx}px">
                     ${gapLabel}
                     <div class="schedule-content">
-                        <span class="schedule-icon"><i class="fas ${escapeHtml(item.icon || 'fa-heart')}"></i></span>
+                        <span class="schedule-icon"><i class="fas ${escapeHtml(item.icon || iconFor(title))}"></i></span>
                         <div class="schedule-text">
                             <span class="schedule-time">${escapeHtml(item.time)}</span>
                             <h3 class="schedule-title">${escapeHtml(title)}</h3>
@@ -1948,12 +1967,12 @@
                     const iconEl = document.getElementById('rsvp-success-icon');
 
                     if (isDeclining) {
-                        if (headingEl) headingEl.textContent = "You'll Be Missed!";
-                        if (msgEl) msgEl.textContent = "Thank you for letting us know. We're sorry you can't celebrate with us, but we'll be thinking of you on our big day!";
+                        if (headingEl) headingEl.textContent = "We'll miss you.";
+                        if (msgEl) msgEl.textContent = "Thank you for telling us. We'll raise a glass to you on the day.";
                         if (iconEl) { iconEl.classList.remove('fa-check'); iconEl.classList.add('fa-heart'); }
                     } else {
-                        if (headingEl) headingEl.textContent = 'Thank You!';
-                        if (msgEl) msgEl.textContent = 'Your response has been saved. We look forward to celebrating with you!';
+                        if (headingEl) headingEl.textContent = 'Thank you.';
+                        if (msgEl) msgEl.textContent = 'Your reply is with us. We can\'t wait to see you.';
                         if (iconEl) { iconEl.classList.remove('fa-heart'); iconEl.classList.add('fa-check'); }
                     }
 

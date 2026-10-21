@@ -181,7 +181,7 @@ function buildContent(){
   setText('rsvpNoLabel', txt(d.rsvpNoLabel,'No'));
   setText('rsvpGuestsLabel', txt(d.rsvpGuestsLabel,'Number of Guests'));
   setText('rsvpNotesLabel', txt(d.rsvpNotesLabel,'A Message for the Couple'));
-  setText('rsvpSubmitLabel', txt(d.rsvpSubmitLabel,'Confirm RSVP'));
+  setText('rsvpSubmitLabel', txt(d.rsvpSubmitLabel,'Send our reply'));
   var jl=document.getElementById('joinLabel'); if(jl) jl.textContent=txt(d.rsvpAttendanceLabel,'Will You Join Us?');
 
   var both = w.couple.personOne+' and '+w.couple.personTwo;

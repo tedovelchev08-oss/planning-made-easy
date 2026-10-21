@@ -36,7 +36,7 @@
      this design; wedding-design.css loads after it so The Glasshouse always wins,
      and wedding-ui.css last because it only dresses the builder drawer. -->
 <link rel="stylesheet" href="../_shared/tailwind.css?v=33">
-<link rel="stylesheet" href="wedding-design.css?v=33">
+<link rel="stylesheet" href="wedding-design.css?v=34">
 <link rel="stylesheet" href="../_shared/wedding-ui.css?v=33">
 <!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
 <style>
@@ -180,12 +180,12 @@
     <h2 class="visually-hidden-real" id="usHeading">Under glass</h2>
     <div class="wrap">
       <div class="u-words">
-        <span class="u-w" id="word-you">Warm</span>
-        <span class="u-w u-amp" id="story-amp">in</span>
-        <span class="u-w" id="word-me">December</span>
+        <span class="u-w" id="word-you"></span>
+        <span class="u-w u-amp" id="story-amp"></span>
+        <span class="u-w" id="word-me"></span>
       </div>
-      <div class="u-us" id="story-us">Still growing</div>
-      <p class="u-text" id="storyP2">Everything since has been an attempt to build a warmer room and stay in it.</p>
+      <div class="u-us" id="story-us"></div>
+      <p class="u-text" id="storyP2"></p>
     </div>
   </section>
 
@@ -259,7 +259,7 @@
           <span class="field-underline"></span>
         </div>
         <div class="field">
-          <label id="joinLabel">Will You Join Us?</label>
+          <label id="joinLabel">Will you join us?</label>
           <div class="rsvp-choice" role="radiogroup" aria-labelledby="joinLabel">
             <label class="choice-btn selected"><input type="radio" name="attending" value="yes" class="visually-hidden" checked><span id="rsvpYesLabel">Yes</span></label>
             <label class="choice-btn"><input type="radio" name="attending" value="no" class="visually-hidden"><span id="rsvpNoLabel">No</span></label>
@@ -285,11 +285,11 @@
           <span class="field-underline"></span>
         </div>
         <div class="field">
-          <label for="rsvpMessage" id="rsvpNotesLabel">A Message for the Couple</label>
+          <label for="rsvpMessage" id="rsvpNotesLabel">A note for us</label>
           <textarea id="rsvpMessage" name="notes" rows="2" placeholder="Optional"></textarea>
           <span class="field-underline"></span>
         </div>
-        <button type="submit" class="rsvp-submit" id="rsvpSubmit"><span id="rsvpSubmitLabel">Confirm RSVP</span></button>
+        <button type="submit" class="rsvp-submit" id="rsvpSubmit"><span id="rsvpSubmitLabel">Send our reply</span></button>
         <p class="rsvp-error" id="rsvp-error" role="alert" style="display:none;margin-top:14px;font-size:12px"></p>
         <!-- The two things a guest looks for after the button: when they have to
              answer by, and how to reach the couple if the form will not play. -->
@@ -347,8 +347,8 @@ let invitationData = {
     heroPlace: "",
     heroQuote: "A glasshouse is where things are kept growing out of season. Come and stand in ours for an evening.",
     storyTitle: "",
-    glassLine: "Warm in December",
-    glassNote: "Still growing",
+    glassLine: "",
+    glassNote: "",
     scheduleHeading: "The order of the day.",
     rsvpKicker: "Now, we would love to have you with us",
     rsvpEmailText: "",
@@ -359,8 +359,8 @@ let invitationData = {
     rsvpNoLabel: "No",
     rsvpGuestsLabel: "Number of Guests",
     rsvpPlusOneLabel: "Name of your guest",
-    rsvpNotesLabel: "A Message for the Couple",
-    rsvpSubmitLabel: "Confirm RSVP",
+    rsvpNotesLabel: "A note for us",
+    rsvpSubmitLabel: "Send our reply",
     rsvpErrorText: "That didn't send. Check your connection and try again.",
     isGuestView: true
 };
@@ -372,10 +372,10 @@ let invitationData = {
 
 <!-- Shared behaviour for every design: builder, save and share, countdown,
      calendar, gallery, RSVP post, music, export. Loaded after the data. -->
-<script src="../_shared/wedding-core.js?v=33"></script>
+<script src="../_shared/wedding-core.js?v=34"></script>
 <!-- This design only: the opening sequence, the GSAP scroll timelines, and the
      seam onto the shared core. Loaded after the core so it can override by name. -->
-<script src="design.js?v=33"></script>
+<script src="design.js?v=35"></script>
 
 <!-- Luma: the after-render hook this design's own render needs, and what it
      leaves to its old builder. -->

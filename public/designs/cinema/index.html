@@ -33,7 +33,7 @@
      this design; wedding-design.css loads after it so The Picture House always wins,
      and wedding-ui.css last because it only dresses the builder drawer. -->
 <link rel="stylesheet" href="../_shared/tailwind.css?v=13">
-<link rel="stylesheet" href="wedding-design.css?v=13">
+<link rel="stylesheet" href="wedding-design.css?v=14">
 <link rel="stylesheet" href="../_shared/wedding-ui.css?v=13">
 <!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
 <style>
@@ -410,13 +410,13 @@ let invitationData = {
 
 <!-- Shared behaviour for every design: builder, save and share, countdown,
      calendar, gallery, FAQ, RSVP post, music, export. Loaded after the data. -->
-<script src="../_shared/wedding-core.js?v=13"></script>
+<script src="../_shared/wedding-core.js?v=14"></script>
 <!-- This design only: the opening sequence, the reveal engine, the tear, and the
      seam onto the shared core. Loaded after the core so it can override by name. -->
-<script src="design.js?v=13"></script>
+<script src="design.js?v=14"></script>
 
 <!-- Luma: the after-render hook this design's own render needs, and what it
      leaves to its old builder. -->
-<script src="luma.js?v=1"></script>
+<script src="luma.js?v=2"></script>
 </body>
 </html>

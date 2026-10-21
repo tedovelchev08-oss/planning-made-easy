@@ -770,9 +770,11 @@
 
     // The hero quote is two lines; keep the break rather than collapsing it.
     const quote = document.getElementById('heroStatement');
-    if (quote && invitationData.heroQuote != null){
+    // LUMA: no line of their own means no line, not the sample's motto
+    if (quote){
       quote.innerHTML = '';
-      String(invitationData.heroQuote).split('\n').forEach((line, i, arr) => {
+      quote.hidden = !String(invitationData.heroQuote || '').trim();
+      String(invitationData.heroQuote || '').split('\n').forEach((line, i, arr) => {
         quote.appendChild(document.createTextNode(line));
         if (i < arr.length - 1) quote.appendChild(document.createElement('br'));
       });

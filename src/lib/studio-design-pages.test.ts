@@ -37,6 +37,11 @@ describe.each(STUDIO_DESIGNS.map((d) => [d.id]))("public/designs/%s", (id) => {
     expect(html).not.toMatch(/<p id="story-text-[12]"[^>]*>\s*[^<\s]/);
     expect(html).not.toContain('id="builder-bar"');
   });
+
+  // the template's stock lines, which read as generated rather than written
+  it("carries none of the template's stock lines", () => {
+    expect(html).not.toMatch(/Counting Down to Forever|The Celebration Schedule|Frequently Asked Questions|A Few Favorite Moments|Eleanor &(amp;)? James|Joyfully Accepts|Regretfully Declines|"We can't wait to celebrate with you\."|Warm in December/);
+  });
 });
 
 /*

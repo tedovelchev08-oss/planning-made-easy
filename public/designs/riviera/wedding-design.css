@@ -517,3 +517,15 @@ body.intro-on .audio-toggle{ display:none !important }
   }
   .rv{ opacity:1 !important; transform:none !important }
 }
+
+/* ============================================================
+   LUMA POLISH: the day's links as underlined words
+   ============================================================ */
+.day-links{ gap:0 28px !important }
+.day-links a{
+  border:0 !important; background:none !important; padding:12px 2px !important; min-height:44px;
+  display:inline-flex; align-items:center;
+  text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:7px;
+}
+.day-links a:hover{ background:none !important; opacity:.75 }
+.day-links a{ color:var(--baize) !important }

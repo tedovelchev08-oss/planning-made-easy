@@ -4,8 +4,8 @@
  * design.js replaces the shared engine's render outright, so the bridge's
  * after-render step (hide what's closed, prefill the guest's name, reveal
  * the page) is called from here. It also fills the three stills in Act I,
- * which the original kept as fixed files: the couple's own photos, or a
- * title card with their initials (window.photoFallback) until they add them.
+ * which the original kept as fixed files: the couple's own photos, and the
+ * frame left out until they add one.
  */
 (function () {
   'use strict';
@@ -14,14 +14,16 @@
   function still(id, url) {
     var img = document.getElementById(id);
     if (!img) return;
-    var want = url || 'placeholder';
+    var want = url || 'none';
     if (img.dataset.lumaSrc === want) return;
     img.dataset.lumaSrc = want;
+    /* a still they haven't added is left out, rather than shown as a black
+       title card: an empty frame is the first thing that reads as unfinished */
+    var fig = img.closest('figure');
+    if (fig) fig.hidden = !url;
     if (url) {
-      img.onerror = function () { if (window.photoFallback) window.photoFallback(img); };
+      img.onerror = function () { if (fig) fig.hidden = true; };
       img.src = url;
-    } else if (window.photoFallback) {
-      window.photoFallback(img);
     }
   }
 

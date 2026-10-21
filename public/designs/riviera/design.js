@@ -231,7 +231,7 @@ function enterIntro(){
   backEl.setAttribute('tabindex','0');
 
   spinParams = spinStartAngles();
-  var T1 = 3300, OFF = 34, DB = 5*360;
+  var T1 = 2400, OFF = 34, DB = 4*360;
   spinParams.B_START = rotorAt(T1) + spinParams.P + OFF + DB;
   setRotor(svgBack, spinParams.R_START);
   setBall(svgBack, spinParams.B_START, R_TRACK);
@@ -245,7 +245,9 @@ function enterIntro(){
   backEl.style.transform = introTransform();
 }
 
-var T = 6200, T1 = 3300, TB = 900, OFF = 34, DB = 5*360;
+/* LUMA: shortened from 6.2 s; the whole opening ran 11.5 s before the
+   invitation, which is long to hold a guest at a gaming table */
+var T = 4400, T1 = 2400, TB = 800, OFF = 34, DB = 4*360;
 function easeOutCubic(u){ return 1 - Math.pow(1-u, 3); }
 function freeEase(u){ return .82*(1-Math.pow(1-u,2)) + .18*u; }   /* still rolling when it drops */
 function rotorAt(t){
@@ -301,8 +303,8 @@ function land(){
   svgBack.classList.add('won');
   var d = data();
   swapLine(txt(d.introLanded,'Rien ne va plus'), 150);
-  swapLine(dateWords(false), 1700);
-  spinTimers.push(setTimeout(toHero, 3600));
+  swapLine(dateWords(false), 1200);
+  spinTimers.push(setTimeout(toHero, 2700));
 }
 
 /* The wheel settles into the dial while the opening dissolves. */

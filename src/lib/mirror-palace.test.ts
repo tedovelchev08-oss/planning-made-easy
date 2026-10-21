@@ -54,7 +54,7 @@ describe("Mirror Palace: toInvitationData", () => {
     const d = toInvitationData(wedding({ texts: { heroCity: "  Lake Como ", closingMsg: "", rsvpEmailText: "x".repeat(200), unknownKey: "nope" } }), mp);
     expect(d.heroCity).toBe("Lake Como");
     expect(d.closingMsg).toBe("Until We Meet");
-    expect(d.heroQuote).toBe("Two lives. One reflection.\nOne beautiful beginning.");
+    expect(d.heroQuote).toBe(""); // no stock motto: without their own line, there is none
     expect(d.dateCaptionText).toBe("");
     expect(d.celebrationAddress).toBe("");
     expect((d.rsvpEmailText as string).length).toBe(80);
