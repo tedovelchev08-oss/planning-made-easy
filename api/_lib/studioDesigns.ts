@@ -171,7 +171,7 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       gallery: 5,
       texts: [
         { key: "heroQuote", label: "Opening line", max: 80, placeholder: "Two lives. One promise." },
-        { key: "storyStatements", label: "The rising lines, one per line", max: 200, multiline: true, placeholder: "It started with two\nTwo lives\nOne unexpected moment\nAnd now\nUs", fallback: "It started with two\nTwo lives\nOne unexpected moment\nAnd now\nUs" },
+        { key: "storyStatements", label: "The rising lines, one per line", max: 200, multiline: true, placeholder: "It started with two\nTwo lives\nOne unexpected moment\nAnd now\nUs" },
         { key: "rsvpEmailText", label: "Contact for questions", max: 80, placeholder: "An email or phone number, if you'd like" },
       ],
     },

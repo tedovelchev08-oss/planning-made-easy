@@ -207,7 +207,9 @@ function buildWedding(){
       opener:     txt(d.storyOpener,'HOW IT BEGAN').toUpperCase(),
       /* LUMA: by default the rising lines are theirs (their names, then the
          month they marry) instead of "Two lives / One unexpected moment" */
-      statements: listOf(d.storyStatements,
+      /* an empty field in the planner means not written yet, so it gets
+         the couple-derived lines below rather than nothing */
+      statements: listOf(txt(d.storyStatements,'') || undefined,
                     [txt(d.partner1,''), 'AND', txt(d.partner2,''),
                      (function(){ var m = /^\d{4}-(\d{2})/.exec(txt(d.date,'')); return m ? 'ONE DAY IN ' + ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][+m[1]-1] : ''; })(),
                      'US'].filter(Boolean).join(','))
