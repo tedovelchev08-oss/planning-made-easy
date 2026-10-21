@@ -910,12 +910,12 @@
             --c-sea-deep: 199 62% 22%;
             --c-sea-lit:  186 46% 52%;
 
-            /* LUMA: the coast and the view are painted for this design
-               (assets/coast.svg, assets/view.svg) rather than hotlinked stock:
-               a guest's phone asks nothing of another host, and nobody else's
+            /* LUMA: the coast and the view are photographs generated for
+               this design (assets/CREDITS.txt), not hotlinked stock: a
+               guest's phone asks nothing of another host, and nobody else's
                photograph ships. */
-            --img-coast: url("assets/coast.svg");
-            --img-view:  url("assets/view.svg");
+            --img-coast: url("assets/coast.jpg");
+            --img-view:  url("assets/view.jpg");
         }
 
         /* ---------- type ---------- */
