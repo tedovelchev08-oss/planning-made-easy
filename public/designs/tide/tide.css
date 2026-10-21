@@ -339,3 +339,39 @@ footer{
   .card, .grit, .wet, .wave, .lap, .shore::after{ transition:none !important }
   .shore.washed .lap{ animation:none }
 }
+
+/* ============================================================
+   PHOTOGRAPHED, NOT DRAWN
+   The beach is a photograph of wet rippled sand, the card is a sheet
+   of real cotton paper, the sand lying on it is the same sand, and
+   the wave is a photograph of a wave's edge, faded into the sand
+   above its foam so it slides up the beach. The drawn ripples, shells
+   and SVG water they replace are what made the page look generated.
+   ============================================================ */
+.shore{
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(255,250,238,.32), transparent 60%),
+    url("assets/sand.jpg") center / cover no-repeat;
+}
+.ripples{ display:none }
+.card{ background:var(--card) url("assets/card.jpg") center / cover }
+.grit{
+  background:url("assets/sand.jpg") center / 260% auto;
+  -webkit-mask-image:linear-gradient(160deg, transparent 18%, rgba(0,0,0,.92) 40%, #000 60%);
+          mask-image:linear-gradient(160deg, transparent 18%, rgba(0,0,0,.92) 40%, #000 60%);
+}
+.wave{
+  background:url("assets/wave.jpg") center 40% / cover no-repeat;
+  -webkit-mask-image:linear-gradient(180deg, transparent 0%, transparent 26%, #000 40%, #000 100%);
+          mask-image:linear-gradient(180deg, transparent 0%, transparent 26%, #000 40%, #000 100%);
+  opacity:.93;
+}
+.lap{
+  background:url("assets/wave.jpg") center 42% / 100% auto no-repeat;
+  -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 34%);
+          mask-image:linear-gradient(180deg, transparent 0%, #000 34%);
+}
+.wave svg, .lap svg{ display:none }
+/* the lapping water reaches past the bottom edge, so its rise never
+   opens a gap beneath it */
+.lap{ height:160px; bottom:-40px }
