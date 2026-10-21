@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>You&rsquo;re Invited</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#efe4cf">
+
+<!-- Fonts served by Luma (licences beside each file in ../_shared/fonts) -->
+<link rel="stylesheet" href="../_shared/fonts/fonts.css">
+<link rel="stylesheet" href="tide.css?v=1">
+<style>
+  html.luma-loading { background: #efe4cf; }
+  html.luma-loading body { visibility: hidden; }
+  .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #efe4cf; color: #0b3a55; font-family: 'Jost', sans-serif; }
+  .luma-notice h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 34px; font-weight: 400; color: #d9573f; margin: 0; }
+  .luma-notice p { font-size: 16px; max-width: 30rem; margin: 0; opacity: .8; }
+  .luma-notice a { margin-top: 8px; color: #d9573f; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+  .luma-check:empty { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     THE TIDE COMES IN
+     The invitation is lying on wet sand, half buried. A wave comes
+     up the beach, goes back out, and takes the sand off the card
+     with it. Everything below is the same shore, further up.
+     ============================================================ -->
+<main id="main">
+
+<section class="shore" id="hero" aria-label="The invitation">
+  <article class="card" id="card">
+    <div class="face">
+      <p class="above" id="cardAbove"></p>
+      <h1 id="cardNames"></h1>
+      <span class="rule" aria-hidden="true"></span>
+      <p class="date" id="cardDate"></p>
+      <p class="place" id="cardPlace"></p>
+      <p class="line" id="cardLine"></p>
+    </div>
+    <!-- the sand lying over it, until the water takes it off -->
+    <div class="grit" aria-hidden="true"></div>
+    <div class="wet" aria-hidden="true"></div>
+  </article>
+
+  <!-- the wave: drawn once by page.js, then only ever moved -->
+  <div class="wave" id="wave" aria-hidden="true"><svg id="waveSvg" preserveAspectRatio="none"></svg></div>
+  <div class="lap" aria-hidden="true"><svg id="lapSvg" preserveAspectRatio="none"></svg></div>
+
+  <p class="hint" id="hint">The tide is coming in</p>
+</section>
+
+<section class="sec" id="beginning">
+  <div class="wrap lean">
+    <figure class="print"><img class="couple" alt="The two of you" hidden></figure>
+    <div class="words">
+      <p class="eyebrow">How it started</p>
+      <h2 id="storyHeadline"></h2>
+      <p class="body" id="storyP1"></p>
+      <p class="body" id="storyP2"></p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="the-day">
+  <div class="wrap">
+    <div class="sheet">
+      <p class="eyebrow">The day itself</p>
+      <p class="bigdate" id="dayTitle"></p>
+      <dl class="facts"></dl>
+      <p class="links">
+        <a id="venueLink" href="#" target="_blank" rel="noopener">Directions</a>
+        <a id="gcal-link" href="#" target="_blank" rel="noopener">Google Calendar</a>
+        <a id="ics-link" href="#">Apple Calendar</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- The order of the day, set as a tide table: the moments are marked
+     on the water rising through the afternoon. -->
+<section class="sec" id="schedule">
+  <div class="wrap">
+    <p class="eyebrow">The order of the day</p>
+    <h2 id="scheduleHeading"></h2>
+    <div class="table">
+      <svg class="curve" id="tideCurve" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <ol class="moments" id="tlItems"></ol>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="gallery">
+  <div class="wrap">
+    <h2 id="galleryHeading"></h2>
+    <div class="prints"></div>
+  </div>
+</section>
+
+<section class="sec" id="faq">
+  <div class="wrap">
+    <h2>Worth asking</h2>
+    <div class="asks" id="faq-drawer-list"></div>
+  </div>
+</section>
+
+<section class="sec" id="rsvp">
+  <div class="wrap">
+    <p class="eyebrow">Reply</p>
+    <h2>Send it back on the tide</h2>
+    <p class="by" id="replyBy"></p>
+    <div class="reply" id="reply">
+      <form class="rcard" id="rsvp-form" name="rsvp" method="POST" novalidate>
+        <input type="hidden" name="form-name" value="rsvp">
+        <p class="hp" aria-hidden="true"><label>Leave this field empty<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+        <div class="field">
+          <label for="rsvpName">Your name</label>
+          <input type="text" id="rsvpName" name="guest_names" placeholder="As it is on your invitation" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <span class="label" id="joinLabel">Will you be there?</span>
+          <div class="choice" role="radiogroup" aria-labelledby="joinLabel">
+            <label class="opt selected"><input type="radio" name="attending" value="yes" checked><span>Joyfully, yes</span></label>
+            <label class="opt"><input type="radio" name="attending" value="no"><span>Sadly, no</span></label>
+          </div>
+        </div>
+        <div class="field two" id="comingFields">
+          <span>
+            <label for="rsvp-guest-count">How many of you</label>
+            <select id="rsvp-guest-count" name="guest_count">
+              <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            </select>
+          </span>
+          <span>
+            <label for="rsvpDietary">Dietary notes</label>
+            <input type="text" id="rsvpDietary" name="dietary" placeholder="Optional">
+          </span>
+        </div>
+        <div class="field" id="rsvp-plusone-wrap">
+          <label for="rsvp-plusone-name">Name of your guest</label>
+          <input type="text" id="rsvp-plusone-name" name="plusone_name" placeholder="Optional">
+        </div>
+        <div class="field">
+          <label for="rsvpMessage">A note, if you like</label>
+          <textarea id="rsvpMessage" name="notes" rows="2" placeholder="Optional"></textarea>
+        </div>
+        <button type="submit" class="send" id="rsvpSubmit">Send it back</button>
+        <p class="err" id="rsvp-error" role="alert" hidden></p>
+      </form>
+      <div class="taken" id="rsvp-confirmed" hidden>
+        <p class="tline">Taken by the tide.</p>
+        <p class="tsub" id="sentTo"></p>
+        <button type="button" class="again" id="rsvpAgain">Send a different reply</button>
+      </div>
+      <div class="sweep" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span id="footNames"></span>
+  <span>The Tide</span>
+</footer>
+</main>
+
+<script src="../_shared/luma-bridge.js?v=2"></script>
+<script src="luma-tide.js?v=1"></script>
+</body>
+</html>

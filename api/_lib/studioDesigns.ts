@@ -246,6 +246,23 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       ],
     },
   },
+  {
+    id: "tide", name: "The Tide", plan: "celebration", motif: "frame", heroPlaceholder: "design",
+    blurb: "Your invitation lies half buried on the sand until a wave comes in and washes it clean",
+    placeholder: { from: "#EFE4CF", to: "#BFE6E2", ink: "#0B3A55" },
+    tracks: [],
+    extras: {
+      photos: [],
+      gallery: 6,
+      texts: [
+        { key: "cardAbove", label: "Above your names", max: 40, placeholder: "Together with their families", fallback: "Together with their families" },
+        { key: "cardLine", label: "A line at the foot of the card", max: 90, placeholder: "We met on a beach in the wrong season, and never really left." },
+        { key: "storyHeadline", label: "Story headline", max: 100, placeholder: "It started on a beach in the wrong season." },
+        { key: "scheduleHeading", label: "Schedule heading", max: 60, placeholder: "From five o'clock, as the tide comes in (worked out from your first moment)" },
+        { key: "galleryHeading", label: "Photographs heading", max: 60, placeholder: "A few of ours", fallback: "A few of ours" },
+      ],
+    },
+  },
   { id: "amalfi", name: "Amalfi", plan: "celebration", blurb: "Green shutters open onto the sea, with azulejo blue and terracotta down the page", motif: "frame", placeholder: { from: "#F7F2EA", to: "#CFE5EC", ink: "#2A6491" } },
   { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Palm fronds and fine gilded lines, in sage and ivory", motif: "frame", placeholder: { from: "#F5F9F6", to: "#DDEBE2", ink: "#4E8A6C" } },
 ];
