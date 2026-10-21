@@ -1,11 +1,12 @@
 AMALFI — the photographs
 ========================
 
-coast.jpg  the coast seen through the arch at the top of the page
-view.jpg   the sea behind the shutters
+coast.jpg              the coast seen through the arch at the top of the page
+view.jpg               the sea behind the shutters
+shutter-l.jpg / -r.jpg one painted louvred shutter (the right is the left mirrored)
+wall.jpg               the limewashed wall the window is set in
+tile-a/b/c.jpg         hand-painted majolica tiles above the section heads
 
-Both were generated for this design (Seedream 5 Lite, from Luma's own art
-direction) and graded at file level: no third-party photograph, no people,
-owned by Luma. The original standalone design hot-linked two Unsplash
-photographs here; Luma does not, so a guest's phone asks nothing of
-another host.
+All were generated for this design (Seedream 5 Lite on ElevenLabs, under a
+paid plan's commercial licence, from Luma's own art direction) and graded
+at file level: no third-party photograph, no people, owned by Luma.
