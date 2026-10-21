@@ -243,3 +243,13 @@ body .page-band{
   opacity:.5;
 }
 body .page-sky-far, body .page-sky-near{ display:none }
+
+/* the chart is printed on a disc of midnight-blue cotton paper (a
+   photograph), so the computed sky reads as ink on a real sheet */
+.cel-chart::before{
+  content:""; position:absolute; z-index:0;
+  inset:calc(100% * 48 / 420); border-radius:50%;
+  background:url("assets/plate.jpg") center / cover;
+  box-shadow:0 0 0 1px hsl(var(--c-gold) / .25), 0 30px 60px -20px rgba(0,0,0,.65), inset 0 0 40px rgba(0,0,0,.35);
+}
+.cel-chart svg{ z-index:1 }
