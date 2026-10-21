@@ -44,13 +44,16 @@ describe.each(STUDIO_DESIGNS.map((d) => [d.id]))("public/designs/%s", (id) => {
  * BEFORE disabling its fields: disabled fields are left out of FormData, so
  * the answer would arrive empty (it did, once, in Riviera's first patch).
  */
-const own = STUDIO_DESIGNS.map((d) => d.id).filter((id) => {
-  const js = resolve(__dirname, `../../public/designs/${id}/design.js`);
-  return existsSync(js) && readFileSync(js, "utf8").includes("reply goes to /api/rsvp");
-});
+const HANDLERS = ["design.js", "page.js"];
+const own = STUDIO_DESIGNS.flatMap((d) =>
+  HANDLERS.filter((f) => {
+    const js = resolve(__dirname, `../../public/designs/${d.id}/${f}`);
+    return existsSync(js) && readFileSync(js, "utf8").includes("reply goes to /api/rsvp");
+  }).map((f) => [d.id, f]),
+);
 
-describe.each(own.map((id) => [id]))("public/designs/%s/design.js: its own RSVP handler", (id) => {
-  const js = readFileSync(resolve(__dirname, `../../public/designs/${id}/design.js`), "utf8");
+describe.each(own)("public/designs/%s/%s: its own RSVP handler", (id, file) => {
+  const js = readFileSync(resolve(__dirname, `../../public/designs/${id}/${file}`), "utf8");
   const block = js.slice(js.indexOf("reply goes to /api/rsvp"));
 
   it("reads the answers before disabling the fields", () => {

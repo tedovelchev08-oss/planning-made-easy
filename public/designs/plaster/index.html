@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>You&rsquo;re Invited</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#c4826f">
+
+<!-- Fonts served by Luma (licences beside each file in ../_shared/fonts) -->
+<link rel="stylesheet" href="../_shared/fonts/fonts.css">
+<link rel="stylesheet" href="plaster.css?v=10">
+<!-- Luma: the couple's own words and photographs, and the page held back
+     until they are in -->
+<link rel="stylesheet" href="luma-plaster.css?v=1">
+<style>
+  html.luma-loading { background: #c4826f; }
+  html.luma-loading body { visibility: hidden; }
+  .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #f6ecdc; color: #5a3e3a; font-family: 'Schibsted Grotesk', sans-serif; }
+  .luma-notice h1 { font-family: 'Prata', Georgia, serif; font-size: 30px; font-weight: 400; color: #b8296b; margin: 0; }
+  .luma-notice p { font-size: 16px; max-width: 30rem; margin: 0; opacity: .8; }
+  .luma-notice a { margin-top: 8px; color: #b8296b; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+  .luma-check:empty { display: none; }
+</style>
+</head>
+<body>
+
+<!-- THE WALL. A photograph of a real troweled terracotta wall,
+     cropped and graded at file level. Fixed, so it never repaints
+     on scroll, and shared by every section: the whole invitation
+     happens on one wall. -->
+<div class="wall" aria-hidden="true">
+  <img src="assets/wall.jpg" alt="">
+  <div class="light"></div>
+  <div class="vig"></div>
+</div>
+
+<!-- ============================================================
+     THE INDEX
+     Another piece of paper on the same wall. It arrives only once
+     the envelope is open, because before that there is nothing to
+     navigate to.
+     ============================================================ -->
+<nav class="index" id="site-nav" aria-label="Sections">
+  <a class="ix-mono" href="#hero" aria-label="Top"></a>
+  <ul>
+    <li><a href="#beginning">Story</a></li>
+    <li><a href="#the-day">The day</a></li>
+    <li><a href="#schedule">Order</a></li>
+    <li><a href="#gallery">Photographs</a></li>
+    <li><a href="#rsvp">Reply</a></li>
+  </ul>
+</nav>
+
+<main id="main">
+
+<!-- ============================================================
+     00 — THE ENVELOPE
+     ============================================================ -->
+<section class="scene" id="hero">
+
+  <!-- On a wide screen the plaster either side of the envelope is used
+       for the things that are NOT on the card, so the space carries
+       information rather than being padding. Hidden on a phone, where
+       there is no room and the sections below say all of it. -->
+  <p class="wallnote l" id="noteL"></p>
+  <p class="wallnote r" id="noteR"></p>
+
+  <!-- Back panel, card, front panel, flap, seal — in the order they
+       are stacked in the real object, so when the card rises the
+       front panel occludes it with nothing masked or measured. -->
+  <div class="post" id="post">
+
+    <div class="panel env-back" aria-hidden="true">
+      <img src="assets/stock.jpg" alt=""><div class="tint"></div>
+    </div>
+
+    <article class="card">
+      <div class="face">
+        <p class="when" id="cardWhen"></p>
+        <h1 id="cardNames"></h1>
+        <div class="rule"></div>
+        <p class="where" id="cardWhere"></p>
+        <!-- the year, cut through by the envelope's front edge -->
+        <p class="year" id="cardYear" aria-hidden="true"></p>
+      </div>
+      <div class="glow" aria-hidden="true"></div>
+    </article>
+
+    <!-- The front panel carries the sender and a franking mark,
+         because a blank envelope is a prop and an addressed one is
+         an object — and because this is the part still on screen
+         once the card is out, so it is where the second colour has
+         to survive. -->
+    <div class="panel env-front">
+      <img src="assets/stock.jpg" alt="" aria-hidden="true"><div class="tint" aria-hidden="true"></div>
+      <address class="from" id="envFrom"></address>
+      <p class="frank" aria-hidden="true"><b id="frankDay"></b><span id="frankMonth"></span></p>
+      <div class="fold" aria-hidden="true"></div>
+    </div>
+
+    <div class="panel flap" aria-hidden="true">
+      <img src="assets/stock.jpg" alt=""><div class="tint"></div>
+      <div class="back"></div>
+    </div>
+
+    <div class="seal" aria-hidden="true">
+      <!-- Two halves, each carrying its own share of the wax AND of
+           the impression, so when the seal breaks the initials break
+           with it. The split is ragged because wax tears. -->
+      <span class="half l"><i></i><span class="die"></span><b class="initials"></b></span>
+      <span class="half r"><i></i><span class="die"></span><b class="initials"></b></span>
+    </div>
+
+  </div>
+
+  <p class="tap" id="tap">Tap to open</p>
+</section>
+
+<!-- ============================================================
+     01 — HOW IT STARTED
+     The photograph is a print on the same wall, and the paper the
+     words are on overlaps its corner. The two things share space
+     rather than sitting politely side by side.
+     ============================================================ -->
+<section class="sec" id="beginning">
+  <div class="wrap lean">
+    <figure class="print" data-reveal="print">
+      <img class="couple" alt="The two of you" hidden>
+    </figure>
+    <div class="leaf" data-reveal="leaf">
+      <p class="eyebrow">How it started</p>
+      <h2 id="storyHeadline"></h2>
+      <p class="body" id="storyP1"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     02 — TWO SHEETS
+     Two cards arrive from opposite sides and come to rest
+     overlapping, with the ampersand printed across the seam. The
+     overlap is the whole point of the section.
+     ============================================================ -->
+<section class="sec tight" id="us">
+  <div class="wrap">
+    <div class="meet" data-reveal="meet">
+      <div class="sheet a"><span id="whoOne"></span></div>
+      <div class="sheet b"><span id="whoTwo"></span></div>
+      <p class="seam" aria-hidden="true">&amp;</p>
+    </div>
+    <p class="body on-cloth" id="storyP2"></p>
+  </div>
+</section>
+
+<!-- ============================================================
+     03 — THE DAY
+     Set as the envelope's other face: a paper panel, the date at
+     full size, and the franking mark struck across it. The postmark
+     crossing the date is the same interlock the hero card makes.
+     ============================================================ -->
+<section class="sec" id="the-day">
+  <div class="wrap">
+    <div class="panelcard off-r over" data-reveal="panel">
+      <p class="eyebrow">The day itself</p>
+      <p class="bigdate" id="bigDate"></p>
+      <p class="postmark" aria-hidden="true"><b id="markPlace"></b><span id="markWhen"></span></p>
+      <div class="facts"></div>
+      <p class="links">
+        <a id="venueLink" href="#" target="_blank" rel="noopener">Directions</a>
+        <a id="gcal-link" href="#" target="_blank" rel="noopener">Google Calendar</a>
+        <a id="ics-link" href="#">Apple Calendar</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     04 — THE ORDER OF THE DAY
+     The timeline runs down a magenta line, and each hour is marked
+     with a drop of the same wax that sealed the envelope. The line
+     draws itself as you arrive and each seal is pressed in turn —
+     the motif the invitation opened with, doing work.
+     ============================================================ -->
+<section class="sec" id="schedule">
+  <div class="wrap">
+    <div class="head">
+      <h2 class="on-cloth" id="scheduleHeading"></h2>
+    </div>
+    <div class="rail off-l" id="tlItems" data-reveal="rail">
+      <span class="thread" aria-hidden="true"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     05 — PHOTOGRAPHS
+     Prints laid on the wall, overlapping, each set down at its own
+     angle. A grid of identical rectangles is a contact sheet; a
+     pile is something somebody actually handled.
+     ============================================================ -->
+<section class="sec" id="gallery">
+  <div class="wrap">
+    <div class="head r">
+      <h2 class="on-cloth" id="galleryHeading"></h2>
+    </div>
+    <div class="gallery-grid" data-reveal="prints">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     06 — THINGS WORTH ASKING
+     ============================================================ -->
+<section class="sec tight" id="faq">
+  <div class="wrap">
+    <div class="head">
+      <h2 class="on-cloth">Worth asking</h2>
+    </div>
+    <div class="asks off-r" id="faq-drawer-list" data-reveal="leaf">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     07 — REPLY
+     You were sent an envelope, so you send one back. The form is a
+     reply card; on submit it slides into its envelope, the flap
+     folds down and a seal is pressed. The confirmation is the same
+     object as the invitation, in reverse.
+     ============================================================ -->
+<section class="sec" id="rsvp">
+  <div class="wrap">
+    <div class="head r">
+      <p class="eyebrow on-cloth">Reply</p>
+      <h2 class="on-cloth">Send it back to us</h2>
+    </div>
+
+    <div class="reply off-l" id="reply" data-reveal="panel">
+
+      <!-- the return envelope the card goes into -->
+      <div class="ret" aria-hidden="true">
+        <div class="panel ret-back"><img src="assets/stock.jpg" alt=""><div class="tint"></div></div>
+        <div class="panel ret-front"><img src="assets/stock.jpg" alt=""><div class="tint"></div>
+          <address class="from" id="retFrom"></address>
+        </div>
+        <div class="panel ret-flap"><img src="assets/stock.jpg" alt=""><div class="tint"></div><div class="back"></div></div>
+        <div class="seal ret-seal"><span class="half l"><i></i><span class="die"></span><b class="initials"></b></span><span class="half r"><i></i><span class="die"></span><b class="initials"></b></span></div>
+      </div>
+
+      <form class="rcard" id="rsvp-form" name="rsvp" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+        <input type="hidden" name="form-name" value="rsvp">
+        <p class="hp" aria-hidden="true"><label>Leave this field empty<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+
+        <p class="rtitle">Reply card</p>
+
+        <div class="field">
+          <label for="rsvpName">Name</label>
+          <input type="text" id="rsvpName" name="guest_names" placeholder="As it appears on the envelope" autocomplete="name" required>
+        </div>
+
+        <div class="field">
+          <label id="joinLabel">Will you be there?</label>
+          <div class="choice" role="radiogroup" aria-labelledby="joinLabel">
+            <label class="opt selected"><input type="radio" name="attending" value="yes" class="visually-hidden" checked><span>With pleasure</span></label>
+            <label class="opt"><input type="radio" name="attending" value="no" class="visually-hidden"><span>Sadly not</span></label>
+          </div>
+        </div>
+
+        <div class="field two">
+          <span>
+            <label for="rsvpGuests">How many</label>
+            <input type="number" id="rsvpGuests" min="1" max="6" value="2" inputmode="numeric">
+            <select id="rsvp-guest-count" name="guest_count" class="visually-hidden" tabindex="-1" aria-hidden="true">
+              <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            </select>
+          </span>
+          <span>
+            <label for="rsvpDietary">Dietary notes</label>
+            <input type="text" id="rsvpDietary" name="dietary" placeholder="Optional">
+          </span>
+        </div>
+
+        <div class="field" id="rsvp-plusone-wrap" hidden>
+          <label for="rsvp-plusone-name">Name of your guest</label>
+          <input type="text" id="rsvp-plusone-name" name="plusone_name" placeholder="Optional">
+        </div>
+
+        <div class="field">
+          <label for="rsvpMessage">A note, if you like</label>
+          <textarea id="rsvpMessage" name="notes" rows="2" placeholder="Optional"></textarea>
+        </div>
+
+        <button type="submit" class="send" id="rsvpSubmit"><span>Seal and send</span></button>
+        <p class="err" id="rsvp-error" role="alert" hidden></p>
+      </form>
+
+      <!-- Stands in for the form once a reply is accepted, so the
+           section never looks as though nothing was sent. -->
+      <div class="done" id="rsvp-confirmed" hidden>
+        <p class="dline">Sealed.</p>
+        <p class="dsub" id="sentTo"></p>
+        <button type="button" class="again" id="rsvpAgain">Send a different reply</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span id="footNames"></span>
+  <span>Plaster</span>
+</footer>
+
+</main>
+
+<script src="../_shared/luma-bridge.js?v=2"></script>
+<script src="luma-plaster.js?v=1"></script>
+</body>
+</html>
