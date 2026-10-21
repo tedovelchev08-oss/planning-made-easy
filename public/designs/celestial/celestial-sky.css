@@ -228,3 +228,28 @@
   .cel-dial .mk{ r:6px }
   .cel-dial .mk-glow{ r:15px }
 }
+
+/* ---------- THE SKY BEHIND THE PAGE ----------
+   A photograph of a real night sky, in place of the drawn star layers.
+   It turns slowly as the page scrolls (design.js sets --band-turn), the
+   way the sky turns through the evening; the horizon is cropped out of
+   the file so it never tilts. */
+body .page-band{
+  --band-angle: 0deg;
+  top:-35%; left:-60%; width:220%; height:170%;
+  background:#070b1c url("assets/night-sky.jpg") center / cover no-repeat;
+  /* quieter than the photograph: the chart's stars are the ones that
+     matter, and the text has to sit on it */
+  opacity:.5;
+}
+body .page-sky-far, body .page-sky-near{ display:none }
+
+/* the chart is printed on a disc of midnight-blue cotton paper (a
+   photograph), so the computed sky reads as ink on a real sheet */
+.cel-chart::before{
+  content:""; position:absolute; z-index:0;
+  inset:calc(100% * 48 / 420); border-radius:50%;
+  background:url("assets/plate.jpg") center / cover;
+  box-shadow:0 0 0 1px hsl(var(--c-gold) / .25), 0 30px 60px -20px rgba(0,0,0,.65), inset 0 0 40px rgba(0,0,0,.35);
+}
+.cel-chart svg{ z-index:1 }
