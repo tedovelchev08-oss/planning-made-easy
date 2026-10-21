@@ -35,6 +35,8 @@
 
     <!-- Builder chrome (drawer tabs, editor layout). Shared by every design. -->
     <link rel="stylesheet" href="../_shared/wedding-ui.css?v=10">
+    <!-- The rebuilt layout: one limewashed wall, glazed plaques, painted tiles -->
+    <link rel="stylesheet" href="amalfi-wall.css?v=3">
     <!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
     <style>
         html.luma-loading { background: #f7f2ea; }
@@ -67,15 +69,15 @@
 
             <!-- Navigation Links -->
             <nav class="main-nav-scroll hidden md:flex items-center gap-8 font-sans text-xs uppercase tracking-[0.2em] text-warmgray font-medium flex-1 min-w-0 justify-center">
-                <a href="#our-story" class="shrink-0 hover:text-gold transition">Our Story</a>
-                <a href="#schedule" class="shrink-0 hover:text-gold transition">Schedule</a>
-                <a href="#details" class="shrink-0 hover:text-gold transition">Details</a>
-                <a href="#rsvp" class="shrink-0 hover:text-gold transition">RSVP</a>
+                <a href="#details" class="shrink-0 hover:text-gold transition">When and where</a>
+                <a href="#our-story" class="shrink-0 hover:text-gold transition">Our story</a>
+                <a href="#schedule" class="shrink-0 hover:text-gold transition">The day</a>
+                <a href="#rsvp" class="shrink-0 hover:text-gold transition">Reply</a>
             </nav>
 
             <div class="shrink-0 flex items-center gap-2">
                 <a href="#rsvp" class="nowrap nav-reply">
-                    RSVP
+                    Reply
                 </a>
             </div>
         </div>
@@ -168,203 +170,146 @@
     </div>
 
     <!-- Main Invitation Page Content -->
-    <main class="pt-32 pb-16 px-4 md:px-8 max-w-5xl mx-auto">
+    <!-- ============================================================
+         AMALFI, one tiled wall. Everything sits on a limewashed wall
+         (photographed): the coast through an arch cut into it, the names
+         painted on a glazed plaque framed in hand-painted majolica, and
+         tiles where a section begins. The element ids below are the ones
+         wedding-core.js and the bridge fill, so the engine still does the
+         work; the layout is this design's.
+         ============================================================ -->
+    <main class="am">
 
-        <!-- The coast, photographed. Every earlier pass drew this place in
-             CSS gradients, which is why it read flat: a location is
-             photographed, not rendered. The arch is cut into the plaster at
-             the head of the wall. Hotlinked, so no copy of someone else's
-             photograph ships inside the package. -->
-        <div class="coast-arch" role="img" aria-label="The Amalfi coast"></div>
-        <!-- Hero Section -->
-        <section class="text-center py-12 md:py-20 relative">
-            <div class="reveal save-date">
-                Save The Date
+        <!-- THE ARCH AND THE PLAQUE -->
+        <section id="hero" class="am-hero">
+            <div class="coast-arch am-arch reveal" role="img" aria-label="The Amalfi coast"></div>
+            <div class="am-plaque reveal reveal-d1">
+                <div class="am-glaze">
+                    <p class="am-eyebrow">Together with their families</p>
+                    <h1 class="am-names">
+                        <span id="hero-partner1" data-field="partner1"></span>
+                        <span class="am-amp">&amp;</span>
+                        <span id="hero-partner2" data-field="partner2"></span>
+                    </h1>
+                    <p class="am-invite">ask you to join them as they marry, by the sea</p>
+                </div>
             </div>
+            <span hidden><span id="cd-days"></span><span id="cd-hours"></span><span id="cd-minutes"></span><span id="cd-seconds"></span></span>
+        </section>
 
-            <h1 class="reveal reveal-d1 font-serif text-5xl sm:text-7xl md:text-8xl tracking-tight text-charcoal font-light leading-none mb-4">
-                <span id="hero-partner1" data-field="partner1">Emma</span> <span class="font-script text-6xl sm:text-8xl md:text-9xl text-gold font-normal -mx-2 md:-mx-4">&</span> <span id="hero-partner2" data-field="partner2">Daniel</span>
-            </h1>
-
-            <p class="reveal reveal-d2 font-serif italic text-xl md:text-2xl text-warmgray font-light max-w-xl mx-auto mb-8">
-                Together with their families, ask you to join them as they marry
+        <!-- WHEN, WHERE, DRESS: each under its own tile -->
+        <section id="details" class="am-sec">
+            <dl class="am-facts reveal">
+                <div><span class="am-tile t-a" aria-hidden="true"></span><dt>When</dt><dd id="banner-date" data-field="dateFormatted"></dd><dd id="banner-time" data-field="time" class="am-quiet"></dd></div>
+                <div><span class="am-tile t-b" aria-hidden="true"></span><dt>Where</dt><dd id="banner-venue" data-field="venueName"></dd><dd id="banner-address" data-field="venueAddress" class="am-quiet"></dd></div>
+                <div><span class="am-tile t-c" aria-hidden="true"></span><dt>Dress</dt><dd id="banner-dresscode" data-field="dressCode"></dd><dd id="banner-dresscode-note" data-field="dressCodeNote" class="am-quiet"></dd></div>
+            </dl>
+            <p class="am-links reveal">
+                <a id="gcal-link" target="_blank" rel="noopener">Google Calendar</a>
+                <a id="ics-link" href="#">Apple Calendar</a>
             </p>
-
-            <!-- Key Event Banner Grid -->
-            <div id="details" class="grid grid-cols-1 md:grid-cols-3 border-y border-gold/20 py-6 my-10 max-w-3xl mx-auto gap-4 md:gap-0">
-                <div class="reveal reveal-d1 flex flex-col items-center justify-center md:border-r border-gold/20 px-4">
-                    <span class="font-sans text-[10px] uppercase tracking-[0.25em] text-warmgray mb-1">When</span>
-                    <span id="banner-date" data-field="dateFormatted" class="font-serif text-2xl text-charcoal font-medium">April 17, 2027</span>
-                    <span id="banner-time" data-field="time" class="font-sans text-xs text-gold font-medium">Saturday at 4:00 PM</span>
-                </div>
-                <div class="reveal reveal-d2 flex flex-col items-center justify-center md:border-r border-gold/20 px-4">
-                    <span class="font-sans text-[10px] uppercase tracking-[0.25em] text-warmgray mb-1">Where</span>
-                    <span id="banner-venue" data-field="venueName" class="font-serif text-2xl text-charcoal font-medium">Sonoma Estate</span>
-                    <span id="banner-address" data-field="venueAddress" class="font-sans text-xs text-gold font-medium">Sonoma Valley, California</span>
-                </div>
-                <div class="reveal reveal-d3 flex flex-col items-center justify-center px-4">
-                    <span class="font-sans text-[10px] uppercase tracking-[0.25em] text-warmgray mb-1">Dress Code</span>
-                    <span id="banner-dresscode" data-field="dressCode" class="font-serif text-2xl text-charcoal font-medium">Black Tie Optional</span>
-                    <span id="banner-dresscode-note" data-field="dressCodeNote" class="font-sans text-xs text-gold font-medium">Formal Garden Elegance</span>
-                </div>
-            </div>
-
-            <!-- Add to Calendar Buttons -->
-            <div class="reveal reveal-d3 flex flex-wrap items-center justify-center gap-4 mt-6">
-                <a id="gcal-link" target="_blank" rel="noopener" class="px-5 py-2.5 rounded-full border border-gold/40 hover:bg-gold/10 text-charcoal text-xs font-sans tracking-widest uppercase transition flex items-center gap-2">
-                    <span>Google Calendar</span>
-                </a>
-                <a id="ics-link" href="#" class="px-5 py-2.5 rounded-full border border-gold/40 hover:bg-gold/10 text-charcoal text-xs font-sans tracking-widest uppercase transition flex items-center gap-2">
-                    <span>Apple Calendar</span>
-                </a>
-            </div>
         </section>
 
-        <!-- Countdown: one line, in words. Boxes of days, hours, minutes and
-             seconds are the most template thing a wedding page can show. -->
-        <section class="reveal countdown-card refined-count text-center">
-            <p class="count-line"><span id="cd-days" class="count-days">00</span> <span class="count-words">days until we marry</span></p>
-            <span hidden><span id="cd-hours"></span><span id="cd-minutes"></span><span id="cd-seconds"></span></span>
-        </section>
-
-        <!-- Story Section -->
-        <section id="our-story" class="py-16 md:py-24 border-t border-gold/15">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                <div class="reveal relative">
-                    <div class="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-gold/20 relative group">
-                        <img id="story-hero-img" data-field="heroPhoto" src="" onerror="this.onerror=null; this.removeAttribute('src'); this.style.background='linear-gradient(135deg, #e9dfcd, #c5a880)';" alt="Couple" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                    </div>
-                </div>
-
-                <div class="reveal reveal-d1 space-y-6">
-                    <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Our story</span>
-                    <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light leading-tight">How it began</h2>
-                    <p id="story-text-1" data-field="story1" class="font-serif text-lg text-warmgray leading-relaxed font-light"></p>
-                    <p id="story-text-2" data-field="story2" class="font-serif text-lg text-warmgray leading-relaxed font-light"></p>
+        <!-- HOW IT BEGAN -->
+        <section id="our-story" class="am-sec">
+            <div class="grid am-story">
+                <figure class="am-print reveal">
+                    <img id="story-hero-img" data-field="heroPhoto" alt="The two of you"
+                         onload="this.closest('figure').hidden = false;"
+                         onerror="if (this.getAttribute('src')) this.closest('figure').hidden = true;">
+                </figure>
+                <div class="am-words reveal reveal-d1">
+                    <h2 class="am-h">How it began</h2>
+                    <p id="story-text-1" data-field="story1"></p>
+                    <p id="story-text-2" data-field="story2"></p>
                 </div>
             </div>
         </section>
 
-        <!-- Photo Gallery Section (hidden automatically until photos are added) -->
-        <section id="gallery-section" class="py-16 md:py-24 border-t border-gold/15" style="display:none;">
-            <div class="reveal text-center max-w-xl mx-auto mb-12">
-                <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Photographs</span>
-                <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light mt-2">A few of ours</h2>
+        <!-- THE DAY, on a glazed panel framed in tiles -->
+        <section id="schedule" class="am-sec">
+            <div class="am-panel reveal">
+                <div class="am-glaze">
+                    <h2 class="am-h">The order of the day</h2>
+                    <div id="schedule-timeline" class="am-moments"></div>
+                </div>
             </div>
-            <div class="reveal gallery-carousel-outer">
-                <button type="button" class="gallery-nav-btn gallery-nav-prev" onclick="galleryCarouselNav(-1)" aria-label="Previous photo">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
+        </section>
+
+        <!-- PHOTOGRAPHS -->
+        <section id="gallery-section" class="am-sec" style="display:none;">
+            <h2 class="am-h reveal">A few of ours</h2>
+            <div class="gallery-carousel-outer am-prints reveal">
+                <button type="button" class="gallery-nav-btn gallery-nav-prev" hidden aria-hidden="true" tabindex="-1"></button>
                 <div class="gallery-carousel-wrap">
                     <div id="gallery-carousel-track" class="gallery-carousel-track"></div>
                 </div>
-                <button type="button" class="gallery-nav-btn gallery-nav-next" onclick="galleryCarouselNav(1)" aria-label="Next photo">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+                <button type="button" class="gallery-nav-btn gallery-nav-next" hidden aria-hidden="true" tabindex="-1"></button>
             </div>
         </section>
 
-        <!-- Schedule Section -->
-        <section id="schedule" class="py-16 md:py-24 border-t border-gold/15">
-            <div class="reveal text-center max-w-xl mx-auto mb-16">
-                <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">The day</span>
-                <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light mt-2">The order of the day</h2>
-            </div>
-
-            <div id="schedule-timeline" class="reveal schedule-timeline"></div>
+        <section id="faq-section" class="am-sec" style="display:none;">
+            <h2 class="am-h reveal">Before you ask</h2>
+            <div id="faq-list" class="am-asks reveal"></div>
         </section>
 
-        <!-- FAQ Section (hidden automatically until at least one question exists) -->
-        <section id="faq-section" class="py-16 md:py-24 border-t border-gold/15" style="display:none;">
-            <div class="reveal text-center max-w-xl mx-auto mb-12">
-                <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">Good to know</span>
-                <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light mt-2">Before you ask</h2>
-            </div>
-            <div id="faq-list" class="reveal max-w-2xl mx-auto space-y-3"></div>
-        </section>
+        <!-- THE REPLY, on a glazed card -->
+        <section id="rsvp" class="am-sec">
+            <div class="am-panel am-reply reveal">
+                <div class="am-glaze">
+                    <h2 class="am-h">Will you join us?</h2>
+                    <p id="rsvp-deadline-text" data-field="rsvpDeadlineText" class="am-quiet am-by"></p>
 
-        <!-- RSVP Section -->
-        <section id="rsvp" class="py-16 md:py-24 border-t border-gold/15">
-            <div class="reveal max-w-2xl mx-auto p-8 md:p-12 rounded-3xl bg-white/80 border border-gold/30 shadow-xl backdrop-blur-md">
-                <div class="text-center mb-10">
-                    <span class="font-sans text-xs uppercase tracking-[0.3em] text-gold font-semibold">RSVP</span>
-                    <h2 class="font-serif text-4xl md:text-5xl text-charcoal font-light mt-2">Will you join us?</h2>
-                    <p id="rsvp-deadline-text" data-field="rsvpDeadlineText" class="font-serif italic text-warmgray mt-2">Please reply by March 1st, 2027</p>
-                </div>
-
-                <form id="rsvp-form" name="rsvp" method="POST" onsubmit="submitRSVP(event)" class="space-y-6">
-                    <input type="hidden" name="form-name" value="rsvp">
-                    <div>
-                        <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Your name, or both of yours</label>
-                        <input type="text" name="guest_names" required placeholder="As it is on your invitation" class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal placeholder:text-warmgray/50 focus:outline-none focus:border-gold font-sans text-sm">
-                    </div>
-
-                    <div>
-                        <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Will you be there?</label>
-                        <div class="grid grid-cols-2 gap-4">
-                            <label class="cursor-pointer">
-                                <input type="radio" name="attending" value="yes" checked onchange="handleRsvpAttendingChange()" class="peer sr-only-focusable">
-                                <div class="py-3 px-4 text-center rounded-xl border border-gold/25 peer-checked:bg-gold peer-checked:text-white font-sans text-xs uppercase tracking-widest transition">
-                                    With pleasure
-                                </div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" name="attending" value="no" onchange="handleRsvpAttendingChange()" class="peer sr-only-focusable">
-                                <div class="py-3 px-4 text-center rounded-xl border border-gold/25 peer-checked:bg-gold peer-checked:text-white font-sans text-xs uppercase tracking-widest transition">
-                                    Sadly, no
-                                </div>
-                            </label>
+                    <form id="rsvp-form" name="rsvp" method="POST" onsubmit="submitRSVP(event)" class="am-form">
+                        <input type="hidden" name="form-name" value="rsvp">
+                        <div class="am-field">
+                            <label for="rsvp-name">Your name, or both of yours</label>
+                            <input id="rsvp-name" type="text" name="guest_names" required placeholder="As it is on your invitation" autocomplete="name">
                         </div>
-                    </div>
-
-                    <div id="rsvp-attending-extra-fields" class="space-y-6">
-                        <div>
-                            <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">How many of you</label>
-                            <select name="guest_count" id="rsvp-guest-count" onchange="handleRsvpGuestCountChange()" class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal focus:outline-none focus:border-gold font-sans text-sm">
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                                <option value="6">6</option>
-                            </select>
+                        <div class="am-field">
+                            <span class="am-label" id="rsvp-attend-label">Will you be there?</span>
+                            <div class="am-choice" role="radiogroup" aria-labelledby="rsvp-attend-label">
+                                <label><input type="radio" name="attending" value="yes" checked onchange="handleRsvpAttendingChange()"><span>With pleasure</span></label>
+                                <label><input type="radio" name="attending" value="no" onchange="handleRsvpAttendingChange()"><span>Sadly, no</span></label>
+                            </div>
                         </div>
-                        <div id="rsvp-plusone-wrap" style="display:none;">
-                            <label for="rsvp-plusone-name" id="rsvpPlusOneLabel" class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Plus-One Name</label>
-                            <input type="text" name="plusone_name" id="rsvp-plusone-name" placeholder="Their full name" class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal placeholder:text-warmgray/50 focus:outline-none focus:border-gold font-sans text-sm">
+                        <div id="rsvp-attending-extra-fields">
+                            <div class="am-field">
+                                <label for="rsvp-guest-count">How many of you</label>
+                                <select name="guest_count" id="rsvp-guest-count" onchange="handleRsvpGuestCountChange()">
+                                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                                    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                                </select>
+                            </div>
+                            <div class="am-field" id="rsvp-plusone-wrap" style="display:none;">
+                                <label for="rsvp-plusone-name" id="rsvpPlusOneLabel">Name of your guest</label>
+                                <input type="text" name="plusone_name" id="rsvp-plusone-name" placeholder="Their full name">
+                            </div>
+                            <div class="am-field">
+                                <label for="rsvp-notes">Anything we should know?</label>
+                                <textarea id="rsvp-notes" name="notes" rows="2" placeholder="Allergies, dietary needs, or a note for us"></textarea>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block font-sans text-xs uppercase tracking-widest text-charcoal font-medium mb-2">Anything we should know?</label>
-                            <textarea name="notes" rows="3" placeholder="Allergies, dietary needs, or a note for us" class="w-full px-4 py-3 rounded-xl bg-sand/40 border border-gold/25 text-charcoal placeholder:text-warmgray/50 focus:outline-none focus:border-gold font-sans text-sm"></textarea>
-                        </div>
+                        <button type="submit" class="am-send">Send our reply</button>
+                        <p id="rsvp-error" class="hidden am-error" role="alert">That didn't send. Please try again.</p>
+                    </form>
+
+                    <div id="rsvp-success" class="hidden am-done">
+                        <span id="rsvp-success-icon-wrap" hidden><i id="rsvp-success-icon" class="fas fa-check"></i></span>
+                        <h3 id="rsvp-success-heading" class="am-h">Thank you.</h3>
+                        <p id="rsvp-success-message"></p>
                     </div>
-
-                    <button type="submit" class="w-full py-4 rounded-xl bg-charcoal text-cream hover:bg-gold font-sans text-xs tracking-[0.2em] uppercase font-bold transition shadow-lg">
-                        Send our reply
-                    </button>
-
-                    <p id="rsvp-error" class="hidden text-center text-xs text-red-600 font-sans">
-                        Something went wrong sending your response — please try again, or reach out to the couple directly.
-                    </p>
-                </form>
-
-                <div id="rsvp-success" class="hidden text-center py-10">
-                    <div id="rsvp-success-icon-wrap" class="w-16 h-16 rounded-full bg-champagne border border-gold text-gold flex items-center justify-center mx-auto mb-4 text-2xl">
-                        <i id="rsvp-success-icon" class="fas fa-check"></i>
-                    </div>
-                    <h3 id="rsvp-success-heading" class="font-serif text-3xl text-charcoal mb-2">Thank You!</h3>
-                    <p id="rsvp-success-message" class="font-serif italic text-warmgray text-lg">Your response has been saved. We look forward to celebrating with you!</p>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="py-12 border-t border-gold/15 text-center">
-        <div class="reveal">
-            <p data-field="coupleNames" class="font-serif text-2xl text-charcoal couple-names-inline">Emma & Daniel</p>
-            <p id="footer-subtext" data-field="dateAndPlace" class="font-sans text-[10px] uppercase tracking-[0.25em] text-warmgray mt-1">April 17, 2027 • Sonoma Valley</p>
-            <p id="footer-hashtag" data-field="hashtag" class="font-script text-2xl text-gold mt-2">#EmmaAndDaniel2027</p>
-        </div>
+    <!-- THE CLOSE: a row of tiles along the foot of the wall -->
+    <footer class="am-close">
+        <div class="am-tilerow" aria-hidden="true"></div>
+        <p data-field="coupleNames" class="am-close-names couple-names-inline"></p>
+        <p id="footer-subtext" data-field="dateAndPlace" class="am-close-meta"></p>
+        <p id="footer-hashtag" data-field="hashtag" class="am-close-meta"></p>
     </footer>
 
     <!-- Filled from Luma by luma-bridge.js (window.lumaBoot) before the first

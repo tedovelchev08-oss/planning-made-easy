@@ -1,0 +1,221 @@
+/* ============================================================
+   AMALFI: one tiled wall
+   ------------------------------------------------------------
+   The page is a limewashed wall, photographed. The coast shows
+   through an arch cut into it; the names are painted in cobalt on a
+   glazed plaque framed in hand-painted majolica; a tile marks the
+   start of each thing; the evening and the reply are glazed panels
+   with tiled borders. Every surface is a photograph (assets/
+   CREDITS.txt); only the lettering is type.
+   ============================================================ */
+.am{
+  --cobalt: hsl(var(--c-azulejo));
+  --terra:  hsl(var(--c-gold));
+  --ink:    hsl(var(--c-charcoal));
+  --dim:    hsl(var(--c-warmgray));
+  --display:'Marcellus', Georgia, serif;
+  --serif:  'EB Garamond', Georgia, serif;
+  --label:  'Karla', system-ui, sans-serif;
+  position:relative; z-index:1;
+  max-width:860px; margin:0 auto;
+  padding:84px max(18px, env(safe-area-inset-left, 0px)) 20px max(18px, env(safe-area-inset-right, 0px));
+  color:var(--ink); font-family:var(--serif);
+}
+.am [hidden]{ display:none !important }
+.am-quiet{ color:var(--dim) }
+
+/* the wall itself, behind everything: fixed, so it never repaints on scroll */
+body.plaster{ background:hsl(var(--c-cream)) }
+body.plaster::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:hsl(var(--c-cream)) url("assets/wall.jpg") center / cover no-repeat;
+}
+
+.am-h{
+  font-family:var(--display); font-weight:400; text-align:center; color:var(--cobalt);
+  font-size:clamp(28px, 6.6vw, 42px); line-height:1.15; text-wrap:balance;
+}
+.am-sec{ padding-block:clamp(44px, 9vw, 84px) }
+
+/* a hand-painted border: the all-over tile, repeated round the edge of a glazed panel */
+.am-plaque, .am-panel{
+  position:relative; padding:clamp(14px, 3.4vw, 22px);
+  background:url("assets/tile-c.jpg") center / clamp(56px, 13vw, 84px) repeat;
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 26px 44px -26px rgba(60,40,20,.55), 0 2px 5px rgba(60,40,20,.18);
+}
+.am-glaze{
+  position:relative; text-align:center;
+  padding:clamp(26px, 6vw, 46px) clamp(18px, 5vw, 44px);
+  background:#f6f3ec url("assets/glaze.jpg") center / cover;
+  box-shadow:inset 0 0 0 1px rgba(30,60,90,.18), inset 0 2px 8px rgba(0,0,0,.08);
+}
+
+/* ---------- THE ARCH AND THE PLAQUE ---------- */
+.am-hero{ padding-top:clamp(10px, 3vw, 24px) }
+.am-arch.coast-arch{
+  height:clamp(200px, 40vw, 340px); margin:0 auto;
+  border-radius:50% 50% 0 0 / 46% 46% 0 0;
+  box-shadow:inset 0 0 0 9px rgba(250,247,240,.9), inset 0 0 0 10px rgba(150,130,110,.4), inset 0 -22px 34px -18px rgba(60,40,20,.45);
+}
+.am-arch.coast-arch::after{ display:none }
+.am-plaque{ max-width:620px; margin:-30px auto 0; z-index:1 }
+.am-eyebrow{ font-family:var(--label); font-size:12px; letter-spacing:.32em; text-transform:uppercase; color:var(--terra) }
+.am-names{
+  margin-top:clamp(12px, 3vw, 18px);
+  font-family:var(--display); font-weight:400; color:var(--cobalt);
+  font-size:clamp(42px, 11.5vw, 76px); line-height:1.02;
+  /* painted, not printed: the faintest bleed of the brush into the glaze */
+  text-shadow:0 0 1px rgba(32,80,130,.45);
+}
+.am-names > span{ display:block }
+.am-names .am-amp{ font-family:var(--serif); font-style:italic; color:var(--terra); font-size:.5em; margin:.14em 0 .1em }
+.am-invite{ margin-top:clamp(12px, 3vw, 18px); font-style:italic; font-size:clamp(18px, 4.4vw, 21px); color:var(--ink) }
+
+/* ---------- WHEN, WHERE, DRESS ---------- */
+.am-facts{ display:grid; gap:clamp(20px, 5vw, 28px); margin:0 auto; max-width:760px; text-align:center }
+@media (min-width:680px){ .am-facts{ grid-template-columns:repeat(3, 1fr) } }
+.am-facts > div{ display:grid; gap:4px; justify-items:center; align-content:start }
+.am-tile{
+  width:62px; height:62px; margin-bottom:10px; background:center / cover;
+  box-shadow:0 0 0 1px rgba(150,130,110,.4), 0 8px 16px -8px rgba(60,40,20,.5);
+}
+.am-tile.t-a{ background-image:url("assets/tile-a.jpg") }
+.am-tile.t-b{ background-image:url("assets/tile-b.jpg") }
+.am-tile.t-c{ background-image:url("assets/tile-c.jpg") }
+.am-facts dt, .am-field label, .am-label{
+  font-family:var(--label); font-size:12px; letter-spacing:.26em; text-transform:uppercase; color:var(--terra);
+}
+.am-facts dd{ margin:0; font-size:21px; line-height:1.35 }
+.am-facts dd.am-quiet{ font-size:16.5px; font-style:italic }
+.am-facts dd:empty, .am-facts div:has(> dd:first-of-type:empty){ display:none }
+.am-links{ margin-top:22px; display:flex; flex-wrap:wrap; justify-content:center; gap:0 28px }
+.am-links a{
+  display:inline-flex; align-items:center; min-height:44px; cursor:pointer;
+  font-family:var(--label); font-size:12.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--cobalt);
+  text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:7px;
+}
+
+/* ---------- HOW IT BEGAN ---------- */
+.am-story{ display:grid; gap:clamp(26px, 5vw, 46px); align-items:center }
+@media (min-width:720px){ .am-story{ grid-template-columns:5fr 6fr } }
+.am-print{
+  margin:0; justify-self:center; width:min(100%, 350px); padding:10px 10px 34px; background:#fbf8f1;
+  transform:rotate(-1.5deg); box-shadow:0 24px 36px -22px rgba(60,40,20,.55), 0 2px 4px rgba(60,40,20,.2);
+}
+.am-print img{ display:block; width:100%; aspect-ratio:4/5; object-fit:cover }
+.am-words .am-h{ text-align:left }
+.am-words p{ margin-top:14px; font-size:clamp(19px, 4.6vw, 21px); line-height:1.6 }
+.am-story:not(:has(.am-print:not([hidden]) img[src]:not([src=""]))) .am-words{ text-align:center; max-width:560px; margin:0 auto }
+.am-story:not(:has(.am-print:not([hidden]) img[src]:not([src=""]))) .am-words .am-h{ text-align:center }
+
+/* ---------- THE ORDER OF THE DAY ---------- */
+.am-panel{ max-width:640px; margin:0 auto }
+.am .am-moments{ margin-top:clamp(16px, 4vw, 24px); counter-reset:m; text-align:left }
+.am .am-moments .schedule-row{
+  position:static !important; display:block !important; margin:0 !important; padding:12px 0 !important;
+  border-bottom:1px solid rgba(40,80,120,.18); --gap-px:0px !important; text-align:left !important;
+}
+.am .am-moments .schedule-row:last-child{ border-bottom:0 }
+.am .am-moments .schedule-row::before, .am .am-moments .schedule-row::after,
+.am .am-moments::before, .am .am-moments::after{ display:none !important; content:none !important }
+.am .am-moments .schedule-content{
+  display:grid !important; grid-template-columns:38px 1fr; gap:0 14px; align-items:center;
+  width:100% !important; max-width:none !important; padding:0 !important; margin:0 !important; grid-column:auto !important;
+  background:none !important; border:0 !important; box-shadow:none !important; transform:none !important; flex-direction:row !important;
+}
+/* each moment gets a small tile, in turn */
+.am .am-moments .schedule-icon{
+  width:34px !important; height:34px !important; border-radius:0 !important; border:0 !important;
+  background:url("assets/tile-a.jpg") center / cover !important; box-shadow:0 0 0 1px rgba(150,130,110,.35) !important;
+}
+.am .am-moments .schedule-row:nth-child(3n+2) .schedule-icon{ background-image:url("assets/tile-b.jpg") !important }
+.am .am-moments .schedule-row:nth-child(3n) .schedule-icon{ background-image:url("assets/tile-c.jpg") !important }
+.am .am-moments .schedule-icon i{ display:none }
+.am .am-moments .schedule-text{ display:grid; grid-template-columns:62px 1fr; gap:0 12px; align-items:baseline; text-align:left !important }
+.am .am-moments .schedule-time{ font-family:var(--label); font-size:14px; letter-spacing:.06em; color:var(--terra) !important }
+.am .am-moments .schedule-title{ font-family:var(--display); font-weight:400; font-size:22px; color:var(--cobalt); margin:0 !important }
+.am .am-moments .schedule-venue{ grid-column:2; font-style:italic; font-size:17px; color:var(--dim); margin:0 !important }
+.am .am-moments .schedule-gap{ display:none !important }
+
+/* ---------- PHOTOGRAPHS ---------- */
+.am .am-prints{ margin-top:clamp(22px, 5vw, 34px) }
+.am .am-prints .gallery-nav-btn{ display:none !important }
+.am .am-prints .gallery-carousel-wrap{ height:auto !important; overflow:visible !important; perspective:none !important; mask:none !important; -webkit-mask:none !important }
+.am .am-prints .gallery-carousel-track{
+  position:static !important; height:auto !important; transform:none !important;
+  display:grid !important; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px;
+}
+@media (min-width:720px){ .am .am-prints .gallery-carousel-track{ grid-template-columns:repeat(3, minmax(0, 1fr)); gap:20px } }
+.am .am-prints .gallery-carousel-item{
+  position:relative !important; left:auto !important; top:auto !important; inset:auto !important;
+  transform:none !important; opacity:1 !important; pointer-events:auto !important; z-index:auto !important;
+  width:auto !important; height:auto !important; margin:0 !important; padding:7px 7px 24px !important;
+  background:#fbf8f1 !important; border:0 !important; border-radius:0 !important;
+  box-shadow:0 16px 26px -18px rgba(60,40,20,.55), 0 2px 3px rgba(60,40,20,.15) !important; cursor:zoom-in;
+}
+.am .am-prints .gallery-carousel-item:nth-child(odd){ transform:rotate(-1.2deg) !important }
+.am .am-prints .gallery-carousel-item:nth-child(even){ transform:rotate(1deg) !important }
+.am .am-prints .gallery-carousel-item::before, .am .am-prints .gallery-carousel-item::after{ display:none !important; content:none !important }
+.am .am-prints .gallery-carousel-item img{ display:block; width:100% !important; height:auto !important; aspect-ratio:4/5; object-fit:cover; border-radius:0 !important; filter:none !important; mask:none !important; -webkit-mask:none !important }
+
+/* ---------- QUESTIONS ---------- */
+.am-asks{ margin:clamp(20px, 4vw, 30px) auto 0; max-width:640px }
+.am .am-asks .faq-item{ background:none !important; border:0 !important; border-bottom:1px solid rgba(40,80,120,.25) !important; border-radius:0 !important; box-shadow:none !important; margin:0 !important }
+.am .am-asks .faq-item:first-child{ border-top:1px solid rgba(40,80,120,.25) !important }
+.am .am-asks .faq-question{ padding:16px 2px !important; font-family:var(--serif) !important; font-size:20px !important; color:var(--ink) !important; background:none !important; width:100%; display:flex; justify-content:space-between; gap:16px; align-items:center; text-align:left }
+.am .am-asks .faq-chevron{ color:var(--terra) }
+.am .am-asks .faq-answer p{ font-size:18px; color:var(--dim); padding:0 2px 16px }
+
+/* ---------- THE REPLY ---------- */
+.am-reply{ max-width:560px }
+.am-by{ margin-top:8px; font-style:italic; font-size:18px }
+.am-form{ margin-top:clamp(20px, 5vw, 28px); text-align:left; display:grid; gap:20px }
+#rsvp-attending-extra-fields{ display:grid; gap:20px }
+.am-field{ display:grid; gap:6px }
+.am-field input[type=text], .am-field select, .am-field textarea{
+  width:100%; padding:10px 2px; background:transparent; color:var(--ink);
+  border:0; border-bottom:1px solid rgba(40,80,120,.4); border-radius:0; font-family:var(--serif); font-size:20px;
+}
+.am-field input:focus, .am-field select:focus, .am-field textarea:focus{ outline:none; border-bottom-color:var(--cobalt) }
+.am-field .am-choice label{ font:inherit; text-transform:none; letter-spacing:0 }
+.am-choice{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+.am-choice label{ position:relative; cursor:pointer }
+.am-choice input{ position:absolute; opacity:0; pointer-events:none }
+.am-choice span{
+  display:block; text-align:center; padding:12px 8px; border:1px solid var(--cobalt);
+  font-family:var(--serif); font-size:19px; color:var(--cobalt); transition:background .2s, color .2s;
+}
+.am-choice input:checked + span{ background:var(--cobalt); color:#f6f3ec }
+.am-choice input:focus-visible + span{ outline:2px solid var(--terra); outline-offset:2px }
+.am-send{
+  margin-top:6px; padding:16px; border:0; cursor:pointer; background:var(--terra); color:#fff;
+  font-family:var(--label); font-size:12.5px; letter-spacing:.28em; text-transform:uppercase;
+}
+.am-send:hover, .am-send:focus-visible{ background:hsl(var(--c-gold-dark)) }
+.am-error{ color:#9a3b26; font-size:16px; text-align:center }
+.am-done p{ margin-top:8px; font-style:italic; font-size:19px; color:var(--dim) }
+
+/* ---------- THE CLOSE ---------- */
+.am-close{
+  position:relative; z-index:1; text-align:center;
+  padding:0 20px clamp(44px, 8vw, 70px); font-family:'EB Garamond', Georgia, serif; color:hsl(var(--c-charcoal));
+}
+.am-tilerow{
+  height:clamp(56px, 13vw, 84px); margin:0 calc(-1 * max(20px, env(safe-area-inset-left, 0px))) clamp(28px, 6vw, 44px);
+  background:url("assets/tile-a.jpg") left center / auto 100% repeat-x;
+  box-shadow:0 -1px 0 rgba(150,130,110,.4), 0 1px 0 rgba(150,130,110,.4);
+}
+.am-close-names{ font-family:'Marcellus', Georgia, serif; font-size:26px; color:hsl(var(--c-azulejo)) }
+.am-close-meta{ margin-top:6px; font-family:'Karla', sans-serif; font-size:11.5px; letter-spacing:.22em; text-transform:uppercase; color:hsl(var(--c-warmgray)) }
+#footer-hashtag.am-close-meta{ text-transform:none; letter-spacing:.04em; font-size:14px }
+
+/* the old base layout ruled #details and set the footer in pale type on
+   a sea band; on the wall, neither belongs */
+.am #details, .am > section{ border:0 !important; box-shadow:none !important }
+footer.am-close, footer.am-close p{ color:hsl(var(--c-charcoal)) !important; background:none !important }
+footer.am-close .am-close-names{ color:hsl(var(--c-azulejo)) !important }
+footer.am-close .am-close-meta{ color:hsl(var(--c-warmgray)) !important }
+/* nor its pale centre column and drawn tile pattern: the wall shows
+   edge to edge, and the only tiles are the photographed ones */
+main.am, .am > section, .am #schedule{ background:none !important; box-shadow:none !important }
+main.am::before, main.am::after, .am #schedule::before, .am #schedule::after{ display:none !important }
