@@ -448,10 +448,29 @@
     return clamp01(-r.top / total);
   }
 
+  /* On a phone the story and the two lights play by themselves once they
+     are on screen, and the mirror hall is swiped rather than scrolled
+     through, so each is one screen instead of two to four of black travel.
+     A laptop keeps all three on the scroll. */
+  const phone = window.matchMedia('(max-width: 640px)');
+  const played = new Map();
+  function playedOf(el, ms){
+    if (!played.has(el)){
+      const r = el.getBoundingClientRect();
+      if (r.top > window.innerHeight * 0.3 || r.bottom < window.innerHeight * 0.6) return 0;
+      played.set(el, performance.now());
+    }
+    return clamp01((performance.now() - played.get(el)) / ms);
+  }
+  function stageOf(el, ms){
+    if (!phone.matches) return progressOf(el);
+    return reduceMotion ? 1 : playedOf(el, ms);
+  }
+
   function updateScroll(){
     // STORY — the pair converge, merge into one photograph, then the text
     if (storyStage){
-      const p = progressOf(storyStage);
+      const p = stageOf(storyStage, 4600);
 
       /* Convergence runs across most of the section and eases, so the two
          slow as they meet rather than sliding at a constant rate into each
@@ -502,12 +521,21 @@
 
     // GALLERY — walk down the mirror hall
     if (gallerySection && !reduceMotion){
-      const p = progressOf(gallerySection);
       const viewW = window.innerWidth;
-      const maxTranslate = Math.max(0, galleryTrackWidth - viewW + viewW * 0.08);
-      const translate = p * maxTranslate;
-      galleryTrackEl.style.transform = `translateX(-${translate}px)`;
-      galleryProgressBar.style.width = (p * 100) + '%';
+      let translate;
+      if (phone.matches){
+        // The track scrolls itself; read where the guest's finger left it.
+        translate = galleryTrackEl.scrollLeft;
+        const max = galleryTrackEl.scrollWidth - galleryTrackEl.clientWidth;
+        galleryTrackEl.style.transform = '';
+        galleryProgressBar.style.width = (max > 0 ? translate / max * 100 : 0) + '%';
+      } else {
+        const p = progressOf(gallerySection);
+        const maxTranslate = Math.max(0, galleryTrackWidth - viewW + viewW * 0.08);
+        translate = p * maxTranslate;
+        galleryTrackEl.style.transform = `translateX(-${translate}px)`;
+        galleryProgressBar.style.width = (p * 100) + '%';
+      }
 
       /* Each mirror turns to face the centre of the corridor and shrinks with
          distance, so the row reads as a receding hall rather than a filmstrip.
@@ -529,7 +557,7 @@
 
     // TWO BECOME ONE
     if (tboScroll){
-      const p = progressOf(tboScroll);
+      const p = stageOf(tboScroll, 3800);
       // phase 1 (0-0.55): lights converge
       const conv = clamp01(p / 0.55);
       const startOffset = 42; // vw-ish via %
@@ -583,6 +611,7 @@
      this design has no envelope, and the core only ever calls it by name. */
   function replayOpening(){
     storeRemove('sessionStorage', 'mirrorPalaceVisited');
+    played.clear();
     window.scrollTo({ top: 0, behavior: 'auto' });
     intro.classList.remove('done','glow','expand','lights','sync','names','subtitle','split');
     body.classList.remove('intro-complete');

@@ -1834,3 +1834,41 @@ body.guest-mode.show-exit-btn #exit-preview-btn:hover{
   .gal-dot::after{content:'';position:absolute;inset:-12px}
   .gal-dot{position:relative}
 }
+
+/* ---- half the scroll on a phone ---------------------------------
+   Every section here was a reserved stage before it was a section: a
+   minimum height, then padding, then 13vh above each rising line. On a
+   390px screen that came to nine screens, most of them dark around a few
+   words. The same reveals, packed closer. A laptop is unchanged. */
+@media (max-width:640px){
+  .wrap{min-height:0;padding-top:6vh;padding-bottom:6vh}
+  #s-story{padding:5vh 1.4rem 2vh}
+  .statement-row{margin-top:4.5vh;line-height:1.3}
+  .story-line{margin-top:1.4vh}
+  #s-transform{padding:5vh 0 6vh}
+  .date-num{font-size:clamp(2.8rem,17vw,5rem)}
+  #schedule-timeline-section{padding:3vh 0 4vh}
+  .tl-heading{margin-bottom:3vh}
+  .tl-item{padding:2.6vh 0}
+  .tl-item::before{top:calc(2.6vh + .42em)}
+  #gallery-section{padding:4vh 0 3vh}
+  #s-rsvp{padding:3vh 0}
+  .rsvp-wrap{padding-top:2vh}
+  .rsvp-frame{margin-top:1.4rem}
+  .field{margin-bottom:1.7rem}
+  #faq-section{padding:4vh 0}
+  #s-close{padding:7vh 0 8vh}
+}
+
+/* ---- the poured gold ------------------------------------------
+   With no photograph of the couple yet, the hero is real molten gold on
+   black velvet rather than a painting. It is already dark and gold, so
+   it is lit, not sepia-toned and dimmed like a photograph of people. */
+#heroImg.is-pour{object-position:50% 70%}
+body.ready #heroImg.is-pour,#heroImg.is-pour{filter:brightness(.82) saturate(1.02)}
+/* On a wide screen only a band of the tall pour shows; take the band where
+   the gold first enters, so the names sit on the black. */
+@media (min-aspect-ratio:1/1){
+  #heroImg.is-pour{object-position:50% 31%}
+  body.ready #heroImg.is-pour,#heroImg.is-pour{filter:brightness(.72) saturate(1.02)}
+}

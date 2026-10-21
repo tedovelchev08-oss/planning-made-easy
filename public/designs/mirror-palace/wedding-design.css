@@ -2198,3 +2198,50 @@ a.detail-btn:hover{ color:var(--ivory); }
   .date-figures .figure{ font-size:clamp(2.4rem, 11.4vw, 4rem); white-space:nowrap }
 }
 .mirror-line-label, .eyebrow{ font-size:max(11.5px, .72rem) !important; opacity:1 !important }
+
+/* ============================================================
+   HALF THE SCROLL ON A PHONE
+   The story and the two lights play by themselves (design.js), so each
+   is one screen; the mirror hall is swiped sideways instead of scrolled
+   through; the two venue photographs and the close stop short of a full
+   screen. Same reveals, about half the length. A laptop is unchanged.
+   ============================================================ */
+@media (max-width:640px){
+  .story-stage{ height:100svh; }
+  .tbo-scroll{ height:100svh; }
+  .editorial{ height:74svh; min-height:500px; }
+  #rsvp{ min-height:0; }
+  #closing{ height:72svh; }
+
+  .gallery-scroll{ height:auto; }
+  .gallery-sticky{ position:relative; height:88svh; }
+  .gallery-track{
+    height:100%; overflow-x:auto; overflow-y:hidden;
+    scroll-snap-type:x mandatory; overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  }
+  .gallery-track::-webkit-scrollbar{ display:none; }
+  .gallery-item{ scroll-snap-align:center; }
+}
+@media (max-width:640px) and (prefers-reduced-motion: reduce){
+  .gallery-sticky{ height:auto; }
+  .gallery-track{ height:auto; overflow:visible; }
+}
+
+/* ============================================================
+   THE LAST MIRROR
+   The panel that opens behind their initials at the close was a grey
+   gradient standing in for glass. It is an old mirror now
+   (assets/glass.jpg, photographed for this design): silvering gone soft
+   with age and candlelight caught in it, darkened so the initials stay
+   the brightest thing on the screen.
+   ============================================================ */
+.closing-mirror{
+  background:
+    radial-gradient(60% 34% at 50% 48%, rgba(10,10,10,.62), transparent 100%),
+    linear-gradient(180deg, rgba(10,10,10,.55), rgba(10,10,10,.3) 45%, rgba(10,10,10,.7)),
+    #141316 url("assets/glass.jpg") center / cover;
+  opacity:.9;
+  box-shadow:inset 0 0 0 1px rgba(198,184,156,.28), inset 0 0 60px rgba(0,0,0,.6);
+}
+#closing.expand .closing-mirror{ width:min(70vw, 560px); }
