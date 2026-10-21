@@ -114,3 +114,9 @@ body.luma-refine #footer-hashtag{
   font-family:var(--display, var(--serif, Georgia, serif)) !important; font-style:italic;
   font-size:19px !important; letter-spacing:.02em;
 }
+/* (Celestial styles its header button by attribute; outrank it) */
+body.luma-refine header a[href="#rsvp"].nav-reply,
+body.luma-refine header a[href="#rsvp"].nav-reply:hover{
+  background:none !important; border:0 !important; box-shadow:none !important; border-radius:0 !important;
+  color:hsl(var(--c-gold)) !important;
+}
