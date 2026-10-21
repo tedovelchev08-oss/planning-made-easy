@@ -9,7 +9,7 @@
 
 <!-- Fonts served by Luma (licences beside each file in ../_shared/fonts) -->
 <link rel="stylesheet" href="../_shared/fonts/fonts.css">
-<link rel="stylesheet" href="tide.css?v=1">
+<link rel="stylesheet" href="tide.css?v=2">
 <style>
   html.luma-loading { background: #efe4cf; }
   html.luma-loading body { visibility: hidden; }
@@ -31,11 +31,14 @@
 <main id="main">
 
 <section class="shore" id="hero" aria-label="The invitation">
+  <!-- the marks the water leaves in the sand, drawn by page.js -->
+  <div class="ripples" aria-hidden="true"><svg id="rippleSvg" preserveAspectRatio="xMidYMid slice"></svg></div>
+
   <article class="card" id="card">
     <div class="face">
       <p class="above" id="cardAbove"></p>
       <h1 id="cardNames"></h1>
-      <span class="rule" aria-hidden="true"></span>
+      <svg class="rule" viewBox="0 0 64 8" aria-hidden="true"><path d="M1 4 q7.5 -4.5 15.5 0 t15.5 0 t15.5 0 t15.5 0"/></svg>
       <p class="date" id="cardDate"></p>
       <p class="place" id="cardPlace"></p>
       <p class="line" id="cardLine"></p>
@@ -160,6 +163,15 @@
   </div>
 </section>
 
+<!-- the end of the page: their names, written in the sand -->
+<section class="sec" id="closing">
+  <div class="wrap">
+    <p class="written" id="writtenNames"></p>
+    <svg class="loop" viewBox="0 0 240 40" aria-hidden="true"><path d="M8 22 C 60 34, 150 36, 214 20 C 236 14, 228 4, 212 8 C 196 12, 204 30, 232 26"/></svg>
+    <p class="closing" id="closingLine"></p>
+  </div>
+</section>
+
 <footer>
   <span id="footNames"></span>
   <span>The Tide</span>
@@ -167,6 +179,6 @@
 </main>
 
 <script src="../_shared/luma-bridge.js?v=2"></script>
-<script src="luma-tide.js?v=1"></script>
+<script src="luma-tide.js?v=2"></script>
 </body>
 </html>

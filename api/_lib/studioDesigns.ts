@@ -260,6 +260,7 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
         { key: "storyHeadline", label: "Story headline", max: 100, placeholder: "It started on a beach in the wrong season." },
         { key: "scheduleHeading", label: "Schedule heading", max: 60, placeholder: "From five o'clock, as the tide comes in (worked out from your first moment)" },
         { key: "galleryHeading", label: "Photographs heading", max: 60, placeholder: "A few of ours", fallback: "A few of ours" },
+        { key: "closingLine", label: "The last line, under your names in the sand", max: 60, placeholder: "We can't wait to celebrate with you", fallback: "We can't wait to celebrate with you" },
       ],
     },
   },

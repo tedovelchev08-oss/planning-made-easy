@@ -55,18 +55,57 @@
       bubbles += '<circle cx="' + bx.toFixed(1) + '" cy="' + by.toFixed(1) + '" r="' + br.toFixed(2) + '"/>';
     }
     html += '<g fill="#fff" opacity=".8">' + bubbles + '</g>';
-    // a few looser threads of foam further in
+    // a few looser threads of foam further in: broken, the way foam
+    // actually breaks, never an even dash
     for (var k = 0; k < 3; k++) {
-      var off = 60 + k * 70 + r() * 30, d = '';
-      for (var x2 = 0; x2 <= W; x2 += 10) {
-        var yy = edgeY(x2, base + off, amp * 0.7, seed + k + 1);
-        d += (x2 ? ' L' : 'M') + x2 + ' ' + yy.toFixed(1);
+      var off = 60 + k * 70 + r() * 30, x2 = r() * 40;
+      while (x2 < W) {
+        var len = 160 + r() * 320, d = '';
+        for (var xx = x2; xx <= Math.min(W, x2 + len); xx += 8) {
+          d += (d ? ' L' : 'M') + xx.toFixed(0) + ' ' + edgeY(xx, base + off, amp * 0.35, seed + k + 1).toFixed(1);
+        }
+        html += '<path d="' + d + '" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="' + (1.2 + r() * (2.2 - k * 0.5)).toFixed(2) + '" opacity="' + (0.25 + r() * (0.4 - k * 0.1)).toFixed(2) + '"/>';
+        x2 += len + 40 + r() * 160;
       }
-      html += '<path d="' + d + '" fill="none" stroke="#fff" stroke-width="' + (2.4 - k * 0.6) + '" opacity="' + (0.5 - k * 0.12) + '" stroke-dasharray="' + (30 + k * 20) + ' ' + (18 + k * 30) + '"/>';
     }
     svg.innerHTML = html;
   }
 
+  /* Ripple marks: the long low ridges the water leaves in sand, denser
+     and darker toward the waterline, and a few shells lying among them. */
+  function drawRipples(svg) {
+    if (!svg) return;
+    var W = 1200, H = 900, r = rng(41);
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    var html = '';
+    for (var y = 140; y < H + 20; y += 26 + (1 - y / H) * 30 + r() * 10) {
+      var t = y / H, x = -40 - r() * 80;
+      while (x < W) {
+        var len = 260 + r() * 520, d = '', ph = r() * 6, a = 7 + r() * 6;
+        for (var xx = x; xx <= x + len; xx += 12) d += (d ? ' L' : 'M') + xx.toFixed(0) + ' ' + (y + Math.sin(xx / 95 + ph) * a + Math.sin(xx / 41 + ph * 1.7) * a * 0.3).toFixed(1);
+        html += '<path d="' + d + '" stroke="rgba(130,98,58,' + (0.04 + t * 0.08).toFixed(3) + ')" stroke-width="' + (2 + t * 2.4).toFixed(2) + '"/>';
+        html += '<path d="' + d + '" transform="translate(0 2.5)" stroke="rgba(255,250,240,' + (0.14 + t * 0.16).toFixed(3) + ')" stroke-width="' + (1.4 + t * 1.4).toFixed(2) + '"/>';
+        x += len + 60 + r() * 200;
+      }
+    }
+    // shells: a small fan, a pale pebble, here and there
+    for (var i = 0; i < 9; i++) {
+      var sx = 60 + r() * (W - 120), sy = 260 + r() * (H - 300), sc = 0.6 + r() * 0.7, rot = (r() * 80 - 40).toFixed(0);
+      if (sx > W * 0.3 && sx < W * 0.7 && sy < H * 0.8) continue; // never under the card
+      if (r() < 0.6) {
+        var ribs = '';
+        for (var k = -3; k <= 3; k++) ribs += '<path d="M0 0 L' + (k * 4.2).toFixed(1) + ' -15" stroke="rgba(170,120,95,.45)" stroke-width=".8"/>';
+        html += '<g transform="translate(' + sx.toFixed(0) + ' ' + sy.toFixed(0) + ') rotate(' + rot + ') scale(' + sc.toFixed(2) + ')">' +
+          '<path d="M0 0 C -14 -6 -16 -16 -9 -19 C -4 -21 4 -21 9 -19 C 16 -16 14 -6 0 0 Z" fill="#f4dccd" stroke="rgba(170,120,95,.5)" stroke-width=".8"/>' + ribs +
+          '<path d="M-3 1 L3 1 L2 4 L-2 4 Z" fill="#e6c4b2"/></g>';
+      } else {
+        html += '<ellipse cx="' + sx.toFixed(0) + '" cy="' + sy.toFixed(0) + '" rx="' + (6 * sc).toFixed(1) + '" ry="' + (4 * sc).toFixed(1) + '" fill="rgba(236,226,210,.95)" stroke="rgba(140,110,70,.25)" stroke-width=".8"/>';
+      }
+    }
+    svg.innerHTML = '<g fill="none" stroke-linecap="round">' + html + '</g>';
+  }
+
+  drawRipples(document.getElementById('rippleSvg'));
   drawWater(document.getElementById('waveSvg'), 1000, 1200, 70, 26, 3, '#2f97a8');
   drawWater(document.getElementById('lapSvg'), 1000, 120, 34, 12, 7, '#5fb5b8');
 
