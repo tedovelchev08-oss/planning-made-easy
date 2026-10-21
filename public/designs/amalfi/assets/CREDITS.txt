@@ -5,7 +5,8 @@ coast.jpg              the coast seen through the arch at the top of the page
 view.jpg               the sea behind the shutters
 shutter-l.jpg / -r.jpg one painted louvred shutter (the right is the left mirrored)
 wall.jpg               the limewashed wall the window is set in
-tile-a/b/c.jpg         hand-painted majolica tiles above the section heads
+tile-a/b/c.jpg         hand-painted majolica tiles: the borders, the section marks, the row at the foot
+glaze.jpg              the white glaze the names and the evening are painted on
 
 All were generated for this design (Seedream 5 Lite on ElevenLabs, under a
 paid plan's commercial licence, from Luma's own art direction) and graded

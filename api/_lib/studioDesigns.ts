@@ -268,7 +268,7 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
       ],
     },
   },
-  { id: "amalfi", name: "Amalfi", plan: "celebration", blurb: "Green shutters open onto the sea, with azulejo blue and terracotta down the page", motif: "frame", placeholder: { from: "#F7F2EA", to: "#CFE5EC", ink: "#2A6491" } },
+  { id: "amalfi", name: "Amalfi", plan: "celebration", blurb: "Green shutters open onto the sea; your names are painted on a glazed plaque in a limewashed wall, framed in majolica", motif: "frame", placeholder: { from: "#F7F2EA", to: "#CFE5EC", ink: "#2A6491" } },
   { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Brass gates part on a lacquer plaque: ivory card stock, marble and gold leaf, in the spirit of 1925", motif: "frame", placeholder: { from: "#F5F1E8", to: "#C9A15A", ink: "#17130F" } },
 ];
 
