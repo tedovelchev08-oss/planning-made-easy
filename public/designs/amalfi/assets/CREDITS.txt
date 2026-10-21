@@ -1,0 +1,12 @@
+AMALFI — the painted scenes
+===========================
+
+coast.svg  the coast seen through the arch at the top of the page
+view.svg   the sea behind the shutters
+
+Both were drawn for this design (generated from code, no photograph or
+third-party artwork in them), so they ship with it. The original standalone
+design hot-linked two Unsplash photographs here; Luma does not, so a guest's
+phone asks nothing of another host. Either file can be swapped for a
+generated image of the same shape (coast about 16:9, view 3:4) by changing
+--img-coast / --img-view in wedding-design.css.

@@ -1,0 +1,1302 @@
+        /* ============================================================
+           THIS DESIGN'S PALETTE
+           Change these seven lines to re-skin the whole invitation --
+           they drive both this file and the shared tailwind.css.
+           Values are HSL components (hue saturation lightness), written
+           without commas so transparency can be applied as hsl(var(--c-gold)/.25).
+           ============================================================ */
+        /* AMALFI. Lime plaster, terracotta, and the blue that gets painted
+           onto ceramic along that coast. Terracotta is the accent because it
+           is the roof, the pot and the tile edge; the azulejo blue is the
+           second voice and stays for the painted work. */
+        :root {
+            --c-gold:      14 62% 51%;   /* terracotta: headings, rules, buttons */
+            --c-gold-dark: 12 58% 40%;   /* accent hover */
+            --c-cream:     42 44% 96%;   /* lime plaster, page background */
+            --c-charcoal:  22 28% 17%;   /* body text, warm ink */
+            --c-warmgray:  28 14% 36%;   /* muted text, dark enough for AA */
+            --c-champagne: 40 40% 92%;   /* soft panel fill */
+            --c-sand:      38 34% 90%;   /* input + card fill */
+
+            /* Amalfi's own, used by the block at the foot of this file */
+            --c-azulejo:   205 58% 38%;  /* hand-painted ceramic blue */
+            --c-azulejo-l: 202 44% 74%;  /* the thin wash inside a brush line */
+            --c-sea:       196 42% 30%;
+            --c-lemon:     46 82% 62%;
+            --c-olive:      78 18% 40%;
+        }
+        :root {
+            --bg-main: hsl(var(--c-cream));
+            --text-dark: hsl(var(--c-charcoal));
+            --accent-gold: hsl(var(--c-gold));
+            --border-subtle: hsl(var(--c-gold) / 0.25);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* Paper Grain Texture */
+        .paper-grain {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+        }
+
+        /* Realistic 3D Envelope Container */
+        .envelope-3d-scene {
+            perspective: 1000px;
+        }
+
+        .envelope-box {
+            position: relative;
+            width: 340px;
+            height: 230px;
+            background: #e8e2d8;
+            border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0,0,0,0.08);
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease;
+        }
+
+        @media (min-width: 640px) {
+            .envelope-box {
+                width: 440px;
+                height: 290px;
+            }
+        }
+
+        /* Used briefly when resetting the envelope programmatically (e.g. entering
+           guest preview) so it snaps straight back to sealed instead of visibly
+           playing the closing animation in reverse. */
+        .envelope-no-transition,
+        .envelope-no-transition * {
+            transition: none !important;
+        }
+
+        /* Lets the center nav links scroll horizontally on their own if
+           they don't fit, instead of overflowing the whole header. */
+        .main-nav-scroll {
+            overflow-x: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .main-nav-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .nowrap {
+            white-space: nowrap;
+        }
+
+        /* ===== Countdown: enhanced double-line border on the outer card ===== */
+        .countdown-card {
+            border: 1px solid hsl(var(--c-gold) / 0.4);
+            box-shadow: inset 0 0 0 4px hsl(var(--c-gold) / 0.1), 0 8px 24px rgba(26, 25, 24, 0.06);
+        }
+
+        /* ===== Celebration Schedule: alternating timeline ===== */
+        .schedule-timeline {
+            position: relative;
+            max-width: 46rem;
+            margin: 0 auto;
+            padding: 0 .5rem;
+        }
+        .schedule-timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            background: hsl(var(--c-gold) / 0.35);
+            transform: translateX(-50%);
+        }
+        .schedule-row {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 2.5rem;
+            padding: 1.6rem 0;
+        }
+        .schedule-row::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: hsl(var(--c-gold));
+            border: 2px solid hsl(var(--c-cream));
+            transform: translate(-50%, -50%);
+        }
+        .schedule-content {
+            display: flex;
+            align-items: center;
+            gap: .9rem;
+            min-width: 0;
+        }
+        .schedule-row.align-right .schedule-content {
+            grid-column: 2;
+            justify-self: start;
+            flex-direction: row;
+        }
+        .schedule-row.align-left .schedule-content {
+            grid-column: 1;
+            justify-self: end;
+            flex-direction: row-reverse;
+        }
+        .schedule-row.align-right .schedule-text { text-align: left; }
+        .schedule-row.align-left .schedule-text { text-align: right; }
+        .schedule-icon {
+            flex-shrink: 0;
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 50%;
+            border: 1px solid hsl(var(--c-gold) / 0.4);
+            background: #ffffff;
+            color: hsl(var(--c-gold));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .schedule-text { min-width: 0; }
+        .schedule-time {
+            display: block;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: .68rem;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: hsl(var(--c-gold));
+            margin-bottom: .15rem;
+        }
+        .schedule-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: hsl(var(--c-charcoal));
+            line-height: 1.2;
+        }
+        .schedule-venue {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: .82rem;
+            color: hsl(var(--c-warmgray));
+            margin-top: .15rem;
+        }
+        /* Collapse to a single left-aligned column on narrow screens */
+        @media (max-width: 640px) {
+            .schedule-timeline::before { left: 1.35rem; }
+            .schedule-row {
+                grid-template-columns: 1fr;
+                column-gap: 0;
+                padding: 1.25rem 0 1.25rem 2.9rem;
+            }
+            .schedule-row::after { left: 1.35rem; }
+            .schedule-row.align-left .schedule-content,
+            .schedule-row.align-right .schedule-content {
+                grid-column: 1;
+                justify-self: start;
+                flex-direction: row;
+            }
+            .schedule-row.align-left .schedule-text,
+            .schedule-row.align-right .schedule-text {
+                text-align: left;
+            }
+        }
+
+        /* ===== Schedule drawer: editable item cards + icon picker ===== */
+        .schedule-drawer-item {
+            padding: .85rem;
+            border-radius: .75rem;
+            border: 1px solid hsl(var(--c-gold) / 0.25);
+            background: rgba(255, 255, 255, 0.7);
+        }
+        .schedule-drawer-item + .schedule-drawer-item {
+            margin-top: .75rem;
+        }
+        .schedule-mini-btn {
+            width: 1.6rem;
+            height: 1.6rem;
+            border-radius: .4rem;
+            border: 1px solid hsl(var(--c-gold) / 0.35);
+            background: #fff;
+            color: hsl(var(--c-warmgray));
+            font-size: .65rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color .15s ease, color .15s ease;
+        }
+        .schedule-mini-btn:hover:not(:disabled) {
+            background: hsl(var(--c-gold) / 0.15);
+            color: hsl(var(--c-charcoal));
+        }
+        .schedule-mini-btn:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+        .schedule-mini-btn-danger:hover:not(:disabled) {
+            background: rgba(220, 38, 38, 0.12);
+            color: #b91c1c;
+        }
+        .schedule-icon-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .35rem;
+        }
+        .schedule-icon-btn {
+            width: 1.9rem;
+            height: 1.9rem;
+            border-radius: .5rem;
+            border: 1px solid hsl(var(--c-gold) / 0.3);
+            background: #fff;
+            color: hsl(var(--c-warmgray));
+            font-size: .8rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+        }
+        .schedule-icon-btn:hover {
+            background: hsl(var(--c-gold) / 0.12);
+            color: hsl(var(--c-charcoal));
+        }
+        .schedule-icon-btn-active {
+            background: hsl(var(--c-gold));
+            border-color: hsl(var(--c-gold));
+            color: #ffffff;
+        }
+
+        /* Floating background-music toggle button */
+        .music-toggle-btn {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 1.5rem;
+            z-index: 50;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            background: hsl(var(--c-charcoal));
+            color: hsl(var(--c-gold));
+            border: 1px solid hsl(var(--c-gold) / 0.4);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color .2s ease, color .2s ease;
+        }
+        .music-toggle-btn:hover {
+            background: hsl(var(--c-gold));
+            color: hsl(var(--c-charcoal));
+        }
+        .music-error-toast {
+            position: fixed;
+            bottom: 5.75rem;
+            left: 1.5rem;
+            z-index: 50;
+            max-width: 13rem;
+            background: hsl(var(--c-charcoal));
+            color: hsl(var(--c-cream));
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: .68rem;
+            line-height: 1.4;
+            padding: .6rem .8rem;
+            border-radius: .6rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        /* ===== Photo Gallery (public): coverflow carousel ===== */
+        .gallery-carousel-outer {
+            position: relative;
+            max-width: 56rem;
+            margin: 0 auto;
+        }
+        .gallery-carousel-wrap {
+            position: relative;
+            height: 260px;
+            overflow: hidden;
+        }
+        @media (min-width: 640px) {
+            .gallery-carousel-wrap { height: 380px; }
+        }
+        .gallery-carousel-track {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .gallery-carousel-item {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            aspect-ratio: 1 / 1;
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 1px solid hsl(var(--c-gold) / 0.3);
+            box-shadow: 0 15px 40px rgba(26, 25, 24, 0.18);
+            background: #FBF8F3;
+            padding: 7%;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: transform .6s cubic-bezier(.22, .61, .36, 1), opacity .6s ease;
+            will-change: transform, opacity;
+        }
+        @media (min-width: 640px) {
+            .gallery-carousel-item { width: 300px; }
+        }
+        .gallery-carousel-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: .4rem;
+            border: 1px solid hsl(var(--c-gold) / 0.55);
+            box-sizing: border-box;
+        }
+        .gallery-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 1px solid hsl(var(--c-gold) / 0.4);
+            color: hsl(var(--c-gold));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .95rem;
+            cursor: pointer;
+            z-index: 20;
+            box-shadow: 0 8px 20px rgba(26, 25, 24, 0.12);
+            transition: background-color .15s ease, color .15s ease;
+        }
+        .gallery-nav-btn:hover {
+            background: hsl(var(--c-gold));
+            color: #ffffff;
+        }
+        .gallery-nav-prev { left: .25rem; }
+        .gallery-nav-next { right: .25rem; }
+        @media (min-width: 900px) {
+            .gallery-nav-prev { left: -1.4rem; }
+            .gallery-nav-next { right: -1.4rem; }
+        }
+
+        .gallery-lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(15, 14, 13, 0.92);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            cursor: zoom-out;
+        }
+        .gallery-lightbox.is-open {
+            display: flex;
+        }
+        .gallery-lightbox img {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: .5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        .gallery-lightbox-close {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12);
+            color: hsl(var(--c-cream));
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        /* ===== Photo Gallery (drawer) ===== */
+        .gallery-drawer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: .5rem;
+        }
+        .gallery-drawer-tile {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            border-radius: .5rem;
+            overflow: hidden;
+            border: 1px solid hsl(var(--c-gold) / 0.3);
+        }
+        .gallery-drawer-tile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .gallery-drawer-tile-controls {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .3rem;
+            transition: opacity .15s ease;
+        }
+        .gallery-drawer-tile:hover .gallery-drawer-tile-controls,
+        .gallery-drawer-tile:focus-within .gallery-drawer-tile-controls {
+            opacity: 1;
+        }
+        .gallery-drawer-tile-controls .schedule-mini-btn {
+            background: rgba(255, 255, 255, 0.92);
+        }
+        .gallery-drawer-add-tile {
+            aspect-ratio: 1 / 1;
+            border-radius: .5rem;
+            border: 1px dashed hsl(var(--c-gold) / 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: .25rem;
+            color: hsl(var(--c-gold));
+            font-size: .65rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            cursor: pointer;
+            transition: background-color .15s ease;
+            text-align: center;
+            padding: .4rem;
+        }
+        .gallery-drawer-add-tile:hover {
+            background: hsl(var(--c-gold) / 0.1);
+        }
+        .gallery-drawer-add-tile i {
+            font-size: 1.1rem;
+        }
+
+        /* ===== FAQ accordion ===== */
+        .faq-item {
+            border: 1px solid hsl(var(--c-gold) / 0.25);
+            border-radius: .9rem;
+            background: rgba(255, 255, 255, 0.6);
+            overflow: hidden;
+        }
+        .faq-question {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1.1rem 1.4rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.15rem;
+            color: hsl(var(--c-charcoal));
+        }
+        .faq-chevron {
+            flex-shrink: 0;
+            font-size: .8rem;
+            color: hsl(var(--c-gold));
+            transition: transform .2s ease;
+        }
+        .faq-question.faq-question-open .faq-chevron {
+            transform: rotate(180deg);
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .25s ease;
+        }
+        .faq-answer.faq-answer-open {
+            max-height: 40rem;
+        }
+        .faq-answer p {
+            padding: 0 1.4rem 1.1rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: .85rem;
+            line-height: 1.6;
+            color: hsl(var(--c-warmgray));
+        }
+
+        /* Envelope Inner Pattern Lining */
+        .envelope-liner {
+            position: absolute;
+            inset: 6px;
+            background: #f4ece1;
+            background-image: radial-gradient(hsl(var(--c-gold)) 0.75px, transparent 0.75px);
+            background-size: 12px 12px;
+            border-radius: 4px;
+            transition: transform 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.1s, opacity 0.7s ease 0.15s;
+        }
+
+        /* Card tucked inside envelope */
+        .envelope-card {
+            position: absolute;
+            bottom: 10px;
+            left: 5%;
+            width: 90%;
+            height: 85%;
+            background-image: var(--flap-grain), linear-gradient(180deg, #fffefb 0%, #fdfaf2 100%);
+            background-blend-mode: overlay, normal;
+            border: 1px solid hsl(var(--c-gold) / 0.4);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            z-index: 2;
+            transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1) 0.2s,
+                        box-shadow 1s cubic-bezier(0.22, 1, 0.36, 1) 0.2s,
+                        z-index 0.1s 0.45s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        /* Shared subtle paper-fiber grain used inside the folded flaps */
+        :root {
+            --flap-grain: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+        }
+
+        /* Front Envelope Flaps Layer — built with clip-path so each fold can carry
+           real light/shadow gradients and a soft crease shadow, instead of flat
+           CSS-border triangles. */
+        .envelope-flap-left {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 52%;
+            height: 100%;
+            clip-path: polygon(0 0, 0 100%, 100% 50%);
+            background-image: var(--flap-grain), linear-gradient(115deg, #f7f1e5 0%, #ece1cb 58%, #ddcda9 100%);
+            background-blend-mode: overlay;
+            z-index: 3;
+            filter: drop-shadow(2px 0 2px rgba(90, 70, 40, 0.08));
+            transition: transform 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.1s, opacity 0.7s ease 0.15s;
+        }
+
+        .envelope-flap-right {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 52%;
+            height: 100%;
+            clip-path: polygon(100% 0, 100% 100%, 0 50%);
+            background-image: var(--flap-grain), linear-gradient(245deg, #f7f1e5 0%, #ece1cb 58%, #ddcda9 100%);
+            background-blend-mode: overlay;
+            z-index: 3;
+            filter: drop-shadow(-2px 0 2px rgba(90, 70, 40, 0.08));
+            transition: transform 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.1s, opacity 0.7s ease 0.15s;
+        }
+
+        .envelope-flap-bottom {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 58%;
+            clip-path: polygon(0 100%, 100% 100%, 50% 0);
+            background-image: var(--flap-grain), linear-gradient(5deg, #d9cba9 0%, #efe6d2 65%, #f3ecdd 100%);
+            background-blend-mode: overlay;
+            z-index: 4;
+            filter: drop-shadow(0 -2px 3px rgba(90, 70, 40, 0.1));
+            transition: transform 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.1s, opacity 0.7s ease 0.15s;
+        }
+
+        /* Top Triangular Flap — has a real front face and a lighter "inner lining"
+           face that only becomes visible once it folds open, like real paper. */
+        .envelope-flap-top {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 62%;
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+            transform-origin: top center;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1), z-index 0.1s 0.4s;
+            z-index: 5;
+            background-image: var(--flap-grain), linear-gradient(165deg, #f9f3e7 0%, #e9dcc0 65%, #dbc9a5 100%);
+            background-blend-mode: overlay;
+            filter: drop-shadow(0 5px 7px rgba(60, 45, 25, 0.14));
+        }
+
+        .envelope-flap-top::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            clip-path: inherit;
+            background-image: var(--flap-grain), linear-gradient(195deg, #fdf9f0 0%, #f2e9d5 100%);
+            background-blend-mode: overlay;
+            transform: rotateX(180deg);
+            backface-visibility: hidden;
+        }
+
+        /* Interactive Wax Seal Medallion — a raised outer rim (like a real pressed
+           seal) with a recessed, engraved medallion at its center, gold metallic
+           highlights, and small drips pooling underneath. */
+        .wax-seal {
+            position: absolute;
+            top: 94px;
+            left: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            z-index: 6;
+            transform: translateX(-50%) rotate(-2deg);
+            transition: transform 0.3s ease, filter 0.3s ease, opacity 0.5s ease;
+        }
+        @media (min-width: 640px) {
+            .wax-seal { top: 116px; width: 70px; height: 70px; }
+        }
+
+        /* Melted wax drips pooling below the rim, sitting behind it */
+        .wax-seal-drip {
+            position: absolute;
+            left: 50%;
+            background: radial-gradient(circle at 35% 25%, #d9a838 0%, #b17f18 55%, #7a530d 100%);
+            border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%;
+            z-index: 1;
+            box-shadow: inset 0 -2px 3px rgba(60, 38, 6, 0.45);
+        }
+        .wax-seal-drip-1 { width: 13px; height: 17px; bottom: -9px; transform: translateX(-140%) rotate(10deg); }
+        .wax-seal-drip-2 { width: 9px; height: 12px; bottom: -6px; transform: translateX(90%) rotate(-16deg); }
+
+        /* Outer raised rim — thick, glossy, catches light unevenly like real wax */
+        .wax-seal-rim {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            border-radius: 50% 49% 51% 50% / 50% 51% 49% 50%;
+            background-image:
+                var(--flap-grain),
+                radial-gradient(circle at 30% 78%, rgba(255, 232, 170, 0.55) 0%, rgba(255, 232, 170, 0) 20%),
+                radial-gradient(circle at 82% 38%, rgba(255, 240, 190, 0.6) 0%, rgba(255, 240, 190, 0) 18%),
+                conic-gradient(from -40deg, #e7b64a, #a9781f 20%, #8a5f14 35%, #c99a2e 50%, #6f4c0f 65%, #dba936 80%, #e7b64a 100%);
+            background-blend-mode: overlay, normal, normal, normal;
+            box-shadow:
+                inset 0 2px 2px rgba(255, 241, 197, 0.55),
+                inset 0 -3px 5px rgba(50, 32, 4, 0.55),
+                0 8px 14px rgba(35, 22, 3, 0.4),
+                0 2px 4px rgba(35, 22, 3, 0.25);
+        }
+
+        /* Recessed inner medallion — darker, matte, holds the engraving */
+        .wax-seal-medallion {
+            position: absolute;
+            inset: 15%;
+            z-index: 3;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image:
+                var(--flap-grain),
+                radial-gradient(circle at 40% 32%, #c79b34 0%, #9c7420 45%, #6e4f10 90%);
+            background-blend-mode: overlay, normal;
+            box-shadow:
+                inset 0 2px 4px rgba(20, 12, 0, 0.55),
+                inset 0 -1px 1px rgba(255, 236, 180, 0.3),
+                0 0 0 1px rgba(255, 236, 180, 0.18);
+        }
+
+        .wax-seal:hover {
+            transform: translateX(-50%) rotate(-2deg) scale(1.08);
+            filter: brightness(1.08);
+        }
+
+        .wax-seal:active {
+            transform: translateX(-50%) rotate(-2deg) scale(0.94);
+        }
+
+        /* Engraved / pressed-in monogram look, sitting in the recessed medallion */
+        #wax-seal-initials {
+            position: relative;
+            z-index: 4;
+            color: #4a3308;
+            text-shadow: 0 -1px 1px rgba(0,0,0,0.5), 0 1px 0 rgba(255, 236, 180, 0.45);
+        }
+
+        /* OPENED ANIMATION STATES */
+        .envelope-open .envelope-flap-top {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+
+        .envelope-open .wax-seal {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-50%) translateY(-18px) rotate(10deg) scale(0.8);
+            transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1) 0.05s,
+                        opacity 0.55s ease 0.2s;
+        }
+
+        /* The pocket (liner + side/bottom flaps) sinks down and fades away,
+           rather than the card climbing up in front of it — keeps the card
+           looking like it stays in place while the envelope falls away. */
+        .envelope-open .envelope-liner,
+        .envelope-open .envelope-flap-left,
+        .envelope-open .envelope-flap-right,
+        .envelope-open .envelope-flap-bottom {
+            transform: translateY(55px);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .envelope-open .envelope-card {
+            transform: translateY(-14px) scale(1.02);
+            box-shadow: 0 24px 38px rgba(60, 45, 20, 0.22), 0 8px 14px rgba(60, 45, 20, 0.12);
+            z-index: 10;
+        }
+
+        @media (min-width: 640px) {
+            .envelope-open .envelope-liner,
+            .envelope-open .envelope-flap-left,
+            .envelope-open .envelope-flap-right,
+            .envelope-open .envelope-flap-bottom {
+                transform: translateY(75px);
+            }
+
+            .envelope-open .envelope-card {
+                transform: translateY(-18px) scale(1.03);
+            }
+        }
+
+        /* Visually hidden, but still focusable and still announced by screen
+           readers. Tailwind's `hidden` is display:none, which drops an element
+           out of the tab order completely — used on the RSVP radios it made the
+           attending choice unreachable for anyone navigating by keyboard. */
+        .sr-only-focusable {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* The hidden input can't show a focus ring of its own, so its visible
+           sibling wears one on its behalf. */
+        .sr-only-focusable:focus-visible ~ div {
+            outline: 2px solid hsl(var(--c-gold));
+            outline-offset: 2px;
+        }
+
+        /* Once the envelope has faded out it must leave the tab order and the
+           accessibility tree — an invisible but still-focusable overlay sitting
+           on top of the invitation traps keyboard users. */
+        .envelope-overlay-hidden {
+            visibility: hidden;
+        }
+
+        /* Only the opacity fade should animate. The overlay carries Tailwind's
+           `transition-all`, which sweeps up visibility too — and a discrete
+           property flips at the halfway mark, so a re-sealed envelope stayed
+           invisible for half a second before popping back in. */
+        #envelope-overlay {
+            transition-property: opacity;
+        }
+
+        /* Read-Only Guest Mode Overrides */
+        body.guest-mode #builder-bar,
+        body.guest-mode #customizer-drawer,
+        body.guest-mode .builder-only {
+            display: none !important;
+        }
+
+        /* Floating Exit Preview Button */
+        #exit-preview-btn {
+            display: none;
+        }
+        body.guest-mode.show-exit-btn #exit-preview-btn {
+            display: flex;
+        }
+
+        body.guest-mode header {
+            top: 0 !important;
+        }
+
+        /* iOS Safari has a known rendering bug where position:fixed +
+           backdrop-filter (the frosted-glass header) can visually detach
+           from the viewport during scroll, letting page content bleed
+           through above it. Forcing the header onto its own GPU
+           compositing layer resolves it. */
+        header {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: transform;
+        }
+
+        /* Custom Scrollbar Styling */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: hsl(var(--c-cream)); }
+        ::-webkit-scrollbar-thumb { background: hsl(var(--c-gold)); border-radius: 3px; }
+
+        /* Scroll Reveal Animations — progressive enhancement: elements are fully
+           visible by default so nothing breaks without JS, and only become
+           hidden-then-revealed once the observer is confirmed active. Re-triggers
+           both when scrolling down into view and back up into view. One
+           consistent fade-up direction throughout, matching the hero. */
+        .reveal {
+            transition: opacity 1.4s cubic-bezier(0.19, 0.67, 0.28, 1),
+                        transform 1.4s cubic-bezier(0.19, 0.67, 0.28, 1);
+        }
+        body.js-reveal-active .reveal {
+            opacity: 0;
+            transform: translateY(36px);
+        }
+        body.js-reveal-active .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-d1 { transition-delay: 0.15s; }
+        .reveal-d2 { transition-delay: 0.3s; }
+        .reveal-d3 { transition-delay: 0.45s; }
+        .reveal-d4 { transition-delay: 0.6s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            body.js-reveal-active .reveal {
+                opacity: 1;
+                transform: none;
+                transition: none;
+            }
+        }
+
+
+
+
+        /* ============================================================
+           AMALFI
+           One block. Three earlier ones contradicted each other - sections
+           were restyled twice, a tile band was added then cancelled, a
+           stagger was added then removed - so nothing in the file stated
+           what actually rendered. This is the whole design.
+
+           COLOUR ROLES, decided once:
+             azulejo blue  = STRUCTURE. Headings, rules, the painted work,
+                             the tile, the schedule spine. It is the glaze
+                             that is on every surface in that place.
+             terracotta    = EMPHASIS. The ampersand, the RSVP action, the
+                             marker dots. The roof and the pot: it punctuates,
+                             it never structures.
+           Nothing else gets a colour job. Where the two previously fought
+           over headings and labels, blue won.
+           ============================================================ */
+
+        :root {
+            --c-sea:      194 58% 32%;
+            --c-sea-deep: 199 62% 22%;
+            --c-sea-lit:  186 46% 52%;
+
+            /* LUMA: the coast and the view are painted for this design
+               (assets/coast.svg, assets/view.svg) rather than hotlinked stock:
+               a guest's phone asks nothing of another host, and nobody else's
+               photograph ships. */
+            --img-coast: url("assets/coast.svg");
+            --img-view:  url("assets/view.svg");
+        }
+
+        /* ---------- type ---------- */
+
+        body { font-family: 'EB Garamond', Georgia, serif; color: hsl(var(--c-charcoal)); }
+        .font-sans { font-family: 'Karla', system-ui, sans-serif; }
+        .font-serif { font-family: 'EB Garamond', Georgia, serif; }
+
+        h1, h2, h1.font-serif, h2.font-serif,
+        .shutter-names, .tile-initials, .schedule-title {
+            font-family: 'Marcellus', Georgia, serif;
+            font-weight: 400;
+        }
+        h1.font-light, h2.font-light { font-weight: 400; }
+
+        main section > h2,
+        main section > div > h2,
+        .countdown-card h2,
+        #rsvp h2, #faq-section h2, #gallery-section h2, #schedule h2 {
+            font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+            line-height: 1.14;
+            margin: 0 0 clamp(1.5rem, 3.5vw, 2.5rem);
+            color: hsl(var(--c-azulejo));      /* blue structures */
+            text-wrap: balance;
+        }
+        #our-story h2 { font-size: clamp(1.7rem, 3.4vw, 2.3rem); }
+
+        /* One brushed terracotta stroke under each heading: emphasis, once. */
+        main section > h2::after,
+        .countdown-card h2::after,
+        #rsvp h2::after, #faq-section h2::after,
+        #gallery-section h2::after, #schedule h2::after {
+            content: '';
+            display: block;
+            width: 68px; height: 3px;
+            margin: .9rem auto 0;
+            border-radius: 2px 3px 3px 2px;
+            background: linear-gradient(90deg,
+                hsl(var(--c-gold) / .2), hsl(var(--c-gold)) 24%, hsl(var(--c-gold)) 76%, hsl(var(--c-gold) / .25));
+        }
+        #our-story h2::after { margin-left: 0; }
+
+        /* Terracotta is a fill and an emphasis colour only. At full value it
+           is 3.79:1 on plaster and 4.07:1 under white, so small or reversed
+           text takes the darker step. */
+        .text-gold, main .text-gold, .schedule-time, #rsvp label, .tile-date {
+            color: hsl(var(--c-gold-dark)) !important;
+        }
+        .bg-gold, .peer:checked ~ .peer-checked\:bg-gold, .hover\:bg-gold:hover {
+            background-color: hsl(var(--c-gold-dark)) !important;
+        }
+
+        /* ---------- the sea ---------- */
+
+        html { background-color: hsl(var(--c-sea-deep)); }
+
+        .plaster {
+            background-color: hsl(var(--c-sea));
+            background-image:
+                linear-gradient(180deg,
+                    hsl(var(--c-sea-lit)) 0%, hsl(var(--c-sea)) 20%,
+                    hsl(var(--c-sea)) 64%, hsl(var(--c-sea-deep)) 100%),
+                repeating-linear-gradient(178deg,
+                    hsl(190 40% 46% / .05) 0 2px, transparent 2px 9px);
+            background-attachment: fixed, scroll;
+        }
+
+        /* ---------- one wall ---------- */
+
+        main {
+            position: relative;
+            max-width: 60rem;
+            padding: 0 !important;
+            margin-top: 8.5rem;
+            background: linear-gradient(180deg, hsl(44 46% 97%), hsl(38 34% 93%) 60%, hsl(34 28% 90%));
+            box-shadow: 0 0 0 1px hsl(30 26% 80%), 0 40px 90px -30px hsl(199 62% 10% / .7);
+        }
+
+        main > section {
+            margin: 0 !important;
+            border-radius: 0;
+            box-shadow: none;
+            border-top: 1px solid hsl(var(--c-azulejo) / .16);
+            padding: clamp(2.5rem, 5vw, 4rem) clamp(1.25rem, 5vw, 3.5rem) !important;
+        }
+        main > section:first-of-type { border-top: none; }
+        main > section.countdown-card {
+            border: none !important;
+            border-top: 1px solid hsl(var(--c-azulejo) / .16) !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+        }
+
+        /* ---------- the coast, photographed ----------
+           The design's subject is a PLACE, and places are photographed. Every
+           earlier pass rendered plaster, water and stone as CSS gradients,
+           which is why it read flat however much detail went in. The arch at
+           the top of the wall is a real opening onto the coast. */
+
+        .coast-arch {
+            position: relative;
+            height: clamp(190px, 32vw, 320px);
+            margin: 0;
+            border-radius: 50% 50% 0 0 / 42% 42% 0 0;
+            overflow: hidden;
+            background-image: var(--img-coast);
+            background-size: cover;
+            background-position: 50% 62%;
+            box-shadow: inset 0 0 0 1px hsl(30 26% 80%), inset 0 -18px 30px -14px hsl(30 30% 70% / .8);
+        }
+        /* The plaster edge the opening is cut into. */
+        .coast-arch::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            box-shadow: inset 0 0 0 8px hsl(44 46% 97%), inset 0 0 0 9px hsl(30 24% 82%);
+        }
+
+        /* ---------- the window ---------- */
+
+        #envelope-overlay { overflow: hidden; }
+
+        .shutter-view {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(46% 34% at 50% 46%, hsl(44 70% 98% / .9) 0%, transparent 72%),
+                linear-gradient(180deg, hsl(199 54% 74%) 0%, hsl(40 40% 93%) 52%, hsl(32 30% 86%) 100%);
+        }
+
+        .shutter-scene { position: relative; z-index: 2; }
+
+        /* perspective lives here and there is no preserve-3d: with it the
+           browser depth-sorts the panels behind the flat opening and they
+           vanish entirely. */
+        .shutters {
+            position: relative;
+            width: min(74vw, 360px);
+            aspect-ratio: 3 / 4;
+            perspective: 1500px;
+            transition: transform 1.3s cubic-bezier(.4,0,.2,1), opacity 1s ease;
+        }
+        .shutters::before {
+            content: '';
+            position: absolute;
+            inset: -18px -20px -20px;
+            border-radius: 5px;
+            background: linear-gradient(178deg, hsl(42 40% 95%), hsl(34 28% 87%) 72%, hsl(30 24% 82%));
+            box-shadow:
+                inset 0 3px 10px hsl(28 26% 66% / .75),
+                inset 0 -2px 4px hsl(40 40% 98% / .8),
+                0 26px 54px hsl(26 30% 38% / .28);
+        }
+        .shutters::after {
+            content: '';
+            position: absolute;
+            left: -40px; right: -40px; bottom: -34px;
+            height: 15px;
+            border-radius: 3px;
+            background: linear-gradient(180deg, hsl(42 38% 94%), hsl(32 24% 80%));
+            box-shadow: 0 10px 20px hsl(26 30% 38% / .3);
+        }
+
+        /* What is behind shutters on that coast is the view. A photograph,
+           not a gradient standing in for one. */
+        .opening {
+            position: absolute;
+            inset: 4%;
+            overflow: hidden;
+            background-image: var(--img-view);
+            background-size: cover;
+            background-position: 50% 45%;
+            box-shadow: inset 0 8px 24px hsl(201 72% 10% / .5);
+        }
+        .opening-sea { display: none; }
+
+        .opening-glare {
+            position: absolute;
+            left: 50%; top: 42%;
+            width: 30%; aspect-ratio: 1;
+            transform: translate(-50%, -50%) scale(.4);
+            border-radius: 50%;
+            background: radial-gradient(circle,
+                hsl(48 100% 96% / .95) 0%, hsl(44 96% 82% / .5) 38%, transparent 70%);
+            opacity: 0;
+        }
+        .shutters.envelope-open .opening-glare { animation: glareBloom 1.4s ease-out .25s forwards; }
+        @keyframes glareBloom {
+            0%   { opacity: 0; transform: translate(-50%,-50%) scale(.4); }
+            45%  { opacity: 1; transform: translate(-50%,-50%) scale(2.4); }
+            100% { opacity: 0; transform: translate(-50%,-50%) scale(5); }
+        }
+
+        .shutter {
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 50.4%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 7.5% 9%;
+            box-sizing: border-box;
+            background:
+                repeating-linear-gradient(90deg, hsl(158 12% 38% / .32) 0 1px, transparent 1px 6px),
+                linear-gradient(97deg, hsl(156 16% 48%), hsl(158 16% 42%) 46%, hsl(162 18% 33%));
+            box-shadow:
+                inset 0 0 0 7px hsl(157 15% 45%),
+                inset 0 0 0 8px hsl(164 20% 27%),
+                inset 0 0 22px hsl(166 24% 20% / .35);
+            border: 1px solid hsl(166 24% 24%);
+            transition: transform 1.2s cubic-bezier(.55,0,.2,1), filter 1.2s ease;
+            backface-visibility: hidden;
+        }
+        .shutter i {
+            display: block;
+            height: 3.6%;
+            border-radius: 1px;
+            background: linear-gradient(180deg, hsl(154 18% 56%), hsl(157 16% 46%) 38%, hsl(164 22% 29%));
+            box-shadow: 0 1px 0 hsl(152 20% 62% / .45) inset, 0 1px 2px hsl(168 28% 18% / .55);
+        }
+        .shutter-left  { left: 0;  transform-origin: left center;  border-right: none; transform: rotateY(-2.5deg); }
+        .shutter-right { right: 0; transform-origin: right center; border-left: none;  transform: rotateY(2.5deg); }
+
+        .shutters.envelope-open .shutter-left  { transform: rotateY(-102deg); filter: brightness(.62); }
+        .shutters.envelope-open .shutter-right { transform: rotateY(102deg);  filter: brightness(.62); }
+        .shutters.envelope-open { transform: scale(2.6); transition: transform 1.4s cubic-bezier(.55,0,.25,1); }
+
+        /* The ceramic plaque that goes beside a door, propped on the sill. */
+        .tile {
+            position: absolute;
+            bottom: -13%; left: 50%;
+            width: 27%; aspect-ratio: 1;
+            transform: translate(-50%,0) rotate(-1.6deg) scale(.94);
+            display: grid; place-items: center;
+            border-radius: 2px;
+            background: hsl(44 40% 97%);
+            box-shadow: 0 0 0 1px hsl(30 20% 74%), 6px 12px 18px -6px hsl(201 60% 12% / .55);
+            opacity: 0;
+            z-index: 3;
+            animation: tileIn 1s cubic-bezier(.3,.7,.3,1) .9s forwards;
+        }
+        @keyframes tileIn { to { opacity: 1; transform: translate(-50%,0) rotate(-1.6deg) scale(1); } }
+        .tile-art { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .tile-ground { fill: hsl(44 40% 97%); }
+        .tile-frame { fill: none; stroke: hsl(var(--c-azulejo)); stroke-width: 2.4; }
+        .tile-frame-inner { fill: none; stroke: hsl(var(--c-azulejo-l)); stroke-width: 1; }
+        .tile-motif { fill: hsl(var(--c-azulejo) / .9); }
+        .tile-dot { fill: hsl(var(--c-gold)); }
+        .tile-text { position: relative; display: flex; flex-direction: column; align-items: center; }
+        .tile-initials { font-size: clamp(.95rem, 3.2vw, 1.35rem); color: hsl(var(--c-azulejo)); letter-spacing: .04em; }
+        .tile-date { display: none; }
+        .shutters.envelope-open .tile {
+            opacity: 0;
+            transform: translate(-50%, 40%) rotate(-1.6deg) scale(.9);
+            transition: opacity .5s ease, transform .8s ease;
+        }
+
+        .shutter-caption { position: relative; z-index: 2; text-align: center; margin-top: 3.75rem; opacity: 0; animation: captionIn 1s ease-out 1.5s forwards; }
+        @keyframes captionIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+        .shutter-names {
+            font-size: clamp(1.9rem, 6.4vw, 3.2rem);
+            line-height: 1.06;
+            color: hsl(22 30% 16%);
+            overflow-wrap: break-word;      /* long names must not run off the wall */
+            max-width: 15ch;
+            margin: 0 auto;
+        }
+        .shutter-meta { margin-top: .75rem; font-family: 'Karla', sans-serif; font-size: .72rem; text-transform: uppercase; letter-spacing: .2em; color: hsl(var(--c-warmgray)); }
+        .shutter-hint { position: relative; z-index: 2; margin-top: 1.75rem; font-family: 'Karla', sans-serif; font-size: .68rem; text-transform: uppercase; letter-spacing: .24em; color: hsl(var(--c-warmgray)); opacity: 0; animation: captionIn .9s ease-out 2s forwards; }
+
+        #envelope-overlay:has(.envelope-open) .shutter-caption,
+        #envelope-overlay:has(.envelope-open) .shutter-hint { opacity: 0; transition: opacity .4s ease; animation: none; }
+
+        /* ---------- azulejo ---------- */
+
+        :root {
+            --azulejo-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88' viewBox='0 0 88 88'%3E%3Crect width='88' height='88' fill='%23F7F3E9'/%3E%3Cpath d='M44 6 L82 44 L44 82 L6 44 Z' fill='none' stroke='%232A6491' stroke-width='1.5'/%3E%3Cpath d='M44 24 q11 20 0 40 q-11-20 0-40z' fill='%232A6491' opacity='.9'/%3E%3Cpath d='M24 44 q20-11 40 0 q-20 11-40 0z' fill='%232A6491' opacity='.9'/%3E%3Ccircle cx='44' cy='44' r='4.4' fill='%23C8603C'/%3E%3C/svg%3E");
+        }
+
+        #schedule { position: relative; isolation: isolate; }
+        #schedule::after {
+            content: '';
+            position: absolute;
+            inset: 3.5rem 0 0;
+            z-index: -1;
+            background-image: var(--azulejo-tile);
+            background-size: 88px 88px;
+            opacity: .16;
+            -webkit-mask-image: radial-gradient(80% 70% at 50% 50%, #000 40%, transparent 100%);
+            mask-image: radial-gradient(80% 70% at 50% 50%, #000 40%, transparent 100%);
+            pointer-events: none;
+        }
+
+        /* ---------- arches and panels ---------- */
+
+        #our-story .rounded-2xl, .gallery-carousel-item {
+            border-radius: 50% 50% 6px 6px / 32% 32% 4px 4px !important;
+            overflow: hidden;
+        }
+        #our-story .rounded-2xl {
+            border: 1px solid hsl(var(--c-azulejo) / .3) !important;
+            box-shadow: 14px 18px 34px hsl(24 32% 34% / .22) !important;
+        }
+        .gallery-carousel-item {
+            background: hsl(44 40% 97%) !important;
+            padding: 5% !important;
+            border: 1px solid hsl(var(--c-azulejo) / .28) !important;
+            box-shadow: 10px 14px 26px hsl(24 32% 34% / .2) !important;
+        }
+        .gallery-carousel-item img { border-radius: 50% 50% 4px 4px / 32% 32% 3px 3px !important; border: none !important; }
+        .gallery-nav-btn {
+            background: hsl(44 40% 97%) !important;
+            border-color: hsl(var(--c-azulejo) / .4) !important;
+            color: hsl(var(--c-azulejo)) !important;
+        }
+        .gallery-nav-btn:hover { background: hsl(var(--c-gold-dark)) !important; color: hsl(44 40% 97%) !important; }
+
+        #rsvp .rounded-3xl {
+            background: hsl(44 40% 98% / .9) !important;
+            border: 1px solid hsl(var(--c-azulejo) / .25) !important;
+            border-top: 5px solid hsl(var(--c-gold)) !important;   /* terracotta = the action */
+            box-shadow: 14px 18px 34px hsl(24 32% 34% / .18) !important;
+            backdrop-filter: none !important;
+        }
+        .countdown-card .rounded-xl { background: hsl(40 40% 95%); border-color: hsl(var(--c-azulejo) / .22); }
+        #cd-days, #cd-hours, #cd-minutes, #cd-seconds { color: hsl(var(--c-azulejo)); font-variant-numeric: tabular-nums; }
+
+        #details {
+            background: hsl(44 40% 97% / .72);
+            border-top: 2px solid hsl(var(--c-azulejo) / .32) !important;
+            border-bottom: 2px solid hsl(var(--c-azulejo) / .32) !important;
+            border-radius: 4px;
+            padding-left: 1rem; padding-right: 1rem;
+        }
+
+        /* ---------- schedule ---------- */
+
+        .schedule-timeline::before { background: hsl(var(--c-azulejo) / .3) !important; }
+        .schedule-row::after { background: hsl(var(--c-gold)) !important; border-color: hsl(var(--c-cream)) !important; }
+        .schedule-icon {
+            background: hsl(44 40% 97%) !important;
+            border: 1.5px solid hsl(var(--c-azulejo) / .5) !important;
+            color: hsl(var(--c-azulejo)) !important;
+            box-shadow: 6px 8px 14px hsl(24 32% 34% / .2);
+        }
+        .schedule-time { font-variant-numeric: tabular-nums; }
+
+        /* ---------- footer sits on the water ---------- */
+
+        footer { margin-top: 0; padding-top: 3.5rem; border-top-color: hsl(190 40% 60% / .28) !important; }
+        footer, footer * { color: hsl(40 40% 92%) !important; }
+
+        /* ---------- browser surfaces ---------- */
+
+        ::selection { background: hsl(var(--c-gold) / .28); color: hsl(var(--c-charcoal)); }
+        ::-webkit-scrollbar-track { background: hsl(var(--c-champagne)); }
+        ::-webkit-scrollbar-thumb { background: hsl(var(--c-azulejo)); }
+        html { scrollbar-color: hsl(var(--c-azulejo)) hsl(var(--c-champagne)); scrollbar-width: thin; }
+        :focus-visible { outline: 2px solid hsl(var(--c-azulejo)); outline-offset: 3px; }
+        #rsvp input, #rsvp textarea, #rsvp select { caret-color: hsl(var(--c-azulejo)); }
+        #story-text-1, #story-text-2 { max-width: 34em; }
+
+        /* ---------- phone ----------
+           The critique found the reveal's instruction sitting below the
+           caption, off the bottom of a phone screen: a guest saw shutters,
+           no prompt, and nothing happening. It comes first here. */
+
+        @media (max-width: 700px) {
+            main { margin-top: 6rem; }
+            #envelope-overlay { justify-content: flex-start; padding-top: 4.5rem; }
+            .shutter-hint { order: -1; margin: 0 0 1.5rem; }
+            .shutter-caption { margin-top: 2.5rem; }
+            .shutters { width: min(66vw, 300px); }
+            .coast-arch { height: clamp(150px, 40vw, 220px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tile, .shutter-caption, .shutter-hint { animation: none; opacity: 1; transform: none; }
+            .tile { transform: translate(-50%,0) rotate(-1.6deg); }
+            .shutter, .shutters { transition: none; }
+            .opening-glare { display: none; }
+        }
