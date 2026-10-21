@@ -102,7 +102,8 @@ describe("studio designs: the catalogue", () => {
     const d = toInvitationData({ slug: "a", names: "A & B", date: "2027-06-12T14:00:00Z", invitation: { template_id: "studio:liquid-gold", design_data: { musicTrack: "pavane" } } }, lg);
     expect(d.heroPhoto).toBe("");
     expect(d.music).toEqual({ enabled: true, track: "pavane" });
-    expect(d.storyStatements).toBe("It started with two\nTwo lives\nOne unexpected moment\nAnd now\nUs");
+    // Empty, so the design writes their names and month rather than stock lines.
+    expect(d.storyStatements).toBe("");
   });
 
   it("The Picture House is part of Luxe, with three stills of the couple and a generic slate until they write theirs", () => {

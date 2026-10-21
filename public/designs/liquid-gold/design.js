@@ -207,7 +207,9 @@ function buildWedding(){
       opener:     txt(d.storyOpener,'HOW IT BEGAN').toUpperCase(),
       /* LUMA: by default the rising lines are theirs (their names, then the
          month they marry) instead of "Two lives / One unexpected moment" */
-      statements: listOf(d.storyStatements,
+      /* Luma sends "" for a field the couple left empty, so empty means
+         unset here and their names are written instead. */
+      statements: listOf(d.storyStatements || undefined,
                     [txt(d.partner1,''), 'AND', txt(d.partner2,''),
                      (function(){ var m = /^\d{4}-(\d{2})/.exec(txt(d.date,'')); return m ? 'ONE DAY IN ' + ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][+m[1]-1] : ''; })(),
                      'US'].filter(Boolean).join(','))
@@ -326,7 +328,10 @@ function buildContent(){
   /* Photographs. The hero and the story frame take the couple's own when
      they have uploaded one. */
   const heroImg = document.getElementById('heroImg');
-  if (heroImg) heroImg.src = realOrPainted(d.heroPhoto, 7, 'hero');
+  /* Until the couple adds a photograph the hero is poured gold
+     (assets/pour.jpg, photographed for this design), not a painted one. */
+  if (heroImg) heroImg.src = txt(d.heroPhoto, '') || 'assets/pour.jpg';
+  if (heroImg) heroImg.classList.toggle('is-pour', !txt(d.heroPhoto, ''));
   if (heroImg) heroImg.alt = `${w.couple.personOne} and ${w.couple.personTwo}`;
 
   buildGallery();
