@@ -1,0 +1,14 @@
+/* ============================================================
+   THE INSCRIPTION ON LUMA
+   The couple's photograph goes into the niche when they have one;
+   until then the dressed panel stands on the stone by itself. A
+   section they leave empty takes itself away.
+   ============================================================ */
+#beginning.nophoto .niche{ display:none }
+#beginning.nophoto .lean{ display:block }
+#beginning.nophoto .lean .words{ margin:0 auto; max-width:560px }
+
+/* the dedication names the couple; no birthplaces or years */
+.tablet .who small{ display:none }
+
+.luma-empty{ display:none !important }

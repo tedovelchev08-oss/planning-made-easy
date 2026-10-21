@@ -1,0 +1,348 @@
+/* ============================================================
+   THE INSCRIPTION  —  white marble, red ochre
+   ------------------------------------------------------------
+   There is no card, no envelope and no ribbon here. The names are
+   cut INTO the stone, and the only object on the page is the
+   surface itself.
+
+   Two things are true of real incised lettering, and this design
+   is built on both:
+
+     1  A V-cut is only legible under raking light. One wall of
+        each stroke is lit and the other is in shadow; light the
+        stone flat-on and the letters nearly disappear. So the
+        reveal is a light crossing the slab, and the letters
+        emerge from their own shadow as it passes. The shading is
+        driven by the light's position, not painted on.
+
+     2  Roman inscriptions had their incisions filled with red
+        ochre. That is where the oxblood comes from; it is the
+        paint in the cut, not an accent colour chosen to look
+        expensive.
+
+   The interlock: a vein of the marble runs ACROSS the letters,
+   because the letters are inside the material rather than on top
+   of it. That is one more copy of the same photograph, multiplied
+   over the type.
+   ============================================================ */
+
+:root{
+  /* sampled from the marble photograph */
+  --stone:      #ddded9;
+  --stone-lit:  #f4f5f1;
+  --stone-deep: #b0aea6;
+
+  /* the ochre in the cut, and the shadow inside it */
+  /* Minium and red ochre, the two pigments actually packed into
+     Roman incisions, are warm brick reds. The first pass used a cool
+     oxblood, which read as expensive but thin. This is both louder
+     and closer to the real thing. 5.2:1 on the stone, so it still
+     carries small text. */
+  --cut:      #a3301f;
+  --cut-deep: #6e1d12;
+  --cut-lit:  #c04429;
+
+  --ink:      #3d3831;
+  --ink-soft: #7d766c;
+
+  /* Cinzel is drawn from Roman inscriptional capitals, which is
+     the one face this design could be set in honestly. */
+  --display: "Cinzel", "Trajan Pro", Georgia, serif;
+  --util:    "Libre Franklin", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* the inscription's measure. A floor, because min() alone has no
+     lower bound and collapses to nothing where viewport units
+     resolve to zero. */
+  --slab: max(280px, min(88vw, 560px));
+}
+
+*{ box-sizing:border-box; margin:0; padding:0 }
+html{ -webkit-text-size-adjust:100%; background:#c9cac4 }
+body{
+  font-family:var(--util);
+  color:var(--ink);
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- THE SLAB ----------
+   Fixed, so it never repaints on scroll. One piece of stone for
+   the whole page. */
+.slab{
+  position:fixed; inset:0; z-index:0; overflow:hidden;
+  background:var(--stone);
+}
+.slab img{ width:100%; height:100%; object-fit:cover; display:block }
+
+/* THE RAKING LIGHT.
+   Low and hard, the way light has to fall for a cut to read. It
+   crosses once on arrival and then holds, off to one side. */
+/* A hard, narrow band with a dark leading edge. The first pass was a
+   wide soft wash moving over pale stone for three and a half
+   seconds, which is invisible: low contrast, slow, and larger than
+   the screen, so nothing appeared to move at all. This is the light
+   you would actually rake across a carved surface. */
+.slab .rake{
+  position:absolute; inset:-40%;
+  background:linear-gradient(99deg,
+    rgba(58,54,46,.03) 0%,
+    rgba(58,54,46,.22) 30%,
+    rgba(58,54,46,.26) 36%,
+    rgba(255,255,250,.88) 44%,
+    rgba(255,255,250,.96) 47%,
+    rgba(255,255,250,.62) 52%,
+    rgba(58,54,46,.10) 62%,
+    rgba(58,54,46,.03) 100%);
+  transform:translate3d(-58%,0,0);
+  transition:transform 1500ms cubic-bezier(.22,.72,.26,1);
+}
+/* it crosses, then settles just past the inscription and stays there,
+   because a cut has to keep its light to stay legible */
+body.lit .slab .rake{ transform:translate3d(14%,0,0) }
+/* and the stone's own edges fall away from the light */
+.slab .fall{
+  position:absolute; inset:0;
+  background:radial-gradient(128% 88% at 38% 34%,
+    rgba(60,56,48,0) 44%, rgba(60,56,48,.26) 100%);
+}
+
+/* ---------- THE STAGE ---------- */
+.scene{
+  position:relative; z-index:2;
+  min-height:100dvh;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:clamp(28px,7dvh,72px) clamp(18px,5vw,44px);
+  text-align:center;
+}
+
+/* ============================================================
+   THE CUT
+
+   A stroke cut into stone has a shadowed wall on the side the
+   light comes from and a lit wall opposite, plus the whole
+   incision sits a little darker than the surface around it. Those
+   three facts are the entire effect:
+
+     shadow offset toward  the light  (the near lip's cast shadow)
+     highlight offset away from it    (the far, lit wall)
+     the letter itself in ochre       (the paint in the cut)
+
+   Getting the direction backwards gives raised lettering, which
+   is a different and much cheaper-looking thing.
+   ============================================================ */
+.cut{
+  color:var(--cut);
+  /* before the light arrives the cut is barely there: the walls
+     have almost no shading and the ochre is dulled by the flat
+     light, which is exactly what an inscription looks like at
+     midday */
+  text-shadow:
+    -1px -1px 0 rgba(86,80,70,.16),
+     1px  1px 0 rgba(255,255,252,.22);
+  opacity:.5;
+  transition:text-shadow 2600ms cubic-bezier(.3,.03,.2,1),
+             opacity 2600ms cubic-bezier(.3,.03,.2,1);
+}
+body.lit .cut{
+  opacity:1;
+  /* In em, not px. A cut is as deep as the letter is big, so fixed
+     offsets make a 90px name look like a 12px one scaled up —
+     shallow, and the whole illusion goes. In em the date line and
+     the names get the same cut at their own sizes. */
+  text-shadow:
+    /* the near lip throws its shadow down into the cut */
+    -.034em -.034em .008em rgba(78,54,44,.68),
+    -.058em -.058em .05em  rgba(78,54,44,.36),
+    /* the far wall catches the light */
+     .032em  .032em 0       rgba(255,255,252,.95),
+     .056em  .056em .055em  rgba(255,255,252,.5),
+    /* and the incision as a whole sits below the surface */
+     0 0 .085em rgba(122,64,44,.34),
+    /* the pigment pooled in the bottom of the V */
+     0 0 .22em rgba(163,48,31,.28);
+}
+
+/* ---------- THE NAMES ---------- */
+.inscription{ width:var(--slab) }
+.inscription .above{
+  font-size:clamp(9px,2.3vw,11px);
+  letter-spacing:.42em; text-transform:uppercase;
+  color:var(--ink-soft);
+  margin-bottom:clamp(20px,4.6vw,34px);
+}
+.inscription h1{
+  font-family:var(--display); font-weight:400;
+  font-size:calc(var(--slab) * .155);
+  line-height:1.22; letter-spacing:.06em;
+  text-transform:uppercase;
+  /* Cinzel is capitals only, and inscriptional capitals are set
+     with wide letterspacing and no word spaces to speak of. */
+  overflow-wrap:break-word;
+}
+.inscription h1 .amp{
+  display:block;
+  font-size:calc(var(--slab) * .085);
+  line-height:1.6; letter-spacing:.14em;
+  opacity:.82;
+}
+.inscription .rule{
+  width:calc(var(--slab) * .16); height:2px; margin:clamp(22px,5vw,36px) auto;
+  background:var(--cut); opacity:.34;
+  /* a cut line reads the same way a cut letter does */
+  box-shadow:
+    0 -1px 0 rgba(74,68,58,.4),
+    0  1px 0 rgba(255,255,252,.7);
+}
+.inscription .below{
+  font-family:var(--display); font-weight:400;
+  font-size:calc(var(--slab) * .054);
+  line-height:1.7; letter-spacing:.2em; text-transform:uppercase;
+}
+
+/* THE VEIN ACROSS THE LETTERS.
+   One more copy of the same stone, multiplied over the type. The
+   marble's veining then runs through the inscription instead of
+   stopping at its edge, which is the whole claim of the design:
+   the letters are in the material, not on it. */
+/* No clipping here, and the overlay is exactly the size of this box.
+
+   Two bugs got traded for each other before this landed. The overlay
+   started larger than the block so its mask could fade out beyond
+   the edges, which pushed a 360px page 23px wide. Clipping it with
+   overflow:hidden fixed that and re-broke the first problem: the
+   mask fades to nothing OUTSIDE the box, so clipping to the box left
+   the still-opaque middle showing as a visible darker rectangle
+   around the whole inscription.
+
+   Sized to the box, the fade finishes inside it and there is no edge
+   to see. overflow stays visible so the strike's shadow flare is not
+   clipped off the outermost letters either. */
+.inscription{ position:relative; isolation:isolate }
+.inscription .vein{
+  position:absolute; inset:0;
+  z-index:2; pointer-events:none;
+  mix-blend-mode:multiply; opacity:0;
+  transition:opacity 2000ms ease-out 700ms;
+  /* Masked to nothing at its edges. Unmasked, a multiply layer over
+     a rectangle darkens that rectangle and draws a visible panel
+     around the inscription — which reads as a rendering fault, not
+     as stone. The mask is what makes it a vein rather than a box. */
+  -webkit-mask-image:radial-gradient(58% 46% at 50% 48%, #000 0%, rgba(0,0,0,.5) 52%, transparent 84%);
+          mask-image:radial-gradient(58% 46% at 50% 48%, #000 0%, rgba(0,0,0,.5) 52%, transparent 84%);
+}
+body.lit .inscription .vein{ opacity:.5 }
+.inscription .vein img{
+  width:100%; height:100%; object-fit:cover; display:block;
+}
+
+/* ---------- THE PROMPT ---------- */
+.hint{
+  position:fixed; z-index:9; left:0; right:0;
+  bottom:clamp(16px,3.6dvh,34px);
+  text-align:center;
+  font-size:10px; letter-spacing:.34em; text-transform:uppercase;
+  color:rgba(70,64,56,.66);
+  transition:opacity 600ms ease-out;
+  animation:breathe 3.6s ease-in-out infinite;
+}
+@keyframes breathe{ 0%,100%{opacity:.48} 50%{opacity:1} }
+body.lit .hint{ opacity:0; pointer-events:none; animation:none }
+
+/* ---------- REDUCED MOTION ----------
+   The light has already crossed and the cut is already reading. */
+@media (prefers-reduced-motion:reduce){
+  .slab .rake, .cut, .inscription .vein{ transition:none !important }
+  .hint{ animation:none }
+}
+
+/* ============================================================
+   THE STRIKE
+
+   The entry used to be a cross-fade: the whole inscription got
+   its shadow at once, over 2.6 seconds, while a soft gradient
+   drifted. Nothing had a front edge, so nothing appeared to
+   happen.
+
+   Now the light does the revealing spatially. Each character is
+   its own element with an index, and it is struck as the band
+   reaches it: a bright flare on the lit wall of the cut, then a
+   settle into its resting incision. Left to right, top to
+   bottom, in step with the band crossing the slab.
+
+   That is also what a raking light genuinely does to carved
+   stone. The letters nearest the source wake first.
+   ============================================================ */
+
+/* Before the light: the walls have almost no shading and the
+   pigment is dulled by flat light, which is what an inscription
+   looks like at midday. */
+.ch{
+  display:inline-block;
+  color:var(--cut);
+  opacity:.34;
+  text-shadow:
+    -1px -1px 0 rgba(86,80,70,.14),
+     1px  1px 0 rgba(255,255,252,.2);
+}
+
+/* The resting state is declared plainly as well as animated, so a
+   still with animations disabled still lands on a cut inscription
+   rather than a blank slab. */
+body.lit .ch{
+  opacity:1;
+  text-shadow:
+    -.034em -.034em .008em rgba(78,54,44,.68),
+    -.058em -.058em .05em  rgba(78,54,44,.36),
+     .032em  .032em 0      rgba(255,255,252,.95),
+     .056em  .056em .055em rgba(255,255,252,.5),
+     0 0 .085em rgba(122,64,44,.34),
+     0 0 .22em  rgba(163,48,31,.28);
+}
+
+@keyframes strike{
+  0%{
+    opacity:.34;
+    text-shadow:
+      -1px -1px 0 rgba(86,80,70,.14),
+       1px  1px 0 rgba(255,255,252,.2);
+  }
+  /* the band arrives: the far wall of the cut flares, the near lip
+     goes hard dark, and the pigment saturates */
+  34%{
+    opacity:1;
+    text-shadow:
+      -.05em -.05em .01em rgba(66,44,34,.9),
+      -.08em -.08em .06em rgba(66,44,34,.5),
+       .05em  .05em 0     rgba(255,255,255,1),
+       .085em .085em .07em rgba(255,255,255,.8),
+       0 0 .1em  rgba(192,68,41,.6),
+       0 0 .34em rgba(192,68,41,.4);
+  }
+  /* and settles as the band moves past */
+  100%{
+    opacity:1;
+    text-shadow:
+      -.034em -.034em .008em rgba(78,54,44,.68),
+      -.058em -.058em .05em  rgba(78,54,44,.36),
+       .032em  .032em 0      rgba(255,255,252,.95),
+       .056em  .056em .055em rgba(255,255,252,.5),
+       0 0 .085em rgba(122,64,44,.34),
+       0 0 .22em  rgba(163,48,31,.28);
+  }
+}
+
+@media (prefers-reduced-motion:no-preference){
+  body.lit .ch{
+    animation:strike 660ms cubic-bezier(.2,.78,.3,1) both;
+    /* --i is the character's position, set in stone.js. 30ms apart
+       is fast enough to read as one sweep and slow enough that you
+       can see it travel. */
+    animation-delay:calc(var(--i, 0) * 22ms);
+  }
+}
+
+/* A word is one unbreakable unit. The per-character spans are only
+   there so the light can reach them in turn; they must not become
+   line-break opportunities. */
+.wd{ display:inline-block; white-space:nowrap }
