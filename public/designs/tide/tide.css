@@ -15,6 +15,7 @@
   --shallow:    #7cc9c6;
   --water:      #2f97a8;
   --coral:      #d9573f;
+  --coral-ink:  #ad3f29;   /* the coral, deep enough to read at small sizes */
   --foam:       #ffffff;
   --serif: 'Cormorant Garamond', Georgia, serif;
   --sans:  'Jost', system-ui, sans-serif;
@@ -41,6 +42,14 @@ img{ display:block; max-width:100% }
     radial-gradient(120% 60% at 50% 0%, rgba(255,250,238,.55), transparent 60%),
     linear-gradient(180deg, transparent 55%, rgba(201,178,138,.45) 100%);
 }
+/* ripple marks, fading out toward the dry sand at the top */
+.ripples{
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  -webkit-mask-image:linear-gradient(180deg, transparent 6%, #000 46%);
+          mask-image:linear-gradient(180deg, transparent 6%, #000 46%);
+}
+.ripples svg{ width:100%; height:100%; display:block }
+
 /* the dark band the last wave left: it dries as you watch */
 .shore::after{
   content:""; position:absolute; inset:0; pointer-events:none;
@@ -64,14 +73,14 @@ img{ display:block; max-width:100% }
 }
 .shore.under .card{ filter:saturate(.8) blur(.6px); transform:rotate(-3.2deg) translateY(-6px) }
 .face{
-  position:absolute; inset:0; padding:9% 9% 8%;
-  display:flex; flex-direction:column; align-items:center; text-align:center;
+  position:absolute; inset:0; padding:12% 9% 11%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
 }
 .face .above{
-  font-size:clamp(9px, 2.5vw, 11px); letter-spacing:.34em; text-transform:uppercase; color:var(--ink-soft);
+  font-size:clamp(10px, 2.7vw, 12px); letter-spacing:.3em; text-transform:uppercase; color:var(--ink-soft);
 }
 .face h1{
-  margin-top:auto; font-weight:400; text-transform:uppercase;
+  margin-top:clamp(22px, 7vw, 34px); font-weight:400; text-transform:uppercase;
   font-size:clamp(34px, 11vw, 50px); line-height:1.02; letter-spacing:.03em;
   overflow-wrap:anywhere;
 }
@@ -79,14 +88,15 @@ img{ display:block; max-width:100% }
   display:block; text-transform:none; font-style:italic; font-weight:400;
   color:var(--coral); font-size:.46em; letter-spacing:0; margin:.18em 0 .12em;
 }
-.face .rule{ width:34px; height:1px; background:var(--ink); opacity:.4; margin:20px 0 18px }
+.face .rule{ width:56px; height:8px; margin:20px 0 16px; overflow:visible }
+.face .rule path{ fill:none; stroke:var(--water); stroke-width:1.3; stroke-linecap:round; opacity:.8 }
 .face .date{ font-size:clamp(16px, 4.6vw, 21px); letter-spacing:.24em; text-transform:uppercase }
 .face .place{
   margin-top:8px; font-size:clamp(9px, 2.5vw, 11px); line-height:1.9;
   letter-spacing:.3em; text-transform:uppercase; color:var(--ink-soft);
 }
 .face .line{
-  margin-top:auto; font-style:italic; font-size:clamp(14px, 4vw, 17px); line-height:1.4; color:var(--ink-soft);
+  margin-top:clamp(20px, 6vw, 30px); font-style:italic; font-size:clamp(15px, 4.2vw, 18px); line-height:1.4; color:var(--ink-soft);
   max-width:24ch;
 }
 .face .line:empty{ display:none }
@@ -149,7 +159,7 @@ img{ display:block; max-width:100% }
 .sec{ padding:clamp(64px, 12vw, 120px) 20px }
 .wrap{ max-width:880px; margin:0 auto }
 .eyebrow{
-  font-family:var(--sans); font-size:11px; letter-spacing:.32em; text-transform:uppercase; color:var(--coral);
+  font-family:var(--sans); font-size:12px; letter-spacing:.28em; text-transform:uppercase; color:var(--coral-ink);
 }
 h2{
   font-weight:400; font-size:clamp(30px, 7vw, 46px); line-height:1.12; margin-top:10px; text-wrap:balance;
@@ -181,12 +191,14 @@ h2:empty{ display:none }
 .facts{ display:grid; gap:0; margin-top:28px; text-align:left }
 @media (min-width:600px){ .facts{ grid-template-columns:1fr 1fr; column-gap:40px } }
 .facts div{ padding:13px 0; border-top:1px solid rgba(11,58,85,.14) }
-.facts dt{ font-family:var(--sans); font-size:10px; letter-spacing:.28em; text-transform:uppercase; color:var(--ink-soft) }
+.facts dt{ font-family:var(--sans); font-size:11.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-soft) }
 .facts dd{ font-size:20px; margin-top:2px }
-.links{ margin-top:28px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px 26px }
+.links{ margin-top:22px; display:flex; flex-wrap:wrap; justify-content:center; gap:0 22px }
 .links a{
-  font-family:var(--sans); font-size:11px; letter-spacing:.24em; text-transform:uppercase;
-  color:var(--coral); text-decoration:none; border-bottom:1px solid rgba(217,87,63,.4); padding-bottom:3px;
+  display:inline-flex; align-items:center; min-height:44px;
+  font-family:var(--sans); font-size:12px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--coral-ink); text-decoration:none;
+  background:linear-gradient(currentColor, currentColor) 0 calc(50% + 11px) / 100% 1px no-repeat;
 }
 .links a[hidden]{ display:none }
 
@@ -207,7 +219,7 @@ h2:empty{ display:none }
   padding:14px 0; border-top:1px solid rgba(11,58,85,.12);
 }
 .moments .n{
-  width:24px; height:24px; border-radius:50%; border:1px solid var(--coral); color:var(--coral);
+  width:24px; height:24px; border-radius:50%; border:1px solid var(--coral); color:var(--coral-ink);
   font-family:var(--sans); font-size:11px; display:flex; align-items:center; justify-content:center; align-self:center;
 }
 .moments .at{ font-family:var(--sans); font-size:14px; letter-spacing:.06em; color:var(--water) }
@@ -234,7 +246,7 @@ h2:empty{ display:none }
 .asks details:last-child{ border-bottom:1px solid rgba(11,58,85,.16) }
 .asks summary{ cursor:pointer; list-style:none; font-size:21px; display:flex; justify-content:space-between; gap:16px }
 .asks summary::-webkit-details-marker{ display:none }
-.asks summary::after{ content:"+"; font-family:var(--sans); color:var(--coral); font-size:18px }
+.asks summary::after{ content:"+"; font-family:var(--sans); color:var(--coral-ink); font-size:18px }
 .asks details[open] summary::after{ content:"–" }
 .asks p{ margin-top:8px; color:#24485e }
 
@@ -251,7 +263,7 @@ h2:empty{ display:none }
 .field:first-of-type{ margin-top:0 }
 .field[hidden]{ display:none }
 .field label, .field .label{
-  display:block; font-family:var(--sans); font-size:10px; letter-spacing:.26em; text-transform:uppercase; color:var(--ink-soft);
+  display:block; font-family:var(--sans); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft);
 }
 .field input[type=text], .field select, .field textarea{
   width:100%; margin-top:6px; padding:10px 2px; background:transparent;
@@ -279,7 +291,7 @@ h2:empty{ display:none }
 .tline{ font-size:clamp(28px, 7vw, 38px) }
 .tsub{ margin-top:8px; font-style:italic; color:var(--ink-soft) }
 .again{
-  margin-top:22px; background:none; border:0; cursor:pointer; color:var(--coral);
+  margin-top:22px; background:none; border:0; cursor:pointer; color:var(--coral-ink); min-height:44px;
   font-family:var(--sans); font-size:11px; letter-spacing:.24em; text-transform:uppercase;
   border-bottom:1px solid rgba(217,87,63,.4); padding-bottom:3px;
 }
@@ -291,6 +303,29 @@ h2:empty{ display:none }
 }
 .reply.sending .sweep{ opacity:1; transform:translateX(70%); transition:transform 1.1s cubic-bezier(.4,0,.2,1), opacity .2s }
 .reply.sending .rcard{ opacity:0; transform:translateY(-14px); transition:opacity .5s ease .35s, transform .7s ease .35s }
+
+/* between sections, a line the water drew */
+.sec + .sec::before{
+  content:""; display:block; width:120px; height:14px; margin:0 auto clamp(52px, 10vw, 84px);
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14'%3E%3Cpath d='M2 7 q7 -6 14 0 t14 0 t14 0 t14 0 t14 0 t14 0 t14 0 t14 0' fill='none' stroke='%232f97a8' stroke-width='1.2' stroke-linecap='round' opacity='.55'/%3E%3Ccircle cx='60' cy='7' r='2.2' fill='%23d9573f'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+.sec + .sec{ padding-top:clamp(40px, 8vw, 72px) }
+#hero + .sec::before{ display:none }
+
+/* the close: their names written in the sand with a finger, and the
+   line the original card ended on */
+#closing .wrap{ text-align:center }
+.written{
+  font-style:italic; font-weight:300; line-height:1.05;
+  font-size:clamp(52px, 15vw, 100px); letter-spacing:.01em;
+  color:rgba(150,116,72,.62);
+  /* pressed into the sand: lit on the lower lip, shaded on the upper */
+  text-shadow:0 1.5px 0 rgba(255,251,242,.85), 0 -1px 1px rgba(105,76,40,.32);
+  text-wrap:balance;
+}
+.loop{ width:min(240px, 60vw); height:auto; margin:-4px auto 0; display:block; overflow:visible }
+.loop path{ fill:none; stroke:rgba(150,116,72,.5); stroke-width:2.4; stroke-linecap:round; filter:drop-shadow(0 1.2px 0 rgba(255,251,242,.85)) }
+.closing{ margin:22px auto 0; max-width:30ch; font-family:var(--sans); font-size:12.5px; letter-spacing:.22em; line-height:1.8; text-transform:uppercase; color:var(--ink-soft); text-wrap:balance }
 
 footer{
   display:flex; justify-content:space-between; gap:16px; padding:26px 20px 34px;

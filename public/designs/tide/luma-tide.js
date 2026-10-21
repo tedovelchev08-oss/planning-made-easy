@@ -206,6 +206,9 @@
     // the reply
     setText('replyBy', blank(d.rsvpDeadline) ? '' : 'Please reply by ' + txt(d.rsvpDeadline));
     setText('sentTo', 'It is on its way to ' + one + ' and ' + two + '.');
+    // and the close: their names in the sand
+    setText('writtenNames', one + ' & ' + two);
+    setText('closingLine', txt(d.closingLine, 'We can\u2019t wait to celebrate with you'));
     setText('footNames', one + ' and ' + two + (dp ? ', ' + dp.y : ''));
 
     // the calendar links in page.js read this
@@ -230,7 +233,7 @@
     function go() {
       render(d);
       if (typeof window.lumaAfterRender === 'function') window.lumaAfterRender(d);
-      start('page.js?v=1');
+      start('page.js?v=2');
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);
     else go();

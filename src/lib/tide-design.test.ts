@@ -60,6 +60,8 @@ describe("The Tide on Luma (luma-tide.js)", () => {
     expect(document.getElementById("gallery")!.classList.contains("luma-empty")).toBe(true);
     expect(document.getElementById("faq")!.classList.contains("luma-empty")).toBe(true);
     expect(text("#sentTo")).toBe("It is on its way to Ana and Boris.");
+    expect(text("#writtenNames")).toBe("Ana & Boris");
+    expect(text("#closingLine")).toBe("We can’t wait to celebrate with you");
     expect(document.body.textContent).not.toMatch(/Ines|Mateo|Ibiza|Cala Salada/);
     expect(after).toHaveBeenCalledWith(couple);
   });
