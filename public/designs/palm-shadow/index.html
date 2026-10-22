@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>You&rsquo;re Invited</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#e9d3ad">
+
+<!-- Fonts served by Luma (licences beside each file in ../_shared/fonts) -->
+<link rel="stylesheet" href="../_shared/fonts/fonts.css">
+<link rel="stylesheet" href="shadow.css?v=1">
+<style>
+  html.luma-loading { background: #efe4d2; }
+  html.luma-loading body { visibility: hidden; }
+  .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #efe4d2; color: #3b2c20; font-family: 'Jost', sans-serif; }
+  .luma-notice h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 34px; font-weight: 400; font-style: italic; margin: 0; }
+  .luma-notice p { font-size: 16px; max-width: 30rem; margin: 0; opacity: .8; }
+  .luma-notice a { margin-top: 8px; color: #8a6a48; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+  .luma-check:empty { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     PALM SHADOW
+     Late afternoon. The sun comes through a window and lays the
+     shadow of a palm across a limestone wall; the names are written
+     in the light beside it. As the guest reads down, that shadow
+     drifts across the page the way it moves across a room.
+     ============================================================ -->
+<!-- the shadow that drifts over everything, cut from a photograph -->
+<img class="drift" id="drift" src="assets/frond.png" alt="" aria-hidden="true">
+
+<main id="main">
+
+<section class="wall" id="hero" aria-label="The invitation">
+  <div class="light" aria-hidden="true"></div>
+  <div class="names rv">
+    <p class="above" id="cardAbove"></p>
+    <span class="rule" aria-hidden="true"></span>
+    <h1 id="cardNames"></h1>
+    <span class="rule" aria-hidden="true"></span>
+    <p class="when" id="cardDate"></p>
+    <p class="where" id="cardPlace"></p>
+  </div>
+</section>
+
+<!-- the day, printed on a cotton card lying in the sun -->
+<section class="sec linen" id="the-day">
+  <div class="card-photo rv">
+    <div class="on-card">
+      <p class="eyebrow">The day</p>
+      <p class="hour" id="dayTime"></p>
+      <p class="venue" id="dayVenue"></p>
+      <p class="addr" id="dayAddr"></p>
+      <span class="rule" aria-hidden="true"></span>
+      <p class="dress" id="dayDress"></p>
+    </div>
+  </div>
+  <p class="links rv">
+    <a id="venueLink" href="#" target="_blank" rel="noopener">Directions</a>
+    <a id="gcal-link" href="#" target="_blank" rel="noopener">Google Calendar</a>
+    <a id="ics-link" href="#">Apple Calendar</a>
+  </p>
+</section>
+
+<section class="sec stone" id="story">
+  <div class="wrap lean">
+    <figure class="frame rv"><img class="couple" alt="The two of you" hidden></figure>
+    <div class="words rv">
+      <p class="eyebrow">How it started</p>
+      <h2 id="storyHeadline"></h2>
+      <p class="body" id="storyP1"></p>
+      <p class="body" id="storyP2"></p>
+    </div>
+  </div>
+</section>
+
+<section class="sec stone" id="schedule">
+  <div class="wrap narrow">
+    <p class="eyebrow center" id="scheduleHeading"></p>
+    <ol class="rows rv" id="tlItems"></ol>
+  </div>
+</section>
+
+<section class="sec stone" id="gallery">
+  <div class="wrap">
+    <h2 class="center" id="galleryHeading"></h2>
+    <div class="prints"></div>
+  </div>
+</section>
+
+<section class="sec stone" id="faq">
+  <div class="wrap narrow">
+    <h2 class="center">Good to know</h2>
+    <div class="asks" id="faq-drawer-list"></div>
+  </div>
+</section>
+
+<section class="sec linen" id="rsvp">
+  <figure class="reply-photo rv" aria-hidden="true"></figure>
+  <div class="reply" id="reply">
+    <form class="cotton" id="rsvp-form" name="rsvp" method="POST" novalidate>
+      <input type="hidden" name="form-name" value="rsvp">
+      <p class="hp" aria-hidden="true"><label>Leave this field empty<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+      <h2 id="replyTitle">Will you join us?</h2>
+      <p class="by" id="replyBy"></p>
+      <div class="field">
+        <label for="rsvpName">Your name</label>
+        <input type="text" id="rsvpName" name="guest_names" placeholder="As it is on your invitation" autocomplete="name" required>
+      </div>
+      <div class="choice" role="radiogroup" aria-label="Will you be there?">
+        <label class="opt selected"><input type="radio" name="attending" value="yes" checked><span>With joy</span></label>
+        <label class="opt"><input type="radio" name="attending" value="no"><span>With regret</span></label>
+      </div>
+      <div class="field two" id="comingFields">
+        <span>
+          <label for="rsvp-guest-count">How many of you</label>
+          <select id="rsvp-guest-count" name="guest_count">
+            <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          </select>
+        </span>
+        <span>
+          <label for="rsvpDietary">Dietary notes</label>
+          <input type="text" id="rsvpDietary" name="dietary" placeholder="Optional">
+        </span>
+      </div>
+      <div class="field" id="rsvp-plusone-wrap">
+        <label for="rsvp-plusone-name">Name of your guest</label>
+        <input type="text" id="rsvp-plusone-name" name="plusone_name" placeholder="Optional">
+      </div>
+      <div class="field">
+        <label for="rsvpMessage">A note, if you like</label>
+        <textarea id="rsvpMessage" name="notes" rows="2" placeholder="Optional"></textarea>
+      </div>
+      <button type="submit" class="send" id="rsvpSubmit">Send our reply</button>
+      <p class="err" id="rsvp-error" role="alert" hidden></p>
+    </form>
+    <div class="cotton taken" id="rsvp-confirmed" hidden>
+      <h2>Thank you.</h2>
+      <p class="by" id="sentTo"></p>
+      <button type="button" class="again" id="rsvpAgain">Send a different reply</button>
+    </div>
+  </div>
+</section>
+
+<section class="wall end" id="closing">
+  <div class="light" aria-hidden="true"></div>
+  <div class="names rv">
+    <p class="written" id="writtenNames"></p>
+    <p class="closing" id="closingLine"></p>
+  </div>
+</section>
+
+<footer>
+  <span id="footNames"></span>
+  <span>Palm Shadow</span>
+</footer>
+</main>
+
+<script src="../_shared/luma-bridge.js?v=2"></script>
+<script src="luma-shadow.js?v=1"></script>
+</body>
+</html>
