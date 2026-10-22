@@ -270,6 +270,40 @@ export const STUDIO_DESIGNS: StudioDesign[] = [
   },
   { id: "amalfi", name: "Amalfi", plan: "celebration", blurb: "Green shutters open onto the sea; your names are painted on a glazed plaque in a limewashed wall, framed in majolica", motif: "frame", placeholder: { from: "#F7F2EA", to: "#CFE5EC", ink: "#2A6491" } },
   { id: "art-deco", name: "Art Deco", plan: "celebration", blurb: "Brass gates part on a lacquer plaque: ivory card stock, marble and gold leaf, in the spirit of 1925", motif: "frame", placeholder: { from: "#F5F1E8", to: "#C9A15A", ink: "#17130F" } },
+  {
+    id: "palm-springs", name: "Palm Springs", plan: "luxe", motif: "frame", heroPlaceholder: "design",
+    blurb: "Your names laid in mosaic on the floor of a sunlit pool, with the water moving over them; touch it and it ripples",
+    placeholder: { from: "#FBF7F0", to: "#7FD3DC", ink: "#1F3D44" },
+    tracks: [],
+    extras: {
+      photos: [],
+      gallery: 6,
+      texts: [
+        { key: "poolEyebrow", label: "On the pool's edge", max: 30, placeholder: "Come on in", fallback: "Come on in" },
+        { key: "storyHeadline", label: "Story headline", max: 100, placeholder: "It started with a borrowed umbrella." },
+        { key: "scheduleHeading", label: "Above the order of the day", max: 40, placeholder: "The day sheet", fallback: "The day sheet" },
+        { key: "galleryHeading", label: "Photographs heading", max: 40, placeholder: "Poolside", fallback: "Poolside" },
+        { key: "closingLine", label: "The last line, laid in tile", max: 28, placeholder: "See you by the pool", fallback: "See you by the pool" },
+      ],
+    },
+  },
+  {
+    id: "palm-shadow", name: "Palm Shadow", plan: "celebration", motif: "frame", heroPlaceholder: "design",
+    blurb: "Late sun on a limestone wall and the shadow of a palm that drifts across the page as your guests read",
+    placeholder: { from: "#EFE4D2", to: "#E1B979", ink: "#3B2C20" },
+    tracks: [],
+    extras: {
+      photos: [],
+      gallery: 6,
+      texts: [
+        { key: "cardAbove", label: "Above your names", max: 40, placeholder: "Together with their families", fallback: "Together with their families" },
+        { key: "storyHeadline", label: "Story headline", max: 100, placeholder: "It started on a slow afternoon." },
+        { key: "scheduleHeading", label: "Above the order of the day", max: 40, placeholder: "The order of the day", fallback: "The order of the day" },
+        { key: "galleryHeading", label: "Photographs heading", max: 40, placeholder: "A few of ours", fallback: "A few of ours" },
+        { key: "closingLine", label: "Under your names at the end", max: 60, placeholder: "Until then" },
+      ],
+    },
+  },
 ];
 
 export const STUDIO_PREFIX = "studio:";
