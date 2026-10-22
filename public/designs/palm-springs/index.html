@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>You&rsquo;re Invited</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#3fc1cf">
+
+<!-- Fonts served by Luma (licences beside each file in ../_shared/fonts) -->
+<link rel="stylesheet" href="../_shared/fonts/fonts.css">
+<link rel="stylesheet" href="springs.css?v=1">
+<style>
+  html.luma-loading { background: #fbf7f0; }
+  html.luma-loading body { visibility: hidden; }
+  .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #fbf7f0; color: #1f3d44; font-family: 'Jost', sans-serif; }
+  .luma-notice h1 { font-family: 'Fraunces', Georgia, serif; font-size: 34px; font-weight: 600; color: #e07a6b; margin: 0; }
+  .luma-notice p { font-size: 16px; max-width: 30rem; margin: 0; opacity: .8; }
+  .luma-notice a { margin-top: 8px; color: #e07a6b; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+  .luma-check:empty { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     PALM SPRINGS
+     You look straight down into a swimming pool at noon. Their names
+     are laid in the floor in mosaic tile, the way a pool marks its
+     depth, and the water moves over them. Touch the water and it
+     ripples. Everything after is the rest of the house: the breeze-
+     block wall, the cabana, the coping where the prints dry, and the
+     towel where you leave your reply.
+     ============================================================ -->
+<main id="main">
+
+<section class="pool" id="hero" aria-label="The invitation">
+  <h1 class="sr" id="srNames"></h1>
+  <!-- the water: drawn by page.js once the photographs and fonts are in -->
+  <svg class="water" id="water" aria-hidden="true" preserveAspectRatio="xMidYMid slice"></svg>
+  <img class="frond sway" src="assets/frond.png" alt="" aria-hidden="true">
+  <div class="coping">
+    <p class="eyebrow" id="poolEyebrow"></p>
+    <p class="eyebrow" id="poolPlace"></p>
+  </div>
+  <p class="hint" id="hint">Touch the water</p>
+</section>
+
+<section class="sec wall" id="the-day">
+  <img class="frond sway slow" src="assets/frond.png" alt="" aria-hidden="true" loading="lazy">
+  <div class="stucco rv">
+    <p class="eyebrow">The day</p>
+    <p class="weekday" id="dayWeekday"></p>
+    <p class="date" id="dayDate"></p>
+    <p class="time" id="dayTime"></p>
+    <p class="venue" id="dayVenue"></p>
+    <p class="addr" id="dayAddr"></p>
+    <p class="dress" id="dayDress"></p>
+    <p class="links">
+      <a id="venueLink" href="#" target="_blank" rel="noopener">Directions</a>
+      <a id="gcal-link" href="#" target="_blank" rel="noopener">Google Calendar</a>
+      <a id="ics-link" href="#">Apple Calendar</a>
+    </p>
+  </div>
+</section>
+
+<section class="sec plain" id="story">
+  <img class="frond sway slow" src="assets/frond.png" alt="" aria-hidden="true" loading="lazy">
+  <div class="wrap lean">
+    <figure class="snap rv"><img class="couple" alt="The two of you" hidden></figure>
+    <div class="words rv">
+      <p class="eyebrow">How it started</p>
+      <h2 id="storyHeadline"></h2>
+      <p class="body" id="storyP1"></p>
+      <p class="body" id="storyP2"></p>
+    </div>
+  </div>
+</section>
+
+<!-- The order of the day, pinned up by the cabana like the hotel's day sheet -->
+<section class="sec cabana" id="schedule">
+  <div class="sheet rv">
+    <p class="eyebrow" id="scheduleHeading"></p>
+    <p class="sheet-day" id="sheetDay"></p>
+    <ol class="rows" id="tlItems"></ol>
+  </div>
+</section>
+
+<section class="sec coping-ground" id="gallery">
+  <img class="frond sway" src="assets/frond.png" alt="" aria-hidden="true" loading="lazy">
+  <h2 id="galleryHeading"></h2>
+  <div class="prints"></div>
+</section>
+
+<section class="sec plain" id="faq">
+  <div class="wrap">
+    <h2>Good to know</h2>
+    <div class="asks" id="faq-drawer-list"></div>
+  </div>
+</section>
+
+<!-- The reply is a cabana tag left on the towel by the pool -->
+<section class="sec poolside" id="rsvp">
+  <div class="tagwrap" id="reply">
+    <form class="tag" id="rsvp-form" name="rsvp" method="POST" novalidate>
+      <span class="grommet" aria-hidden="true"></span>
+      <input type="hidden" name="form-name" value="rsvp">
+      <p class="hp" aria-hidden="true"><label>Leave this field empty<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+      <p class="eyebrow">Cabana reply</p>
+      <h2 id="replyTitle">Save us a lounger?</h2>
+      <p class="by" id="replyBy"></p>
+      <div class="field">
+        <label for="rsvpName">Your name</label>
+        <input type="text" id="rsvpName" name="guest_names" placeholder="As it is on your invitation" autocomplete="name" required>
+      </div>
+      <div class="choice" role="radiogroup" aria-label="Will you be there?">
+        <label class="opt selected"><input type="radio" name="attending" value="yes" checked><span>We&rsquo;ll be there</span></label>
+        <label class="opt"><input type="radio" name="attending" value="no"><span>Sadly not</span></label>
+      </div>
+      <div class="field two" id="comingFields">
+        <span>
+          <label for="rsvp-guest-count">How many of you</label>
+          <select id="rsvp-guest-count" name="guest_count">
+            <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          </select>
+        </span>
+        <span>
+          <label for="rsvpDietary">Dietary notes</label>
+          <input type="text" id="rsvpDietary" name="dietary" placeholder="Optional">
+        </span>
+      </div>
+      <div class="field" id="rsvp-plusone-wrap">
+        <label for="rsvp-plusone-name">Name of your guest</label>
+        <input type="text" id="rsvp-plusone-name" name="plusone_name" placeholder="Optional">
+      </div>
+      <div class="field">
+        <label for="rsvpMessage">A note, if you like</label>
+        <textarea id="rsvpMessage" name="notes" rows="2" placeholder="Optional"></textarea>
+      </div>
+      <button type="submit" class="send" id="rsvpSubmit">Drop it in</button>
+      <p class="err" id="rsvp-error" role="alert" hidden></p>
+    </form>
+    <div class="tag taken" id="rsvp-confirmed" hidden>
+      <span class="grommet" aria-hidden="true"></span>
+      <p class="eyebrow">Got it</p>
+      <h2>See you poolside.</h2>
+      <p class="by" id="sentTo"></p>
+      <button type="button" class="again" id="rsvpAgain">Send a different reply</button>
+    </div>
+    <span class="splash" aria-hidden="true"></span>
+  </div>
+</section>
+
+<!-- the end: back to the pool, the last line laid in tile -->
+<section class="pool end" id="closing" aria-label="Until then">
+  <p class="sr" id="closingLine"></p>
+  <svg class="water" id="water2" aria-hidden="true" preserveAspectRatio="xMidYMid slice"></svg>
+</section>
+
+<footer>
+  <span id="footNames"></span>
+  <span>Palm Springs</span>
+</footer>
+</main>
+
+<script src="../_shared/luma-bridge.js?v=2"></script>
+<script src="luma-springs.js?v=1"></script>
+</body>
+</html>

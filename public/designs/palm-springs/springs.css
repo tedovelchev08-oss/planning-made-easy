@@ -1,0 +1,296 @@
+/* ============================================================
+   PALM SPRINGS
+   A pool at noon, a breeze-block wall, a cabana and pink stucco.
+   Every surface is a photograph made for this design (assets/,
+   see CREDITS.txt); the type is Fraunces, set heavy, with Jost for
+   the small capitals.
+   ============================================================ */
+:root{
+  --ink:#1f3d44;
+  --ink-soft:#4f6b70;
+  --coral:#e2725b;
+  --coral-dp:#c9563f;
+  --pool:#3fc1cf;
+  --pool-dp:#1f9fb0;
+  --cream:#fbf7f0;
+  --stone:#ece7df;
+  --lemon:#f2cf4a;
+  --display:'Fraunces', Georgia, serif;
+  --support:'Jost', 'Helvetica Neue', Arial, sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{ box-sizing:border-box }
+html{ -webkit-text-size-adjust:100% }
+body{
+  margin:0; background:var(--cream); color:var(--ink);
+  font-family:var(--support); font-size:17px; line-height:1.6;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+h1,h2,h3,p,figure,ol,dl{ margin:0 }
+img{ display:block; max-width:100% }
+a{ color:inherit }
+.sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap }
+.luma-empty{ display:none !important }
+[hidden]{ display:none !important }
+
+.eyebrow{
+  font:600 11px/1.3 var(--support); letter-spacing:.3em; text-transform:uppercase; color:var(--coral);
+}
+.sec{ position:relative; overflow:hidden; padding:clamp(72px,12vh,128px) 22px }
+.wrap{ position:relative; z-index:2; max-width:980px; margin:0 auto }
+h2{ font:600 clamp(30px,7vw,46px)/1.05 var(--display); letter-spacing:-.01em; color:var(--ink) }
+
+/* a reveal: up a little and in. Only ever hides what a script will show. */
+.rv{ opacity:0; transform:translateY(18px); transition:opacity .9s var(--ease), transform 1s var(--ease) }
+.rv.in{ opacity:1; transform:none }
+
+/* the real shadow of a palm, cut from a photograph, swaying a little */
+.frond{
+  position:absolute; z-index:1; pointer-events:none; width:min(92vw,620px); height:auto;
+  top:-6%; right:-18%; opacity:.42; mix-blend-mode:multiply;
+  transform-origin:85% 0%;
+}
+.sway{ animation:sway 9s ease-in-out infinite alternate }
+.sway.slow{ animation-duration:13s }
+@keyframes sway{
+  0%  { transform:rotate(-2.4deg) translate3d(0,0,0) }
+  55% { transform:rotate(1.6deg) translate3d(-6px,4px,0) }
+  100%{ transform:rotate(-.6deg) translate3d(4px,-2px,0) }
+}
+
+/* ============================================================
+   THE POOL
+   ============================================================ */
+.pool{ position:relative; height:100svh; min-height:560px; overflow:hidden; background:#5bc8d4; cursor:pointer; touch-action:manipulation }
+.pool svg.water{ position:absolute; inset:0; width:100%; height:100%; display:block }
+html:not(.pool-ready) .pool svg.water{ opacity:0 }
+.pool svg.water{ transition:opacity .8s ease }
+.pool .frond{ top:-14%; right:-26%; width:min(118vw,760px); opacity:.36; z-index:2 }
+
+.coping{
+  position:absolute; z-index:3; left:0; right:0; top:0;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:calc(env(safe-area-inset-top) + 18px) 22px 0;
+}
+.coping .eyebrow{ color:var(--ink); letter-spacing:.32em }
+.coping .eyebrow + .eyebrow{ color:var(--ink-soft) }
+@media (min-aspect-ratio:1/1){ .coping{ padding-top:clamp(28px,5vh,48px); padding-left:clamp(28px,5vw,64px); padding-right:clamp(28px,5vw,64px) } }
+
+.hint{
+  position:absolute; z-index:3; left:0; right:0; bottom:calc(env(safe-area-inset-bottom) + 26px); text-align:center;
+  font:500 11px/1 var(--support); letter-spacing:.3em; text-transform:uppercase; color:#fff;
+  text-shadow:0 1px 8px rgba(10,70,90,.45); transition:opacity .8s ease;
+  animation:breathe 3.2s ease-in-out infinite;
+}
+.hint.gone{ opacity:0; animation:none }
+@keyframes breathe{ 50%{ opacity:.55 } }
+
+/* the ring a touch sends across the water */
+.ring{
+  position:absolute; z-index:2; width:40px; height:40px; margin:-20px 0 0 -20px; border-radius:50%;
+  border:2px solid rgba(255,255,255,.75); box-shadow:0 0 18px rgba(255,255,255,.35), inset 0 0 12px rgba(255,255,255,.25);
+  pointer-events:none; animation:ring 1.7s cubic-bezier(.15,.6,.3,1) forwards;
+}
+@keyframes ring{
+  0%  { transform:scale(.2); opacity:.95 }
+  100%{ transform:scale(7.5); opacity:0; border-width:.5px }
+}
+
+/* ============================================================
+   THE DAY, ON THE PINK STUCCO, IN FRONT OF THE BREEZE BLOCKS
+   ============================================================ */
+.wall{
+  background:#f4f1ec url("assets/wall.jpg") center 62% / cover;
+  display:flex; justify-content:center; padding-top:clamp(90px,16vh,160px); padding-bottom:clamp(90px,16vh,160px);
+}
+.wall .frond{ top:-8%; right:-20%; z-index:3; opacity:.34 }
+.stucco{
+  position:relative; z-index:2; width:min(100%,460px);
+  background:#f1cfc6 url("assets/stucco.jpg") 70% 30% / cover;
+  padding:54px 30px 44px; text-align:center;
+  box-shadow:0 30px 60px -28px rgba(31,61,68,.55), 0 2px 0 rgba(255,255,255,.4) inset;
+}
+.stucco .eyebrow{ color:var(--coral-dp) }
+.weekday{ margin-top:16px; font:600 clamp(46px,13vw,68px)/.95 var(--display); letter-spacing:-.02em }
+.date{ margin-top:6px; font:italic 500 22px/1.2 var(--display) }
+.time{ margin-top:4px; font:500 14px/1.4 var(--support); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft) }
+.venue{ margin-top:28px; font:600 26px/1.15 var(--display) }
+.addr{ margin-top:6px; font-size:15px; color:var(--ink-soft) }
+.dress{ margin:18px auto 0; max-width:30ch; font:italic 400 17px/1.4 var(--display); color:var(--ink) }
+.dress:empty,.addr:empty,.venue:empty{ display:none }
+.links{ margin-top:30px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px 22px }
+.links a{
+  font:600 11px/1 var(--support); letter-spacing:.24em; text-transform:uppercase; color:var(--ink);
+  text-decoration:none; padding:6px 0; border-bottom:2px solid var(--coral);
+}
+.links a:hover{ color:var(--coral-dp) }
+
+/* ============================================================
+   HOW IT STARTED
+   ============================================================ */
+.plain{ background:var(--cream) }
+.plain .frond{ top:-10%; right:-30%; opacity:.22 }
+.lean{ display:grid; gap:40px; align-items:center }
+@media (min-width:760px){ .lean{ grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:72px } }
+.snap{
+  background:#fff; padding:12px 12px 46px; width:min(86%,380px); margin:0 auto;
+  box-shadow:0 22px 44px -20px rgba(31,61,68,.45); transform:rotate(-2.2deg);
+}
+.snap.in{ transform:rotate(-2.2deg) }
+.snap img{ width:100%; aspect-ratio:4/5; object-fit:cover }
+#story.nophoto .snap{ display:none }
+#story.nophoto .lean{ grid-template-columns:1fr; max-width:640px }
+.words h2{ margin-top:12px }
+.body{ margin-top:16px; color:var(--ink-soft) }
+.body:empty{ display:none }
+
+/* ============================================================
+   THE DAY SHEET, PINNED UP BY THE CABANA
+   ============================================================ */
+.cabana{
+  background:#f3d9d2 url("assets/stripe.jpg") center / cover;
+  display:flex; justify-content:center;
+}
+.sheet{
+  position:relative; width:min(100%,520px); background:#fffdf8; padding:40px 28px 30px;
+  box-shadow:0 26px 50px -24px rgba(90,40,30,.55);
+  transform:rotate(-1deg);
+}
+.sheet.in{ transform:rotate(-1deg) }
+/* the clip it hangs from */
+.sheet::before{
+  content:""; position:absolute; left:50%; top:-14px; width:96px; height:26px; margin-left:-48px; border-radius:6px;
+  background:linear-gradient(180deg,#d9dde0,#a9b0b5); box-shadow:0 3px 6px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.7);
+}
+.sheet-day{ margin-top:8px; font:600 clamp(30px,8vw,40px)/1.05 var(--display) }
+.rows{ list-style:none; padding:0; margin-top:18px }
+.rows li{
+  display:grid; grid-template-columns:76px 1fr; gap:12px; align-items:baseline;
+  padding:14px 0; border-bottom:2px dotted rgba(63,193,207,.65);
+  opacity:0; transform:translateX(-10px); transition:opacity .6s var(--ease), transform .7s var(--ease);
+}
+.rows li:last-child{ border-bottom:0 }
+.sheet.in .rows li{ opacity:1; transform:none }
+.sheet.in .rows li:nth-child(2){ transition-delay:.12s }
+.sheet.in .rows li:nth-child(3){ transition-delay:.24s }
+.sheet.in .rows li:nth-child(4){ transition-delay:.36s }
+.sheet.in .rows li:nth-child(5){ transition-delay:.48s }
+.sheet.in .rows li:nth-child(n+6){ transition-delay:.6s }
+.rows .at{ font:600 21px/1 var(--display); color:var(--ink) }
+.rows .title{ display:block; font:500 17px/1.3 var(--support) }
+.rows .where{ display:block; margin-top:2px; font:italic 400 15px/1.3 var(--display); color:var(--ink-soft) }
+
+/* ============================================================
+   PRINTS DRYING ON THE COPING
+   ============================================================ */
+.coping-ground{ background:var(--stone); text-align:center }
+.coping-ground .frond{ top:auto; bottom:-20%; right:auto; left:-26%; opacity:.28; transform-origin:15% 100% }
+.coping-ground h2{ position:relative; z-index:2 }
+.prints{
+  position:relative; z-index:2; margin:40px auto 0; max-width:1100px;
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px 16px;
+}
+@media (min-width:760px){ .prints{ grid-template-columns:repeat(3,minmax(0,1fr)); gap:36px 30px } }
+.prints figure{ background:#fff; padding:8px 8px 10px; box-shadow:0 16px 30px -16px rgba(31,61,68,.5) }
+.prints figure:nth-child(3n+1){ transform:rotate(-2deg) }
+.prints figure:nth-child(3n+2){ transform:rotate(1.6deg); margin-top:18px }
+.prints figure:nth-child(3n){ transform:rotate(-.8deg) }
+.prints figure.rv{ opacity:0 }
+.prints figure.rv.in{ opacity:1 }
+.prints img{ width:100%; aspect-ratio:1/1; object-fit:cover }
+.prints figcaption{ margin-top:8px; font:italic 400 14px/1.3 var(--display); color:var(--ink-soft) }
+
+/* ============================================================
+   GOOD TO KNOW
+   ============================================================ */
+#faq .wrap{ max-width:640px }
+.asks{ margin-top:26px }
+.asks details{ border-top:2px solid rgba(63,193,207,.55) }
+.asks details:last-child{ border-bottom:2px solid rgba(63,193,207,.55) }
+.asks summary{
+  cursor:pointer; list-style:none; padding:18px 30px 18px 0; position:relative;
+  font:600 19px/1.3 var(--display);
+}
+.asks summary::-webkit-details-marker{ display:none }
+.asks summary::after{ content:"+"; position:absolute; right:4px; top:14px; font:400 24px/1 var(--support); color:var(--coral) }
+.asks details[open] summary::after{ content:"\2013" }
+.asks details p{ padding:0 0 18px; color:var(--ink-soft) }
+
+/* ============================================================
+   THE CABANA TAG, LEFT ON THE TOWEL
+   ============================================================ */
+.poolside{
+  background:#7fd3dc url("assets/poolside.jpg") center 40% / cover;
+  display:flex; justify-content:center; padding-top:clamp(80px,14vh,140px); padding-bottom:clamp(80px,14vh,140px);
+}
+.tagwrap{ position:relative; width:min(100%,430px) }
+.tag{
+  position:relative; background:var(--cream); border-radius:18px; padding:46px 26px 28px; text-align:center;
+  box-shadow:0 30px 60px -26px rgba(10,60,70,.6); transform:rotate(-2.5deg);
+  transition:transform 1.1s cubic-bezier(.5,0,.7,.4), opacity 1s ease, filter 1s ease;
+}
+.grommet{
+  position:absolute; top:16px; left:50%; width:20px; height:20px; margin-left:-10px; border-radius:50%;
+  background:#7fcfd3; box-shadow:inset 0 0 0 5px var(--cream), inset 0 0 0 6px rgba(0,0,0,.08), 0 0 0 1.5px #c4b6a3;
+}
+.tag h2{ margin-top:10px; font-size:clamp(28px,8vw,36px) }
+.tag .by{ margin-top:6px; font-size:14px; color:var(--ink-soft) }
+.tag .by:empty{ display:none }
+.field{ margin-top:18px; text-align:left }
+.field label, .field .label{ display:block; font:600 10.5px/1.2 var(--support); letter-spacing:.22em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px }
+.field input, .field select, .field textarea{
+  width:100%; font:400 16px/1.4 var(--support); color:var(--ink); background:#fff;
+  border:1.5px solid rgba(31,61,68,.22); border-radius:10px; padding:11px 12px;
+}
+.field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--pool-dp); box-shadow:0 0 0 3px rgba(63,193,207,.25) }
+.field.two{ display:grid; grid-template-columns:110px 1fr; gap:12px }
+.choice{ margin-top:20px; display:grid; gap:10px }
+.opt{ position:relative; display:block; cursor:pointer }
+.opt input{ position:absolute; opacity:0 }
+.opt span{
+  display:block; padding:14px; border-radius:40px; border:2px solid var(--ink);
+  font:600 12px/1 var(--support); letter-spacing:.2em; text-transform:uppercase; transition:background .25s, color .25s, border-color .25s;
+}
+.opt.selected span{ background:var(--coral); border-color:var(--coral); color:#fff }
+.opt input:focus-visible + span{ outline:3px solid rgba(63,193,207,.6); outline-offset:2px }
+.send{
+  margin-top:24px; width:100%; padding:16px; border:0; border-radius:40px; cursor:pointer;
+  background:var(--ink); color:#fff; font:600 12px/1 var(--support); letter-spacing:.24em; text-transform:uppercase;
+}
+.send:hover{ background:#163036 }
+.send:disabled{ opacity:.6; cursor:default }
+.err{ margin-top:12px; color:var(--coral-dp); font-size:14px }
+.again{ margin-top:18px; background:none; border:0; border-bottom:2px solid var(--coral); padding:6px 0; cursor:pointer; font:600 11px/1 var(--support); letter-spacing:.22em; text-transform:uppercase; color:var(--ink) }
+.hp{ position:absolute; left:-9999px }
+
+/* the tag goes in the pool: it tips, sinks and blurs into the water */
+.tagwrap.dropping .tag{ transform:rotate(14deg) translateY(55vh) scale(.55); opacity:0; filter:blur(3px) }
+.splash{ position:absolute; left:50%; bottom:10%; width:60px; height:60px; margin-left:-30px; border-radius:50%; pointer-events:none; opacity:0 }
+.tagwrap.dropping .splash{ animation:splash 1.2s .75s ease-out }
+@keyframes splash{
+  0%  { opacity:.9; transform:scale(.2); box-shadow:0 0 0 2px rgba(255,255,255,.9) }
+  100%{ opacity:0; transform:scale(6); box-shadow:0 0 0 1px rgba(255,255,255,0) }
+}
+/* and the answer comes up in its place */
+.tagwrap.surfaced .taken{ animation:surface 1.2s var(--ease) }
+@keyframes surface{
+  0%  { opacity:0; transform:rotate(3deg) translateY(30px) scale(.94); filter:blur(2px) }
+  100%{ opacity:1; transform:rotate(-2.5deg); filter:none }
+}
+.taken h2{ font-style:italic }
+
+/* ============================================================
+   THE LAST LINE, IN TILE
+   ============================================================ */
+.pool.end{ height:62svh; min-height:420px }
+
+footer{
+  display:flex; justify-content:space-between; gap:16px; padding:22px; background:var(--ink); color:rgba(255,255,255,.75);
+  font:500 11px/1.3 var(--support); letter-spacing:.24em; text-transform:uppercase;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .sway, .hint{ animation:none }
+  .rv, .rows li{ opacity:1; transform:none; transition:none }
+  .tag{ transition:none }
+}

@@ -1,0 +1,208 @@
+/* ============================================================
+   PALM SHADOW
+   Honey limestone, oatmeal linen and a cotton card in late sun. Every
+   surface is a photograph made for this design (assets/, see
+   CREDITS.txt). Cormorant Garamond for the words, Jost for the small
+   capitals, and nothing drawn: the palm is only ever its shadow.
+   ============================================================ */
+:root{
+  --ink:#3b2c20;
+  --ink-soft:#6f5a46;
+  --bronze:#9a7b58;
+  --stone:#efe4d2;
+  --linen:#e7dccb;
+  --cotton:#faf5ec;
+  --display:'Cormorant Garamond', Georgia, serif;
+  --support:'Jost', 'Helvetica Neue', Arial, sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{ box-sizing:border-box }
+html{ -webkit-text-size-adjust:100% }
+body{
+  margin:0; background:var(--stone); color:var(--ink);
+  font-family:var(--support); font-size:17px; line-height:1.6;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+h1,h2,h3,p,figure,ol{ margin:0 }
+img{ display:block; max-width:100% }
+a{ color:inherit }
+.luma-empty{ display:none !important }
+[hidden]{ display:none !important }
+
+.eyebrow{ font:500 11px/1.3 var(--support); letter-spacing:.32em; text-transform:uppercase; color:var(--ink-soft) }
+.center{ text-align:center }
+.rule{ display:block; width:44px; height:1px; background:var(--bronze); margin:18px auto }
+h2{ font:italic 400 clamp(32px,8vw,48px)/1.08 var(--display); color:var(--ink) }
+
+.rv{ opacity:0; transform:translateY(16px); transition:opacity 1.4s var(--ease), transform 1.6s var(--ease) }
+.rv.in{ opacity:1; transform:none }
+
+/* the shadow that drifts down the page with the guest */
+.drift{
+  position:fixed; z-index:40; pointer-events:none; top:0; left:0;
+  width:max(110vmin,620px); height:auto; opacity:.15; mix-blend-mode:multiply;
+  transform:translate3d(-8vw,-10vh,0) rotate(-14deg); transform-origin:30% 20%;
+  will-change:transform;
+}
+
+/* ============================================================
+   THE WALL
+   ============================================================ */
+.wall{
+  position:relative; height:100svh; min-height:600px; overflow:hidden;
+  background:#e8c690 url("assets/wall.jpg") center / cover;
+  display:flex; justify-content:center; align-items:flex-start;
+  padding:calc(env(safe-area-inset-top) + 13vh) 26px 0;
+}
+@media (min-aspect-ratio:1/1){
+  .wall{ background-image:url("assets/wall-wide.jpg"); align-items:center; padding-top:0; padding-bottom:8vh }
+}
+/* the sun on the wall is never quite still */
+.light{
+  position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(70% 55% at 55% 35%, rgba(255,226,170,.38), transparent 70%);
+  animation:light 14s ease-in-out infinite alternate;
+}
+@keyframes light{ from{ opacity:.35 } to{ opacity:1 } }
+.names{ position:relative; z-index:2; text-align:center; max-width:560px }
+.above{ font:500 11px/1.4 var(--support); letter-spacing:.32em; text-transform:uppercase; color:var(--ink-soft) }
+.wall h1{ font:italic 400 clamp(60px,17vw,112px)/.92 var(--display); color:#33251a; letter-spacing:-.01em }
+.wall h1 .n{ display:block }
+.wall h1 .amp{ display:block; font-size:.55em; line-height:1.2; color:var(--bronze) }
+.when{ font:italic 400 clamp(21px,5.6vw,28px)/1.25 var(--display) }
+.where{ margin-top:10px; font:500 11px/1.5 var(--support); letter-spacing:.3em; text-transform:uppercase; color:var(--ink-soft) }
+
+.sec{ position:relative; padding:clamp(76px,13vh,136px) 24px }
+.stone{ background:var(--stone) url("assets/stone.jpg") center top / 520px 520px repeat }
+.linen{ background:var(--linen) }
+.wrap{ position:relative; max-width:980px; margin:0 auto }
+.wrap.narrow{ max-width:620px }
+
+/* ============================================================
+   THE DAY, ON THE COTTON CARD
+   The photograph is drawn half as large again and centred, so the
+   card fills most of the frame; the words are set within the card.
+   ============================================================ */
+#the-day{ background:#d9cbb4; padding-left:0; padding-right:0; display:flex; flex-direction:column; align-items:center }
+.card-photo{
+  position:relative; width:min(100%,600px); aspect-ratio:3/4; overflow:hidden; container-type:inline-size;
+}
+.card-photo::before{
+  content:""; position:absolute; left:-25%; top:-25%; width:150%; height:150%;
+  background:url("assets/card.jpg") center / 100% 100%;
+}
+.on-card{
+  position:absolute; left:16%; right:17%; top:17%; bottom:14%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:#35271b;
+}
+.on-card .eyebrow{ font-size:max(10px,2.6cqw) }
+.on-card .hour{ margin-top:3cqw; font:italic 400 7.4cqw/1.1 var(--display) }
+.on-card .venue{ margin-top:4cqw; font:500 5.6cqw/1.15 var(--display) }
+.on-card .addr{ margin-top:1.2cqw; font:400 max(12px,3.4cqw)/1.35 var(--display) }
+.on-card .rule{ width:9cqw; margin:4cqw auto }
+.on-card .dress{ font:italic 400 max(12px,3.4cqw)/1.35 var(--display); max-width:44cqw }
+.on-card .addr:empty, .on-card .dress:empty, .on-card .venue:empty{ display:none }
+.links{ margin-top:28px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px 24px; padding:0 24px }
+.links a{ font:500 11px/1 var(--support); letter-spacing:.26em; text-transform:uppercase; text-decoration:none; padding:6px 0; border-bottom:1px solid var(--bronze) }
+
+/* ============================================================
+   HOW IT STARTED
+   ============================================================ */
+.lean{ display:grid; gap:44px; align-items:center }
+@media (min-width:760px){ .lean{ grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); gap:80px } }
+.frame{ background:var(--cotton); padding:12px; width:min(84%,380px); margin:0 auto; box-shadow:0 24px 48px -26px rgba(60,40,20,.55) }
+.frame img{ width:100%; aspect-ratio:4/5; object-fit:cover; filter:sepia(.12) saturate(.92) }
+#story.nophoto .frame{ display:none }
+#story.nophoto .lean{ grid-template-columns:1fr; max-width:620px; text-align:center }
+.words h2{ margin-top:12px }
+.body{ margin-top:16px; color:var(--ink-soft); font:400 20px/1.55 var(--display) }
+.body:empty{ display:none }
+
+/* ============================================================
+   THE ORDER OF THE DAY
+   ============================================================ */
+.rows{ list-style:none; padding:0; margin-top:22px }
+.rows li{ display:grid; grid-template-columns:78px 1fr; gap:16px; align-items:baseline; padding:18px 0; border-bottom:1px solid rgba(59,44,32,.18) }
+.rows .at{ font:500 24px/1 var(--display) }
+.rows .title{ display:block; font:italic 400 24px/1.2 var(--display) }
+.rows .where{ display:block; margin-top:4px; font:500 10.5px/1.3 var(--support); letter-spacing:.24em; text-transform:uppercase; color:var(--ink-soft) }
+
+/* ============================================================
+   PHOTOGRAPHS
+   ============================================================ */
+.prints{ margin-top:40px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px }
+@media (min-width:760px){ .prints{ grid-template-columns:repeat(3,minmax(0,1fr)); gap:30px } }
+.prints figure{ background:var(--cotton); padding:8px; box-shadow:0 18px 34px -22px rgba(60,40,20,.6) }
+.prints figure:nth-child(2n){ margin-top:26px }
+.prints img{ width:100%; aspect-ratio:4/5; object-fit:cover; filter:sepia(.1) saturate(.92) }
+.prints figcaption{ margin-top:8px; font:italic 400 15px/1.3 var(--display); color:var(--ink-soft); text-align:center }
+
+/* ============================================================
+   GOOD TO KNOW
+   ============================================================ */
+.asks{ margin-top:26px }
+.asks details{ border-top:1px solid rgba(59,44,32,.2) }
+.asks details:last-child{ border-bottom:1px solid rgba(59,44,32,.2) }
+.asks summary{ cursor:pointer; list-style:none; padding:18px 30px 18px 0; position:relative; font:italic 400 22px/1.3 var(--display) }
+.asks summary::-webkit-details-marker{ display:none }
+.asks summary::after{ content:"+"; position:absolute; right:4px; top:16px; font:300 24px/1 var(--support); color:var(--bronze) }
+.asks details[open] summary::after{ content:"\2013" }
+.asks details p{ padding:0 0 20px; color:var(--ink-soft); font:400 19px/1.55 var(--display) }
+
+/* ============================================================
+   THE REPLY
+   ============================================================ */
+#rsvp{ padding-top:0; display:flex; flex-direction:column; align-items:center }
+.reply-photo{
+  width:calc(100% + 48px); max-width:none; margin:0 -24px; aspect-ratio:3/2;
+  background:url("assets/reply.jpg") 62% 68% / cover;
+}
+@media (min-width:760px){ .reply-photo{ width:min(100%,900px); margin:0; aspect-ratio:16/9 } }
+.reply{ position:relative; width:min(100%,480px); margin-top:-64px }
+.cotton{
+  background:var(--cotton); padding:42px 28px 32px; text-align:center;
+  box-shadow:0 30px 60px -32px rgba(60,40,20,.6);
+  transition:transform .9s cubic-bezier(.5,0,.7,.4), opacity .8s ease;
+}
+.cotton .by{ margin-top:6px; color:var(--ink-soft); font:italic 400 18px/1.4 var(--display) }
+.cotton .by:empty{ display:none }
+.field{ margin-top:20px; text-align:left }
+.field label{ display:block; font:500 10.5px/1.2 var(--support); letter-spacing:.24em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px }
+.field input, .field select, .field textarea{
+  width:100%; font:400 17px/1.4 var(--display); color:var(--ink); background:transparent;
+  border:0; border-bottom:1px solid rgba(59,44,32,.35); border-radius:0; padding:8px 2px;
+}
+.field select{ font-family:var(--support); font-size:16px }
+.field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-bottom-color:var(--ink) }
+.field.two{ display:grid; grid-template-columns:110px 1fr; gap:14px }
+.choice{ margin-top:22px; display:grid; grid-template-columns:1fr 1fr; gap:10px }
+.opt{ position:relative; display:block; cursor:pointer }
+.opt input{ position:absolute; opacity:0 }
+.opt span{ display:block; padding:14px 8px; border:1px solid var(--ink); font:500 11px/1 var(--support); letter-spacing:.26em; text-transform:uppercase; transition:background .3s, color .3s }
+.opt.selected span{ background:var(--ink); color:var(--cotton) }
+.opt input:focus-visible + span{ outline:2px solid var(--bronze); outline-offset:3px }
+.send{ margin-top:26px; width:100%; padding:16px; border:0; cursor:pointer; background:var(--ink); color:var(--cotton); font:500 11px/1 var(--support); letter-spacing:.28em; text-transform:uppercase }
+.send:disabled{ opacity:.6; cursor:default }
+.err{ margin-top:12px; color:#9a3b2a; font-size:14px }
+.again{ margin-top:18px; background:none; border:0; border-bottom:1px solid var(--bronze); padding:6px 0; cursor:pointer; font:500 11px/1 var(--support); letter-spacing:.24em; text-transform:uppercase; color:var(--ink) }
+.hp{ position:absolute; left:-9999px }
+/* the card slips down out of sight, as into an envelope */
+.reply.sending .cotton{ transform:translateY(40px) scale(.96); opacity:0 }
+.reply.sent .taken{ animation:arrive 1.2s var(--ease) }
+@keyframes arrive{ from{ opacity:0; transform:translateY(-14px) } to{ opacity:1; transform:none } }
+
+/* ============================================================
+   THE CLOSE
+   ============================================================ */
+.wall.end{ height:72svh; min-height:460px; align-items:center; padding-top:0 }
+.written{ font:italic 400 clamp(46px,12vw,84px)/1 var(--display); color:#33251a }
+.closing{ margin-top:14px; font:500 11px/1.5 var(--support); letter-spacing:.3em; text-transform:uppercase; color:var(--ink-soft) }
+.closing:empty{ display:none }
+
+footer{ display:flex; justify-content:space-between; gap:16px; padding:22px 24px; background:#2c2118; color:rgba(250,245,236,.7); font:500 11px/1.3 var(--support); letter-spacing:.24em; text-transform:uppercase }
+
+@media (prefers-reduced-motion: reduce){
+  .light{ animation:none }
+  .rv{ opacity:1; transform:none; transition:none }
+  .cotton{ transition:none }
+}
