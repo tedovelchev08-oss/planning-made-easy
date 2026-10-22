@@ -4,8 +4,8 @@ import { resolve } from "node:path";
 import { STUDIO_DESIGNS } from "../../api/_lib/studioDesigns";
 
 /**
- * Block 18c: every design in the catalogue has a guest page, wired to Luma
- * the same way, with nothing fetched from outside Luma and no sample couple
+ * Block 18c: every design in the catalogue has a guest page, wired to Twofold
+ * the same way, with nothing fetched from outside Twofold and no sample couple
  * or stock photo in its markup.
  */
 const page = (id: string) => resolve(__dirname, `../../public/designs/${id}/index.html`);
@@ -39,7 +39,7 @@ describe.each(STUDIO_DESIGNS.map((d) => [d.id]))("public/designs/%s", (id) => {
   });
 
   // the template's stock lines, which read as generated rather than written
-  // the original kit's calendar link pointed at a Netlify function Luma doesn't have
+  // the original kit's calendar link pointed at a Netlify function Twofold doesn't have
   it("never sends a guest to a Netlify calendar function", () => {
     const js = existsSync(resolve(__dirname, `../../public/designs/${id}/design.js`)) ? readFileSync(resolve(__dirname, `../../public/designs/${id}/design.js`), "utf8") : "";
     const branch = js.indexOf("/.netlify/functions/calendar");
@@ -52,7 +52,7 @@ describe.each(STUDIO_DESIGNS.map((d) => [d.id]))("public/designs/%s", (id) => {
 });
 
 /*
- * Designs with their own RSVP handler (patched for Luma) must read the form
+ * Designs with their own RSVP handler (patched for Twofold) must read the form
  * BEFORE disabling its fields: disabled fields are left out of FormData, so
  * the answer would arrive empty (it did, once, in Riviera's first patch).
  */

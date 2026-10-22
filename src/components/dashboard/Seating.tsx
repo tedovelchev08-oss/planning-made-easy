@@ -29,9 +29,9 @@ const SKIN: Record<TableSkin, { surface: string; ring: string; ink: string; sub:
   linen: {
     surface:
       "linear-gradient(145deg,#FFFDFA 0%,#FBF4EA 55%,#F6EBDC 100%)",
-    ring: "rgb(212 175 55 / 0.30)",
-    ink: "#332B31",
-    sub: "#96868D",
+    ring: "rgb(201 168 106 / 0.30)",
+    ink: "#0f0e0d",
+    sub: "#8c826f",
   },
   marble: {
     surface:
@@ -49,10 +49,10 @@ const SKIN: Record<TableSkin, { surface: string; ring: string; ink: string; sub:
   },
   noir: {
     surface:
-      "linear-gradient(145deg,#3B333A 0%,#2C262C 55%,#231E23 100%)",
-    ring: "rgb(212 175 55 / 0.45)",
-    ink: "#FFF8F0",
-    sub: "rgb(255 248 240 / 0.55)",
+      "linear-gradient(145deg,#2A2621 0%,#1A1815 55%,#0F0E0D 100%)",
+    ring: "rgb(201 168 106 / 0.45)",
+    ink: "#f7f2e8",
+    sub: "rgb(247 242 232 / 0.55)",
   },
 };
 
@@ -107,12 +107,12 @@ export function arrowDelta(key: string, shift: boolean): { dx: number; dy: numbe
  * must never compete with a table for attention.
  */
 const VENUE_STYLE: Record<FloorObjectKind, { fill: string; edge: string; ink: string; dashed?: boolean }> = {
-  dance: { fill: "repeating-linear-gradient(45deg,rgb(212 175 55 / 0.10) 0 14px,rgb(212 175 55 / 0.04) 14px 28px)", edge: "rgb(212 175 55 / 0.40)", ink: "#A8891F" },
-  stage: { fill: "linear-gradient(160deg,rgb(51 43 49 / 0.10),rgb(51 43 49 / 0.05))", edge: "rgb(51 43 49 / 0.28)", ink: "#5C4F55" },
-  bar: { fill: "linear-gradient(160deg,rgb(169 139 212 / 0.16),rgb(169 139 212 / 0.07))", edge: "rgb(167 139 212 / 0.42)", ink: "#7E5FB0" },
-  entrance: { fill: "transparent", edge: "rgb(51 43 49 / 0.30)", ink: "#96868D", dashed: true },
-  cake: { fill: "linear-gradient(160deg,rgb(255 181 194 / 0.22),rgb(255 181 194 / 0.10))", edge: "rgb(233 139 160 / 0.45)", ink: "#E98BA0" },
-  photo: { fill: "linear-gradient(160deg,rgb(168 197 160 / 0.20),rgb(168 197 160 / 0.08))", edge: "rgb(116 153 107 / 0.42)", ink: "#74996B" },
+  dance: { fill: "repeating-linear-gradient(45deg,rgb(201 168 106 / 0.10) 0 14px,rgb(201 168 106 / 0.04) 14px 28px)", edge: "rgb(201 168 106 / 0.40)", ink: "#9a7a3f" },
+  stage: { fill: "linear-gradient(160deg,rgb(15 14 13 / 0.10),rgb(15 14 13 / 0.05))", edge: "rgb(15 14 13 / 0.28)", ink: "#4a443b" },
+  bar: { fill: "linear-gradient(160deg,rgb(140 130 111 / 0.16),rgb(140 130 111 / 0.07))", edge: "rgb(140 130 111 / 0.42)", ink: "#6F6553" },
+  entrance: { fill: "transparent", edge: "rgb(15 14 13 / 0.30)", ink: "#8c826f", dashed: true },
+  cake: { fill: "linear-gradient(160deg,rgb(227 207 165 / 0.22),rgb(227 207 165 / 0.10))", edge: "rgb(154 122 63 / 0.45)", ink: "#9a7a3f" },
+  photo: { fill: "linear-gradient(160deg,rgb(180 185 159 / 0.20),rgb(180 185 159 / 0.08))", edge: "rgb(102 112 79 / 0.42)", ink: "#66704f" },
 };
 
 /**
@@ -544,11 +544,11 @@ export default function Seating() {
                   width: size.w,
                   height: size.h,
                   background: isSweet
-                    ? "linear-gradient(145deg,#FFF1F4 0%,#FFE4EA 100%)"
+                    ? "linear-gradient(145deg,#f8f1e4 0%,#f2e8d6 100%)"
                     : SKIN[skinOf(t)].surface,
                   // a single hairline ring plus an inner highlight reads as a
                   // laid surface; the old 2px dashed outline read as a wireframe
-                  boxShadow: `0 0 0 1px ${isSweet ? "rgb(233 139 160 / 0.45)" : SKIN[skinOf(t)].ring}, inset 0 1px 0 rgb(255 255 255 / 0.55)`,
+                  boxShadow: `0 0 0 1px ${isSweet ? "rgb(154 122 63 / 0.45)" : SKIN[skinOf(t)].ring}, inset 0 1px 0 rgb(255 255 255 / 0.55)`,
                 }}
               >
                 <button onClick={() => setSettings({ ...t })} aria-label={`Settings for ${t.name}`} className="absolute -right-2 -top-2 z-10 rounded-full bg-ink p-1.5 text-cream opacity-70 shadow-card transition hover:bg-gold-deep hover:opacity-100 cursor-pointer">
@@ -557,13 +557,13 @@ export default function Seating() {
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
                   <p
                     className="max-w-[80%] truncate font-display text-[1rem] tracking-tight"
-                    style={{ color: isSweet ? "#332B31" : SKIN[skinOf(t)].ink }}
+                    style={{ color: isSweet ? "#0f0e0d" : SKIN[skinOf(t)].ink }}
                   >
                     {t.name}
                   </p>
                   <p
                     className="flex items-center gap-1 text-[0.62rem] font-extrabold"
-                    style={{ color: at.length > t.capacity ? "#E98BA0" : isSweet ? "#96868D" : SKIN[skinOf(t)].sub }}
+                    style={{ color: at.length > t.capacity ? "#9a7a3f" : isSweet ? "#8c826f" : SKIN[skinOf(t)].sub }}
                   >
                     {/* Over capacity carried an icon and a word, not just a tint —
                         colour alone is not an accessible signal, and 12 people at an

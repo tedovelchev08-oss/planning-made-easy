@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-/** Plaster on Luma: luma-plaster.js addresses the envelope and prints the card on the real page. */
+/** Plaster on Twofold: luma-plaster.js addresses the envelope and prints the card on the real page. */
 const dir = resolve(__dirname, "../../public/designs/plaster");
 const HTML = readFileSync(resolve(dir, "index.html"), "utf8");
 const JS = readFileSync(resolve(dir, "luma-plaster.js"), "utf8");
@@ -25,7 +25,7 @@ async function render(data: Record<string, unknown>) {
 }
 const text = (sel: string) => document.querySelector(sel)!.textContent!.replace(/\s+/g, " ").trim();
 
-describe("Plaster on Luma (luma-plaster.js)", () => {
+describe("Plaster on Twofold (luma-plaster.js)", () => {
   it("prints the card and addresses the envelope", async () => {
     await render(couple);
     expect(text("#cardWhen")).toBe("Saturday 12 June");

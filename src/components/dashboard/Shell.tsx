@@ -99,7 +99,7 @@ export default function Shell() {
       await deleteAccount(deleteConfirm.trim());
       setDeleteInfo(false);
       signOut(); // clears this device's copy of the planner and any unsaved edits
-      toast("Your account is deleted", "Thank you for planning with Luma.");
+      toast("Your account is deleted", "Thank you for planning with Twofold.");
     } catch (err) {
       setDeleteError((err as Error).message);
     } finally {
@@ -427,7 +427,7 @@ export default function Shell() {
               className="relative h-full bg-gradient-to-r from-gold via-blush-deep to-sage-deep"
             >
               <span className="absolute -top-[5px] right-0 flex h-3 w-3 -translate-y-0 items-center justify-center">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="#E98BA0" className="drop-shadow-sm"><path d="M12 21S3.5 15.4 1.6 10.6C.3 7.3 2.4 4 5.8 4c2.4 0 4 1.4 6.2 3.8C14.2 5.4 15.8 4 18.2 4c3.4 0 5.5 3.3 4.2 6.6C20.5 15.4 12 21 12 21z" /></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#9a7a3f" className="drop-shadow-sm"><path d="M12 21S3.5 15.4 1.6 10.6C.3 7.3 2.4 4 5.8 4c2.4 0 4 1.4 6.2 3.8C14.2 5.4 15.8 4 18.2 4c3.4 0 5.5 3.3 4.2 6.6C20.5 15.4 12 21 12 21z" /></svg>
               </span>
             </motion.div>
           </div>

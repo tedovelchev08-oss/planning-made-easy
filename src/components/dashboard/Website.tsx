@@ -173,7 +173,7 @@ export function SiteBody({ w, db, anim, onRsvp, footer = true }: {
         <SectionFade>
           <div className="px-8 pb-14 text-center sm:px-12">
             <h3 className="text-2xl" style={{ fontWeight: w.serif ? 600 : 800 }}>Will you join us?</h3>
-            <p className="mx-auto mt-2 max-w-sm text-[0.85rem] opacity-70">Your RSVP lands straight in our Luma planner — meals, plus-ones and all.</p>
+            <p className="mx-auto mt-2 max-w-sm text-[0.85rem] opacity-70">Your RSVP lands straight in our Twofold planner — meals, plus-ones and all.</p>
             <button onClick={onRsvp} className="mt-5 rounded-full px-7 py-3 text-[0.85rem] font-bold text-[#FFF8F0] transition hover:opacity-90 cursor-pointer" style={{ background: w.ink }}>
               RSVP now
             </button>
@@ -195,7 +195,7 @@ export function SiteBody({ w, db, anim, onRsvp, footer = true }: {
 
       {footer && (
         <p className="border-t px-6 py-5 text-center text-[0.6rem] tracking-[0.3em] opacity-45" style={{ borderColor: `${w.accent}33` }}>
-          MADE WITH LUMA
+          MADE WITH TWOFOLD
         </p>
       )}
     </div>

@@ -7,7 +7,7 @@ import { FinalCta, Footer } from "../components/marketing/Closing";
 
 export default function Home() {
   useEffect(() => {
-    document.title = "Luma — Plan the feeling, not just the wedding";
+    document.title = "Twofold — Two of you. One plan.";
   }, []);
 
   return (

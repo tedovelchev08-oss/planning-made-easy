@@ -128,7 +128,7 @@ export default function CalendarCard() {
             >
               {n}
               <span className="mt-0.5 flex h-1.5 items-center gap-[3px]">
-                {info?.wedding && <Heart size={7} fill={isSel ? "#FFB5C2" : "#E98BA0"} className={isSel ? "text-blush" : "text-blush-deep"} />}
+                {info?.wedding && <Heart size={7} fill={isSel ? "#e3cfa5" : "#9a7a3f"} className={isSel ? "text-blush" : "text-blush-deep"} />}
                 {info?.deadline && !info.wedding && <span className={`h-1.5 w-1.5 rounded-full ${isSel ? "bg-lav" : "bg-lav-deep"}`} />}
                 {info && info.tasks.filter((t) => !t.done).slice(0, 2).map((t) => (
                   <span key={t.id} className={`h-1.5 w-1.5 rounded-full ${isSel ? "bg-gold" : "bg-gold-deep"}`} />
@@ -167,7 +167,7 @@ export default function CalendarCard() {
             <ul className="mt-3 space-y-2">
               {sel.wedding && (
                 <li className="flex items-center gap-3 rounded-xl bg-blush-soft/70 px-3.5 py-2.5">
-                  <Heart size={15} fill="#E98BA0" className="text-blush-deep" />
+                  <Heart size={15} fill="#9a7a3f" className="text-blush-deep" />
                   <span className="flex-1 text-[0.88rem] font-extrabold text-ink">The wedding day</span>
                   <span className="font-display text-[0.8rem] italic text-blush-deep">at last</span>
                 </li>
@@ -190,7 +190,7 @@ export default function CalendarCard() {
                   >
                     <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all ${t.done ? "border-sage-deep bg-sage-deep" : "border-ink/25 group-hover:border-gold"}`}>
                       {t.done && (
-                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#FFF8F0" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f7f2e8" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M4.5 12.5l5 5 10-11" className="check-draw" />
                         </svg>
                       )}
@@ -214,7 +214,7 @@ export default function CalendarCard() {
         <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-gold-deep" /> task due</span>
         <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-sage-deep/70" /> all done</span>
         <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-lav-deep" /> RSVP deadline</span>
-        <span className="flex items-center gap-1.5"><Heart size={8} fill="#E98BA0" className="text-blush-deep" /> wedding day</span>
+        <span className="flex items-center gap-1.5"><Heart size={8} fill="#9a7a3f" className="text-blush-deep" /> wedding day</span>
       </div>
     </section>
   );

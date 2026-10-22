@@ -344,7 +344,7 @@ function LivePreview({ onClose }: { onClose: () => void }) {
             </div>
 
             <p className="border-t px-8 py-6 text-center text-[0.7rem] tracking-[0.25em] opacity-50" style={{ borderColor: `${colors.accent}33` }}>
-              MADE WITH LUMA · {db.website.domain.toUpperCase()}
+              MADE WITH TWOFOLD · {db.website.domain.toUpperCase()}
             </p>
           </div>
         </div>
@@ -472,7 +472,7 @@ export default function Invitations() {
           <div className="flex flex-wrap gap-3">
             <button onClick={() => (studio ? openStudioPreview(db, studio) : setLive(true))} className={`${btn.ink} !py-3`}><Play size={14} /> Live preview</button>
             <a href="#/invite" target="_blank" rel="noreferrer" className={`${btn.outline} !py-3`}><Link2 size={14} /> Guest page</a>
-            {/* Luma does not email guests. This used to fake a "Send to N guests"
+            {/* Twofold does not email guests. This used to fake a "Send to N guests"
                 run ("Invitations sent… via Resend") while nothing left the app.
                 It now leads to the share card, whose links really work. */}
             <button onClick={shareWithGuests} className={`${btn.blush} !py-3`}><Send size={14} /> Share with guests</button>
@@ -987,7 +987,7 @@ export function RsvpTracker() {
     toast("Confident RSVPs synced", `${applied} merged — fuzzy ones are below for a quick yes/no.`);
   };
 
-  /** a ready-to-paste reminder — Luma doesn't send it, the couple does */
+  /** a ready-to-paste reminder — Twofold doesn't send it, the couple does */
   const remind = async () => {
     const when = fmtDate(db.wedding.date, { month: "long", day: "numeric", year: "numeric" });
     const text = `A gentle reminder: ${db.wedding.names} would love to know if you can join them on ${when}. You can RSVP in one tap here: ${guestLink({ slug: db.wedding.slug, src: "link" })}`;
@@ -1344,7 +1344,7 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
         <p className="mt-2 text-[0.85rem] leading-relaxed text-ink-2">
           Bring an invitation you made yourself: a <strong className="text-ink">complete HTML design</strong> (it runs live
           and interactive, exactly as you built it) or flat PNG/JPG artwork. Your guests still RSVP beneath it, with meal
-          choices and notes, just like any Luma design.
+          choices and notes, just like any Twofold design.
         </p>
 
         <button

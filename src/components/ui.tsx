@@ -17,19 +17,17 @@ import { Turnstile, turnstileSiteKey, type TurnstileHandle } from "./Turnstile";
 /* ------------------------------ logo ------------------------------ */
 
 export function Logo({ dark = false, className = "" }: { dark?: boolean; className?: string }) {
+  // the Twofold wordmark: the two O's are her ring (with its solitaire) and his band
   return (
-    <span className={`inline-flex items-center gap-2 select-none ${className}`}>
-      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="M12 20.6S4.9 16 2.7 11.9C1.3 9.2 3 5.9 6.2 5.9c2 0 3.3 1.1 4 2.2h3.6c.7-1.1 2-2.2 4-2.2 3.2 0 4.9 3.3 3.5 6-2.2 4.1-9.3 8.7-9.3 8.7z"
-          fill="none" stroke="#D4AF37" strokeWidth="1.7" strokeLinejoin="round"
-        />
-        <path d="M12 20.6S4.9 16 2.7 11.9C1.3 9.2 3 5.9 6.2 5.9c2 0 3.3 1.1 4 2.2h3.6c.7-1.1 2-2.2 4-2.2 3.2 0 4.9 3.3 3.5 6-2.2 4.1-9.3 8.7-9.3 8.7z"
-          fill="#D4AF37" fillOpacity="0.16" stroke="none" />
-      </svg>
-      <span className={`font-display text-[1.45rem] leading-none tracking-tight ${dark ? "text-cream" : "text-ink"}`}>
-        luma
-      </span>
+    <span className={`inline-flex items-center select-none ${className}`}>
+      <img
+        src={dark ? "/brand/twofold-wordmark-on-dark.svg" : "/brand/twofold-wordmark-on-light.svg"}
+        alt="Twofold"
+        width={132}
+        height={22}
+        className="block h-[22px] w-auto"
+        draggable={false}
+      />
     </span>
   );
 }
@@ -196,9 +194,9 @@ export function EmptyState({ title, body, action }: { title: string; body: strin
   return (
     <div className="flex flex-col items-center justify-center rounded-[1.6rem] border border-dashed border-ink/15 bg-white/50 px-8 py-16 text-center">
       <svg width="54" height="54" viewBox="0 0 48 48" fill="none" aria-hidden="true" className="mb-5 anim-bob-sm">
-        <rect x="6" y="14" width="36" height="24" rx="4" stroke="#D4AF37" strokeWidth="2" />
-        <path d="M6 17l18 12 18-12" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M24 7.5s-3-2-4.9-0.6c-1.6 1.2-1 3.6 0.5 4.8L24 15l4.4-3.3c1.5-1.2 2.1-3.6 0.5-4.8C27 5.5 24 7.5 24 7.5z" fill="#FFB5C2" />
+        <rect x="6" y="14" width="36" height="24" rx="4" stroke="#c9a86a" strokeWidth="2" />
+        <path d="M6 17l18 12 18-12" stroke="#c9a86a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M24 7.5s-3-2-4.9-0.6c-1.6 1.2-1 3.6 0.5 4.8L24 15l4.4-3.3c1.5-1.2 2.1-3.6 0.5-4.8C27 5.5 24 7.5 24 7.5z" fill="#e3cfa5" />
       </svg>
       <h3 className="font-display text-2xl text-ink">{title}</h3>
       <p className="mt-2 max-w-sm text-[0.95rem] leading-relaxed text-ink-2">{body}</p>
@@ -299,7 +297,7 @@ export function UpgradeModal() {
       {feature && plan && (
         <div className="p-7 sm:p-9">
           <p className="flex items-center gap-2 text-[0.7rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
-            <Sparkles size={13} /> {atLimit ? "Your celebration is growing" : "A premium Luma feature"}
+            <Sparkles size={13} /> {atLimit ? "Your celebration is growing" : "A premium Twofold feature"}
           </p>
           <h2 className="mt-3 font-display text-[1.9rem] leading-tight text-ink">
             {atLimit ? `You've reached the ${PLANS.essential.name} guest limit.` : feature.title}
@@ -754,7 +752,7 @@ export function AuthModal() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.includes("@")) { setError("Enter the email address you use for Luma."); return; }
+    if (!email.includes("@")) { setError("Enter the email address you use for Twofold."); return; }
     if (mode !== "reset" && password.length < 6) { setError("Passwords need at least 6 characters."); return; }
     void run(async (t) => {
       if (mode === "reset") {
@@ -768,7 +766,7 @@ export function AuthModal() {
         const { data, error: err } = await authApi.signUp(email, password, t);
         if (err) throw new Error(err.message);
         if (!data.session) { setFlow("check-inbox"); return; } // email confirmation pending
-        toast("Welcome to Luma", "Your account is ready. Let's set up your wedding.");
+        toast("Welcome to Twofold", "Your account is ready. Let's set up your wedding.");
         setAuthOpen(false);
         return;
       }
@@ -974,7 +972,7 @@ export function OnboardingModal() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (names.trim().length < 3) { setError("Whose wedding is it? Give Luma two names."); return; }
+    if (names.trim().length < 3) { setError("Whose wedding is it? Give Twofold two names."); return; }
     if (!date) { setError("Pick a date — even a rough one. It anchors the whole plan."); return; }
     if (!venue.trim()) { setError("A venue (or a city) gives the plan a home."); return; }
     const parts = names.split(/\s+(&|and)\s+/i);
@@ -1128,57 +1126,57 @@ export function FeatureIcon({ name, className = "" }: { name: string; className?
     case "flow": // guest flow — two figures + orbiting dot
       return (
         <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-          <circle cx="18" cy="17" r="6" stroke="#EE8FA1" {...common} />
-          <path d="M7 38c1.2-6.4 5.5-10 11-10s9.8 3.6 11 10" stroke="#EE8FA1" {...common} />
-          <circle cx="33" cy="15" r="4.5" stroke="#D4AF37" {...common} />
-          <path d="M26.5 34c1-4.6 3.6-7.4 7.5-7.4 3 0 5.4 1.6 6.8 4.4" stroke="#D4AF37" {...common} />
-          <circle cx="40" cy="24" r="2.2" fill="#A8C5A0" className="anim-pulse-soft" />
+          <circle cx="18" cy="17" r="6" stroke="#b8964f" {...common} />
+          <path d="M7 38c1.2-6.4 5.5-10 11-10s9.8 3.6 11 10" stroke="#b8964f" {...common} />
+          <circle cx="33" cy="15" r="4.5" stroke="#c9a86a" {...common} />
+          <path d="M26.5 34c1-4.6 3.6-7.4 7.5-7.4 3 0 5.4 1.6 6.8 4.4" stroke="#c9a86a" {...common} />
+          <circle cx="40" cy="24" r="2.2" fill="#b4b99f" className="anim-pulse-soft" />
         </svg>
       );
     case "budget": // ledger with a rising calm line
       return (
         <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-          <rect x="8" y="8" width="32" height="32" rx="7" stroke="#74996B" {...common} />
-          <path d="M15 29l6-6 4 3.5L33 18" stroke="#D4AF37" {...common} />
-          <circle cx="33" cy="18" r="2.4" fill="#EE8FA1" className="anim-pulse-soft" />
-          <path d="M15 34h18" stroke="#A8C5A0" {...common} />
+          <rect x="8" y="8" width="32" height="32" rx="7" stroke="#66704f" {...common} />
+          <path d="M15 29l6-6 4 3.5L33 18" stroke="#c9a86a" {...common} />
+          <circle cx="33" cy="18" r="2.4" fill="#b8964f" className="anim-pulse-soft" />
+          <path d="M15 34h18" stroke="#b4b99f" {...common} />
         </svg>
       );
     case "timeline": // arc of time with a marker
       return (
         <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-          <path d="M10 36a17 17 0 0 1 28-13" stroke="#A78BD4" {...common} />
-          <path d="M10 36a17 17 0 0 0 4.5 4" stroke="#C9B8E8" {...common} />
-          <circle cx="38" cy="23" r="3" fill="#D4AF37" className="anim-pulse-soft" />
-          <path d="M24 36v-9" stroke="#332B31" {...common} />
-          <circle cx="24" cy="36" r="2" fill="#332B31" />
+          <path d="M10 36a17 17 0 0 1 28-13" stroke="#8c826f" {...common} />
+          <path d="M10 36a17 17 0 0 0 4.5 4" stroke="#cfc6b4" {...common} />
+          <circle cx="38" cy="23" r="3" fill="#c9a86a" className="anim-pulse-soft" />
+          <path d="M24 36v-9" stroke="#0f0e0d" {...common} />
+          <circle cx="24" cy="36" r="2" fill="#0f0e0d" />
         </svg>
       );
     case "vendors": // handshake simplified to interlocking rings + spark
       return (
         <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-          <circle cx="19" cy="26" r="9" stroke="#EE8FA1" {...common} />
-          <circle cx="29" cy="22" r="9" stroke="#D4AF37" {...common} />
-          <path d="M36 8l1.2 2.6L40 12l-2.8 1.4L36 16l-1.2-2.6L32 12l2.8-1.4z" fill="#C9B8E8" className="anim-pulse-soft" />
+          <circle cx="19" cy="26" r="9" stroke="#b8964f" {...common} />
+          <circle cx="29" cy="22" r="9" stroke="#c9a86a" {...common} />
+          <path d="M36 8l1.2 2.6L40 12l-2.8 1.4L36 16l-1.2-2.6L32 12l2.8-1.4z" fill="#cfc6b4" className="anim-pulse-soft" />
         </svg>
       );
     case "seating": // round table, seats around
       return (
         <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-          <circle cx="24" cy="24" r="8.5" stroke="#74996B" {...common} />
+          <circle cx="24" cy="24" r="8.5" stroke="#66704f" {...common} />
           {[0, 60, 120, 180, 240, 300].map((a) => {
             const r = (a * Math.PI) / 180;
-            return <circle key={a} cx={24 + 15 * Math.cos(r)} cy={24 + 15 * Math.sin(r)} r="2.6" fill={a % 120 === 0 ? "#EE8FA1" : "#C9B8E8"} />;
+            return <circle key={a} cx={24 + 15 * Math.cos(r)} cy={24 + 15 * Math.sin(r)} r="2.6" fill={a % 120 === 0 ? "#b8964f" : "#cfc6b4"} />;
           })}
         </svg>
       );
     case "world": // arch + orbit
       return (
         <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-          <path d="M10 38V22a14 14 0 0 1 28 0v16" stroke="#D4AF37" {...common} />
-          <path d="M6 38h36" stroke="#332B31" {...common} />
-          <circle cx="24" cy="20" r="4" stroke="#EE8FA1" {...common} />
-          <circle cx="38" cy="14" r="2.2" fill="#A8C5A0" className="anim-pulse-soft" />
+          <path d="M10 38V22a14 14 0 0 1 28 0v16" stroke="#c9a86a" {...common} />
+          <path d="M6 38h36" stroke="#0f0e0d" {...common} />
+          <circle cx="24" cy="20" r="4" stroke="#b8964f" {...common} />
+          <circle cx="38" cy="14" r="2.2" fill="#b4b99f" className="anim-pulse-soft" />
         </svg>
       );
     default:
@@ -1242,8 +1240,8 @@ export function SafeImg({ src, alt, className = "" }: { src: string; alt: string
         className={`flex items-center justify-center bg-gradient-to-br from-blush-soft via-cream to-lav-soft ${className}`}
       >
         <svg width="30" height="30" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-          <path d="M24 38S10 29 6.5 21.5C4.2 16.4 7.8 11 13.2 11c3.5 0 6.4 2.1 10.8 6.1 4.4-4 7.3-6.1 10.8-6.1 5.4 0 9 5.4 6.7 10.5C38 29 24 38 24 38z" stroke="#D4AF37" strokeWidth="1.6" />
-          <path d="M14 25c3 4 7 7 10 8.6M34 25c-3 4-7 7-10 8.6" stroke="#EE8FA1" strokeWidth="1.2" strokeLinecap="round" />
+          <path d="M24 38S10 29 6.5 21.5C4.2 16.4 7.8 11 13.2 11c3.5 0 6.4 2.1 10.8 6.1 4.4-4 7.3-6.1 10.8-6.1 5.4 0 9 5.4 6.7 10.5C38 29 24 38 24 38z" stroke="#c9a86a" strokeWidth="1.6" />
+          <path d="M14 25c3 4 7 7 10 8.6M34 25c-3 4-7 7-10 8.6" stroke="#b8964f" strokeWidth="1.2" strokeLinecap="round" />
         </svg>
       </div>
     );
@@ -1257,7 +1255,7 @@ export function Stars({ n = 5, className = "" }: { n?: number; className?: strin
   return (
     <span className={`inline-flex gap-0.5 ${className}`} aria-label={`${n} out of 5 stars`}>
       {Array.from({ length: n }).map((_, i) => (
-        <svg key={i} width="11" height="11" viewBox="0 0 24 24" fill="#D4AF37" aria-hidden="true">
+        <svg key={i} width="11" height="11" viewBox="0 0 24 24" fill="#c9a86a" aria-hidden="true">
           <path d="M12 2.5l2.9 6.2 6.6.8-4.9 4.6 1.3 6.6L12 17.4l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" />
         </svg>
       ))}

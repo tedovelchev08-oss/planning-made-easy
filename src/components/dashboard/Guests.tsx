@@ -173,9 +173,9 @@ export default function Guests() {
     const blob = new Blob([[header, ...lines].join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = "luma-guests.csv"; a.click();
+    a.href = url; a.download = "twofold-guests.csv"; a.click();
     URL.revokeObjectURL(url);
-    toast("CSV exported", `${rows.length} rows · open anywhere, but you'll miss Luma.`);
+    toast("CSV exported", `${rows.length} rows · open anywhere, but you'll miss Twofold.`);
   };
 
   const importCsv = async (file: File) => {
@@ -313,7 +313,7 @@ export default function Guests() {
             <thead>
               <tr className="border-b border-ink/8 text-[0.66rem] uppercase tracking-[0.16em] text-ink-mute">
                 <th className="w-10 px-4 py-3.5">
-                  <input type="checkbox" aria-label="Select all visible guests" className="accent-[#332B31]"
+                  <input type="checkbox" aria-label="Select all visible guests" className="accent-[#0f0e0d]"
                     checked={selected.length > 0 && rows.every((r) => selected.includes(r.id))}
                     onChange={(e) => setSelected(e.target.checked ? rows.map((r) => r.id) : [])} />
                 </th>
@@ -334,7 +334,7 @@ export default function Guests() {
                 return (
                   <tr key={g.id} className={`group border-b border-ink/5 transition-colors duration-200 ${isPlusOne ? "bg-cream/60" : ""} ${selected.includes(g.id) ? "bg-gold-soft/30" : !isPlusOne ? "hover:bg-blush-soft/30" : ""}`}>
                     <td className="px-4 py-3">
-                      <input type="checkbox" aria-label={`Select ${g.name}`} className="accent-[#332B31]" checked={selected.includes(g.id)} onChange={() => toggleSelect(g.id)} />
+                      <input type="checkbox" aria-label={`Select ${g.name}`} className="accent-[#0f0e0d]" checked={selected.includes(g.id)} onChange={() => toggleSelect(g.id)} />
                     </td>
                     <td className="px-3 py-3">
                       <div className={`flex items-center gap-3 ${isPlusOne ? "pl-6" : ""}`}>
@@ -456,9 +456,9 @@ export default function Guests() {
         {messaging && (
           <div className="p-7 sm:p-8">
             <h2 className="flex items-center gap-2.5 font-display text-2xl text-ink"><Mail size={20} className="text-lav-deep" /> Message {messaging.name.split(" ")[0]}</h2>
-            {/* Luma has no email sending — this used to say "Delivered by email via
+            {/* Twofold has no email sending — this used to say "Delivered by email via
                 Resend" and toast "Message queued" while nothing was sent. */}
-            <p className="mt-1 text-[0.82rem] font-semibold text-ink-mute">Write it here, then send it the way you usually reach {messaging.name.split(" ")[0]} — Luma doesn't send it for you.</p>
+            <p className="mt-1 text-[0.82rem] font-semibold text-ink-mute">Write it here, then send it the way you usually reach {messaging.name.split(" ")[0]} — Twofold doesn't send it for you.</p>
             <textarea
               className={`${inputCls} mt-5 min-h-[130px]`} value={msgBody} onChange={(e) => setMsgBody(e.target.value)}
               placeholder={`Hi ${messaging.name.split(" ")[0]}, we can't wait to celebrate with you…`} autoFocus

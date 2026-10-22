@@ -4,7 +4,7 @@ import {
 } from "../../api/_lib/studioDesigns";
 
 /**
- * Block 18a: the owner's own designs read a couple's Luma wedding through
+ * Block 18a: the owner's own designs read a couple's Twofold wedding through
  * /api/invitation, shaped as the design's `invitationData`.
  */
 const celestial = STUDIO_DESIGNS.find((d) => d.id === "celestial")!;
@@ -264,7 +264,7 @@ describe("api/invitation", () => {
     expect((await call({ token: TOKEN })).statusCode).toBe(404);
   });
 
-  it("is 409 when the wedding uses a Luma design, or its plan doesn't include this one", async () => {
+  it("is 409 when the wedding uses a Twofold design, or its plan doesn't include this one", async () => {
     supabase({ get_public_wedding: { ...wedding({ invitation: { template_id: "tp3" } }), live: true } });
     expect((await call({ slug: "ana-boris" })).body).toEqual({ status: "other-design" });
     supabase({ get_public_wedding: { ...wedding({ plan: "celebration" }), live: true } });

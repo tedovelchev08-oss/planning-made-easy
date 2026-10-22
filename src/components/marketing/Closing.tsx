@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Heart, Send } from "lucide-react";
+import { ArrowRight, Send } from "lucide-react";
 import { Reveal, Logo } from "../ui";
 import { useApp } from "../../lib/store";
 import { SUPPORT_EMAIL } from "../../lib/links";
@@ -35,7 +35,7 @@ export function FinalCta() {
           className="relative mx-auto max-w-6xl overflow-hidden rounded-hero rounded-tl-[6rem] rounded-br-[6rem] px-7 py-16 text-center sm:px-14 sm:py-24"
           style={{
             background:
-              "radial-gradient(60% 80% at 15% 20%, rgb(255 181 194 / 0.5), transparent 60%), radial-gradient(50% 70% at 85% 15%, rgb(249 239 223 / 0.9), transparent 60%), radial-gradient(55% 75% at 60% 95%, rgb(233 139 160 / 0.22), transparent 60%), linear-gradient(160deg, #FFF8F0, #FDF1E6)",
+              "radial-gradient(60% 80% at 15% 20%, rgb(227 207 165 / 0.5), transparent 60%), radial-gradient(50% 70% at 85% 15%, rgb(239 230 212 / 0.9), transparent 60%), radial-gradient(55% 75% at 60% 95%, rgb(154 122 63 / 0.22), transparent 60%), linear-gradient(160deg, #f7f2e8, #FDF1E6)",
           }}
         >
           {/* floating translucent shapes */}
@@ -121,7 +121,7 @@ export function Footer() {
         <div className="flex flex-col items-center gap-3 md:items-start">
           <Logo dark />
           <p className="flex items-center gap-1.5 font-display text-small italic text-cream/50">
-            Plan the feeling <Heart size={11} className="text-blush" fill="#FFB5C2" /> not just the wedding
+            Two of you. One plan.
           </p>
         </div>
 
@@ -139,7 +139,7 @@ export function Footer() {
       </div>
       <div className="border-t border-cream/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-6 py-5 text-caption font-semibold text-cream/35 sm:px-8 md:flex-row">
-          <span>© 2026 Luma Studio, Inc. All rights reserved.</span>
+          <span>© 2026 Twofold All rights reserved.</span>
           <span className="font-display italic text-cream/45">Made slowly, for two at a time.</span>
         </div>
       </div>

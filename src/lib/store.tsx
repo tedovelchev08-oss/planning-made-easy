@@ -160,9 +160,9 @@ const seedDb: Db = {
   website: {
     template: "serene",
     sections: { hero: true, story: true, details: true, schedule: true, venue: true, travel: true, registry: true, gallery: true, rsvp: true, music: false },
-    bg: "#FFF8F0",
-    ink: "#332B31",
-    accent: "#D4AF37",
+    bg: "#f7f2e8",
+    ink: "#0f0e0d",
+    accent: "#c9a86a",
     serif: true,
     heroPhoto: IMAGES.couple,
     animations: true,
@@ -186,7 +186,7 @@ const defaultInvitation = (names: string, venue: string): InvitationConfig => ({
 const defaultWebsite = (): WebsiteConfig => ({
   template: "serene",
   sections: { hero: true, story: true, details: true, schedule: true, venue: true, travel: true, registry: true, gallery: true, rsvp: true, music: false },
-  bg: "#FFF8F0", ink: "#332B31", accent: "#D4AF37", serif: true, heroPhoto: "",
+  bg: "#f7f2e8", ink: "#0f0e0d", accent: "#c9a86a", serif: true, heroPhoto: "",
   animations: true, domain: "", published: false,
 });
 

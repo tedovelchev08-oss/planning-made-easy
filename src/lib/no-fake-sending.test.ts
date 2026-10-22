@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
 /**
- * Luma has no email or SMS sending. The app once told couples their
+ * Twofold has no email or SMS sending. The app once told couples their
  * invitations, reminders and messages were "sent via Resend", and told
  * homepage visitors a welcome email was on its way — none of it happened.
  * This keeps that wording out of anything a person can see.
@@ -24,7 +24,7 @@ const CLAIMS = [
   /available in-app/i,
 ];
 
-describe("nothing claims Luma sent a message", () => {
+describe("nothing claims Twofold sent a message", () => {
   const own = Object.entries(files).filter(([path]) => !path.includes("no-fake-sending.test"));
 
   it("scans the source tree", () => {

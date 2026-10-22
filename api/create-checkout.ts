@@ -27,8 +27,8 @@ import { createClient } from "@supabase/supabase-js";
  * The free plan is never sold.
  */
 export const PRICES: Record<"celebration" | "luxe", { name: string; amount: number }> = {
-  celebration: { name: "Luma — Celebration", amount: 4900 },
-  luxe: { name: "Luma — Luxe", amount: 9900 },
+  celebration: { name: "Twofold — Celebration", amount: 4900 },
+  luxe: { name: "Twofold — Luxe", amount: 9900 },
 };
 export const CURRENCIES = ["eur", "usd", "gbp"] as const;
 type Currency = (typeof CURRENCIES)[number];
@@ -50,7 +50,7 @@ type SiteEnv = { VERCEL_ENV?: string; VERCEL_URL?: string; VITE_PUBLIC_SITE_URL?
  * and on non-production deployments this project's previews or localhost.
  * Anything else, including a missing header, gets the deployment's own
  * address. Before this, `curl -H "Origin: https://evil.example"` produced a
- * genuine Luma checkout link that ended on evil.example.
+ * genuine Twofold checkout link that ended on evil.example.
  */
 export function checkoutBase(origin: string | undefined, env: SiteEnv): string {
   const site = (env.VITE_PUBLIC_SITE_URL || SITE_URL).replace(/\/$/, "");
@@ -77,7 +77,7 @@ export function checkoutPrice(tier: string, currency: string, currentPlan: strin
   return {
     amount: PRICES[t].amount - owned,
     currency: currency as Currency,
-    name: upgrade ? `${PRICES[t].name} (upgrade from ${PRICES[currentPlan as keyof typeof PRICES].name.replace("Luma — ", "")})` : PRICES[t].name,
+    name: upgrade ? `${PRICES[t].name} (upgrade from ${PRICES[currentPlan as keyof typeof PRICES].name.replace("Twofold — ", "")})` : PRICES[t].name,
     // v2: the old luma_<tier> USD prices stay in Stripe for past purchases
     lookupKey: `luma_v2_${t}${upgrade ? `_from_${currentPlan}` : ""}_${currency}`,
   };

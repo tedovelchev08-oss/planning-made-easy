@@ -1,5 +1,5 @@
 /* ============================================================
- * Luma · Database types
+ * Twofold · Database types
  * Hand-mirrored from supabase/migrations/0001_schema.sql +
  * 0002_rls_and_functions.sql so the client stays typed without a
  * generation step. After any schema change, regenerate with:

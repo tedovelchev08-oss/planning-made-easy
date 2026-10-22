@@ -44,13 +44,13 @@ function CameraRig({ z }: { z: number }) {
 /* ------------------------------ materials ------------------------------ */
 
 function GoldMat() {
-  return <meshStandardMaterial color="#D9B45B" metalness={0.92} roughness={0.28} />;
+  return <meshStandardMaterial color="#c9a86a" metalness={0.92} roughness={0.28} />;
 }
 function CeramicMat({ color }: { color: string }) {
   return <meshStandardMaterial color={color} roughness={0.85} metalness={0.02} />;
 }
 function SatinMat({ color }: { color: string }) {
-  return <meshPhysicalMaterial color={color} roughness={0.42} sheen={1} sheenColor="#FFF3F5" sheenRoughness={0.5} />;
+  return <meshPhysicalMaterial color={color} roughness={0.42} sheen={1} sheenColor="#f8f2e6" sheenRoughness={0.5} />;
 }
 
 /* ------------------------------ objects ------------------------------ */
@@ -66,12 +66,12 @@ function GlassSlab() {
   return (
     <group ref={ref}>
       <RoundedBox args={[3.56, 4.56, 0.1]} radius={0.22} smoothness={4} position={[0, 0, -0.12]}>
-        <meshStandardMaterial color="#F3DFA6" emissive="#6b5518" emissiveIntensity={0.28} metalness={0.92} roughness={0.2} />
+        <meshStandardMaterial color="#e9d7ae" emissive="#6b5518" emissiveIntensity={0.28} metalness={0.92} roughness={0.2} />
       </RoundedBox>
       <RoundedBox args={[3.36, 4.36, 0.3]} radius={0.18} smoothness={5}>
         <meshPhysicalMaterial
           color="#FFF9F1" transmission={0.93} thickness={1.15} roughness={0.15} ior={1.45}
-          clearcoat={1} clearcoatRoughness={0.18} attenuationColor="#FFE4EA" attenuationDistance={4.5}
+          clearcoat={1} clearcoatRoughness={0.18} attenuationColor="#f2e8d6" attenuationDistance={4.5}
         />
       </RoundedBox>
     </group>
@@ -103,7 +103,7 @@ function Envelope() {
       </RoundedBox>
       <mesh position={[0, 0.26, 0.03]} rotation={[0, 0, Math.PI]}>
         <coneGeometry args={[0.74, 0.5, 3, 1]} />
-        <meshStandardMaterial color="#FFF1F3" roughness={0.6} flatShading />
+        <meshStandardMaterial color="#f8f1e4" roughness={0.6} flatShading />
       </mesh>
       <mesh position={[0, -0.05, 0.045]} rotation={[Math.PI / 2, 0, 0]}>
         <cylinderGeometry args={[0.13, 0.13, 0.03, 24]} />
@@ -111,11 +111,11 @@ function Envelope() {
       </mesh>
       <mesh position={[-0.35, -0.32, 0.035]}>
         <boxGeometry args={[0.5, 0.035, 0.005]} />
-        <CeramicMat color="#8A7A80" />
+        <CeramicMat color="#8c826f" />
       </mesh>
       <mesh position={[-0.25, -0.4, 0.035]}>
         <boxGeometry args={[0.3, 0.035, 0.005]} />
-        <CeramicMat color="#C4B6BC" />
+        <CeramicMat color="#cfc6b4" />
       </mesh>
     </group>
   );
@@ -129,7 +129,7 @@ function CalendarCard() {
       </RoundedBox>
       <mesh position={[0, 0.52, 0.012]}>
         <boxGeometry args={[1.15, 0.3, 0.065]} />
-        <SatinMat color="#FFB5C2" />
+        <SatinMat color="#e3cfa5" />
       </mesh>
       {[-0.3, 0.3].map((x) => (
         <mesh key={x} position={[x, 0.66, 0]}>
@@ -140,7 +140,7 @@ function CalendarCard() {
       {[[-0.3, 0.12], [0, 0.12], [0.3, 0.12], [-0.3, -0.18], [0, -0.18], [0.3, -0.18]].map(([x, y], i) => (
         <mesh key={i} position={[x, y, 0.036]}>
           <boxGeometry args={[0.14, 0.14, 0.012]} />
-          <CeramicMat color={i === 4 ? "#D4AF37" : "#E3D9E8"} />
+          <CeramicMat color={i === 4 ? "#c9a86a" : "#efebe3"} />
         </mesh>
       ))}
     </group>
@@ -158,12 +158,12 @@ function Peony({ scale = 1 }: { scale?: number }) {
       {petals.map((pt, i) => (
         <mesh key={i} position={[pt.x, pt.y, pt.z]} rotation={[0.4, 0, pt.r]}>
           <sphereGeometry args={[0.26, 16, 12]} />
-          <SatinMat color={i % 2 ? "#FFC3CE" : "#FFAEC0"} />
+          <SatinMat color={i % 2 ? "#e6d3ab" : "#dcc595"} />
         </mesh>
       ))}
       <mesh position={[0, 0, 0.24]}>
         <sphereGeometry args={[0.2, 16, 12]} />
-        <SatinMat color="#FFD9E0" />
+        <SatinMat color="#ecdcbc" />
       </mesh>
       <mesh position={[0, 0, 0.32]}>
         <icosahedronGeometry args={[0.1, 0]} />
@@ -171,7 +171,7 @@ function Peony({ scale = 1 }: { scale?: number }) {
       </mesh>
       <mesh position={[-0.42, -0.4, -0.1]} rotation={[0, 0, 0.7]} scale={[1, 1.6, 0.35]}>
         <sphereGeometry args={[0.22, 12, 10]} />
-        <CeramicMat color="#8FB585" />
+        <CeramicMat color="#9aa27f" />
       </mesh>
     </group>
   );
@@ -195,7 +195,7 @@ function ArchBackdrop() {
         return (
           <mesh key={i} position={[Math.cos(a) * 2.9, Math.sin(a) * 2.9, 0.05]} scale={0.9}>
             <sphereGeometry args={[0.09, 10, 8]} />
-            <SatinMat color={i % 2 ? "#FFC3CE" : "#E8DCF2"} />
+            <SatinMat color={i % 2 ? "#e6d3ab" : "#efe3c8"} />
           </mesh>
         );
       })}
@@ -208,15 +208,15 @@ function Cake() {
     <group>
       <mesh position={[0, -0.42, 0]}>
         <cylinderGeometry args={[0.62, 0.66, 0.36, 28]} />
-        <CeramicMat color="#FFF3E4" />
+        <CeramicMat color="#f7f0e2" />
       </mesh>
       <mesh position={[0, -0.05, 0]}>
         <cylinderGeometry args={[0.46, 0.5, 0.34, 28]} />
-        <SatinMat color="#FFE9EE" />
+        <SatinMat color="#f4ead8" />
       </mesh>
       <mesh position={[0, 0.28, 0]}>
         <cylinderGeometry args={[0.3, 0.34, 0.3, 24]} />
-        <CeramicMat color="#FFF3E4" />
+        <CeramicMat color="#f7f0e2" />
       </mesh>
       <mesh position={[0, 0.5, 0]}>
         <sphereGeometry args={[0.07, 12, 10]} />
@@ -224,7 +224,7 @@ function Cake() {
       </mesh>
       <mesh position={[0, -0.22, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[0.5, 0.028, 10, 40]} />
-        <SatinMat color="#A8C5A0" />
+        <SatinMat color="#b4b99f" />
       </mesh>
     </group>
   );
@@ -239,17 +239,17 @@ function MusicNote() {
       </mesh>
       <mesh position={[0.12, 0.36, 0]}>
         <cylinderGeometry args={[0.022, 0.022, 0.72, 10]} />
-        <CeramicMat color="#332B31" />
+        <CeramicMat color="#0f0e0d" />
       </mesh>
       <mesh position={[0.26, 0.66, 0]} rotation={[0, 0, -0.5]}>
         <boxGeometry args={[0.3, 0.07, 0.02]} />
-        <CeramicMat color="#332B31" />
+        <CeramicMat color="#0f0e0d" />
       </mesh>
     </group>
   );
 }
 
-function HeartGem({ color = "#FFAEC0" }: { color?: string }) {
+function HeartGem({ color = "#dcc595" }: { color?: string }) {
   const geo = useMemo(() => {
     const s = new THREE.Shape();
     const x = 0, y = 0;
@@ -343,8 +343,8 @@ function PetalField({ count }: { count: number }) {
       {petals.map((p, i) => (
         <mesh key={i} geometry={geo} scale={p.s} position={[p.x, p.y, p.z]}>
           <meshPhysicalMaterial
-            color={i % 3 === 0 ? "#FFD3DC" : i % 3 === 1 ? "#FFB5C2" : "#F8E3D8"}
-            roughness={0.5} side={THREE.DoubleSide} sheen={0.8} sheenColor="#FFF0F2"
+            color={i % 3 === 0 ? "#ead9b6" : i % 3 === 1 ? "#e3cfa5" : "#f1e6d2"}
+            roughness={0.5} side={THREE.DoubleSide} sheen={0.8} sheenColor="#f7efe2"
           />
         </mesh>
       ))}
@@ -436,8 +436,8 @@ function Scene({ offsetX, offsetY }: { offsetX: number; offsetY: number }) {
       <CameraRig z={lite ? 16.5 : 11} />
       <ambientLight intensity={0.85} color="#FFF6EA" />
       <directionalLight position={[5, 7, 6]} intensity={1.6} color="#FFFFFF" />
-      <pointLight position={[-7, 2, 4]} intensity={20} color="#FFB5C2" distance={26} />
-      <pointLight position={[7, -3, 3]} intensity={16} color="#C9B8E8" distance={26} />
+      <pointLight position={[-7, 2, 4]} intensity={20} color="#e3cfa5" distance={26} />
+      <pointLight position={[7, -3, 3]} intensity={16} color="#cfc6b4" distance={26} />
       <KeyLight />
 
       <Environment resolution={32} frames={1}>
@@ -448,15 +448,15 @@ function Scene({ offsetX, offsetY }: { offsetX: number; offsetY: number }) {
           </mesh>
           <mesh position={[7, 5, 3]} scale={[5, 5, 1]}>
             <planeGeometry />
-            <meshBasicMaterial color="#FFD3DC" />
+            <meshBasicMaterial color="#ead9b6" />
           </mesh>
           <mesh position={[-7, 3, 2]} scale={[4, 4, 1]}>
             <planeGeometry />
-            <meshBasicMaterial color="#DCD0F2" />
+            <meshBasicMaterial color="#ece3d2" />
           </mesh>
           <mesh position={[0, -6, 4]} scale={[8, 3, 1]}>
             <planeGeometry />
-            <meshBasicMaterial color="#E4EFD9" />
+            <meshBasicMaterial color="#e9eadb" />
           </mesh>
           <mesh position={[0, 7, 2]} scale={[10, 3, 1]}>
             <planeGeometry />
@@ -484,9 +484,9 @@ function Scene({ offsetX, offsetY }: { offsetX: number; offsetY: number }) {
           <Peony scale={0.85} />
         </F>
         <F p={pos(5.5, -2.6, -1.6)} amp={0.1} speed={0.5} phase={3}>
-          <CeramicBlob color="#C9B8E8" squash={0.8} />
+          <CeramicBlob color="#cfc6b4" squash={0.8} />
         </F>
-        <Sparkles count={lite ? 26 : 55} scale={lite ? [5, 11, 5] : [13, 7, 5]} position={[0, 0, -2]} size={lite ? 1.6 : 2.2} speed={0.25} opacity={0.5} color="#E9C46A" />
+        <Sparkles count={lite ? 26 : 55} scale={lite ? [5, 11, 5] : [13, 7, 5]} position={[0, 0, -2]} size={lite ? 1.6 : 2.2} speed={0.25} opacity={0.5} color="#c9a86a" />
       </Parallax>
 
       {/* mid layer */}
@@ -507,15 +507,15 @@ function Scene({ offsetX, offsetY }: { offsetX: number; offsetY: number }) {
           <HeartGem />
         </F>
         <F p={pos(2.9, -2.7, 0.75)} amp={0.18} speed={0.8} spin={-0.16} phase={2}>
-          <HeartGem color="#E8B7C4" />
+          <HeartGem color="#e3cfa5" />
         </F>
         <F p={pos(0.9, 3, -0.5)} amp={0.15} speed={0.75} spin={0.14} phase={3.4}>
-          <HeartGem color="#D8C8EE" />
+          <HeartGem color="#e6dccb" />
         </F>
         <F p={pos(-2.3, -2.8, 0.6)} amp={0.12} speed={0.6} spin={0.08}>
-          <CeramicBlob color="#A8C5A0" squash={1.25} />
+          <CeramicBlob color="#b4b99f" squash={1.25} />
         </F>
-        <Sparkles count={lite ? 18 : 36} scale={lite ? [4.6, 10, 4] : [12, 6.5, 4]} position={[0, 0, 0.5]} size={1.5} speed={0.3} opacity={0.45} color="#FFC9D2" />
+        <Sparkles count={lite ? 18 : 36} scale={lite ? [4.6, 10, 4] : [12, 6.5, 4]} position={[0, 0, 0.5]} size={1.5} speed={0.3} opacity={0.45} color="#e6d3ab" />
       </Parallax>
 
       {/* glass slab (anchored to overlay card) — kept in front of the mid layer
@@ -537,7 +537,7 @@ function Scene({ offsetX, offsetY }: { offsetX: number; offsetY: number }) {
         <F p={pos(5.9, -0.6, 1.5)} amp={0.2} speed={1} spin={0.2} phase={1.3}>
           <Rings linked={false} />
         </F>
-        <Sparkles count={lite ? 10 : 20} scale={lite ? [4.6, 9, 3] : [12, 6, 3]} position={[0, 0, 2]} size={2.6} speed={0.35} opacity={0.6} color="#F5DFA0" />
+        <Sparkles count={lite ? 10 : 20} scale={lite ? [4.6, 9, 3] : [12, 6, 3]} position={[0, 0, 2]} size={2.6} speed={0.35} opacity={0.6} color="#ead8ad" />
       </Parallax>
     </>
   );

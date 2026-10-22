@@ -40,6 +40,6 @@ describe("buildExport — everything the couple has, in one file", () => {
 
 describe("exportFileName", () => {
   it("names the file after the wedding and the day", () => {
-    expect(exportFileName(emptyDb(wedding), at)).toBe("luma-maya-theo-7k3q-2026-10-15.json");
+    expect(exportFileName(emptyDb(wedding), at)).toBe("twofold-maya-theo-7k3q-2026-10-15.json");
   });
 });

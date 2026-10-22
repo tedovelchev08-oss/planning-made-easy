@@ -1,7 +1,7 @@
 /**
  * Plans, prices and what each one unlocks — the single place to change them.
  *
- * Luma sells two one-time upgrades on top of a free plan that is a real
+ * Twofold sells two one-time upgrades on top of a free plan that is a real
  * planner, not a demo: the conversion path is free experience → value →
  * natural limit → upgrade, never landing page → paywall.
  *
@@ -76,7 +76,7 @@ export const PLANS: Record<Plan, PlanInfo> = {
     id: "essential",
     name: "Engaged",
     tagline: "Start planning today. Free, for as long as you like.",
-    value: "The whole planner — budget, timeline, vendors, seating and your guest list — so you can feel how calm planning with Luma is before you spend a thing.",
+    value: "The whole planner — budget, timeline, vendors, seating and your guest list — so you can feel how calm planning with Twofold is before you spend a thing.",
     price: 0,
     priceNote: "Free forever",
     features: [
@@ -112,7 +112,7 @@ export const PLANS: Record<Plan, PlanInfo> = {
   luxe: {
     id: "luxe",
     name: "Luxe",
-    tagline: "The complete Luma experience.",
+    tagline: "The complete Twofold experience.",
     value: "For an invitation guests remember: animated designs, falling petals and gold shimmer, music when they open it, and a website that moves.",
     price: 99,
     priceNote: "One-time — no subscription",

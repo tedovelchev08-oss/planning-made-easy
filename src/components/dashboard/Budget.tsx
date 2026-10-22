@@ -5,7 +5,7 @@ import { BudgetCategory, Vendor, catCommitted, catPaid, fmtMoney } from "../../l
 import { useApp, useCountUp } from "../../lib/store";
 import { Field, Modal, Pill, Reveal, btn, inputCls } from "../ui";
 
-const PALETTE = ["#D4AF37", "#EE8FA1", "#A78BD4", "#74996B", "#FFB5C2", "#C9B8E8", "#A8C5A0", "#5C4F55"];
+const PALETTE = ["#c9a86a", "#b8964f", "#8c826f", "#66704f", "#e3cfa5", "#cfc6b4", "#b4b99f", "#4a443b"];
 
 /** committed minus what the category's own vendors already account for */
 const vendorCommittedFor = (c: BudgetCategory, vendors: Vendor[]) =>
@@ -120,7 +120,7 @@ export default function Budget() {
                     <motion.div
                       initial={{ width: 0 }} whileInView={{ width: `${Math.min(100, pctCommitted)}%` }} viewport={{ once: true }}
                       transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                      className="h-full rounded-full" style={{ background: over ? "#E98BA0" : c.color }}
+                      className="h-full rounded-full" style={{ background: over ? "#9a7a3f" : c.color }}
                     />
                     <div className="absolute inset-y-0 left-0 bg-ink/25" style={{ width: `${Math.min(100, (cPaid / Math.max(1, c.budget)) * 100)}%` }} title={`Paid: ${fmtMoney(cPaid)}`} />
                   </div>

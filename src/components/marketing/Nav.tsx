@@ -56,7 +56,7 @@ export default function Nav() {
             : "mt-4 border-white/55 bg-white/45 py-3 pl-6 pr-3 backdrop-blur-md"
         }`}
       >
-        <Link to="/" aria-label="Luma home" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+        <Link to="/" aria-label="Twofold home" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
           <Logo />
         </Link>
 

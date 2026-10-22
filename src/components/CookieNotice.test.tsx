@@ -3,7 +3,7 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 /**
- * Block 20: a short, honest note that Luma uses no cookies. Shown once,
+ * Block 20: a short, honest note that Twofold uses no cookies. Shown once,
  * remembered after "Got it", never on a guest's invitation, and never a
  * consent banner (there's nothing to accept or reject).
  */

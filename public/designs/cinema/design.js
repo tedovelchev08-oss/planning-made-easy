@@ -410,7 +410,7 @@ function weddingStart(){
     var dress = [invitationData.dressCode, invitationData.dressCodeNote].filter(function(x){ return x && String(x).trim(); }).join('. ');
     var loc = document.getElementById('venueAddr') ? document.getElementById('venueAddr').textContent : '';
     var now = new Date();
-    var ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Luma//The Picture House//EN','BEGIN:VEVENT',
+    var ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Twofold//The Picture House//EN','BEGIN:VEVENT',
       'UID:'+Date.now()+'@luma.invite','DTSTAMP:'+fmt(now),
       'DTSTART:'+fmt(start), 'DTEND:'+fmt(end),
       'SUMMARY:'+title, dress ? 'DESCRIPTION:Dress code: '+dress : '',
