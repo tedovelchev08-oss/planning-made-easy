@@ -1,10 +1,10 @@
 /*
  * Palm Springs on Luma. Loaded after luma-bridge.js.
  *
- * The couple's details arrive from Luma (window.lumaBoot). This writes the
- * day on the stucco, the day sheet, the prints and the reply tag, then
- * starts page.js, which lays their names in the pool floor and moves the
- * water over them.
+ * The couple's details arrive from Luma (window.lumaBoot). This cuts their
+ * names into the pool's edge, writes the invitation, the letterhead, the
+ * itinerary and the reservation card, then starts page.js, which sets their
+ * initials in the pool floor and moves the water and the light.
  */
 (function () {
   'use strict';
@@ -59,6 +59,21 @@
     return parts.length ? parts[parts.length - 1] : txt(venue);
   }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+  var ORD = ['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth',
+    'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth',
+    'twentieth', 'twenty-first', 'twenty-second', 'twenty-third', 'twenty-fourth', 'twenty-fifth', 'twenty-sixth',
+    'twenty-seventh', 'twenty-eighth', 'twenty-ninth', 'thirtieth', 'thirty-first'];
+  var TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+  var TEENS = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+  /* 2027 -> "two thousand and twenty-seven" */
+  function yearWords(y) {
+    var r = y % 100, t = Math.floor((y % 1000) / 100), out = '';
+    var words = r === 0 ? '' : r < 10 ? ONES[r] : r < 20 ? TEENS[r - 10] : TENS[Math.floor(r / 10)] + (r % 10 ? '-' + ONES[r % 10] : '');
+    if (y >= 2000 && y < 3000) out = 'two thousand' + (t ? ' ' + ONES[t] + ' hundred' : '') + (words ? ' and ' + words : '');
+    return out || String(y);
+  }
+  function initial(s) { s = txt(s); return s ? s.charAt(0).toLocaleUpperCase() : ''; }
 
   function render(d) {
     var one = txt(d.partner1), two = txt(d.partner2);
@@ -66,19 +81,33 @@
     var sched = Array.isArray(d.schedule) ? d.schedule.filter(function (s) { return s && !blank(s.title); }) : [];
     var venue = txt(d.venueName), address = txt(d.venueAddress);
     var place = town(address, venue);
+    var mono = initial(one) + '\u2009&\u2009' + initial(two);
 
     document.title = one + ' & ' + two + (dp ? ' · ' + dp.d + ' ' + dp.month + ' ' + dp.y : '');
+    document.querySelectorAll('[data-mono]').forEach(function (e) { e.textContent = mono; });
 
-    // the pool
-    setText('srNames', one + ' and ' + two + (dp ? ', ' + dp.weekday + ' ' + dp.d + ' ' + dp.month + ' ' + dp.y : ''));
-    setText('poolEyebrow', txt(d.poolEyebrow, 'Come on in'));
-    setText('poolPlace', place);
+    // cut into the travertine at the pool's edge
+    setText('poolNames', one + ' & ' + two);
+    setText('poolDate', dp ? dp.d + ' ' + dp.month + ' ' + dp.y + (place ? '  \u00b7  ' + place : '') : place);
 
-    // the day, on the stucco
-    setText('dayWeekday', dp ? dp.weekday : '');
-    setText('dayDate', dp ? dp.d + ' ' + dp.month + ' ' + dp.y : '');
-    setText('dayTime', clock(d.time) ? 'at ' + timeWords(d.time) : txt(d.time));
+    // the invitation
+    setText('inviteAbove', txt(d.inviteAbove, 'Together with their families'));
+    var names = byId('inviteNames');
+    if (names) {
+      names.textContent = '';
+      names.appendChild(document.createTextNode(one));
+      names.appendChild(el('span', 'amp', ' & '));
+      names.appendChild(document.createTextNode(two));
+    }
+    setText('inviteLine', txt(d.inviteLine, 'request the pleasure of your company, poolside'));
+    setText('inviteDate', dp ? dp.weekday + ', the ' + ORD[dp.d] + ' of ' + dp.month : '');
+    setText('inviteTime', [dp ? yearWords(dp.y) : '', clock(d.time) ? 'at ' + timeWords(d.time) : ''].filter(Boolean).join(', '));
+    setText('invitePlace', [venue, place !== venue ? place : ''].filter(Boolean).join('  \u00b7  '));
+
+    // the letterhead
     setText('dayVenue', venue);
+    setText('dayDate', dp ? dp.weekday + ' ' + dp.d + ' ' + dp.month + ' ' + dp.y : '');
+    setText('dayTime', clock(d.time) ? cap(timeWords(d.time)) : txt(d.time));
     setText('dayAddr', address);
     setText('dayDress', [txt(d.dressCode), txt(d.dressCodeNote)].filter(Boolean).join('. '));
     var vl = byId('venueLink');
@@ -98,9 +127,9 @@
     setText('storyP2', txt(d.story2));
     if (story && blank(d.story1) && blank(d.story2) && blank(d.storyHeadline) && !real(d.heroPhoto)) story.classList.add('luma-empty');
 
-    // the day sheet
-    setText('scheduleHeading', txt(d.scheduleHeading, 'The day sheet'));
-    setText('sheetDay', dp ? dp.weekday + ' ' + dp.d + ' ' + dp.month : '');
+    // the itinerary
+    setText('scheduleHeading', txt(d.scheduleHeading, 'Itinerary'));
+    setText('sheetDay', dp ? dp.weekday + ', ' + dp.d + ' ' + dp.month : '');
     var list = byId('tlItems');
     if (list) {
       list.textContent = '';
@@ -116,8 +145,8 @@
     }
     if (!sched.length) { var ss = byId('schedule'); if (ss) ss.classList.add('luma-empty'); }
 
-    // prints drying on the coping
-    setText('galleryHeading', txt(d.galleryHeading, 'Poolside'));
+    // photographs, framed on the wall
+    setText('galleryHeading', txt(d.galleryHeading, 'A few of ours'));
     var prints = document.querySelector('#gallery .prints');
     var gallery = Array.isArray(d.gallery) ? d.gallery.filter(function (g) { return g && real(g.photo); }) : [];
     if (prints) {
@@ -146,18 +175,18 @@
     }
     if (!faq.length) { var fs = byId('faq'); if (fs) fs.classList.add('luma-empty'); }
 
-    // the reply tag
+    // the reservation card and the close
     setText('replyBy', blank(d.rsvpDeadline) ? '' : 'Kindly reply by ' + txt(d.rsvpDeadline));
-    setText('sentTo', 'Your reply is on its way to ' + one + ' and ' + two + '.');
-    setText('closingLine', txt(d.closingLine, 'See you by the pool'));
+    setText('stampDate', dp ? pad(dp.d) + ' \u00b7 ' + pad(dp.m) + ' \u00b7 ' + dp.y : '');
+    setText('sentTo', 'To ' + one + ' & ' + two);
+    setText('closingNames', one + ' & ' + two);
+    setText('closingLine', txt(d.closingLine, 'Until then'));
     setText('footNames', one + ' and ' + two + (dp ? ', ' + dp.y : ''));
 
-    // page.js lays these in tile and builds the calendar links from them
+    // page.js sets the medallion and builds the calendar links from these
     var start = clock(d.time) || { h: 16, mi: 0 };
     window.__lumaSprings = {
-      one: one, two: two,
-      mark: dp ? pad(dp.d) + '.' + pad(dp.m) + '.' + String(dp.y).slice(2) : '',
-      closing: txt(d.closingLine, 'See you by the pool'),
+      a: initial(one), b: initial(two),
       when: dp ? { y: dp.y, m: dp.m, d: dp.d, startH: start.h, startM: start.mi, hours: 9 } : null,
       title: one + ' & ' + two + ', wedding',
       where: [venue, address].filter(Boolean).join(', ')
@@ -177,7 +206,7 @@
     function go() {
       render(d);
       if (typeof window.lumaAfterRender === 'function') window.lumaAfterRender(d);
-      start('page.js?v=1');
+      start('page.js?v=2');
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);
     else go();

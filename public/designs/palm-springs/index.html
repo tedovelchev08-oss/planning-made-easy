@@ -5,18 +5,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>You&rsquo;re Invited</title>
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#3fc1cf">
+<meta name="theme-color" content="#d9c3a3">
 
 <!-- Fonts served by Luma (licences beside each file in ../_shared/fonts) -->
 <link rel="stylesheet" href="../_shared/fonts/fonts.css">
-<link rel="stylesheet" href="springs.css?v=1">
+<link rel="stylesheet" href="springs.css?v=2">
 <style>
-  html.luma-loading { background: #fbf7f0; }
+  html.luma-loading { background: #f3ece0; }
   html.luma-loading body { visibility: hidden; }
-  .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #fbf7f0; color: #1f3d44; font-family: 'Jost', sans-serif; }
-  .luma-notice h1 { font-family: 'Fraunces', Georgia, serif; font-size: 34px; font-weight: 600; color: #e07a6b; margin: 0; }
+  .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #f3ece0; color: #22344f; font-family: 'Josefin Sans', sans-serif; }
+  .luma-notice h1 { font-family: 'Bodoni Moda', Georgia, serif; font-size: 34px; font-weight: 400; font-style: italic; margin: 0; }
   .luma-notice p { font-size: 16px; max-width: 30rem; margin: 0; opacity: .8; }
-  .luma-notice a { margin-top: 8px; color: #e07a6b; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+  .luma-notice a { margin-top: 8px; color: #8a6a36; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
   .luma-check:empty { display: none; }
 </style>
 </head>
@@ -24,35 +24,48 @@
 
 <!-- ============================================================
      PALM SPRINGS
-     You look straight down into a swimming pool at noon. Their names
-     are laid in the floor in mosaic tile, the way a pool marks its
-     depth, and the water moves over them. Touch the water and it
-     ripples. Everything after is the rest of the house: the breeze-
-     block wall, the cabana, the coping where the prints dry, and the
-     towel where you leave your reply.
+     A desert hotel at the golden hour, in the manner of a Slim Aarons
+     photograph. You look down into the pool: their initials are set
+     in its floor in a medallion of blue and gold-leaf glass mosaic,
+     and their names are cut into the travertine at its edge. The rest
+     is the hotel: the invitation, a letterhead on a wall the pool
+     throws its light across, prints in frames, the itinerary, and a
+     cabana reservation card that is stamped and sealed when sent.
      ============================================================ -->
 <main id="main">
 
 <section class="pool" id="hero" aria-label="The invitation">
-  <h1 class="sr" id="srNames"></h1>
-  <!-- the water: drawn by page.js once the photographs and fonts are in -->
   <svg class="water" id="water" aria-hidden="true" preserveAspectRatio="xMidYMid slice"></svg>
   <img class="frond sway" src="assets/frond.png" alt="" aria-hidden="true">
-  <div class="coping">
-    <p class="eyebrow" id="poolEyebrow"></p>
-    <p class="eyebrow" id="poolPlace"></p>
+  <div class="engraved" id="engraved">
+    <h1 id="poolNames"></h1>
+    <p id="poolDate"></p>
   </div>
-  <p class="hint" id="hint">Touch the water</p>
 </section>
 
-<section class="sec wall" id="the-day">
+<section class="invite" id="invitation">
+  <div class="still" role="img" aria-label="The pool at the hotel, in the evening light"></div>
+  <div class="words rv">
+    <p class="caps" id="inviteAbove"></p>
+    <p class="script" id="inviteNames"></p>
+    <p class="line" id="inviteLine"></p>
+    <span class="rule" aria-hidden="true"></span>
+    <p class="formal" id="inviteDate"></p>
+    <p class="formal small" id="inviteTime"></p>
+    <p class="caps where" id="invitePlace"></p>
+  </div>
+</section>
+
+<!-- the day, on the hotel's letterhead, on a wall the pool lights -->
+<section class="sec lit" id="the-day">
+  <svg class="glow" aria-hidden="true"></svg>
   <img class="frond sway slow" src="assets/frond.png" alt="" aria-hidden="true" loading="lazy">
-  <div class="stucco rv">
-    <p class="eyebrow">The day</p>
-    <p class="weekday" id="dayWeekday"></p>
-    <p class="date" id="dayDate"></p>
-    <p class="time" id="dayTime"></p>
-    <p class="venue" id="dayVenue"></p>
+  <div class="letterhead rv">
+    <span class="mono" data-mono aria-hidden="true"></span>
+    <p class="house" id="dayVenue"></p>
+    <span class="rule" aria-hidden="true"></span>
+    <p class="formal" id="dayDate"></p>
+    <p class="formal small" id="dayTime"></p>
     <p class="addr" id="dayAddr"></p>
     <p class="dress" id="dayDress"></p>
     <p class="links">
@@ -63,12 +76,12 @@
   </div>
 </section>
 
-<section class="sec plain" id="story">
-  <img class="frond sway slow" src="assets/frond.png" alt="" aria-hidden="true" loading="lazy">
+<section class="sec lit" id="story">
+  <svg class="glow" aria-hidden="true"></svg>
   <div class="wrap lean">
-    <figure class="snap rv"><img class="couple" alt="The two of you" hidden></figure>
-    <div class="words rv">
-      <p class="eyebrow">How it started</p>
+    <figure class="framed rv"><img class="couple" alt="The two of you" hidden></figure>
+    <div class="story-words rv">
+      <p class="caps">How it started</p>
       <h2 id="storyHeadline"></h2>
       <p class="body" id="storyP1"></p>
       <p class="body" id="storyP2"></p>
@@ -76,85 +89,99 @@
   </div>
 </section>
 
-<!-- The order of the day, pinned up by the cabana like the hotel's day sheet -->
-<section class="sec cabana" id="schedule">
-  <div class="sheet rv">
-    <p class="eyebrow" id="scheduleHeading"></p>
-    <p class="sheet-day" id="sheetDay"></p>
+<section class="sec cream" id="schedule">
+  <div class="still lounger rv" role="img" aria-label="An itinerary in a leather holder on a lounger"></div>
+  <div class="itinerary rv">
+    <span class="mono" data-mono aria-hidden="true"></span>
+    <p class="caps" id="scheduleHeading"></p>
+    <p class="formal" id="sheetDay"></p>
     <ol class="rows" id="tlItems"></ol>
   </div>
 </section>
 
-<section class="sec coping-ground" id="gallery">
-  <img class="frond sway" src="assets/frond.png" alt="" aria-hidden="true" loading="lazy">
-  <h2 id="galleryHeading"></h2>
+<section class="sec lit" id="gallery">
+  <svg class="glow" aria-hidden="true"></svg>
+  <h2 class="center" id="galleryHeading"></h2>
   <div class="prints"></div>
 </section>
 
-<section class="sec plain" id="faq">
-  <div class="wrap">
-    <h2>Good to know</h2>
+<section class="sec cream" id="faq">
+  <div class="wrap narrow">
+    <h2 class="center">Good to know</h2>
     <div class="asks" id="faq-drawer-list"></div>
   </div>
 </section>
 
-<!-- The reply is a cabana tag left on the towel by the pool -->
-<section class="sec poolside" id="rsvp">
-  <div class="tagwrap" id="reply">
-    <form class="tag" id="rsvp-form" name="rsvp" method="POST" novalidate>
-      <span class="grommet" aria-hidden="true"></span>
+<!-- The reply: a cabana reservation card. When it is saved it is
+     stamped, then folded into its envelope, which seals. -->
+<section class="sec terrace" id="rsvp">
+  <img class="frond sway slow" src="assets/frond.png" alt="" aria-hidden="true" loading="lazy">
+  <div class="reply" id="reply">
+    <form class="card" id="rsvp-form" name="rsvp" method="POST" novalidate>
       <input type="hidden" name="form-name" value="rsvp">
       <p class="hp" aria-hidden="true"><label>Leave this field empty<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
-      <p class="eyebrow">Cabana reply</p>
-      <h2 id="replyTitle">Save us a lounger?</h2>
-      <p class="by" id="replyBy"></p>
-      <div class="field">
-        <label for="rsvpName">Your name</label>
-        <input type="text" id="rsvpName" name="guest_names" placeholder="As it is on your invitation" autocomplete="name" required>
+      <span class="mono" data-mono aria-hidden="true"></span>
+      <p class="caps">Cabana reservation</p>
+      <p class="formal small" id="replyBy"></p>
+      <div class="line-field">
+        <label for="rsvpName">Name</label>
+        <input type="text" id="rsvpName" name="guest_names" placeholder="" autocomplete="name" required>
       </div>
-      <div class="choice" role="radiogroup" aria-label="Will you be there?">
-        <label class="opt selected"><input type="radio" name="attending" value="yes" checked><span>We&rsquo;ll be there</span></label>
-        <label class="opt"><input type="radio" name="attending" value="no"><span>Sadly not</span></label>
+      <div class="ticks" role="radiogroup" aria-label="Will you be there?">
+        <label class="tick selected"><input type="radio" name="attending" value="yes" checked><span class="box" aria-hidden="true"></span><span>Accepts with pleasure</span></label>
+        <label class="tick"><input type="radio" name="attending" value="no"><span class="box" aria-hidden="true"></span><span>Declines with regret</span></label>
       </div>
-      <div class="field two" id="comingFields">
-        <span>
-          <label for="rsvp-guest-count">How many of you</label>
-          <select id="rsvp-guest-count" name="guest_count">
-            <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-          </select>
-        </span>
-        <span>
+      <div id="comingFields">
+        <div class="party">
+          <span class="label" id="partyLabel">Number in party</span>
+          <div class="numerals" role="radiogroup" aria-labelledby="partyLabel">
+            <label><input type="radio" name="guest_count" value="1"><span>1</span></label>
+            <label class="on"><input type="radio" name="guest_count" value="2" checked><span>2</span></label>
+            <label><input type="radio" name="guest_count" value="3"><span>3</span></label>
+            <label><input type="radio" name="guest_count" value="4"><span>4</span></label>
+            <label><input type="radio" name="guest_count" value="5"><span>5</span></label>
+            <label><input type="radio" name="guest_count" value="6"><span>6</span></label>
+          </div>
+        </div>
+        <div class="line-field" id="rsvp-plusone-wrap">
+          <label for="rsvp-plusone-name">With</label>
+          <input type="text" id="rsvp-plusone-name" name="plusone_name" placeholder="">
+        </div>
+        <div class="line-field">
           <label for="rsvpDietary">Dietary notes</label>
-          <input type="text" id="rsvpDietary" name="dietary" placeholder="Optional">
-        </span>
+          <input type="text" id="rsvpDietary" name="dietary" placeholder="">
+        </div>
       </div>
-      <div class="field" id="rsvp-plusone-wrap">
-        <label for="rsvp-plusone-name">Name of your guest</label>
-        <input type="text" id="rsvp-plusone-name" name="plusone_name" placeholder="Optional">
+      <div class="line-field">
+        <label for="rsvpMessage">A note</label>
+        <textarea id="rsvpMessage" name="notes" rows="1" placeholder=""></textarea>
       </div>
-      <div class="field">
-        <label for="rsvpMessage">A note, if you like</label>
-        <textarea id="rsvpMessage" name="notes" rows="2" placeholder="Optional"></textarea>
-      </div>
-      <button type="submit" class="send" id="rsvpSubmit">Drop it in</button>
+      <button type="submit" class="send" id="rsvpSubmit">Reserve</button>
       <p class="err" id="rsvp-error" role="alert" hidden></p>
+      <span class="stamp" aria-hidden="true"><span class="stamp-in"><b>Reserved</b><i id="stampDate"></i></span></span>
     </form>
-    <div class="tag taken" id="rsvp-confirmed" hidden>
-      <span class="grommet" aria-hidden="true"></span>
-      <p class="eyebrow">Got it</p>
-      <h2>See you poolside.</h2>
-      <p class="by" id="sentTo"></p>
+
+    <div class="envelope" aria-hidden="true">
+      <span class="env-back"></span>
+      <span class="env-card"><span class="mono" data-mono></span><span class="stamp mini"><span class="stamp-in"><b>Reserved</b></span></span></span>
+      <span class="env-pocket"></span>
+      <span class="env-flap"><span class="seal" data-mono></span></span>
+    </div>
+
+    <div class="done" id="rsvp-confirmed" hidden>
+      <p class="formal">Your reply is sealed and on its way.</p>
+      <p class="caps" id="sentTo"></p>
       <button type="button" class="again" id="rsvpAgain">Send a different reply</button>
     </div>
-    <span class="splash" aria-hidden="true"></span>
   </div>
 </section>
 
-<!-- the end: back to the pool, the last line laid in tile -->
-<section class="pool end" id="closing" aria-label="Until then">
-  <p class="sr" id="closingLine"></p>
-  <svg class="water" id="water2" aria-hidden="true" preserveAspectRatio="xMidYMid slice"></svg>
+<section class="closing" id="closing">
+  <div class="still dusk" role="img" aria-label="The pool at dusk"></div>
+  <div class="words rv">
+    <p class="script" id="closingNames"></p>
+    <p class="caps" id="closingLine"></p>
+  </div>
 </section>
 
 <footer>
@@ -164,6 +191,6 @@
 </main>
 
 <script src="../_shared/luma-bridge.js?v=2"></script>
-<script src="luma-springs.js?v=1"></script>
+<script src="luma-springs.js?v=2"></script>
 </body>
 </html>
