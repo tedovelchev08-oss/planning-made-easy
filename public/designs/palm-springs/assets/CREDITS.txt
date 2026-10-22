@@ -1,14 +1,14 @@
 PALM SPRINGS - the photographs
 ==============================
 
-pool-tall.jpg / pool-wide.jpg  the pool floor the names are laid in (phone / wide)
-wall.jpg       the white breeze-block wall behind the day
-stucco.jpg     the pink stucco the day is written on
-stripe.jpg     the cabana awning behind the day sheet
-poolside.jpg   the pool corner, towel and lemons under the reply
+pool-tall.jpg / pool-wide.jpg          the pool the medallion is set in (phone / wide)
+poolside-tall.jpg / poolside-wide.jpg  the hotel pool at golden hour, the invitation and the close
+stucco.jpg     the cream stucco wall the pool's light plays across
+lounger.jpg    the itinerary in its leather holder on a lounger
+cotton.jpg     cotton paper for the letterhead, itinerary, card and envelope
 frond.png      a palm shadow, cut from a photograph of one on a wall
 
-The mosaic lettering is drawn in the browser from the couple's names.
+The mosaic medallion is drawn in the browser, tile by tile, from the couple's initials.
 
 Generated for this design (Seedream 5 Lite on ElevenLabs, under a paid
 plan's commercial licence, from Luma's own art direction) and graded at
