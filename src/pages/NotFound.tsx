@@ -9,7 +9,7 @@ import { usePrefersReducedMotion } from "../lib/store";
 export default function NotFound() {
   const reduced = usePrefersReducedMotion();
   useEffect(() => {
-    document.title = "Page not found — Luma";
+    document.title = "Page not found — Twofold";
   }, []);
   return (
     <div className="relative flex min-h-[100svh] flex-col overflow-hidden">
@@ -18,7 +18,7 @@ export default function NotFound() {
       <span className="inv-petal" style={{ left: "81%", animationDuration: "11s", animationDelay: "6s" }} aria-hidden="true" />
 
       <header className="flex items-center justify-between px-6 py-6 sm:px-10">
-        <Link to="/" aria-label="Luma home"><Logo /></Link>
+        <Link to="/" aria-label="Twofold home"><Logo /></Link>
         <Link
           to="/planner"
           className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-white/60 px-5 py-2.5 text-[0.8rem] font-bold text-ink backdrop-blur transition hover:border-ink/45"
@@ -72,7 +72,7 @@ export default function NotFound() {
             to="/"
             className="group inline-flex items-center gap-2.5 rounded-full bg-ink px-8 py-4 text-[0.92rem] font-bold text-cream shadow-lift transition-all duration-300 hover:bg-ink/85 active:scale-[0.97]"
           >
-            Back to Luma
+            Back to Twofold
             <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
           <Link
@@ -85,7 +85,7 @@ export default function NotFound() {
       </main>
 
       <p className="pb-8 text-center text-[0.66rem] font-bold uppercase tracking-[0.3em] text-ink-mute/60">
-        luma · plan the feeling
+        twofold · two of you, one plan
       </p>
     </div>
   );

@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 /**
  * api/create-checkout.ts: Stripe's success/cancel URLs used to be built from
  * the caller's Origin (or Referer) header, so a curl with a fake Origin got a
- * genuine Luma payment link that ended on any site. The base is now chosen
+ * genuine Twofold payment link that ended on any site. The base is now chosen
  * from an allowlist.
  */
 const sessionsCreate = vi.fn(async () => ({ id: "cs_test_1", url: "https://checkout.stripe.com/c/pay/cs_test_1" }));
@@ -101,7 +101,7 @@ describe("the handler hands Stripe only allowed return URLs", () => {
     return res;
   }
 
-  it("a forged Origin still returns the buyer to Luma", async () => {
+  it("a forged Origin still returns the buyer to Twofold", async () => {
     const res = await checkout({ origin: "https://evil.example" });
     expect(res.statusCode).toBe(200);
     const args = (sessionsCreate.mock.calls[0] as unknown as [{ success_url: string; cancel_url: string }])[0];

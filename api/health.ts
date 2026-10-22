@@ -1,5 +1,5 @@
 /**
- * GET /api/health — is Luma able to serve guests and couples right now?
+ * GET /api/health — is Twofold able to serve guests and couples right now?
  *
  * Asks Supabase one trivial question with the PUBLIC anon key: the guest
  * page's own get_public_wedding RPC for a slug that can never exist. Any

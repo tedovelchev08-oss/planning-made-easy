@@ -114,7 +114,7 @@ export default function SeatingSheet() {
       )}
 
       <footer className="sheet-foot">
-        Printed {printedOn} · Luma
+        Printed {printedOn} · Twofold
       </footer>
     </div>
   );

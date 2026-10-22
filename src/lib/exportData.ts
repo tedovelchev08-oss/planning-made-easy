@@ -33,10 +33,10 @@ export function buildExport(db: Db, user: User | null, weddingId: string | null,
   };
 }
 
-/** "luma-maya-and-theo-2026-10-15.json" */
+/** "twofold-maya-and-theo-2026-10-15.json" */
 export function exportFileName(db: Db, now = new Date()) {
   const who = (db.wedding.slug || db.wedding.names || "wedding").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  return `luma-${who || "wedding"}-${now.toISOString().slice(0, 10)}.json`;
+  return `twofold-${who || "wedding"}-${now.toISOString().slice(0, 10)}.json`;
 }
 
 export function downloadExport(db: Db, user: User | null, weddingId: string | null) {

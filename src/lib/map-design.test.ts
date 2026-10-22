@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 /**
- * The Crossing (Map) on Luma: luma-map.js writes the couple into the real
+ * The Crossing (Map) on Twofold: luma-map.js writes the couple into the real
  * page (public/designs/map/index.html), every copy of the folded sheet alike.
  */
 const dir = resolve(__dirname, "../../public/designs/map");
@@ -35,7 +35,7 @@ async function render(data: Record<string, unknown>) {
 }
 const texts = (sel: string) => [...document.querySelectorAll(sel)].map((e) => e.textContent!.replace(/\s+/g, " ").trim());
 
-describe("The Crossing on Luma (luma-map.js)", () => {
+describe("The Crossing on Twofold (luma-map.js)", () => {
   it("prints the couple on all three panels of the sheet alike", async () => {
     await render(couple);
     expect(texts(".face .title .nm")).toEqual(["AnaandBoris", "AnaandBoris", "AnaandBoris"]);

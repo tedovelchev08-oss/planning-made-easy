@@ -338,7 +338,7 @@
   if (ics) {
     ics.addEventListener('click', function (e) {
       e.preventDefault();
-      var body = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Luma//Palm Springs//EN', 'BEGIN:VEVENT',
+      var body = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Twofold//Palm Springs//EN', 'BEGIN:VEVENT',
         'DTSTART:' + startAt, 'DTEND:' + endAt, 'SUMMARY:' + TITLE, 'LOCATION:' + WHERE,
         'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
       var url = URL.createObjectURL(new Blob([body], { type: 'text/calendar' }));

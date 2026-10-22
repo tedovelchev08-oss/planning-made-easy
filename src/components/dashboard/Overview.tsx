@@ -34,9 +34,9 @@ function ProgressRing({ pct }: { pct: number }) {
   return (
     <div className="relative h-20 w-20">
       <svg viewBox="0 0 72 72" className="h-20 w-20 -rotate-90">
-        <circle cx="36" cy="36" r="30" fill="none" stroke="rgb(51 43 49 / 0.08)" strokeWidth="7" />
+        <circle cx="36" cy="36" r="30" fill="none" stroke="rgb(15 14 13 / 0.08)" strokeWidth="7" />
         <motion.circle
-          cx="36" cy="36" r="30" fill="none" stroke="#74996B" strokeWidth="7" strokeLinecap="round"
+          cx="36" cy="36" r="30" fill="none" stroke="#66704f" strokeWidth="7" strokeLinecap="round"
           strokeDasharray={C} initial={{ strokeDashoffset: C }} animate={{ strokeDashoffset: C * (1 - pct / 100) }}
           transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
         />
@@ -70,7 +70,7 @@ export default function Overview() {
       if (all) {
         playChime("sparkle");
         toast("This week, handled", "Every focus task is done. Go be engaged.");
-        if (!reduced) confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 }, colors: ["#FFB5C2", "#D4AF37", "#A8C5A0", "#C9B8E8", "#FFF8F0"] });
+        if (!reduced) confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 }, colors: ["#e3cfa5", "#c9a86a", "#b4b99f", "#cfc6b4", "#f7f2e8"] });
       }
     }
   };
@@ -177,7 +177,7 @@ export default function Overview() {
                   >
                     <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 ${t.done ? "border-sage-deep bg-sage-deep" : "border-ink/25 bg-white group-hover:border-gold"}`}>
                       {t.done && (
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#FFF8F0" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f7f2e8" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M4.5 12.5l5 5 10-11" className="check-draw" />
                         </svg>
                       )}

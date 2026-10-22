@@ -2,11 +2,11 @@
 
 **Last updated: October 16, 2026**
 
-This policy explains what Luma stores on your device and why. It is part of our [privacy policy](#/privacy).
+This policy explains what Twofold stores on your device and why. It is part of our [privacy policy](#/privacy).
 
 ## The short version
 
-- **Luma doesn't use cookies.**
+- **Twofold doesn't use cookies.**
 - It stores a few items in your browser that it needs to work, such as keeping you signed in.
 - It uses **no analytics, advertising or tracking** of any kind.
 - That's why there's nothing to accept or reject: just a short notice the first time you visit.
@@ -15,9 +15,9 @@ This policy explains what Luma stores on your device and why. It is part of our 
 
 **Cookies** are small files a website stores in your browser. **Local storage** and **session storage** are similar browser features that let a website keep information on your device. The law treats them the same way: a website may only use them without your consent if they are strictly necessary for something you asked for.
 
-## 2. What Luma stores on your device
+## 2. What Twofold stores on your device
 
-Luma sets **no cookies**. It uses your browser's storage only for the following:
+Twofold sets **no cookies**. It uses your browser's storage only for the following:
 
 - **Your sign-in session** (local storage, a key starting with "sb-"), which keeps you signed in. It is kept until you sign out.
 - **An offline copy of your planner** ("luma.cache.…"), so the planner opens quickly and works without a connection. It is removed when you sign out.
@@ -38,7 +38,7 @@ Two services we use may store their own data on your device, under their own pol
 ## 4. How to control or remove it
 
 - **Signing out** removes your session, the offline copy of your planner and any unsaved edits from that device.
-- You can delete everything Luma has stored by **clearing your browser's site data** for Luma. You'll be signed out, and the next time you open the planner it will load your wedding again from our servers.
+- You can delete everything Twofold has stored by **clearing your browser's site data** for Twofold. You'll be signed out, and the next time you open the planner it will load your wedding again from our servers.
 - If you block browser storage completely, you won't be able to stay signed in.
 
 How to manage site data in the most common browsers:

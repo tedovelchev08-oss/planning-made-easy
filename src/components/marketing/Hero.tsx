@@ -56,7 +56,7 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
       <div className="relative">
         <div className="flex items-center justify-between">
           <span className="inline-flex items-center gap-1.5 text-eyebrow font-extrabold uppercase tracking-label-wide text-blush-deep">
-            <Heart size={11} fill="#E98BA0" className="text-blush-deep" /> The Luma planner
+            <Heart size={11} fill="#9a7a3f" className="text-blush-deep" /> The Twofold planner
           </span>
           <motion.span
             animate={hover && !reduced ? { scale: [1, 1.25, 1] } : {}}
@@ -102,9 +102,9 @@ function GlassPlannerCard({ tilt }: { tilt: boolean }) {
           <div className="flex items-center gap-3">
             <div className="relative h-11 w-11 shrink-0">
               <svg viewBox="0 0 44 44" className="h-11 w-11 -rotate-90">
-                <circle cx="22" cy="22" r="17" fill="none" stroke="rgb(51 43 49 / 0.1)" strokeWidth="4.5" />
+                <circle cx="22" cy="22" r="17" fill="none" stroke="rgb(15 14 13 / 0.1)" strokeWidth="4.5" />
                 <motion.circle
-                  cx="22" cy="22" r="17" fill="none" stroke="#E98BA0" strokeWidth="4.5" strokeLinecap="round"
+                  cx="22" cy="22" r="17" fill="none" stroke="#9a7a3f" strokeWidth="4.5" strokeLinecap="round"
                   strokeDasharray={C}
                   initial={{ strokeDashoffset: C }} animate={{ strokeDashoffset: C * (1 - pct / 100) }}
                   transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
@@ -162,7 +162,7 @@ export default function Hero() {
         className="pointer-events-none absolute inset-x-0 top-0 z-[5] h-[78svh] lg:hidden"
         style={{
           background:
-            "radial-gradient(120% 85% at 50% 0%, rgba(255,248,240,0.94) 0%, rgba(255,248,240,0.62) 46%, rgba(255,248,240,0) 78%)",
+            "radial-gradient(120% 85% at 50% 0%, rgba(247,242,232,0.94) 0%, rgba(247,242,232,0.62) 46%, rgba(247,242,232,0) 78%)",
         }}
       />
 
@@ -174,8 +174,8 @@ export default function Hero() {
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
             className="font-display text-display-sm leading-[1.04] tracking-tight text-ink sm:text-6xl xl:text-display-lg"
           >
-            Plan the feeling.
-            <span className="mt-2 block italic text-blush-deep">Not just the wedding.</span>
+            Two of you.
+            <span className="mt-2 block italic text-blush-deep">One plan.</span>
           </motion.h1>
 
           <motion.p
@@ -183,8 +183,8 @@ export default function Hero() {
             transition={{ duration: 0.9, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
             className="mt-6 max-w-md text-lead leading-relaxed text-ink-2"
           >
-            Luma turns the moving parts of your wedding into one beautiful, intelligent
-            workspace, from the first guest to the final dance.
+            Twofold is the wedding planner you share: guests, budget, seating and invitations,
+            planned together and updated live, from the first guest to the final dance.
           </motion.p>
 
           <motion.div

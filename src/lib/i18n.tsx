@@ -41,7 +41,7 @@ const en: Dict = {
   "onboard.locale": "Language & region",
   "onboard.currency": "Currency",
   "onboard.submit": "Create our plan",
-  "onboard.welcome": "Welcome to Luma",
+  "onboard.welcome": "Welcome to Twofold",
   "onboard.essential": "You'll start on Engaged, free — upgrade any time with one payment, no subscription.",
 };
 
@@ -65,7 +65,7 @@ const fr: Dict = {
   "onboard.locale": "Langue & région",
   "onboard.currency": "Devise",
   "onboard.submit": "Créer notre plan",
-  "onboard.welcome": "Bienvenue sur Luma",
+  "onboard.welcome": "Bienvenue sur Twofold",
   "onboard.essential": "Vous commencez avec Engaged, gratuit — évoluez quand vous voulez, en un seul paiement, sans abonnement.",
 };
 
@@ -89,7 +89,7 @@ const es: Dict = {
   "onboard.locale": "Idioma y región",
   "onboard.currency": "Moneda",
   "onboard.submit": "Crear nuestro plan",
-  "onboard.welcome": "Bienvenidos a Luma",
+  "onboard.welcome": "Bienvenidos a Twofold",
   "onboard.essential": "Empezáis con Engaged, gratis — mejorad cuando queráis con un solo pago, sin suscripción.",
 };
 
@@ -113,7 +113,7 @@ const de: Dict = {
   "onboard.locale": "Sprache & Region",
   "onboard.currency": "Währung",
   "onboard.submit": "Unseren Plan erstellen",
-  "onboard.welcome": "Willkommen bei Luma",
+  "onboard.welcome": "Willkommen bei Twofold",
   "onboard.essential": "Ihr startet mit Engaged, kostenlos — upgradet jederzeit mit einer einzigen Zahlung, ohne Abo.",
 };
 
@@ -137,7 +137,7 @@ const it: Dict = {
   "onboard.locale": "Lingua e regione",
   "onboard.currency": "Valuta",
   "onboard.submit": "Crea il nostro piano",
-  "onboard.welcome": "Benvenuti su Luma",
+  "onboard.welcome": "Benvenuti su Twofold",
   "onboard.essential": "Iniziate con Engaged, gratis — aggiornate quando volete con un unico pagamento, senza abbonamento.",
 };
 

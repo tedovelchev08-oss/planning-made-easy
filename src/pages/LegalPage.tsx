@@ -26,14 +26,14 @@ export default function LegalPage({ doc }: { doc: LegalDoc }) {
 
   useEffect(() => {
     const prev = document.title;
-    document.title = `${title} · Luma`;
+    document.title = `${title} · Twofold`;
     return () => { document.title = prev; };
   }, [title]);
 
   return (
     <div className="min-h-[100svh] bg-cream px-5 py-10 sm:px-8">
       <div className="mx-auto max-w-2xl">
-        <Link to="/" aria-label="Back to Luma home"><Logo /></Link>
+        <Link to="/" aria-label="Back to Twofold home"><Logo /></Link>
         <main className="mt-12">{renderMarkdown(source)}</main>
         <nav aria-label="Legal" className="mt-16 flex flex-wrap gap-x-6 gap-y-2 border-t border-ink/10 pt-6 text-small font-bold text-ink-2">
           {(Object.keys(LEGAL) as LegalDoc[]).filter((d) => d !== doc).map((d) => (

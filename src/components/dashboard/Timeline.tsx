@@ -124,7 +124,7 @@ export default function Timeline() {
                               <button onClick={() => toggleTask(t.id)} aria-pressed={t.done} aria-label={`Mark "${t.title}" ${t.done ? "incomplete" : "complete"}`} className="cursor-pointer">
                                 <span className={`flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 transition-all duration-300 ${t.done ? "border-sage-deep bg-sage-deep" : "border-ink/25 bg-white hover:border-gold"}`}>
                                   {t.done && (
-                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFF8F0" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#f7f2e8" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                                       <path d="M4.5 12.5l5 5 10-11" className="check-draw" />
                                     </svg>
                                   )}

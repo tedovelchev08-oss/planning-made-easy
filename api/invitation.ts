@@ -13,7 +13,7 @@
  *   200 { status: "closed" } · 404 { status: "missing" }
  *   409 { status: "other-design" } when the wedding doesn't use a studio
  *       design (or its plan doesn't include it): the page sends the guest
- *       back to Luma's own invitation page.
+ *       back to Twofold's own invitation page.
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { planAllows, studioDesignOf, toInvitationData, type PublicWedding } from "./_lib/studioDesigns";

@@ -1,5 +1,5 @@
 /* ============================================================
- * Luma · data layer
+ * Twofold · data layer
  * Typed CRUD against Supabase + the anonymous RPC surface.
  * All functions assume a configured client (store gates on mode).
  * ============================================================ */
@@ -252,9 +252,9 @@ export async function fetchWorkspace(weddingId: string, userId: string, versions
     website: {
       template: (web?.template ?? "serene") as WebsiteConfig["template"],
       sections: (web?.sections ?? {}) as WebsiteConfig["sections"],
-      bg: web?.bg ?? "#FFF8F0",
-      ink: web?.ink ?? "#332B31",
-      accent: web?.accent ?? "#D4AF37",
+      bg: web?.bg ?? "#f7f2e8",
+      ink: web?.ink ?? "#0f0e0d",
+      accent: web?.accent ?? "#c9a86a",
       serif: web?.serif ?? true,
       heroPhoto: localPhoto(web?.hero_photo ?? ""),
       animations: web?.animations ?? true,
@@ -319,7 +319,7 @@ export async function createWedding(input: {
     s.from("website_config").insert(websiteToRow({
       template: "serene",
       sections: { hero: true, story: true, details: true, schedule: true, venue: true, travel: true, registry: true, gallery: true, rsvp: true, music: false },
-      bg: "#FFF8F0", ink: "#332B31", accent: "#D4AF37", serif: true, heroPhoto: "",
+      bg: "#f7f2e8", ink: "#0f0e0d", accent: "#c9a86a", serif: true, heroPhoto: "",
       animations: true, domain: "", published: false,
     }, weddingId)),
   ]);

@@ -1,7 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Luma">
-  <rect width="32" height="32" rx="8" fill="#FFF8F0" />
-  <path
-    d="M16 25.5s-8.5-5.2-8.5-11a4.9 4.9 0 0 1 8.5-3.4 4.9 4.9 0 0 1 8.5 3.4c0 5.8-8.5 11-8.5 11Z"
-    fill="#E98BA0"
-  />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" role="img" aria-label="Twofold"><defs>
+<clipPath id="up"><rect x="259" y="128" width="481" height="481"/></clipPath>
+<clipPath id="dn"><rect x="259" y="560" width="481" height="481"/></clipPath>
+<mask id="hisMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1000"><rect width="1000" height="1000" fill="#fff"/>
+<circle cx="338.0" cy="585.0" r="215.3" fill="none" stroke="#000" stroke-width="207.8" clip-path="url(#up)"/></mask>
+<mask id="herMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1000"><rect width="1000" height="1000" fill="#fff"/>
+<circle cx="662.0" cy="585.0" r="220.0" fill="none" stroke="#000" stroke-width="190.2" clip-path="url(#dn)"/></mask>
+</defs><rect width="1000" height="1000" rx="200" fill="#0F0E0D"/>
+<circle cx="338.0" cy="585.0" r="215.3" fill="none" stroke="#C9A86A" stroke-width="109.4" mask="url(#herMask)"/>
+<circle cx="662.0" cy="585.0" r="220.0" fill="none" stroke="#C9A86A" stroke-width="100.1" mask="url(#hisMask)"/>
+<path d="M297.2 256.2L326.3 336.9M378.8 256.2L349.7 336.9M324.4 246.5L333.1 336.9M351.6 246.5L342.9 336.9" fill="none" stroke="#C9A86A" stroke-width="54.7" stroke-linecap="round"/>
+<path d="M308.8 234.8H367.2L386.6 265.9L338.0 326.2L289.4 265.9Z" fill="#F7F2E8" stroke="#C9A86A" stroke-width="38.3" stroke-linejoin="round"/>
 </svg>

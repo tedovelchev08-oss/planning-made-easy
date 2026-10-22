@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-/** The Tide on Luma: luma-tide.js prints the card on the sand and sets the day as a tide table. */
+/** The Tide on Twofold: luma-tide.js prints the card on the sand and sets the day as a tide table. */
 const dir = resolve(__dirname, "../../public/designs/tide");
 const HTML = readFileSync(resolve(dir, "index.html"), "utf8");
 const JS = readFileSync(resolve(dir, "luma-tide.js"), "utf8");
@@ -25,7 +25,7 @@ async function render(data: Record<string, unknown>) {
 }
 const text = (sel: string) => document.querySelector(sel)!.textContent!.replace(/\s+/g, " ").trim();
 
-describe("The Tide on Luma (luma-tide.js)", () => {
+describe("The Tide on Twofold (luma-tide.js)", () => {
   it("prints the card lying on the sand", async () => {
     await render({ ...couple, cardLine: "We met on a beach." });
     expect(text("#cardAbove")).toBe("Together with their families");

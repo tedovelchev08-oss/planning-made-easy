@@ -88,7 +88,7 @@ function run(data: Record<string, unknown>) {
 const shown = (id: string) => document.getElementById(id)!.style.display !== "none";
 const text = (sel: string) => document.querySelector(sel)!.textContent!.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
 
-describe("Mirror Palace on Luma (luma.js)", () => {
+describe("Mirror Palace on Twofold (luma.js)", () => {
   it("leaves out what the couple left empty, separators included", () => {
     run({ story1: "", story2: "", heroCity: "", dateCaptionText: "", celebrationAddress: "", rsvpDeadline: "", rsvpEmailText: "", schedule: [] });
     expect(text(".hero-date")).toBe("12 · 06 · 2027");
@@ -135,7 +135,7 @@ function runLg(data: Record<string, unknown>) {
 }
 const visible = (sel: string) => (document.querySelector(sel) as HTMLElement).style.display !== "none";
 
-describe("Liquid Gold on Luma (luma.js)", () => {
+describe("Liquid Gold on Twofold (luma.js)", () => {
   it("shows the RSVP line's parts only when given, the separator only between two", () => {
     runLg({ rsvpDeadline: "1 May 2027", rsvpEmailText: "" });
     expect([visible("#rsvpDeadlineText"), visible(".sep"), visible("#rsvpEmailText"), visible("#line")]).toEqual([true, false, false, true]);

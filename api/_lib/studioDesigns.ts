@@ -1,6 +1,6 @@
 /**
  * The owner's own invitation designs ("studio designs", Block 18), and how a
- * couple's Luma wedding becomes the `invitationData` those designs read.
+ * couple's Twofold wedding becomes the `invitationData` those designs read.
  *
  * Each design is a static page under public/designs/<id>/ running the
  * shared wedding-core engine. It asks /api/invitation for its data, which
@@ -321,7 +321,7 @@ export const planAllows = (plan: string | null | undefined, design: StudioDesign
 /** the page itself, named in full: Vercel's SPA rewrite must never get a say */
 export const designPath = (design: StudioDesign) => `/designs/${design.id}/index.html`;
 
-/** a guest's link to a studio design: the same token, slug and source as Luma's own invitation link */
+/** a guest's link to a studio design: the same token, slug and source as Twofold's own invitation link */
 export function studioInviteUrl(design: StudioDesign, link: { token?: string | null; slug?: string | null; src?: string | null }): string {
   const q = new URLSearchParams();
   if (link.token) q.set("token", link.token);
@@ -434,7 +434,7 @@ export function placeholderPhoto(design: StudioDesign, a: string, b: string): st
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
-/** The design's `invitationData`, built from the couple's Luma wedding. */
+/** The design's `invitationData`, built from the couple's Twofold wedding. */
 export function toInvitationData(w: PublicWedding, design: StudioDesign): Record<string, unknown> {
   const [partner1, partner2] = partners(w);
   const { date, time } = dayAndTime(w.date, w.timezone, w.locale);

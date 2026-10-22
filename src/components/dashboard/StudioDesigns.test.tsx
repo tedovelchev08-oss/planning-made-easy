@@ -125,7 +125,7 @@ describe("the preview", () => {
   it("opens the real design page with ?preview=1 in its own tab", () => {
     const open = vi.spyOn(window, "open").mockImplementation(() => null);
     openStudioPreview(makeDb("luxe", { templateId: "studio:celestial" }), celestial);
-    expect(open).toHaveBeenCalledWith("/designs/celestial/index.html?preview=1", "luma-design-preview");
+    expect(open).toHaveBeenCalledWith("/designs/celestial/index.html?preview=1", "twofold-design-preview");
     expect(JSON.parse(localStorage.getItem("luma.designPreview")!).invitation.partner1).toBe("Ana");
   });
 });

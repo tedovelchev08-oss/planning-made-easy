@@ -89,7 +89,7 @@ export default function Registry() {
                     className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[0.78rem] font-extrabold transition-all duration-300 cursor-pointer ${r.purchased ? "bg-sage text-ink" : "border border-ink/15 text-ink-2 hover:border-blush-deep hover:text-blush-deep"}`}
                   >
                     <motion.span animate={r.purchased ? { scale: [1, 1.4, 1] } : {}} transition={{ duration: 0.45 }}>
-                      <Heart size={14} fill={r.purchased ? "#332B31" : "none"} />
+                      <Heart size={14} fill={r.purchased ? "#0f0e0d" : "none"} />
                     </motion.span>
                     {r.purchased ? "Gifted with love" : "Mark gifted"}
                   </button>

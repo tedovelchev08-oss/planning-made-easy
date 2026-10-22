@@ -1,10 +1,20 @@
 @import "tailwindcss";
 
-/* ---------- brand typefaces ----------
-   Self-hosted so no third-party request sits on the critical path and
-   font-src 'self' in vercel.json already covers them. Variable fonts:
-   one file per style spans the whole weight range. font-display: swap
-   renders fallback text immediately rather than leaving it invisible. */
+/* ---------- brand typefaces (Twofold) ----------
+   Italiana for display, Jost for everything you read, Cormorant Garamond
+   italic for the few words set in italic (Italiana has no italic, and a
+   slanted Italiana looks cheap). All self-hosted, SIL OFL (licences in
+   public/fonts). */
+@font-face { font-family: 'Italiana'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/italiana-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Jost'; font-style: normal; font-weight: 300; font-display: swap; src: url('/fonts/jost-latin-300-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Jost'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/jost-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Jost'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/jost-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Jost'; font-style: normal; font-weight: 600 800; font-display: swap; src: url('/fonts/jost-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Cormorant Garamond'; font-style: italic; font-weight: 400; font-display: swap; src: url('/fonts/cormorant-garamond-latin-400-italic.woff2') format('woff2'); }
+@font-face { font-family: 'Cormorant Garamond'; font-style: italic; font-weight: 500 700; font-display: swap; src: url('/fonts/cormorant-garamond-latin-600-italic.woff2') format('woff2'); }
+
+/* The built-in invitation designs keep their own type: Playfair Display and
+   Nunito Sans stay, for them, and are only fetched when one is shown. */
 @font-face {
   font-family: 'Nunito Sans';
   font-style: normal;
@@ -55,26 +65,41 @@
 }
 
 @theme {
-  --font-display: "Playfair Display", "Georgia", serif;
-  --font-body: "Nunito Sans", "Avenir Next", "Segoe UI", sans-serif;
+  --font-display: "Italiana", "Didot", "Georgia", serif;
+  --font-body: "Jost", "Futura", "Avenir Next", "Helvetica Neue", sans-serif;
+  --font-accent: "Cormorant Garamond", "Georgia", serif;
 
-  --color-cream: #fff8f0;
-  --color-parchment: #f9efdf;
-  --color-blush: #ffb5c2;
-  --color-blush-deep: #e98ba0;
-  --color-blush-soft: #ffe7ec;
-  --color-sage: #a8c5a0;
-  --color-sage-deep: #74996b;
-  --color-sage-soft: #e7f0e3;
-  --color-lav: #c9b8e8;
-  --color-lav-deep: #a78bd4;
-  --color-lav-soft: #eee8f9;
-  --color-gold: #d4af37;
-  --color-gold-deep: #a8891f;
-  --color-gold-soft: #f3e7c3;
-  --color-ink: #332b31;
-  --color-ink-2: #5c4f55;
-  --color-ink-mute: #96868d;
+  /* ---------- Twofold palette ----------
+     The token NAMES are the old ones (ink, cream, blush, sage, lav, gold), so
+     every component takes the new brand without being rewritten. What they
+     mean now:
+       ink        onyx and its softer text tones
+       cream      ivory paper; parchment a shade deeper
+       gold       champagne, the brand colour
+       blush      the warm accent: champagne's lighter and deeper cousins
+       sage       a quiet olive for "done", "confirmed", "on track"
+       lav        taupe greys for secondary details */
+  --color-cream: #f7f2e8;
+  --color-parchment: #efe6d4;
+  --color-blush: #e3cfa5;
+  --color-blush-deep: #9a7a3f;
+  --color-blush-soft: #f4ecdc;
+  --color-sage: #b4b99f;
+  --color-sage-deep: #66704f;
+  --color-sage-soft: #eceee2;
+  --color-lav: #cfc6b4;
+  --color-lav-deep: #8c826f;
+  --color-lav-soft: #efebe3;
+  --color-gold: #c9a86a;
+  --color-gold-deep: #9a7a3f;
+  --color-gold-soft: #efe3c8;
+  --color-ink: #0f0e0d;
+  --color-ink-2: #4a443b;
+  --color-ink-mute: #8c826f;
+  --color-onyx: #0f0e0d;
+  --color-ivory: #ede3cf;
+  --color-champagne: #c9a86a;
+  --color-taupe: #8c826f;
 
   /* ---------- marketing type scale ----------
      The marketing surface had grown 35 distinct font sizes across 75 uses,
@@ -105,9 +130,9 @@
   --radius-panel: 2rem;
   --radius-hero: 3rem;
 
-  --shadow-card: 0 10px 40px -18px rgb(51 43 49 / 0.22);
-  --shadow-lift: 0 28px 70px -28px rgb(51 43 49 / 0.32);
-  --shadow-glass: 0 40px 100px -36px rgb(51 43 49 / 0.45);
+  --shadow-card: 0 10px 40px -18px rgb(15 14 13 / 0.22);
+  --shadow-lift: 0 28px 70px -28px rgb(15 14 13 / 0.32);
+  --shadow-glass: 0 40px 100px -36px rgb(15 14 13 / 0.45);
 }
 
 html {
@@ -123,7 +148,7 @@ body {
 }
 
 ::selection {
-  background: rgb(255 181 194 / 0.55);
+  background: rgb(201 168 106 / 0.35);
   color: var(--color-ink);
 }
 
@@ -135,10 +160,10 @@ body {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgb(51 43 49 / 0.22) transparent;
+  scrollbar-color: rgb(15 14 13 / 0.22) transparent;
 }
 ::-webkit-scrollbar { width: 9px; height: 9px; }
-::-webkit-scrollbar-thumb { background: rgb(51 43 49 / 0.18); border-radius: 99px; }
+::-webkit-scrollbar-thumb { background: rgb(15 14 13 / 0.18); border-radius: 99px; }
 ::-webkit-scrollbar-track { background: transparent; }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -150,10 +175,10 @@ body {
   inset: -20%;
   z-index: -2;
   background:
-    radial-gradient(42% 38% at 18% 22%, rgb(255 181 194 / 0.36), transparent 70%),
-    radial-gradient(36% 34% at 82% 16%, rgb(249 239 223 / 0.8), transparent 70%),
-    radial-gradient(40% 40% at 70% 84%, rgb(233 139 160 / 0.16), transparent 70%),
-    radial-gradient(30% 30% at 22% 78%, rgb(255 231 236 / 0.6), transparent 70%),
+    radial-gradient(42% 38% at 18% 22%, rgb(227 207 165 / 0.36), transparent 70%),
+    radial-gradient(36% 34% at 82% 16%, rgb(239 230 212 / 0.8), transparent 70%),
+    radial-gradient(40% 40% at 70% 84%, rgb(154 122 63 / 0.16), transparent 70%),
+    radial-gradient(30% 30% at 22% 78%, rgb(244 236 220 / 0.6), transparent 70%),
     var(--color-cream);
 }
 
@@ -183,21 +208,21 @@ body {
 }
 
 .glass-deep {
-  background: linear-gradient(150deg, rgb(51 43 49 / 0.82), rgb(51 43 49 / 0.62));
+  background: linear-gradient(150deg, rgb(15 14 13 / 0.82), rgb(15 14 13 / 0.62));
   backdrop-filter: blur(20px) saturate(1.2);
   -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  border: 1px solid rgb(255 248 240 / 0.14);
+  border: 1px solid rgb(247 242 232 / 0.14);
 }
 
 .gold-hairline {
-  background: linear-gradient(90deg, transparent, rgb(212 175 55 / 0.6), transparent);
+  background: linear-gradient(90deg, transparent, rgb(201 168 106 / 0.6), transparent);
   height: 1px;
 }
 
 /* the one permitted gold usage on marketing surfaces: a thin metallic rule.
    Gold is a detail tone — never a fill, button, or headline colour. */
 .hairline {
-  background: linear-gradient(90deg, transparent, rgb(212 175 55 / 0.55), transparent);
+  background: linear-gradient(90deg, transparent, rgb(201 168 106 / 0.55), transparent);
   height: 1px;
 }
 
@@ -227,7 +252,7 @@ body {
 .anim-rise { animation: rise-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 .shimmer-text {
-  background: linear-gradient(100deg, var(--color-gold-deep) 30%, #f5e3a0 48%, var(--color-gold-deep) 62%);
+  background: linear-gradient(100deg, var(--color-gold-deep) 30%, #ecdcb4 48%, var(--color-gold-deep) 62%);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -237,26 +262,26 @@ body {
 
 /* ---------- 3D auth buttons ---------- */
 .btn3d {
-  box-shadow: 0 6px 0 0 rgb(51 43 49 / 0.9), 0 14px 30px -10px rgb(51 43 49 / 0.45);
+  box-shadow: 0 6px 0 0 rgb(15 14 13 / 0.9), 0 14px 30px -10px rgb(15 14 13 / 0.45);
   transform: translateY(0);
   transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.2s ease;
 }
 .btn3d:hover { filter: brightness(1.06); }
 .btn3d:active {
   transform: translateY(5px);
-  box-shadow: 0 1px 0 0 rgb(51 43 49 / 0.9), 0 6px 14px -8px rgb(51 43 49 / 0.4);
+  box-shadow: 0 1px 0 0 rgb(15 14 13 / 0.9), 0 6px 14px -8px rgb(15 14 13 / 0.4);
 }
 .btn3d-gold {
-  box-shadow: 0 6px 0 0 var(--color-gold-deep), 0 14px 30px -10px rgb(168 137 31 / 0.5);
+  box-shadow: 0 6px 0 0 var(--color-gold-deep), 0 14px 30px -10px rgb(154 122 63 / 0.5);
 }
 .btn3d-gold:active {
-  box-shadow: 0 1px 0 0 var(--color-gold-deep), 0 6px 14px -8px rgb(168 137 31 / 0.45);
+  box-shadow: 0 1px 0 0 var(--color-gold-deep), 0 6px 14px -8px rgb(154 122 63 / 0.45);
 }
 .btn3d-light {
-  box-shadow: 0 6px 0 0 rgb(51 43 49 / 0.18), 0 14px 30px -12px rgb(51 43 49 / 0.25);
+  box-shadow: 0 6px 0 0 rgb(15 14 13 / 0.18), 0 14px 30px -12px rgb(15 14 13 / 0.25);
 }
 .btn3d-light:active {
-  box-shadow: 0 1px 0 0 rgb(51 43 49 / 0.18), 0 6px 14px -10px rgb(51 43 49 / 0.2);
+  box-shadow: 0 1px 0 0 rgb(15 14 13 / 0.18), 0 6px 14px -10px rgb(15 14 13 / 0.2);
 }
 
 /* Decorative loops are parked while their section is off screen; see
@@ -291,7 +316,7 @@ body {
   top: 0;
   pointer-events: none;
   border-radius: 9999px;
-  background: radial-gradient(circle, rgb(255 181 194 / 0.18) 0%, rgb(255 181 194 / 0.06) 44%, transparent 68%);
+  background: radial-gradient(circle, rgb(227 207 165 / 0.18) 0%, rgb(227 207 165 / 0.06) 44%, transparent 68%);
   transform: translate(-50%, -50%);
   will-change: transform;
 }
@@ -303,14 +328,14 @@ body {
   width: 14px;
   height: 18px;
   border-radius: 150% 8px 150% 8px;
-  background: linear-gradient(140deg, #ffd3dc, #ffb5c2 60%, #f49aac);
+  background: linear-gradient(140deg, #ead9b6, #e3cfa5 60%, #c9a86a);
   opacity: 0;
   animation: petal-fall linear infinite;
   pointer-events: none;
 }
 
 .dotted-canvas {
-  background-image: radial-gradient(rgb(51 43 49 / 0.13) 1px, transparent 1.4px);
+  background-image: radial-gradient(rgb(15 14 13 / 0.13) 1px, transparent 1.4px);
   background-size: 22px 22px;
 }
 
@@ -346,18 +371,18 @@ input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: po
     width: 100%;
     color: #000;
     background: #fff;
-    font-family: "Nunito Sans", "Avenir Next", sans-serif;
+    font-family: "Jost", "Avenir Next", sans-serif;
     font-size: 10.5pt;
     line-height: 1.45;
   }
 
   #seating-sheet .sheet-head { border-bottom: 1.5pt solid #000; padding-bottom: 6pt; margin-bottom: 12pt; }
-  #seating-sheet h1 { font-family: "Playfair Display", Georgia, serif; font-size: 22pt; margin: 0 0 2pt; }
+  #seating-sheet h1 { font-family: "Italiana", Georgia, serif; font-size: 22pt; margin: 0 0 2pt; }
   #seating-sheet .sheet-head p { margin: 0; font-size: 10pt; }
   #seating-sheet .sheet-sub { margin-top: 3pt !important; font-weight: 700; }
 
   #seating-sheet h2 {
-    font-family: "Playfair Display", Georgia, serif;
+    font-family: "Italiana", Georgia, serif;
     font-size: 14pt; margin: 0 0 6pt;
     border-bottom: 0.5pt solid #999; padding-bottom: 3pt;
   }
@@ -391,4 +416,9 @@ input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: po
   #seating-sheet .sheet-note { margin: 0 0 4pt; font-size: 9pt; color: #555; }
   #seating-sheet .sheet-names { margin: 0; }
   #seating-sheet .sheet-foot { margin-top: 12pt; padding-top: 4pt; border-top: 0.5pt solid #999; font-size: 8.5pt; color: #555; }
+}
+
+/* Twofold sets italics in Cormorant Garamond: Italiana has no italic. */
+.font-display.italic, .font-display .italic, .font-display em, .italic.font-display, em.font-display {
+  font-family: var(--font-accent);
 }

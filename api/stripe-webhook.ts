@@ -96,7 +96,7 @@ const before = (a: LedgerRow, b: LedgerRow) =>
   a.created_at < b.created_at || (a.created_at === b.created_at && a.stripe_payment_intent_id < b.stripe_payment_intent_id);
 
 /**
- * How much of a payment Luma must not keep, in minor units.
+ * How much of a payment Twofold must not keep, in minor units.
  *
  * Two tabs, or both partners, can each open a checkout and pay. The plan a
  * payment upgraded FROM is worked out from the wedding's own ledger: the

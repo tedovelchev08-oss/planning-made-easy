@@ -2,7 +2,7 @@ import { IMAGES } from "./images";
 import { PLANS, PLAN_ORDER, type Plan } from "./plans";
 
 /* ------------------------------------------------------------------ */
-/* Luma — types & seed data                                            */
+/* Twofold — types & seed data                                            */
 /* ------------------------------------------------------------------ */
 
 export type Rsvp = "confirmed" | "pending" | "declined";
@@ -230,7 +230,7 @@ export const PHASES: { id: PhaseId; label: string; hint: string }[] = [
   { id: "p3", label: "3 months", hint: "Decisions become details" },
   { id: "p1", label: "1 month", hint: "Confirm, confirm, breathe" },
   { id: "fw", label: "Final week", hint: "Hand it over gracefully" },
-  { id: "wd", label: "Wedding day", hint: "Be present. Luma has the rest." },
+  { id: "wd", label: "Wedding day", hint: "Be present. Twofold has the rest." },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -372,16 +372,16 @@ export const seedBudget: BudgetCategory[] = [
   // committed/paid are derived from the booked vendors linked via budgetId
   // (Venue→v1, Catering→v3, Photography→v2, Music→v5, Attire→v7).
   // manualCommitted/manualPaid hold amounts with no tracked vendor.
-  { id: "b1", name: "Venue", budget: 16000, manualCommitted: 0, manualPaid: 0, color: "#D4AF37" },
-  { id: "b2", name: "Catering", budget: 12500, manualCommitted: 0, manualPaid: 0, color: "#EE8FA1" },
-  { id: "b3", name: "Photography", budget: 6200, manualCommitted: 0, manualPaid: 0, color: "#A78BD4" },
+  { id: "b1", name: "Venue", budget: 16000, manualCommitted: 0, manualPaid: 0, color: "#c9a86a" },
+  { id: "b2", name: "Catering", budget: 12500, manualCommitted: 0, manualPaid: 0, color: "#b8964f" },
+  { id: "b3", name: "Photography", budget: 6200, manualCommitted: 0, manualPaid: 0, color: "#8c826f" },
   // the florist is still a proposal — nothing committed until it's booked
-  { id: "b4", name: "Florals", budget: 4800, manualCommitted: 0, manualPaid: 0, color: "#74996B" },
-  { id: "b5", name: "Music", budget: 3200, manualCommitted: 0, manualPaid: 0, color: "#FFB5C2" },
-  { id: "b6", name: "Attire", budget: 4100, manualCommitted: 0, manualPaid: 0, color: "#C9B8E8" },
-  { id: "b7", name: "Stationery", budget: 1600, manualCommitted: 900, manualPaid: 400, color: "#A8C5A0" },
-  { id: "b8", name: "Transportation", budget: 1400, manualCommitted: 0, manualPaid: 0, color: "#5C4F55" },
-  { id: "b9", name: "Miscellaneous", budget: 2200, manualCommitted: 580, manualPaid: 200, color: "#E98BA0" },
+  { id: "b4", name: "Florals", budget: 4800, manualCommitted: 0, manualPaid: 0, color: "#66704f" },
+  { id: "b5", name: "Music", budget: 3200, manualCommitted: 0, manualPaid: 0, color: "#e3cfa5" },
+  { id: "b6", name: "Attire", budget: 4100, manualCommitted: 0, manualPaid: 0, color: "#cfc6b4" },
+  { id: "b7", name: "Stationery", budget: 1600, manualCommitted: 900, manualPaid: 400, color: "#b4b99f" },
+  { id: "b8", name: "Transportation", budget: 1400, manualCommitted: 0, manualPaid: 0, color: "#4a443b" },
+  { id: "b9", name: "Miscellaneous", budget: 2200, manualCommitted: 580, manualPaid: 200, color: "#9a7a3f" },
 ];
 // committed & paid now reconcile against vendor payment schedules — see catCommitted / catPaid
 
@@ -418,7 +418,7 @@ export const seedTasks: Task[] = [
   task("Begin dress appointments", "p9", true, "A"),
   task("Book the honeymoon flights", "p9", true, "T"),
   task("Create the wedding registry", "p9", true, "B"),
-  task("Set up the Luma workspace", "p9", true, "B"),
+  task("Set up the Twofold workspace", "p9", true, "B"),
   // 6 months — 9/9
   task("Send save-the-dates", "p6", true, "B", false, -120),
   task("Finalize catering menu draft", "p6", true, "B"),
@@ -696,7 +696,7 @@ export const seedRegistry: RegistryItem[] = [
   { id: "r5", name: "Walnut Record Player", store: "Audio-Technica", price: 350, url: "https://www.audio-technica.com", purchased: false },
   { id: "r6", name: "Chef's Knife, Damascus", store: "Korin", price: 290, url: "https://www.korin.com", purchased: false },
   { id: "r7", name: "Weekender Bags × 2", store: "Away", price: 300, url: "https://www.awaytravel.com", purchased: false },
-  { id: "r8", name: "Honeymoon Fund — Amalfi", store: "Luma Fund", price: 0, url: "#fund", purchased: false },
+  { id: "r8", name: "Honeymoon Fund — Amalfi", store: "Twofold Fund", price: 0, url: "#fund", purchased: false },
 ];
 
 /* ------------------------------ templates ---------------------------- */

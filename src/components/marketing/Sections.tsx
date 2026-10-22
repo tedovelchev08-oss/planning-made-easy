@@ -15,7 +15,7 @@ function Marquee() {
       {words.map((w) => (
         <span key={w} className="flex items-center">
           <span className="px-7 font-display text-sm italic tracking-wide text-cream/85">{w}</span>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="#FFB5C2" aria-hidden="true">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="#e3cfa5" aria-hidden="true">
             <path d="M12 20.6S4.9 16 2.7 11.9C1.3 9.2 3 5.9 6.2 5.9c2 0 3.3 1.1 4 2.2h3.6c.7-1.1 2-2.2 4-2.2 3.2 0 4.9 3.3 3.5 6-2.2 4.1-9.3 8.7-9.3 8.7z" />
           </svg>
         </span>
@@ -194,7 +194,7 @@ export function Features() {
 const STEPS = [
   {
     n: "01", title: "Set your world",
-    body: "Add your date, people, priorities and celebration details. Luma shapes a workspace around the two of you.",
+    body: "Add your date, people, priorities and celebration details. Twofold shapes a workspace around the two of you.",
     accent: "ten minutes, not ten tabs",
   },
   {
@@ -204,7 +204,7 @@ const STEPS = [
   },
   {
     n: "03", title: "Bring it to life",
-    body: "Send invitations, launch your website and enjoy the countdown while Luma keeps the details in tune.",
+    body: "Send invitations, launch your website and enjoy the countdown while Twofold keeps the details in tune.",
     accent: "guests feel it immediately",
   },
 ];
@@ -236,7 +236,7 @@ export function HowItWorks() {
               <div className="relative lg:border-l lg:border-cream/10 lg:pl-8">
                 <span
                   className="absolute -top-9 right-0 font-display text-display-xl leading-none text-transparent lg:-top-12 lg:text-ornament"
-                  style={{ WebkitTextStroke: "1px rgb(255 181 194 / 0.45)" }}
+                  style={{ WebkitTextStroke: "1px rgb(227 207 165 / 0.45)" }}
                   aria-hidden="true"
                 >
                   {s.n}

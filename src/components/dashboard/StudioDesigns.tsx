@@ -50,7 +50,7 @@ export function previewData(db: Db, design: StudioDesign): Record<string, unknow
  */
 export function openStudioPreview(db: Db, design: StudioDesign): void {
   writePreview(db, design);
-  window.open(`${designPath(design)}?preview=1`, "luma-design-preview");
+  window.open(`${designPath(design)}?preview=1`, "twofold-design-preview");
 }
 
 export function writePreview(db: Db, design: StudioDesign): void {

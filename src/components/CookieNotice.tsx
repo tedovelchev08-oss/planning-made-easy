@@ -4,9 +4,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { usePrefersReducedMotion } from "../lib/store";
 
 /**
- * A small, honest note about what Luma stores (Block 20).
+ * A small, honest note about what Twofold stores (Block 20).
  *
- * Luma sets no cookies and uses only storage it needs to work (see the
+ * Twofold sets no cookies and uses only storage it needs to work (see the
  * cookie policy), so there is nothing to accept or reject: this tells
  * visitors so, once, and remembers that they've seen it. It is not a
  * consent banner, and it must never become one that pretends there's a
@@ -54,7 +54,7 @@ export default function CookieNotice() {
             ${inPlanner ? "bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:bottom-5" : "bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:bottom-5"}`}
         >
           <p className="text-[0.88rem] leading-relaxed text-ink-2">
-            <strong className="font-bold text-ink">No tracking here.</strong> Luma doesn't use cookies. It only keeps what it needs on your
+            <strong className="font-bold text-ink">No tracking here.</strong> Twofold doesn't use cookies. It only keeps what it needs on your
             device, like your sign-in and your planner, so it works.{" "}
             <Link to="/cookies" className="font-bold text-ink underline underline-offset-2">Cookie policy</Link>
           </p>

@@ -47,10 +47,10 @@ function MissingInvite() {
       <h1 className="mt-6 font-display text-4xl tracking-tight text-ink">This invitation can't be found</h1>
       <p className="mt-3 max-w-sm text-body leading-relaxed text-ink-2">
         The link may have lost a letter on the way, or the couple hasn't published their page yet.
-        Double-check the address, or head back to Luma.
+        Double-check the address, or head back to Twofold.
       </p>
       <Link to="/" className="mt-8 inline-flex items-center gap-2 rounded-full bg-ink px-7 py-3.5 text-small font-bold text-cream transition hover:bg-ink/85 active:scale-[0.97]">
-        Back to Luma
+        Back to Twofold
       </Link>
     </div>
   );
@@ -72,7 +72,7 @@ function ClosedInvite() {
         If this is your wedding, open your planner and switch on “Open to guests”.
       </p>
       <Link to="/" className="mt-8 inline-flex items-center gap-2 rounded-full bg-ink px-7 py-3.5 text-small font-bold text-cream transition hover:bg-ink/85 active:scale-[0.97]">
-        Back to Luma
+        Back to Twofold
       </Link>
     </div>
   );
@@ -305,7 +305,7 @@ export default function GuestInvite() {
 
       {/* top bar */}
       <div className="relative z-10 mx-auto flex max-w-3xl items-center justify-between px-5 py-5">
-        <Link to="/" aria-label="Back to Luma home"><Logo /></Link>
+        <Link to="/" aria-label="Back to Twofold home"><Logo /></Link>
         <button
           onClick={toggleMusic}
           aria-label={playing || uploadPlaying ? "Stop music" : "Play music"}
@@ -538,7 +538,7 @@ export default function GuestInvite() {
         )}
 
         <p className="mt-8 flex items-center justify-center gap-2 text-center text-eyebrow font-bold uppercase tracking-label-x opacity-45">
-          <Sparkles size={11} /> Made with Luma · {siteHost()}
+          <Sparkles size={11} /> Made with Twofold · {siteHost()}
         </p>
       </main>
     </div>

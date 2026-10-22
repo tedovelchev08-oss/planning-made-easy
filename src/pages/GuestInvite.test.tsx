@@ -129,7 +129,7 @@ describe("GuestInvite — a wedding using one of the owner's own designs (Block 
     payload = unpublished;
   });
 
-  it("stays on Luma's own page when the plan no longer includes the design", async () => {
+  it("stays on Twofold's own page when the plan no longer includes the design", async () => {
     payload = studio("celebration");
     leaveFor.mockClear();
     render(

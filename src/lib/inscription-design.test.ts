@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-/** The Inscription on Luma: luma-ins.js cuts the couple into the real page. */
+/** The Inscription on Twofold: luma-ins.js cuts the couple into the real page. */
 const dir = resolve(__dirname, "../../public/designs/inscription");
 const HTML = readFileSync(resolve(dir, "index.html"), "utf8");
 const JS = readFileSync(resolve(dir, "luma-ins.js"), "utf8");
@@ -25,7 +25,7 @@ async function render(data: Record<string, unknown>) {
 }
 const text = (sel: string) => document.querySelector(sel)!.textContent!.replace(/\s+/g, " ").trim();
 
-describe("The Inscription on Luma (luma-ins.js)", () => {
+describe("The Inscription on Twofold (luma-ins.js)", () => {
   it("cuts the names, and the date in words, the way the original was cut", async () => {
     await render(couple);
     expect(text(".inscription h1")).toBe("AnaandBoris");

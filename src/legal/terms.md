@@ -2,15 +2,15 @@
 
 **Last updated: October 16, 2026**
 
-These terms are an agreement between you and **Teodor Yovchev Velchev**, doing business as **Luma** ("**we**", "**us**", "**our**"), Sofia, Bulgaria, for the use of Luma, the online wedding planner at [planning-made-easy.vercel.app](https://planning-made-easy.vercel.app) (the "**Services**").
+These terms are an agreement between you and **Teodor Yovchev Velchev**, doing business as **Twofold** ("**we**", "**us**", "**our**"), Sofia, Bulgaria, for the use of Twofold, the online wedding planner at [planning-made-easy.vercel.app](https://planning-made-easy.vercel.app) (the "**Services**").
 
 By creating an account or buying a plan, you agree to these terms. If you don't agree, please don't use the Services. Our [privacy policy](#/privacy) explains how we handle personal information, and our [refund policy](#/refunds) explains refunds.
 
 Questions: **lumaplanning.support@gmail.com**
 
-## 1. Who can use Luma
+## 1. Who can use Twofold
 
-You must be at least 18 years old and able to enter into a binding contract. You use Luma as a consumer, to plan your own wedding or one you are helping with.
+You must be at least 18 years old and able to enter into a binding contract. You use Twofold as a consumer, to plan your own wedding or one you are helping with.
 
 ## 2. Your account
 
@@ -21,7 +21,7 @@ You must be at least 18 years old and able to enter into a binding contract. You
 
 ## 3. The Services and plans
 
-Luma offers a free plan and two paid plans:
+Twofold offers a free plan and two paid plans:
 
 - **Engaged** (free): the planner, including budget, timeline, vendors, seating, gift registry, up to 50 guests, an invitation with an RSVP link, and planning together with a partner.
 - **Celebration** (€49, $49 or £49, one-time): everything in Engaged, plus unlimited guests, all invitation designs, personal RSVP links, a wedding website, printable seating and guest export, and your own invitation design.
@@ -48,7 +48,7 @@ If you are a consumer in the EU or UK, you have **14 days** from your purchase t
 
 ## 6. Your content
 
-"**Your content**" means everything you put into Luma: wedding details, guest lists, notes, photos, designs, songs and anything else.
+"**Your content**" means everything you put into Twofold: wedding details, guest lists, notes, photos, designs, songs and anything else.
 
 - **You own your content.** You give us permission to store, copy and display it only as needed to run the Services for you, for example to show your invitation to the guests you share it with. This permission ends when your content is deleted, apart from copies in backups, which expire.
 - **You must have the right to use it.** Only upload photos, designs and music that you own or have permission to use, and only add other people's information when you need it to plan your wedding (see the privacy policy).
@@ -59,24 +59,24 @@ If you are a consumer in the EU or UK, you have **14 days** from your purchase t
 
 You must not:
 
-- use Luma for anything unlawful, or to harass, deceive or harm anyone;
+- use Twofold for anything unlawful, or to harass, deceive or harm anyone;
 - upload content that infringes someone else's rights, or that is illegal, hateful or sexually explicit;
-- send spam through Luma's sharing features;
-- try to access other people's weddings or accounts, or test, probe or bypass Luma's security, limits or payments;
+- send spam through Twofold's sharing features;
+- try to access other people's weddings or accounts, or test, probe or bypass Twofold's security, limits or payments;
 - overload or disrupt the Services, or use automated tools to access them except as the app itself does; or
 - copy, resell or reverse-engineer the Services.
 
 ## 8. Suspension and ending your account
 
-- You can stop using Luma at any time and ask us to delete your account (see the privacy policy).
+- You can stop using Twofold at any time and ask us to delete your account (see the privacy policy).
 - We may suspend or close an account that seriously or repeatedly breaks these terms, or where the law requires it. Unless the law or a security risk prevents it, we will tell you first, explain why, and give you a chance to export your data.
 - If we close an account because of a serious breach of these terms, we don't have to refund a plan that has already been used. This does not affect your statutory rights.
 
 ## 9. Availability and changes to the Services
 
-We work to keep Luma available and your data safe, but we can't promise the Services will always be uninterrupted or error-free. We may need to pause them for maintenance or because of problems beyond our control.
+We work to keep Twofold available and your data safe, but we can't promise the Services will always be uninterrupted or error-free. We may need to pause them for maintenance or because of problems beyond our control.
 
-We may improve and change the Services over time. If we ever decide to **stop offering Luma**, we will give you at least **60 days' notice** so you can export your data, and we will refund paid plans in proportion to the time left until your wedding date or, if there is no date, as required by law.
+We may improve and change the Services over time. If we ever decide to **stop offering Twofold**, we will give you at least **60 days' notice** so you can export your data, and we will refund paid plans in proportion to the time left until your wedding date or, if there is no date, as required by law.
 
 ## 10. Our responsibility for the Services
 
@@ -86,16 +86,16 @@ If the Services don't work as described, contact us and we will fix the problem.
 
 - Nothing in these terms limits our liability where the law doesn't allow it, including for death or personal injury caused by our negligence, for fraud, or for damage we cause intentionally or through gross negligence.
 - Otherwise, we are not liable for losses that were not foreseeable, for business losses, or for losses caused by events outside our reasonable control.
-- Luma is a planning tool. Keep your own copies of important information (such as guest lists and vendor contracts), and check important details directly with your venue and vendors.
+- Twofold is a planning tool. Keep your own copies of important information (such as guest lists and vendor contracts), and check important details directly with your venue and vendors.
 - Otherwise, our total liability to you for any claim is limited to the amount you have paid us for the wedding concerned.
 
 ## 12. Third-party services
 
-Luma relies on other services, such as Stripe for payments and messaging apps you use to share your invitation. Their own terms apply when you use them, and we are not responsible for how they work.
+Twofold relies on other services, such as Stripe for payments and messaging apps you use to share your invitation. Their own terms apply when you use them, and we are not responsible for how they work.
 
 ## 13. Changes to these terms
 
-We may update these terms, for example when we add features or the law changes. We will show the new date at the top. If a change is important, we will tell you in the app or by email at least 30 days before it applies. If you don't agree with it, you can stop using Luma and ask us to delete your account before it takes effect.
+We may update these terms, for example when we add features or the law changes. We will show the new date at the top. If a change is important, we will tell you in the app or by email at least 30 days before it applies. If you don't agree with it, you can stop using Twofold and ask us to delete your account before it takes effect.
 
 ## 14. Law and disputes
 
@@ -107,4 +107,4 @@ We may update these terms, for example when we add features or the law changes. 
 
 Email: **lumaplanning.support@gmail.com**
 
-Post: Teodor Yovchev Velchev (Luma), Sofia 1000, Bulgaria
+Post: Teodor Yovchev Velchev (Twofold), Sofia 1000, Bulgaria
