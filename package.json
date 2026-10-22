@@ -1,7 +1,7 @@
 {
   "name": "luma",
   "private": true,
-    "type": "module",
+  "type": "module",
   "engines": {
     "node": "22.x"
   },
@@ -17,16 +17,12 @@
   "dependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.62.1",
-    "@react-three/drei": "^9.114.3",
-    "@react-three/fiber": "^8.17.10",
     "@sentry/react": "^10.73.0",
     "@supabase/supabase-js": "^2.98.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^26.4.0",
-    "@types/three": "^0.169.0",
-    
     "canvas-confetti": "^1.9.3",
     "eslint": "^10.9.1",
     "eslint-plugin-react-hooks": "^7.1.1",
@@ -38,7 +34,6 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.0",
     "stripe": "^22.6.0",
-    "three": "^0.169.0",
     "typescript-eslint": "^8.68.0",
     "vitest": "^4.1.11"
   },
@@ -47,10 +42,10 @@
     "@types/canvas-confetti": "^1.6.4",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@vercel/node": "^10.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "tailwindcss": "^4.1.7",
     "typescript": "^5.7.0",
-    "vite": "^6.3.5",
-    "@vercel/node": "^10.0.0"
+    "vite": "^6.3.5"
   }
 }

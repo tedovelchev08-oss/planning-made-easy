@@ -6,7 +6,7 @@ import { PLANS, PLAN_ORDER, formatPrice, type Plan } from "../../lib/plans";
 import { useCurrency } from "../../lib/currency";
 import { useNavigate } from "react-router-dom";
 import { useApp, useMediaQuery } from "../../lib/store";
-import { CurrencySelect, Pill, Reveal, Stars } from "../ui";
+import { CurrencySelect, Reveal, Stars } from "../ui";
 
 /* ------------------------------ pricing ------------------------------ */
 
@@ -34,80 +34,44 @@ export function Pricing() {
   };
 
   return (
-    <section id="pricing" className="relative scroll-mt-28 overflow-hidden px-5 py-24 sm:px-8 sm:py-32">
-      <div className="pointer-events-none absolute right-[-10%] top-10 h-96 w-96 rounded-full bg-blush/20 blur-3xl" aria-hidden="true" />
-      <div className="pointer-events-none absolute bottom-0 left-[-8%] h-80 w-80 rounded-full bg-blush/20 blur-3xl" aria-hidden="true" />
+    <section id="pricing" className="scroll-mt-10 border-t border-[#3a342b] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto max-w-6xl text-center">
+        <h2 className="font-display text-[clamp(36px,8vw,64px)] leading-[1.02] text-ivory">
+          Start free. <em className="text-champagne">Upgrade once, if you love it.</em>
+        </h2>
+        <p className="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed text-ivory/70">
+          Plan the whole wedding on {PLANS.essential.name} for free. When you want every guest, every design and your
+          own website, upgrade with one payment. No subscription, nothing to cancel.
+        </p>
+        <CurrencySelect value={currency} onChange={setCurrency} tone="dark" className="mt-6" />
 
-      <div className="relative mx-auto max-w-7xl">
-        <div className="grid items-end gap-8 lg:grid-cols-[1.2fr_1fr]">
-          <Reveal>
-            <p className="flex items-center gap-3 text-eyebrow font-extrabold uppercase tracking-label-x text-blush-deep">
-              <span className="h-px w-9 bg-blush-deep/60" /> Pricing
-            </p>
-            <h2 className="mt-5 font-display text-4xl leading-[1.08] tracking-tight text-ink sm:text-5xl">
-              Start free. <em className="text-blush-deep">Upgrade once,</em> if you love it.
-            </h2>
-          </Reveal>
-          <Reveal delay={0.12}>
-            <p className="max-w-md text-lead leading-relaxed text-ink-2 lg:ml-auto">
-              Plan your whole wedding on {PLANS.essential.name} for free. When you want every guest, every design
-              and your own website, upgrade with <strong className="text-ink">one payment — no subscription, no recurring fees.</strong>
-            </p>
-            <CurrencySelect value={currency} onChange={setCurrency} className="mt-5 lg:ml-auto lg:flex lg:w-fit" />
-          </Reveal>
-        </div>
-
-        <div className="mt-16 grid items-stretch gap-6 lg:grid-cols-3">
-          {PLAN_ORDER.map((id, i) => {
-            const plan = PLANS[id];
-            const featured = !!plan.featured;
-            const free = plan.price === 0;
-            return (
-              <Reveal key={id} delay={i * 0.1} className={featured ? "lg:-translate-y-5" : ""}>
-                {/* The badge straddles the card's top edge, so it lives on this
-                    wrapper rather than inside the card — the card clips its own
-                    overflow to keep the 2rem radius, which cut the badge in half. */}
-                <div className="relative h-full">
-                {featured && (
-                  <span className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-blush-deep px-4 py-1.5 text-eyebrow font-extrabold uppercase tracking-label-wide text-cream shadow-card">
-                    Recommended
-                  </span>
-                )}
+        {/* a menu card: three plans under one rule, set like a list of wines */}
+        <div className="relative mt-14 border border-champagne/40 p-2 text-left">
+          <div className="grid border border-champagne/20 lg:grid-cols-3">
+            {PLAN_ORDER.map((id) => {
+              const plan = PLANS[id];
+              const featured = !!plan.featured;
+              const free = plan.price === 0;
+              return (
                 <article
+                  key={id}
                   aria-label={`${plan.name}, ${free ? "free" : `${formatPrice(plan.price, currency)} one-time`}`}
-                  className={`relative flex h-full flex-col overflow-hidden rounded-panel p-8 transition-all duration-500 hover:-translate-y-2 ${
-                    featured
-                      ? "border border-blush-deep/50 bg-ink text-cream shadow-glass"
-                      : "border border-white/70 bg-white/55 backdrop-blur-md hover:shadow-lift hover:bg-white/80"
-                  }`}
+                  className="flex flex-col border-b border-champagne/20 p-7 last:border-b-0 sm:p-9 lg:border-b-0 lg:border-r lg:last:border-r-0"
                 >
-                  {id === "luxe" && (
-                    <span className="absolute right-6 top-6"><Pill tone="pending">Premium</Pill></span>
-                  )}
+                  <h3 className="font-display text-[30px] leading-none tracking-[0.04em] text-ivory">{plan.name}</h3>
+                  <p className="mt-2 text-[15px] leading-relaxed text-ivory/65">{plan.tagline}</p>
 
-                  <h3 className={`font-display text-title-lg ${featured ? "text-cream" : "text-ink"}`}>{plan.name}</h3>
-                  <p className={`mt-1.5 text-small font-semibold leading-relaxed ${featured ? "text-cream/75" : "text-ink-2"}`}>{plan.tagline}</p>
+                  <p className="mt-8 flex items-baseline gap-3">
+                    <span className="font-display text-[56px] leading-none text-champagne">{formatPrice(plan.price, currency)}</span>
+                    <span className="text-[12px] uppercase tracking-[0.2em] text-taupe">{free ? "free forever" : "one payment"}</span>
+                  </p>
 
-                  <div className="mt-7 flex items-baseline gap-2">
-                    <span className={`font-display text-display leading-none ${featured ? "text-cream" : "text-ink"}`}>
-                      {formatPrice(plan.price, currency)}
-                    </span>
-                    <span className={`text-small font-bold ${featured ? "text-blush" : "text-ink-mute"}`}>{free ? "Free forever" : "one-time"}</span>
-                  </div>
-                  {!free && (
-                    <p className={`mt-1.5 text-caption font-semibold ${featured ? "text-cream/55" : "text-ink-mute"}`}>No subscription · no recurring fees</p>
-                  )}
+                  <p className="mt-6 text-[15px] leading-relaxed text-ivory/70">{plan.value}</p>
 
-                  <p className={`mt-6 text-small leading-relaxed ${featured ? "text-cream/70" : "text-ink-2"}`}>{plan.value}</p>
-
-                  <div className={`hairline my-6 ${featured ? "opacity-60" : ""}`} />
-
-                  <ul className="flex-1 space-y-3">
+                  <ul className="mt-6 flex-1 space-y-2.5 border-t border-champagne/15 pt-6">
                     {plan.features.map((f) => (
-                      <li key={f} className={`flex items-start gap-2.5 text-body ${featured ? "text-cream/85" : "text-ink-2"}`}>
-                        <span className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full ${featured ? "bg-blush-deep text-cream" : "bg-blush-soft text-blush-deep"}`}>
-                          <Check size={10} strokeWidth={3.4} />
-                        </span>
+                      <li key={f} className="flex items-start gap-3 text-[15px] text-ivory/85">
+                        <Check size={14} strokeWidth={1.6} className="mt-1 shrink-0 text-champagne" aria-hidden="true" />
                         {f}
                       </li>
                     ))}
@@ -115,27 +79,24 @@ export function Pricing() {
 
                   <button
                     onClick={() => choose(id)}
-                    className={`mt-8 w-full cursor-pointer rounded-full py-3.5 text-body font-bold transition-all duration-300 active:scale-[0.97] ${
+                    className={`mt-9 w-full cursor-pointer rounded-[2px] py-4 text-[12px] font-medium uppercase tracking-[0.2em] transition-colors duration-300 ${
                       featured
-                        ? "bg-blush-deep text-cream hover:brightness-110 hover:shadow-lift"
-                        : "border border-ink/20 text-ink hover:border-ink/50 hover:bg-ink hover:text-cream"
+                        ? "bg-champagne text-onyx hover:bg-[#d8b97c]"
+                        : "text-ivory shadow-[inset_0_0_0_1px_rgb(237_227_207/0.35)] hover:shadow-[inset_0_0_0_1px_rgb(237_227_207/1)]"
                     }`}
                   >
                     {free ? "Start planning free" : `Choose ${plan.name}`}
                   </button>
                 </article>
-                </div>
-              </Reveal>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
-        <Reveal delay={0.2}>
-          <p className="mt-10 flex flex-wrap items-center justify-center gap-2 text-center text-caption font-semibold text-ink-mute">
-            <Lock size={13} className="text-blush-deep" />
-            Secure checkout via Stripe · one-time payment · no recurring fees
-          </p>
-        </Reveal>
+        <p className="mt-8 flex flex-wrap items-center justify-center gap-2 text-[13px] text-taupe">
+          <Lock size={13} className="text-champagne" aria-hidden="true" />
+          Secure checkout via Stripe · one-time payment · no recurring fees
+        </p>
       </div>
     </section>
   );

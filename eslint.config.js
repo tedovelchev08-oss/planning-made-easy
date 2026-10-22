@@ -21,7 +21,8 @@ export default tseslint.config(
   // public/designs: the owner's own invitation designs and vendored libraries,
   // plain browser scripts kept as they ship (luma-bridge.js is covered by
   // src/lib/luma-bridge.test.ts instead)
-  { ignores: ["dist", "node_modules", "public/designs"] },
+  // .claude holds local agent tooling (third-party skills), not site code
+  { ignores: ["dist", "node_modules", "public/designs", ".claude"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
