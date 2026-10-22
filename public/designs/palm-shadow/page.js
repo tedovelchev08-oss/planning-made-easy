@@ -15,23 +15,53 @@
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var L = window.__lumaShadow || {};
 
-  /* ---------- THE SHADOW ---------- */
+  /* ---------- THE SHADOW ----------
+     It follows the scroll the way a shadow follows the sun: it eases
+     toward where it should be rather than jumping with every flick of
+     the page, it never moves far, and it gives way over the two walls
+     that already carry real shadows of their own, so they never double. */
   var drift = document.getElementById('drift');
   if (drift && !reduce) {
-    var ticking = false;
-    function move() {
-      ticking = false;
+    var walls = [document.getElementById('hero'), document.getElementById('closing')];
+    var cur = null, running = false;
+    function target() {
       var max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-      var p = scrollY / max;                       // 0 at the top, 1 at the foot
-      // across the page and back once, turning through a few degrees
-      var x = Math.sin(p * Math.PI * 1.6) * 34 - 8;  // vw
-      var y = -10 + p * 30;                          // vh
-      var a = -14 + p * 22;                          // deg
-      drift.style.transform = 'translate3d(' + x.toFixed(2) + 'vw,' + y.toFixed(2) + 'vh,0) rotate(' + a.toFixed(2) + 'deg)';
+      var p = Math.min(1, Math.max(0, scrollY / max));
+      var vw = innerWidth / 100, vh = innerHeight / 100;
+      // how much of the screen a wall with its own shadows is filling
+      var cover = 0;
+      walls.forEach(function (w) {
+        if (!w) return;
+        var r = w.getBoundingClientRect();
+        cover = Math.max(cover, Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0)) / innerHeight);
+      });
+      return {
+        x: (Math.sin(p * Math.PI * 1.2) * 16 - 6) * vw,
+        y: (-8 + p * 14) * vh,
+        a: -10 + p * 9,
+        o: 1 - Math.min(1, cover * 1.6)
+      };
     }
-    addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(move); } }, { passive: true });
-    addEventListener('resize', move);
-    move();
+    function frame() {
+      var t = target();
+      if (!cur) cur = t;
+      var k = 0.075, done = true;
+      ['x', 'y', 'a', 'o'].forEach(function (key) {
+        var d = t[key] - cur[key];
+        cur[key] += d * k;
+        if (Math.abs(d) > (key === 'o' ? 0.002 : 0.2)) done = false;
+      });
+      drift.style.transform = 'translate3d(' + cur.x.toFixed(1) + 'px,' + cur.y.toFixed(1) + 'px,0) rotate(' + cur.a.toFixed(2) + 'deg)';
+      drift.style.opacity = (0.13 * cur.o).toFixed(3);
+      if (done) { running = false; return; }
+      requestAnimationFrame(frame);
+    }
+    function wake() { if (!running) { running = true; requestAnimationFrame(frame); } }
+    addEventListener('scroll', wake, { passive: true });
+    addEventListener('resize', wake);
+    wake();
+  } else if (drift) {
+    drift.style.opacity = '0';
   }
 
   /* ---------- REVEALS ---------- */

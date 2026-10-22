@@ -40,9 +40,12 @@ h2{ font:italic 400 clamp(32px,8vw,48px)/1.08 var(--display); color:var(--ink) }
 /* the shadow that drifts down the page with the guest */
 .drift{
   position:fixed; z-index:40; pointer-events:none; top:0; left:0;
-  width:max(110vmin,620px); height:auto; opacity:.15; mix-blend-mode:multiply;
-  transform:translate3d(-8vw,-10vh,0) rotate(-14deg); transform-origin:30% 20%;
-  will-change:transform;
+  width:max(110vmin,620px); height:auto; opacity:0;
+  /* no blend mode: a fixed layer that blends makes the browser repaint the
+     whole page under it on every frame of a scroll. The cut-out is already
+     a soft brown shadow, so plain transparency reads the same. */
+  transform:translate3d(-6vw,-8vh,0) rotate(-10deg); transform-origin:30% 20%;
+  will-change:transform, opacity; backface-visibility:hidden;
 }
 
 /* ============================================================

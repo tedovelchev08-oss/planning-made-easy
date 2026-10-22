@@ -186,7 +186,7 @@
     function go() {
       render(d);
       if (typeof window.lumaAfterRender === 'function') window.lumaAfterRender(d);
-      start('page.js?v=1');
+      start('page.js?v=2');
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);
     else go();
