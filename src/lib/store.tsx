@@ -8,6 +8,7 @@ import {
 } from "./data";
 import { isSupabaseConfigured } from "./supabase";
 import { guestLimit, type Feature } from "./plans";
+import { starterTasks } from "./starterTasks";
 import { IMAGES, localPhoto } from "./images";
 import {
   type Queue, bucketOf, clearQueue, countQueue, emptyQueue, loadQueue, mergeUnder, persistQueue, retryDelay, sendQueue,
@@ -804,15 +805,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
       const { weddingId: wid, wedding } = await createWedding(input);
       setWeddingId(wid);
+      weddingIdRef.current = wid; // so the starter steps below sync straight away
       setDbState(emptyDb(wedding));
       setNeedsOnboarding(false);
       lastRsvpPull.current = Date.now();
       setSync({ status: "saved", lastSaved: Date.now(), pending: 0 });
-      toast("Your plan is ready", "An empty canvas, all yours. Start with the guest list.");
+      // the plan opens on its first steps, dated back from the wedding
+      setDb((d) => ({ ...d, tasks: starterTasks(input.date) }));
+      toast("Your plan is ready", "Your first steps are on the timeline, and this week's are on the Overview.");
     } finally {
       setBooting(false);
     }
-  }, [toast]);
+  }, [toast, setDb]);
 
   const invitePartner = useCallback(async (email: string) => {
     const wid = weddingIdRef.current;
