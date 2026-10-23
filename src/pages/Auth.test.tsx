@@ -60,15 +60,21 @@ const at = (path: string) => render(
 const box = (label: string | RegExp) => screen.getByLabelText(label) as HTMLInputElement;
 const type = (label: string | RegExp, value: string) => fireEvent.change(box(label), { target: { value } });
 const button = (name: RegExp) => screen.getByRole("button", { name });
+/** opens the ring calendar and walks forward to the day (laptop: matchMedia says not a phone) */
+const pickDay = (label: string) => {
+  fireEvent.click(button(/your wedding day/i));
+  for (let i = 0; i < 36 && !screen.queryByRole("button", { name: label }); i++) fireEvent.click(button(/next month/i));
+  fireEvent.click(button(new RegExp(`^${label}$`)));
+};
 
 describe("sign in", () => {
   it("has no emailed sign-in link, and the password can be shown and hidden", () => {
     at("/sign-in");
     expect(screen.queryByText(/sign-in link/i)).toBeNull();
     expect(box("Password").type).toBe("password");
-    fireEvent.click(button(/^show$/i));
+    fireEvent.click(button(/^show password$/i));
     expect(box("Password").type).toBe("text");
-    expect(button(/^hide$/i).getAttribute("aria-pressed")).toBe("true");
+    expect(button(/^hide password$/i).getAttribute("aria-pressed")).toBe("true");
   });
 
   it("waits for the check, then sends its token and resets for the next attempt", async () => {
@@ -136,7 +142,7 @@ describe("begin your plan", () => {
     await waitFor(() => expect(solve).not.toBeNull());
     type("Your name", "Mila");
     type(/your partner/i, "Theo");
-    type(/your wedding day/i, "2027-09-18");
+    pickDay("Saturday, 18 September 2027");
     type("Email", "mila@example.com");
     type(/^password/i, "Longer-pass1");
     await act(async () => { solve!("token-2"); });
@@ -145,6 +151,47 @@ describe("begin your plan", () => {
       partner_a: "Mila", partner_b: "Theo", wedding_date: "2027-09-18",
     }));
     expect(await screen.findByRole("heading", { name: /check your inbox/i })).toBeTruthy();
+  });
+
+  it("the wedding day is chosen on the ring calendar, spelled out, and can be cleared", () => {
+    at("/begin");
+    expect(button(/your wedding day/i).textContent).toBe("Choose the day");
+    pickDay("Saturday, 18 September 2027");
+    expect(button(/your wedding day/i).textContent).toBe("Saturday, 18 September 2027");
+    expect(screen.queryByRole("dialog")).toBeNull(); // the card closes on a pick
+    fireEvent.click(button(/your wedding day/i));
+    expect(button(/^Saturday, 18 September 2027$/).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(button(/not decided yet/i));
+    expect(button(/your wedding day/i).textContent).toBe("Choose the day");
+  });
+
+  it("days already gone can't be chosen", () => {
+    at("/begin");
+    fireEvent.click(button(/your wedding day/i));
+    expect((button(/previous month/i) as HTMLButtonElement).disabled).toBe(true);
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    const iso = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+    const past = document.querySelector<HTMLButtonElement>(`[data-day="${iso}"]`);
+    if (past) expect(past.disabled).toBe(true); // (on the 1st, yesterday is last month)
+  });
+
+  it("on a phone the day is set with three dials, which also work from the keyboard", () => {
+    const real = window.matchMedia;
+    window.matchMedia = ((q: string) => ({ matches: q.includes("max-width"), media: q, addEventListener: () => {}, removeEventListener: () => {} })) as unknown as typeof window.matchMedia;
+    try {
+      at("/begin");
+      fireEvent.click(button(/your wedding day/i));
+      const month = screen.getByRole("spinbutton", { name: "Month" });
+      expect(screen.getByRole("checkbox", { name: /haven’t decided/i })).toHaveProperty("checked", true);
+      fireEvent.keyDown(month, { key: "ArrowDown" });
+      // turning a dial chooses a day: a year out, one month on
+      const t = new Date();
+      const want = new Date(t.getFullYear() + 1, t.getMonth() + 1, 1).getMonth();
+      expect(month.getAttribute("aria-valuetext")).toBe(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][want]);
+      expect(button(/your wedding day/i).textContent).not.toBe("Choose the day");
+      fireEvent.click(screen.getByRole("checkbox", { name: /haven’t decided/i }));
+      expect(button(/your wedding day/i).textContent).toBe("Choose the day");
+    } finally { window.matchMedia = real; }
   });
 
   it("the names appear as they're typed", () => {

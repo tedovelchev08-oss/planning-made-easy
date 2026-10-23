@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react
 import { useApp } from "../lib/store";
 import { authApi } from "../lib/api";
 import { Turnstile, turnstileSiteKey, type TurnstileHandle } from "../components/Turnstile";
+import { WeddingDayPicker } from "./WeddingDayPicker";
 import "./auth.css";
 
 /**
@@ -130,7 +131,7 @@ function useAttempt({ human = true } = {}) {
 function Stage({ aside, children, label }: { aside?: React.ReactNode; children: React.ReactNode; label: string }) {
   return (
     <div className="tf-auth">
-      <div className="tf-auth-silk" aria-hidden="true" />
+      <div className="tf-auth-silk" aria-hidden="true"><div className="tf-auth-light" /><div className="tf-auth-glint" /></div>
       <header className="tf-auth-top">
         <Link to="/" aria-label="Twofold, home"><img src="/brand/twofold-wordmark-on-dark.svg" alt="Twofold" width={140} height={18} /></Link>
         <Link to="/" className="tf-auth-home">Home</Link>
@@ -165,10 +166,32 @@ function PasswordInput({ id, value, onChange, autoComplete, invalid }: {
         id={id} type={shown ? "text" : "password"} value={value} onChange={(e) => onChange(e.target.value)}
         autoComplete={autoComplete} aria-invalid={invalid || undefined} aria-describedby={invalid ? "auth-error" : undefined} required
       />
-      <button type="button" className="tf-auth-show" onClick={() => setShown((v) => !v)} aria-pressed={shown} aria-controls={id}>
-        {shown ? "Hide" : "Show"}
+      <button
+        type="button" className="tf-auth-show" onClick={() => setShown((v) => !v)}
+        aria-pressed={shown} aria-controls={id} aria-label={shown ? "Hide password" : "Show password"} title={shown ? "Hide password" : "Show password"}
+      >
+        {shown ? <SolitaireEye /> : <ClosedEye />}
       </button>
     </div>
+  );
+}
+
+/** open: an eye whose pupil is a cut diamond, like the ring on the silk */
+function SolitaireEye() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M1.8 12s3.8-6.6 10.2-6.6S22.2 12 22.2 12s-3.8 6.6-10.2 6.6S1.8 12 1.8 12z" />
+      <path d="M12 8.6l3 3.4-3 3.4-3-3.4z" /><path d="M9 12h6" />
+    </svg>
+  );
+}
+/** closed: the same eye, shut, its lashes down */
+function ClosedEye() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M2.5 11.5s3.6 5 9.5 5 9.5-5 9.5-5" />
+      <path d="M5.2 14.4 3.8 16.4M9 16.1l-.6 2.3M15 16.1l.6 2.3M18.8 14.4l1.4 2" />
+    </svg>
   );
 }
 
@@ -352,7 +375,7 @@ export function BeginPage() {
           </Line>
         </div>
         <Line id="auth-date" label="Your wedding day" hint="if you know it">
-          <input id="auth-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} min={new Date().toISOString().slice(0, 10)} />
+          <WeddingDayPicker id="auth-date" value={date} onChange={setDate} />
         </Line>
         <Line id="auth-email" label="Email">
           <input id="auth-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" inputMode="email" required />
