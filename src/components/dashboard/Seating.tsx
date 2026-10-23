@@ -425,7 +425,7 @@ export default function Seating() {
   }, [db.guests, pickerQ]);
 
   return (
-    <div className="grid gap-4 lg:h-[calc(100dvh-118px)] lg:min-h-[620px] lg:grid-cols-[300px_1fr]">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:h-[calc(100dvh-118px)] lg:min-h-[620px] lg:grid-cols-[300px_minmax(0,1fr)]">
       {/* left rail */}
       <div className="space-y-4 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:space-y-0 lg:gap-4">
         <div className="rounded-[1.6rem] border border-white/70 bg-white/60 p-5 backdrop-blur-md lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">

@@ -308,7 +308,32 @@ export default function Guests() {
       ) : rows.length === 0 ? (
         <EmptyState title="No guests match" body="Loosen the search or switch the RSVP filter — they're probably in there somewhere." />
       ) : (
-        <div className="overflow-x-auto rounded-[1.6rem] border border-white/70 bg-white/60 shadow-sm backdrop-blur-md">
+        <>
+        {/* phone: one line per guest. Tap the name to edit, the answer to change it */}
+        <ul className="divide-y divide-ink/6 overflow-hidden rounded-[1.6rem] border border-white/70 bg-white/60 shadow-sm md:hidden" aria-label="Guests">
+          {rows.map((g) => {
+            const isPlusOne = !!g.plusOneOf;
+            const host = hostOf(g);
+            const table = g.table ? db.tables.find((t) => t.id === g.table)?.name : null;
+            return (
+              <li key={g.id} className={`flex items-center gap-3 px-4 py-3 ${isPlusOne ? "bg-cream/60 pl-8" : ""}`}>
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[0.62rem] font-extrabold ${isPlusOne ? "bg-gold-soft text-gold-deep" : g.party === "A" ? "bg-blush-soft text-blush-deep" : g.party === "B" ? "bg-sage-soft text-sage-deep" : "bg-lav-soft text-lav-deep"}`} aria-hidden="true">
+                  {isPlusOne ? "+1" : initials(g.name)}
+                </span>
+                <button onClick={() => openEdit(g, false)} className="min-w-0 flex-1 py-1 text-left cursor-pointer" aria-label={`Edit ${g.name}`}>
+                  <span className="block truncate text-[0.95rem] font-bold text-ink">{g.name}</span>
+                  <span className="block truncate text-[0.78rem] text-ink-2">
+                    {[isPlusOne ? `+1 of ${host?.name.split(" ")[0] ?? "guest"}` : null, g.meal, table ?? (g.rsvp === "confirmed" ? "Not seated" : null), g.dietary].filter(Boolean).join(" · ") || "No meal or table yet"}
+                  </span>
+                </button>
+                <button onClick={() => cycleRsvp(g)} aria-label={`Change RSVP for ${g.name} — currently ${g.rsvp}; activates the next state`} className="flex min-h-11 shrink-0 items-center cursor-pointer">
+                  <Pill tone={g.rsvp}>{g.rsvp === "confirmed" ? "✓ confirmed" : g.rsvp}</Pill>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="hidden overflow-x-auto rounded-[1.6rem] border border-white/70 bg-white/60 shadow-sm backdrop-blur-md md:block">
           <table className="w-full min-w-[860px] text-left text-[0.88rem]">
             <thead>
               <tr className="border-b border-ink/8 text-[0.66rem] uppercase tracking-[0.16em] text-ink-mute">
@@ -388,6 +413,7 @@ export default function Guests() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       <p className="flex items-center gap-2 text-[0.74rem] font-semibold text-ink-mute"><Users size={13} /> Showing {rows.length} of {db.guests.length} guests · click an RSVP pill to cycle its state</p>

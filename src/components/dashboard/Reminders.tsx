@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, Bell, CalendarClock, Heart, Lightbulb, X } from "lucide-react";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
@@ -73,6 +73,19 @@ export default function Reminders() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [top?.id, state.popupDay, day]);
 
+  // the card says its piece and goes: it used to stay over the top of every
+  // page until closed. The bell keeps the full list.
+  const { pathname } = useLocation();
+  const shownOn = useRef(pathname);
+  useEffect(() => {
+    if (!popup) return;
+    shownOn.current = pathname;
+    const t = window.setTimeout(() => setPopup(null), 9000);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [popup]);
+  useEffect(() => { if (pathname !== shownOn.current) setPopup(null); }, [pathname]);
+
   return (
     <div className="relative">
       <button
@@ -118,7 +131,7 @@ export default function Reminders() {
         {popup && !open && (
           <motion.aside
             role="status" aria-label="Reminder"
-            initial={reduced ? false : { opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+            initial={reduced ? false : { opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={reduced ? undefined : { opacity: 0, y: -6 }}
             transition={{ duration: 0.25 }}
             className="absolute right-0 top-12 z-30 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-ink/10 bg-cream p-1 shadow-glass"
           >
