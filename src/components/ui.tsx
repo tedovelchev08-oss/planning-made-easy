@@ -127,13 +127,13 @@ export function Modal({
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 30, opacity: 0, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 320, damping: 30 }}
-            className={`relative w-full ${wide ? "sm:max-w-3xl" : "sm:max-w-lg"} max-h-[92vh] overflow-y-auto rounded-t-[1.8rem] sm:rounded-[1.8rem] bg-cream shadow-glass border border-white/70`}
+            className={`relative w-full ${wide ? "sm:max-w-3xl" : "sm:max-w-lg"} max-h-[92vh] overflow-y-auto rounded-t-[10px] sm:rounded-[3px] bg-[#f6f0e4] shadow-[0_40px_80px_-30px_rgb(0_0_0/.55)]`}
           >
             <button
               onClick={onClose} aria-label="Close"
-              className="absolute right-4 top-4 z-10 rounded-full bg-ink/5 p-2 text-ink-2 transition hover:bg-ink/10 hover:text-ink cursor-pointer"
+              className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full text-ink-2 transition hover:bg-ink/5 hover:text-ink cursor-pointer"
             >
-              <X size={16} />
+              <X size={18} strokeWidth={1.6} />
             </button>
             {children}
           </motion.div>

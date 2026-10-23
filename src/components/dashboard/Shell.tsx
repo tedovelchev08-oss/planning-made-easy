@@ -409,8 +409,8 @@ export default function Shell() {
         </main>
       </div>
 
-      {/* mobile quick-action dock */}
-      <motion.button
+      {/* mobile quick-action dock (not on seating, where the guest tray sits there) */}
+      {!location.pathname.startsWith("/planner/seating") && <motion.button
         onClick={() => setDockOpen(true)}
         aria-label="Quick actions"
         whileTap={{ scale: 0.9 }}
@@ -418,7 +418,7 @@ export default function Shell() {
         style={{ marginBottom: "env(safe-area-inset-bottom)" }}
       >
         <Plus size={22} />
-      </motion.button>
+      </motion.button>}
 
       <AnimatePresence>
         {dockOpen && (

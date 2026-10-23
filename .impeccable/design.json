@@ -1,0 +1,514 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-23T18:06:57.068723+00:00",
+  "title": "Design System: Twofold",
+  "extensions": {
+    "colorMeta": {
+      "onyx": {
+        "role": "primary",
+        "displayName": "Onyx",
+        "tonalRamp": [
+          "#292624",
+          "#44403b",
+          "#625c55",
+          "#837a72",
+          "#a09992",
+          "#bdb8b2",
+          "#d9d6d3",
+          "#f3f2f1"
+        ]
+      },
+      "onyx-hover": {
+        "role": "primary",
+        "displayName": "Onyx Lifted",
+        "tonalRamp": [
+          "#2a2622",
+          "#464039",
+          "#655c52",
+          "#877a6e",
+          "#a4998e",
+          "#bfb8b0",
+          "#dad6d2",
+          "#f4f2f1"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "#2a2722",
+          "#464139",
+          "#655e53",
+          "#867d6e",
+          "#a39b8f",
+          "#bfb9b1",
+          "#dad7d2",
+          "#f4f2f1"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "tonalRamp": [
+          "#2a2722",
+          "#464139",
+          "#655e53",
+          "#867d6e",
+          "#a39b8f",
+          "#bfb9b1",
+          "#dad7d2",
+          "#f4f2f1"
+        ],
+        "canonical": "rgb(28 26 23 / .64)"
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "tonalRamp": [
+          "#2a2722",
+          "#464139",
+          "#655e53",
+          "#867d6e",
+          "#a39b8f",
+          "#bfb9b1",
+          "#dad7d2",
+          "#f4f2f1"
+        ],
+        "canonical": "rgb(28 26 23 / .12)"
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "tonalRamp": [
+          "#362c16",
+          "#5a4925",
+          "#826936",
+          "#ad8b48",
+          "#c3a76f",
+          "#d5c19a",
+          "#e7dcc5",
+          "#f8f4ed"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card",
+        "tonalRamp": [
+          "#392d13",
+          "#604a20",
+          "#8a6b2e",
+          "#b88f3d",
+          "#ccaa66",
+          "#dbc394",
+          "#ebddc2",
+          "#f9f4ec"
+        ]
+      },
+      "linen-card": {
+        "role": "neutral",
+        "displayName": "Linen Card",
+        "tonalRamp": [
+          "#372b16",
+          "#5b4824",
+          "#836834",
+          "#af8b46",
+          "#c5a76d",
+          "#d6c199",
+          "#e8dcc5",
+          "#f8f4ed"
+        ]
+      },
+      "cream": {
+        "role": "neutral",
+        "displayName": "Cream",
+        "tonalRamp": [
+          "#392c14",
+          "#5f4a21",
+          "#886b2f",
+          "#b68e3f",
+          "#caa968",
+          "#dac395",
+          "#eaddc2",
+          "#f8f4ec"
+        ]
+      },
+      "ivory": {
+        "role": "neutral",
+        "displayName": "Ivory",
+        "tonalRamp": [
+          "#382c15",
+          "#5d4923",
+          "#866a32",
+          "#b28d43",
+          "#c7a86b",
+          "#d8c297",
+          "#e9dcc4",
+          "#f8f4ec"
+        ]
+      },
+      "champagne": {
+        "role": "secondary",
+        "displayName": "Champagne",
+        "tonalRamp": [
+          "#382c14",
+          "#5e4922",
+          "#876931",
+          "#b48c41",
+          "#c9a869",
+          "#d9c296",
+          "#e9dcc3",
+          "#f8f4ec"
+        ]
+      },
+      "champagne-hover": {
+        "role": "secondary",
+        "displayName": "Champagne Lit",
+        "tonalRamp": [
+          "#3b2d12",
+          "#624b1d",
+          "#8d6c2a",
+          "#bd9038",
+          "#d0ab62",
+          "#dec491",
+          "#ecddc0",
+          "#f9f4eb"
+        ]
+      },
+      "bronze": {
+        "role": "secondary",
+        "displayName": "Bronze",
+        "tonalRamp": [
+          "#3a2b13",
+          "#60481f",
+          "#8a682d",
+          "#b88b3c",
+          "#cda765",
+          "#dcc193",
+          "#ebdcc2",
+          "#f9f4ec"
+        ]
+      },
+      "taupe": {
+        "role": "neutral",
+        "displayName": "Taupe",
+        "tonalRamp": [
+          "#2b2822",
+          "#474238",
+          "#665f51",
+          "#897f6c",
+          "#a59d8d",
+          "#c0baaf",
+          "#dbd8d1",
+          "#f4f3f1"
+        ]
+      },
+      "coming": {
+        "role": "tertiary",
+        "displayName": "Coming Sage",
+        "tonalRamp": [
+          "#232f1e",
+          "#3a4e32",
+          "#547047",
+          "#6f955f",
+          "#90b082",
+          "#b1c7a8",
+          "#d3dfcd",
+          "#f1f5ef"
+        ]
+      },
+      "cant-come": {
+        "role": "tertiary",
+        "displayName": "Can't-come Terracotta",
+        "tonalRamp": [
+          "#371c15",
+          "#5c2e23",
+          "#854233",
+          "#b15844",
+          "#c77c6b",
+          "#d8a498",
+          "#e8cbc4",
+          "#f8efed"
+        ]
+      },
+      "alert": {
+        "role": "tertiary",
+        "displayName": "Alert Rust",
+        "tonalRamp": [
+          "#3e170f",
+          "#672619",
+          "#943724",
+          "#c54930",
+          "#d7705b",
+          "#e39b8c",
+          "#efc6bd",
+          "#faedea"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles, 40px phone / 46px from 640px."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Card titles, table names on cards, phase names."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Vendor names, figures in summary rows, table names on the floor."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "List rows and sentences."
+      },
+      "body-small": {
+        "displayName": "Body small",
+        "purpose": "Meta, counts, legends, quiet buttons."
+      },
+      "accent": {
+        "displayName": "Accent italic",
+        "purpose": "Who a task belongs to, phase hints, diets, the ampersand."
+      },
+      "label": {
+        "displayName": "Button label",
+        "purpose": "Onyx primary buttons only; uppercase."
+      },
+      "figures": {
+        "displayName": "Lining figures",
+        "purpose": "Digits inside an Italiana line."
+      }
+    },
+    "shadows": [
+      {
+        "name": "paper",
+        "value": "0 1px 0 rgb(255 255 255 / .6) inset, 0 18px 40px -30px rgb(60 40 15 / .55)",
+        "purpose": "Every planner card."
+      },
+      {
+        "name": "popover",
+        "value": "0 18px 40px -16px rgb(0 0 0 / .45)",
+        "purpose": "Menus, with a 1px line ring."
+      },
+      {
+        "name": "sheet",
+        "value": "0 40px 80px -30px rgb(0 0 0 / .55)",
+        "purpose": "The modal."
+      },
+      {
+        "name": "tray",
+        "value": "0 -12px 30px -18px rgb(0 0 0 / .45)",
+        "purpose": "Phone guest tray."
+      },
+      {
+        "name": "on-silk",
+        "value": "0 1px 0 rgb(255 255 255 / .45) inset, 0 40px 80px -30px rgb(0 0 0 / .8), 0 10px 24px -12px rgb(0 0 0 / .6)",
+        "purpose": "The sign-in card on black silk."
+      },
+      {
+        "name": "table",
+        "value": "0 16px 26px -18px rgb(60 40 15 / .55), inset 0 1px 0 rgb(255 255 255 / .5)",
+        "purpose": "A table on the Seating floor, with a 1px skin ring."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-settle",
+        "value": "cubic-bezier(.16, 1, .3, 1)",
+        "purpose": "Rings closing, seats settling, panels opening, the landing feed."
+      },
+      {
+        "name": "ease-journey",
+        "value": "cubic-bezier(.22, 1, .36, 1)",
+        "purpose": "Progress lines filling (1.2–1.4s)."
+      },
+      {
+        "name": "ring-close",
+        "value": "0.45s",
+        "purpose": "A task's second ring sliding in."
+      },
+      {
+        "name": "rings-close-everyone",
+        "value": "1.1s, 0.2s delay",
+        "purpose": "Everyone has a seat."
+      },
+      {
+        "name": "seat-in",
+        "value": "0.6s",
+        "purpose": "A guest settling into a seat."
+      },
+      {
+        "name": "row-warm",
+        "value": "1.2s ease-out",
+        "purpose": "A just-changed row fading from champagne."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "landing",
+        "value": "900px"
+      },
+      {
+        "name": "auth",
+        "value": "960px"
+      },
+      {
+        "name": "lg (rail)",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one onyx action in a region: Add, Book them.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg> Add guest</button>",
+      "css": ":host{--pl-onyx:#0f0e0d;--pl-paper:#ece3d1;--pl-card:#f6f0e4;--pl-line:rgb(28 26 23 / .12);--pl-ink:#1c1a17;--pl-ink-2:rgb(28 26 23 / .64);--pl-gold:#c9a86a;--pl-bronze:#7a5c28;--pl-ivory:#ede3cf;--font-display:'Italiana','Didot',Georgia,serif;--font-body:'Jost','Futura','Avenir Next',sans-serif;--font-accent:'Cormorant Garamond',Georgia,serif;} .ds-btn-primary{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border:0;border-radius:2px;background:var(--pl-onyx);color:var(--pl-ivory);font:500 12px/1 var(--font-body);letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:background-color .2s}.ds-btn-primary:hover{background:#2a2622}.ds-btn-primary:focus-visible{outline:2px solid var(--pl-bronze);outline-offset:3px}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Secondary actions on paper: Print for the venue, See the board.",
+      "html": "<button class=\"ds-btn-quiet\">Print for the venue</button>",
+      "css": ":host{--pl-onyx:#0f0e0d;--pl-paper:#ece3d1;--pl-card:#f6f0e4;--pl-line:rgb(28 26 23 / .12);--pl-ink:#1c1a17;--pl-ink-2:rgb(28 26 23 / .64);--pl-gold:#c9a86a;--pl-bronze:#7a5c28;--pl-ivory:#ede3cf;--font-display:'Italiana','Didot',Georgia,serif;--font-body:'Jost','Futura','Avenir Next',sans-serif;--font-accent:'Cormorant Garamond',Georgia,serif;} .ds-btn-quiet{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:1px solid var(--pl-line);border-radius:2px;background:var(--pl-card);color:var(--pl-ink);font:400 13.5px/1 var(--font-body);cursor:pointer;transition:border-color .2s}.ds-btn-quiet:hover{border-color:rgb(28 26 23 / .3)}.ds-btn-quiet:focus-visible{outline:2px solid var(--pl-bronze);outline-offset:3px}"
+    },
+    {
+      "name": "Gold Button (marketing)",
+      "kind": "button",
+      "refersTo": "button-gold",
+      "description": "The landing page's call to action on onyx.",
+      "html": "<div class=\"ds-onyx\"><button class=\"ds-btn-gold\">Begin your plan</button></div>",
+      "css": ":host{--pl-onyx:#0f0e0d;--pl-paper:#ece3d1;--pl-card:#f6f0e4;--pl-line:rgb(28 26 23 / .12);--pl-ink:#1c1a17;--pl-ink-2:rgb(28 26 23 / .64);--pl-gold:#c9a86a;--pl-bronze:#7a5c28;--pl-ivory:#ede3cf;--font-display:'Italiana','Didot',Georgia,serif;--font-body:'Jost','Futura','Avenir Next',sans-serif;--font-accent:'Cormorant Garamond',Georgia,serif;} .ds-onyx{background:var(--pl-onyx);padding:24px}.ds-btn-gold{border:0;border-radius:2px;padding:16px 24px;background:var(--pl-gold);color:var(--pl-onyx);font:500 12px/1 var(--font-body);letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:background-color .3s}.ds-btn-gold:hover{background:#d8b97c}.ds-btn-gold:focus-visible{outline:1.5px solid var(--pl-gold);outline-offset:3px}"
+    },
+    {
+      "name": "View Switch",
+      "kind": "chip",
+      "refersTo": "segment-active",
+      "description": "Room · Tables · Board: a pill track with an onyx active segment.",
+      "html": "<div class=\"ds-seg\" role=\"tablist\"><button class=\"on\">Room</button><button>Tables</button><button>Board</button></div>",
+      "css": ":host{--pl-onyx:#0f0e0d;--pl-paper:#ece3d1;--pl-card:#f6f0e4;--pl-line:rgb(28 26 23 / .12);--pl-ink:#1c1a17;--pl-ink-2:rgb(28 26 23 / .64);--pl-gold:#c9a86a;--pl-bronze:#7a5c28;--pl-ivory:#ede3cf;--font-display:'Italiana','Didot',Georgia,serif;--font-body:'Jost','Futura','Avenir Next',sans-serif;--font-accent:'Cormorant Garamond',Georgia,serif;} .ds-seg{display:inline-flex;padding:4px;border-radius:9999px;background:var(--pl-card);box-shadow:0 0 0 1px var(--pl-line)}.ds-seg button{height:36px;padding:0 16px;border:0;border-radius:9999px;background:none;color:var(--pl-ink);font:400 13.5px/1 var(--font-body);cursor:pointer;transition:background-color .2s}.ds-seg button:hover{background:rgb(28 26 23 / .05)}.ds-seg button.on{background:var(--pl-onyx);color:var(--pl-ivory)}.ds-seg button:focus-visible{outline:2px solid var(--pl-bronze);outline-offset:2px}"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "chip-filter",
+      "description": "RSVP filters with counts; active is onyx with a champagne count.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip on\">Everyone <span>86</span></button><button class=\"ds-chip\">Coming <span>54</span></button><button class=\"ds-chip\">Waiting <span>24</span></button></div>",
+      "css": ":host{--pl-onyx:#0f0e0d;--pl-paper:#ece3d1;--pl-card:#f6f0e4;--pl-line:rgb(28 26 23 / .12);--pl-ink:#1c1a17;--pl-ink-2:rgb(28 26 23 / .64);--pl-gold:#c9a86a;--pl-bronze:#7a5c28;--pl-ivory:#ede3cf;--font-display:'Italiana','Didot',Georgia,serif;--font-body:'Jost','Futura','Avenir Next',sans-serif;--font-accent:'Cormorant Garamond',Georgia,serif;} .ds-chips{display:flex;gap:6px}.ds-chip{height:40px;padding:0 16px;border-radius:9999px;border:1px solid var(--pl-line);background:var(--pl-card);color:var(--pl-ink);font:400 13.5px/1 var(--font-body);cursor:pointer;transition:border-color .2s}.ds-chip span{color:var(--pl-ink-2);font-variant-numeric:tabular-nums}.ds-chip:hover{border-color:rgb(28 26 23 / .3)}.ds-chip.on{background:var(--pl-onyx);color:var(--pl-ivory);border-color:var(--pl-onyx)}.ds-chip.on span{color:var(--pl-gold)}.ds-chip:focus-visible{outline:2px solid var(--pl-bronze);outline-offset:2px}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Planner search on paper; focus turns the border bronze.",
+      "html": "<label class=\"ds-search\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m20 20-3.5-3.5\"/></svg><input placeholder=\"Find a guest\" /></label>",
+      "css": ":host{--pl-onyx:#0f0e0d;--pl-paper:#ece3d1;--pl-card:#f6f0e4;--pl-line:rgb(28 26 23 / .12);--pl-ink:#1c1a17;--pl-ink-2:rgb(28 26 23 / .64);--pl-gold:#c9a86a;--pl-bronze:#7a5c28;--pl-ivory:#ede3cf;--font-display:'Italiana','Didot',Georgia,serif;--font-body:'Jost','Futura','Avenir Next',sans-serif;--font-accent:'Cormorant Garamond',Georgia,serif;} .ds-search{position:relative;display:block;width:280px;color:var(--pl-ink-2)}.ds-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%)}.ds-search input{width:100%;height:40px;padding:0 12px 0 36px;border:1px solid var(--pl-line);border-radius:2px;background:var(--pl-card);color:var(--pl-ink);font:400 14px/1 var(--font-body);outline:none;transition:border-color .2s}.ds-search input::placeholder{color:rgb(28 26 23 / .45)}.ds-search input:hover{border-color:rgb(28 26 23 / .3)}.ds-search input:focus-visible{border-color:var(--pl-bronze)}"
+    },
+    {
+      "name": "Underline Field (sign-in)",
+      "kind": "input",
+      "refersTo": "input-underline",
+      "description": "Auth form field on the linen card: one underline, no box.",
+      "html": "<div class=\"ds-auth\"><label>Your email<input type=\"email\" placeholder=\"maya@example.com\" /></label></div>",
+      "css": ":host{--pl-onyx:#0f0e0d;--pl-paper:#ece3d1;--pl-card:#f6f0e4;--pl-line:rgb(28 26 23 / .12);--pl-ink:#1c1a17;--pl-ink-2:rgb(28 26 23 / .64);--pl-gold:#c9a86a;--pl-bronze:#7a5c28;--pl-ivory:#ede3cf;--font-display:'Italiana','Didot',Georgia,serif;--font-body:'Jost','Futura','Avenir Next',sans-serif;--font-accent:'Cormorant Garamond',Georgia,serif;} .ds-auth{background:#e4d6bb;padding:24px;border-radius:3px;width:320px}.ds-auth label{display:grid;gap:2px;font:400 13px/1.3 var(--font-body);color:rgb(28 26 23 / .72)}.ds-auth input{border:0;border-bottom:1px solid rgb(28 26 23 / .26);border-radius:0;background:transparent;padding:9px 0 10px;font:300 18px/1.3 var(--font-body);color:var(--pl-ink);caret-color:var(--pl-bronze);outline:none;transition:border-color .25s,box-shadow .25s}.ds-auth input:hover{border-bottom-color:rgb(28 26 23 / .42)}.ds-auth input:focus-visible{border-bottom-color:var(--pl-bronze);box-shadow:0 1px 0 var(--pl-bronze)}"
+    },
+    {
+      "name": "Rail Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Onyx rail items; active has an 8% wash, a champagne inset rule and a champagne icon.",
+      "html": "<nav class=\"ds-rail\"><a class=\"on\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><circle cx=\"12\" cy=\"12\" r=\"8\"/></svg>Today</a><a href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><circle cx=\"9\" cy=\"8\" r=\"3\"/><path d=\"M3 20c0-3 3-5 6-5s6 2 6 5\"/></svg>Guests</a><a href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><rect x=\"4\" y=\"9\" width=\"16\" height=\"6\" rx=\"3\"/></svg>Seating</a></nav>",
+      "css": ":host{--pl-onyx:#0f0e0d;--pl-paper:#ece3d1;--pl-card:#f6f0e4;--pl-line:rgb(28 26 23 / .12);--pl-ink:#1c1a17;--pl-ink-2:rgb(28 26 23 / .64);--pl-gold:#c9a86a;--pl-bronze:#7a5c28;--pl-ivory:#ede3cf;--font-display:'Italiana','Didot',Georgia,serif;--font-body:'Jost','Futura','Avenir Next',sans-serif;--font-accent:'Cormorant Garamond',Georgia,serif;} .ds-rail{width:256px;padding:12px;background:var(--pl-onyx);display:grid;gap:2px}.ds-rail a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:2px;font:400 14.5px/1.2 var(--font-body);color:rgb(237 227 207 / .66);text-decoration:none;transition:color .2s,background-color .2s}.ds-rail a:hover{color:var(--pl-ivory);background:rgb(237 227 207 / .05)}.ds-rail a.on{color:var(--pl-ivory);background:rgb(237 227 207 / .08);box-shadow:inset 2px 0 0 var(--pl-gold)}.ds-rail a.on svg{color:var(--pl-gold)}.ds-rail a:focus-visible{outline:2px solid var(--pl-gold);outline-offset:2px}"
+    },
+    {
+      "name": "Planner Card with Ring Tasks",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A paper card: Italiana header, hairline rows, the two-ring tick, a bronze link footer.",
+      "html": "<section class=\"ds-card\"><div class=\"ds-card-h\"><h2>This week</h2><small>1 of 2 done</small></div><button class=\"ds-row\"><span class=\"ds-ring done\"></span><span class=\"t\">Book the florist</span><i>Together</i></button><button class=\"ds-row\"><span class=\"ds-ring\"></span><span class=\"t\">Send the save-the-dates</span><i>Maya</i></button><div class=\"ds-foot\"><a href=\"#\">The whole timeline</a></div></section>",
+      "css": ":host{--pl-onyx:#0f0e0d;--pl-paper:#ece3d1;--pl-card:#f6f0e4;--pl-line:rgb(28 26 23 / .12);--pl-ink:#1c1a17;--pl-ink-2:rgb(28 26 23 / .64);--pl-gold:#c9a86a;--pl-bronze:#7a5c28;--pl-ivory:#ede3cf;--font-display:'Italiana','Didot',Georgia,serif;--font-body:'Jost','Futura','Avenir Next',sans-serif;--font-accent:'Cormorant Garamond',Georgia,serif;} .ds-card{width:420px;background:var(--pl-card);color:var(--pl-ink);border-radius:3px;box-shadow:0 1px 0 rgb(255 255 255 / .6) inset,0 18px 40px -30px rgb(60 40 15 / .55);font-family:var(--font-body)}.ds-card-h{display:flex;justify-content:space-between;align-items:baseline;padding:22px 24px 14px;border-bottom:1px solid var(--pl-line)}.ds-card-h h2{margin:0;font:400 26px/1 var(--font-display)}.ds-card-h small{font-size:13px;color:var(--pl-ink-2)}.ds-row{display:flex;align-items:center;gap:16px;width:100%;padding:16px 24px;border:0;background:none;text-align:left;font:400 15.5px/1.3 var(--font-body);color:var(--pl-ink);cursor:pointer}.ds-row+.ds-row{border-top:1px solid var(--pl-line)}.ds-row:hover{background:rgb(28 26 23 / .025)}.ds-row .t{flex:1}.ds-row i{font:italic 400 16px/1 var(--font-accent);color:var(--pl-bronze)}.ds-ring{position:relative;width:26px;height:22px;flex:none}.ds-ring::before,.ds-ring::after{content:'';position:absolute;top:2px;left:0;width:18px;height:18px;border-radius:50%;border:1.4px solid rgb(28 26 23 / .35);transition:left .45s cubic-bezier(.16,1,.3,1),opacity .3s,border-color .3s}.ds-ring::after{opacity:0}.ds-ring.done::before{border-color:var(--pl-gold)}.ds-ring.done::after{left:8px;opacity:1;border-color:var(--pl-bronze)}.ds-row:hover .ds-ring:not(.done)::before{border-color:var(--pl-bronze)}.ds-foot{border-top:1px solid var(--pl-line);padding:14px 24px}.ds-foot a{font-size:13.5px;color:var(--pl-bronze);text-underline-offset:4px}"
+    },
+    {
+      "name": "Seats",
+      "kind": "custom",
+      "refersTo": "seat-taken",
+      "description": "Seating seats: empty, taken, plus-one, and the champagne-outlined table that can take the picked guest.",
+      "html": "<div class=\"ds-seats\"><span class=\"ds-seat empty\">+</span><span class=\"ds-seat\">MT</span><span class=\"ds-seat plus\">+1</span><span class=\"ds-seat over\">JD</span></div>",
+      "css": ":host{--pl-onyx:#0f0e0d;--pl-paper:#ece3d1;--pl-card:#f6f0e4;--pl-line:rgb(28 26 23 / .12);--pl-ink:#1c1a17;--pl-ink-2:rgb(28 26 23 / .64);--pl-gold:#c9a86a;--pl-bronze:#7a5c28;--pl-ivory:#ede3cf;--font-display:'Italiana','Didot',Georgia,serif;--font-body:'Jost','Futura','Avenir Next',sans-serif;--font-accent:'Cormorant Garamond',Georgia,serif;} .ds-seats{display:flex;gap:14px;padding:24px;background:radial-gradient(120% 90% at 50% 0%,#fbf6ec,#f1e8d6)}.ds-seat{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;font:500 11.5px/1 var(--font-body);background:var(--pl-onyx);color:var(--pl-gold);transition:transform .2s;cursor:pointer}.ds-seat:hover{transform:scale(1.1)}.ds-seat.empty{background:rgb(255 255 255 / .45);box-shadow:0 0 0 1.4px rgb(122 92 40 / .6);color:var(--pl-bronze)}.ds-seat.plus{box-shadow:0 0 0 2px var(--pl-gold)}.ds-seat.over{background:#7c2f22;color:#f6e3dc}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Silk Desk",
+    "overview": "Twofold is a writing desk set out for two on an evening: black silk with two gold rings resting on it, and beige paper laid across the desk where the plan is written. The onyx rail carries the photograph of that silk at its foot; every page is paper; every list sits on a slightly lighter card with corners barely softened, like cut stock. The world is quiet luxury and black tie, but warm: champagne and bronze carry every moment of meaning, and nothing is either all black or all white.\n\nThe planner is calm and moderately dense. Pages open with a large Italiana title and one plain sentence of where things stand, then cards. Type does the hierarchy, not colour or weight: Italiana for names and titles, Jost for everything read, a few words in Cormorant italic for the human notes (\"Together\", \"where you are\", a guest's diet). Progress is thin bronze lines and rings, never badges or bright fills. The marketing site and sign-in pages are the same world seen from further away: black silk ground, the form or the planner preview on a beige card.\n\nThe brand's emblem is behaviour, not decoration: a finished thing closes into two linked rings. A task tick slides its second ring in; the wedding day in the date picker sits inside two rings; when every guest has a seat, two rings close on the Seating page; the sweetheart table is drawn as the couple's two rings.",
+    "keyCharacteristics": [
+      "Onyx rail with the black-silk-and-rings photograph; beige paper ground; lighter cards on 3px corners.",
+      "Italiana display, Jost text, Cormorant Garamond italic for the few italic words.",
+      "Champagne and bronze for state and meaning; onyx for the one primary action.",
+      "Two linked rings as the signature for \"done\".",
+      "Real photographic material (silk, metal, light); no vector scenery, no gradients pretending to be material on chrome."
+    ],
+    "rules": [
+      {
+        "name": "The Metal-on-Dark Rule",
+        "body": "Champagne is text only on onyx. On paper, words in the brand metal are bronze; champagne there is a ring, a dot, an outline or a fill.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Onyx Rule",
+        "body": "A paper page carries one onyx action per region (Add, Book them, Print). Everything else is a quiet button or an underlined bronze link.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dot-Not-Pill Rule",
+        "body": "Answers and statuses are a small coloured dot beside a plain word (\"Coming\", \"Waiting\", \"Can't come\"), not a filled badge.",
+        "section": "colors"
+      },
+      {
+        "name": "The Lining Figure Rule",
+        "body": "Digits never sit in Italiana: its old-style \"1\" reads as \"ı\". Inside an Italiana line, numbers switch to Jost light at 0.86em with tabular figures (\"Table 4\"); counts and money elsewhere are Jost with tabular figures.",
+        "section": "typography"
+      },
+      {
+        "name": "The Italic Is Cormorant Rule",
+        "body": "Italiana has no italic; any italic word is set in Cormorant Garamond, never a slanted Italiana.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Bold Rule",
+        "body": "The planner's weights stop at 500. Hierarchy comes from Italiana size and ink-2, not from bold Jost.",
+        "section": "typography"
+      },
+      {
+        "name": "The State Outline Rule",
+        "body": "A card or table never lifts to show state; it takes an outline: 2px champagne when it can take the picked guest, 1.5px terracotta when over capacity, a 3px inset left rule for a status banner.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** set every page on paper (#ece3d1) with its content on cards (#f6f0e4) at 3px corners and the Paper shadow.",
+      "**Do** open each page with an Italiana title (40/46px) and one plain Jost sentence of where things stand, in ink-2 with key figures in ink.",
+      "**Do** switch digits inside Italiana to Jost light at 0.86em with tabular figures.",
+      "**Do** use bronze for words of meaning on paper and keep champagne for text on onyx, dots, rings and outlines.",
+      "**Do** show status as a dot and a plain word, and progress as a 3px line in bronze, champagne or sage.",
+      "**Do** mark \"done\" with the two linked rings, and respect reduced motion by dropping the slide and settle.",
+      "**Do** keep italic words in Cormorant Garamond.",
+      "**Do** keep focus visible in bronze (2px or 1.5px, 2–3px offset) inside paper surfaces."
+    ],
+    "donts": [
+      "**Don't** make the planner all black or all white; the owner rejected both. Onyx is the rail and the actions; the pages are paper.",
+      "**Don't** use vector or illustrated scenery; material is photographic (the silk, the rings, light).",
+      "**Don't** set champagne text on paper or ivory.",
+      "**Don't** use filled status pills, bold Jost, or tracked uppercase labels above content; uppercase is for button labels only.",
+      "**Don't** round cards beyond 3px or buttons beyond 2px; full pills are only for switches, chips, seats and avatars.",
+      "**Don't** lift a card to show state; outline it.",
+      "**Don't** put numbers in Italiana."
+    ]
+  }
+}
