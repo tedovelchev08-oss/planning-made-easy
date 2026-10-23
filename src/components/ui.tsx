@@ -191,11 +191,11 @@ export function Reveal({ children, delay = 0, y = 30, className = "" }: { childr
 
 export function EmptyState({ title, body, action }: { title: string; body: string; action?: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-[1.6rem] border border-dashed border-ink/15 bg-white/50 px-8 py-16 text-center">
-      <svg width="54" height="54" viewBox="0 0 48 48" fill="none" aria-hidden="true" className="mb-5 anim-bob-sm">
-        <rect x="6" y="14" width="36" height="24" rx="4" stroke="#c9a86a" strokeWidth="2" />
-        <path d="M6 17l18 12 18-12" stroke="#c9a86a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M24 7.5s-3-2-4.9-0.6c-1.6 1.2-1 3.6 0.5 4.8L24 15l4.4-3.3c1.5-1.2 2.1-3.6 0.5-4.8C27 5.5 24 7.5 24 7.5z" fill="#e3cfa5" />
+    <div className="flex flex-col items-center justify-center rounded-[3px] border border-dashed border-ink/20 px-8 py-16 text-center">
+      {/* the two rings, linked */}
+      <svg width="56" height="34" viewBox="0 0 56 34" fill="none" aria-hidden="true" className="mb-5">
+        <circle cx="21" cy="17" r="13" stroke="#c9a86a" strokeWidth="1.6" />
+        <circle cx="35" cy="17" r="13" stroke="#7a5c28" strokeWidth="1.6" />
       </svg>
       <h3 className="font-display text-2xl text-ink">{title}</h3>
       <p className="mt-2 max-w-sm text-[0.95rem] leading-relaxed text-ink-2">{body}</p>
