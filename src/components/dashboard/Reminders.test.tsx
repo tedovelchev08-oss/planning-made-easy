@@ -55,4 +55,13 @@ describe("Reminders", () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(1300); });
     expect(screen.queryByRole("status", { name: "Reminder" })).toBeNull();
   });
+
+  it("the card goes by itself after a few seconds, and the bell still has it", async () => {
+    mount();
+    await act(async () => { await vi.advanceTimersByTimeAsync(1300); });
+    expect(screen.getByRole("status", { name: "Reminder" })).toBeTruthy();
+    await act(async () => { await vi.advanceTimersByTimeAsync(9100); });
+    expect(screen.queryByRole("status", { name: "Reminder" })).toBeNull();
+    expect(screen.getByRole("button", { name: /Reminders, 2 new/ })).toBeTruthy();
+  });
 });
