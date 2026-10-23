@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Pencil, Plus, Store, Trash2, Wallet } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { BudgetCategory, Vendor, catCommitted, catPaid, fmtMoney } from "../../lib/data";
 import { useApp, useCountUp } from "../../lib/store";
-import { Field, Modal, Pill, Reveal, btn, inputCls } from "../ui";
+import { Field, Modal, btn, inputCls } from "../ui";
 
 const PALETTE = ["#c9a86a", "#b8964f", "#8c826f", "#66704f", "#e3cfa5", "#cfc6b4", "#b4b99f", "#4a443b"];
 
@@ -27,7 +27,6 @@ export default function Budget() {
   const paid = db.budget.reduce((s, c) => s + catPaid(c, db.vendors), 0);
   const remaining = total - committed;
 
-  const shownTotal = useCountUp(total);
   const shownCommitted = useCountUp(committed);
   const shownPaid = useCountUp(paid);
   const shownRemaining = useCountUp(remaining);
@@ -51,121 +50,103 @@ export default function Budget() {
     setNewCat({ name: "", budget: "" });
   };
 
+  const share = (part: number) => `${total > 0 ? Math.max(0, Math.min(100, (part / total) * 100)) : 0}%`;
+
   return (
     <div className="space-y-6">
-      {/* summary */}
-      <Reveal>
-        <section className="overflow-hidden rounded-[1.8rem] border border-white/70 bg-ink p-7 text-cream shadow-lift sm:p-9">
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold">The whole picture</p>
-              <p className="mt-2 font-display text-[2.2rem] leading-none sm:text-[3.4rem]">{fmtMoney(shownTotal)}</p>
-              <p className="mt-2 text-[0.85rem] font-semibold text-cream/60">total budget · reconciled against your vendors</p>
-            </div>
-            <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:gap-10">
-              <div>
-                <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.16em] text-blush">Committed</p>
-                <p className="mt-1.5 font-display text-base sm:text-2xl">{fmtMoney(shownCommitted)}</p>
-              </div>
-              <div>
-                <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.16em] text-gold">Paid</p>
-                <p className="mt-1.5 font-display text-base sm:text-2xl">{fmtMoney(shownPaid)}</p>
-              </div>
-              <div>
-                <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.16em] text-sage">Remaining</p>
-                <p className="mt-1.5 font-display text-base sm:text-2xl">{fmtMoney(shownRemaining)}</p>
-              </div>
-            </div>
-          </div>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-[40px] leading-none sm:text-[46px]">Budget</h1>
+          <p className="mt-2 text-[15px] text-[var(--pl-ink-2)]">
+            {fmtMoney(total)} in all, matched against your booked vendors.
+          </p>
+        </div>
+        <button onClick={() => setAdding(true)} className="inline-flex h-10 items-center gap-2 rounded-[2px] bg-[var(--pl-onyx)] px-4 text-[12px] font-medium uppercase tracking-[0.14em] text-[var(--pl-ivory)] transition hover:bg-[#2a2622] cursor-pointer">
+          <Plus size={15} strokeWidth={1.8} /> Add a category
+        </button>
+      </header>
 
-          <div className="mt-8">
-            <div className="flex h-3.5 overflow-hidden rounded-full bg-cream/12">
-              <motion.span initial={{ width: 0 }} animate={{ width: `${(paid / Math.max(1, total)) * 100}%` }} transition={{ duration: 1.3, ease: [0.22, 1, 0.36, 1] }} className="rounded-l-full bg-gold" title="Paid" />
-              <motion.span initial={{ width: 0 }} animate={{ width: `${((committed - paid) / Math.max(1, total)) * 100}%` }} transition={{ duration: 1.3, delay: 0.2, ease: [0.22, 1, 0.36, 1] }} className="bg-blush" title="Committed, not yet paid" />
-              <motion.span initial={{ width: 0 }} animate={{ width: `${Math.max(0, (remaining / Math.max(1, total)) * 100)}%` }} transition={{ duration: 1.3, delay: 0.4, ease: [0.22, 1, 0.36, 1] }} className="bg-sage/50" title="Still yours to plan with" />
+      {/* where the money is */}
+      <section className="pl-card px-6 py-6 sm:px-8" aria-label="Where the money is">
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            ["Paid", shownPaid, "bg-[var(--pl-ink)]"],
+            ["Still to pay", shownCommitted - shownPaid, "bg-[var(--pl-gold)]"],
+            ["Left to commit", shownRemaining, "bg-[rgb(28_26_23/.12)]"],
+          ].map(([label, value, dot]) => (
+            <div key={label as string}>
+              <p className="flex items-center gap-2 text-[13px] text-[var(--pl-ink-2)]"><span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden="true" />{label}</p>
+              <p className={`mt-1.5 font-display text-[24px] leading-none tabular-nums sm:text-[34px] ${(value as number) < 0 ? "text-[#a53d28]" : ""}`}>{fmtMoney(value as number)}</p>
             </div>
-            <div className="mt-2.5 flex flex-wrap gap-x-5 gap-y-1 text-[0.7rem] font-bold text-cream/60">
-              <span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-gold" /> paid</span>
-              <span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-blush" /> committed</span>
-              <span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-sage/50" /> remaining</span>
-            </div>
-          </div>
-        </section>
-      </Reveal>
+          ))}
+        </div>
+        <div className="mt-6 flex h-[6px] overflow-hidden rounded-full bg-[rgb(28_26_23/.1)]" aria-hidden="true">
+          <motion.span initial={{ width: 0 }} animate={{ width: share(paid) }} transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }} className="bg-[var(--pl-ink)]" />
+          <motion.span initial={{ width: 0 }} animate={{ width: share(committed - paid) }} transition={{ duration: 1.2, delay: 0.15, ease: [0.22, 1, 0.36, 1] }} className="bg-[var(--pl-gold)]" />
+        </div>
+        {remaining < 0 && <p className="mt-3 text-[14px] text-[#a53d28]">You've promised {fmtMoney(-remaining)} more than the budget.</p>}
+      </section>
 
       {/* categories */}
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-2xl text-ink">Categories</h2>
-        <button onClick={() => setAdding(true)} className={`${btn.ink} !py-2.5`}><Plus size={15} /> Add category</button>
-      </div>
-
-      <div className="space-y-3">
-        {db.budget.map((c, i) => {
-          const cCommitted = catCommitted(c, db.vendors);
-          const cPaid = catPaid(c, db.vendors);
-          const pctCommitted = Math.round((cCommitted / Math.max(1, c.budget)) * 100);
-          const over = cCommitted > c.budget;
-          const linked = db.vendors.filter((v) => v.budgetId === c.id);
-          const booked = linked.filter((v) => v.status === "Booked");
-          return (
-            <Reveal key={c.id} delay={i * 0.04}>
-              <div className={`group rounded-[1.4rem] border bg-white/65 p-5 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/90 hover:shadow-card ${over ? "border-blush-deep/50" : "border-white/70"}`}>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: c.color }} aria-hidden="true" />
-                  <div className="w-full sm:w-40">
-                    <p className="font-bold text-ink">{c.name}</p>
-                    <p className="text-[0.68rem] font-semibold text-ink-mute">{fmtMoney(cCommitted)} of {fmtMoney(c.budget)}</p>
-                  </div>
-                  <div className="relative h-3 flex-1 overflow-hidden rounded-full bg-ink/8">
-                    <motion.div
-                      initial={{ width: 0 }} whileInView={{ width: `${Math.min(100, pctCommitted)}%` }} viewport={{ once: true }}
-                      transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                      className="h-full rounded-full" style={{ background: over ? "#9a7a3f" : c.color }}
-                    />
-                    <div className="absolute inset-y-0 left-0 bg-ink/25" style={{ width: `${Math.min(100, (cPaid / Math.max(1, c.budget)) * 100)}%` }} title={`Paid: ${fmtMoney(cPaid)}`} />
-                  </div>
-                  <div className="flex items-center gap-3 sm:w-56 sm:justify-end">
-                    {over ? <Pill tone="pending">Over by {fmtMoney(cCommitted - c.budget)}</Pill>
-                      : <Pill tone="confirmed">{fmtMoney(c.budget - cCommitted)} free</Pill>}
-                    <button onClick={() => setEditing({ ...c })} aria-label={`Adjust ${c.name}`} className="rounded-full p-2 text-ink-mute transition hover:bg-gold-soft hover:text-gold-deep cursor-pointer"><Pencil size={14} /></button>
-                    <button
-                      onClick={() => { setDb((d) => ({ ...d, budget: d.budget.filter((x) => x.id !== c.id), vendors: d.vendors.map((v) => (v.budgetId === c.id ? { ...v, budgetId: null } : v)) })); toast(`${c.name} removed`, linked.length ? `${linked.length} vendor${linked.length > 1 ? "s" : ""} unlinked — their commitments now show as untraced.` : undefined, "info"); }}
-                      aria-label={`Remove ${c.name}`} className="rounded-full p-2 text-ink-mute transition hover:bg-blush-soft hover:text-blush-deep cursor-pointer"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* which commitments came from which vendor */}
-                <div className="mt-3 flex flex-wrap items-center gap-1.5 pl-6">
-                  {booked.map((v) => (
-                    <span key={v.id} className="inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-white/80 px-2.5 py-1 text-[0.66rem] font-extrabold text-ink-2" title={`${v.company} · ${v.payments.filter((p) => p.paid).length}/${v.payments.length} payments made`}>
-                      <Store size={10} className="text-gold-deep" /> {v.company} · {fmtMoney(v.price)}
+      <section className="pl-card" aria-labelledby="cats-h">
+        <div className="pl-card-h"><h2 id="cats-h">Categories</h2><small>{db.budget.length}</small></div>
+        {db.budget.length === 0 ? (
+          <p className="px-6 py-6 text-[15px] text-[var(--pl-ink-2)]">No categories yet. Add the first, like Venue or Flowers, and give it a number.</p>
+        ) : (
+          <ul>
+            {db.budget.map((c) => {
+              const cCommitted = catCommitted(c, db.vendors);
+              const cPaid = catPaid(c, db.vendors);
+              const over = cCommitted > c.budget;
+              const linked = db.vendors.filter((v) => v.budgetId === c.id);
+              const booked = linked.filter((v) => v.status === "Booked");
+              const proposed = linked.filter((v) => v.status === "Proposal");
+              const of = (n: number) => `${c.budget > 0 ? Math.min(100, (n / c.budget) * 100) : 0}%`;
+              const from = [
+                ...booked.map((v) => `${v.company} ${fmtMoney(v.price)}`),
+                ...proposed.map((v) => `${v.company}, a proposal`),
+                ...(c.manualCommitted > 0 ? [`other costs ${fmtMoney(c.manualCommitted)}`] : []),
+              ];
+              return (
+                <li key={c.id} className="pl-row group px-6 py-4">
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-5 gap-y-2 md:grid-cols-[200px_minmax(0,1fr)_170px_120px_76px]">
+                    <div className="flex min-w-0 items-baseline gap-3">
+                      <span className="h-2.5 w-2.5 shrink-0 translate-y-[-1px] rounded-full" style={{ background: c.color }} aria-hidden="true" />
+                      <span className="truncate text-[15.5px]">{c.name}</span>
+                    </div>
+                    <div className="order-last col-span-3 md:order-none md:col-span-1">
+                      <div className="flex h-[5px] overflow-hidden rounded-full bg-[rgb(28_26_23/.1)]" aria-hidden="true">
+                        <span className="bg-[var(--pl-ink)]" style={{ width: of(cPaid) }} />
+                        <span className={over ? "bg-[#b55a45]" : "bg-[var(--pl-gold)]"} style={{ width: of(Math.max(0, cCommitted - cPaid)) }} />
+                      </div>
+                    </div>
+                    <span className="hidden text-right text-[14px] tabular-nums text-[var(--pl-ink-2)] md:block">{fmtMoney(cCommitted)} <span className="text-[13px]">of</span> {fmtMoney(c.budget)}</span>
+                    <span className={`text-right text-[14px] tabular-nums ${over ? "text-[#a53d28]" : ""}`}>
+                      {over ? `over by ${fmtMoney(cCommitted - c.budget)}` : `${fmtMoney(c.budget - cCommitted)} left`}
                     </span>
-                  ))}
-                  {linked.filter((v) => v.status === "Proposal").map((v) => (
-                    <span key={v.id} className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-ink/20 px-2.5 py-1 text-[0.66rem] font-bold text-ink-mute" title="Proposal — nothing committed until it's booked">
-                      {v.company} · pending
+                    <span className="flex justify-end gap-0.5 md:opacity-0 md:transition-opacity md:group-hover:opacity-100 md:focus-within:opacity-100">
+                      <button onClick={() => setEditing({ ...c })} aria-label={`Adjust ${c.name}`} className="rounded-full p-2 text-[var(--pl-ink-2)] transition hover:bg-[rgb(28_26_23/.06)] hover:text-[var(--pl-ink)] cursor-pointer"><Pencil size={15} strokeWidth={1.6} /></button>
+                      <button
+                        onClick={() => { setDb((d) => ({ ...d, budget: d.budget.filter((x) => x.id !== c.id), vendors: d.vendors.map((v) => (v.budgetId === c.id ? { ...v, budgetId: null } : v)) })); toast(`${c.name} removed`, linked.length ? `${linked.length} vendor${linked.length > 1 ? "s" : ""} unlinked — their commitments now show as untraced.` : undefined, "info"); }}
+                        aria-label={`Remove ${c.name}`} className="rounded-full p-2 text-[var(--pl-ink-2)] transition hover:bg-[rgb(181_90_69/.12)] hover:text-[#a53d28] cursor-pointer"
+                      >
+                        <Trash2 size={15} strokeWidth={1.6} />
+                      </button>
                     </span>
-                  ))}
-                  {c.manualCommitted > 0 && (
-                    <span className="inline-flex items-center rounded-full bg-ink/5 px-2.5 py-1 text-[0.66rem] font-bold text-ink-mute" title="Not tied to a tracked vendor">
-                      other · {fmtMoney(c.manualCommitted)}
-                    </span>
-                  )}
-                  {linked.length === 0 && c.manualCommitted === 0 && (
-                    <span className="text-[0.66rem] font-semibold text-ink-mute/60">no commitments yet</span>
-                  )}
-                </div>
-              </div>
-            </Reveal>
-          );
-        })}
-      </div>
+                  </div>
+                  <p className="mt-1.5 pl-[22px] text-[13px] text-[var(--pl-ink-2)]">
+                    <span className="md:hidden">{fmtMoney(cCommitted)} of {fmtMoney(c.budget)} · </span>
+                    {from.length ? from.join(" · ") : "Nothing promised yet"}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
-      <p className="flex items-center gap-2 text-[0.74rem] font-semibold text-ink-mute">
-        <Wallet size={13} /> Committed and paid flow in from booked vendors automatically — mark a payment paid in Vendors and it lands here. The dark band is paid; the rest is promised.
+      <p className="text-[13px] leading-relaxed text-[var(--pl-ink-2)]">
+        Booked vendors fill this in by themselves: mark a payment paid in Vendors and it shows here. Dark is paid; gold is promised but still to pay.
       </p>
 
       {/* edit modal — manual amounts only; vendor money is edited in Vendors */}
@@ -181,7 +162,7 @@ export default function Budget() {
                 <Field label="Manual committed"><input type="number" min={0} className={inputCls} value={editing.manualCommitted} onChange={(e) => setEditing({ ...editing, manualCommitted: Number(e.target.value) })} /></Field>
                 <Field label="Manual paid"><input type="number" min={0} className={inputCls} value={editing.manualPaid} onChange={(e) => setEditing({ ...editing, manualPaid: Number(e.target.value) })} /></Field>
               </div>
-              <p className="mt-4 rounded-xl bg-sage-soft/60 px-4 py-3 text-[0.76rem] font-semibold leading-relaxed text-sage-deep">
+              <p className="mt-4 rounded-[3px] border border-ink/10 px-4 py-3 text-[0.82rem] leading-relaxed text-ink-2">
                 Vendors linked here already account for {fmtMoney(fromVendorsC)} committed · {fmtMoney(fromVendorsP)} paid.
                 Edit their schedules in the Vendors module — these fields are for everything else.
               </p>
