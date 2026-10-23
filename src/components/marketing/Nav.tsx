@@ -20,7 +20,7 @@ export default function Nav() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { setAuthOpen, user } = useApp();
+  const { openAuth, user } = useApp();
 
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 28);
@@ -68,7 +68,7 @@ export default function Nav() {
 
         <div className="flex items-center gap-2 sm:gap-4">
           <button
-            onClick={() => setAuthOpen(true)}
+            onClick={() => (user ? navigate("/planner") : openAuth())}
             className="hidden text-[12px] uppercase tracking-[0.2em] text-ivory/70 transition hover:text-ivory sm:block cursor-pointer"
           >
             {user ? user.name.split(" ")[0] : "Sign in"}
@@ -123,7 +123,7 @@ export default function Nav() {
               <Link to="/planner" onClick={() => setOpen(false)} className="rounded-[2px] bg-champagne px-6 py-4 text-center text-[12px] font-medium uppercase tracking-[0.2em] text-onyx">
                 {user ? "Open planner" : "Start free"}
               </Link>
-              <button onClick={() => { setOpen(false); setAuthOpen(true); }} className="rounded-[2px] border border-ivory/25 px-6 py-4 text-[12px] uppercase tracking-[0.2em] text-ivory cursor-pointer">
+              <button onClick={() => { setOpen(false); if (user) navigate("/planner"); else openAuth(); }} className="rounded-[2px] border border-ivory/25 px-6 py-4 text-[12px] uppercase tracking-[0.2em] text-ivory cursor-pointer">
                 {user ? `Signed in as ${user.name.split(" ")[0]}` : "Sign in"}
               </button>
             </motion.div>

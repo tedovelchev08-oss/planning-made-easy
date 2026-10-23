@@ -1,11 +1,13 @@
 import React, { useEffect } from "react";
-import { HashRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { AppProvider, useApp } from "./lib/store";
 import { I18nProvider } from "./lib/i18n";
 import Home from "./pages/Home";
 import GuestInvite from "./pages/GuestInvite";
 import NotFound from "./pages/NotFound";
 import LegalPage from "./pages/LegalPage";
+import { BeginPage, ForgottenPasswordPage, NewPasswordPage, SignInPage } from "./pages/Auth";
+import { arrivedFromResetLink, arrivedWithLinkError } from "./lib/supabase";
 import CookieNotice from "./components/CookieNotice";
 import Shell from "./components/dashboard/Shell";
 import PlannerGate from "./components/dashboard/PlannerGate";
@@ -18,7 +20,7 @@ import Seating from "./components/dashboard/Seating";
 import Registry from "./components/dashboard/Registry";
 import PageHub from "./components/dashboard/PageHub";
 import {
-  AuthModal, CheckoutModal, CheckoutReturnGate, ErrorBoundary, OnboardingModal, ToastHost, UpgradeModal,
+  CheckoutModal, CheckoutReturnGate, ErrorBoundary, OnboardingModal, ToastHost, UpgradeModal,
 } from "./components/ui";
 
 function ScrollToTop() {
@@ -47,6 +49,20 @@ function SkipLink() {
   );
 }
 
+/**
+ * Where an emailed link lands. A password-reset link signs the person in;
+ * the next step is choosing the new password, not the homepage. An expired
+ * or reused link says so on the sign-in page.
+ */
+function AuthLinks() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (arrivedFromResetLink) navigate("/new-password", { replace: true });
+    else if (arrivedWithLinkError) navigate("/sign-in?link=expired", { replace: true });
+  }, [navigate]);
+  return null;
+}
+
 /** /demo only makes sense when the app actually booted in demo mode. */
 function DemoGate() {
   const { mode } = useApp();
@@ -65,6 +81,7 @@ export default function App() {
     <AppProvider>
       <HashRouter>
         <ScrollToTop />
+        <AuthLinks />
         <SkipLink />
         <div className="ambient-mesh" aria-hidden="true" />
         <div className="grain-overlay" aria-hidden="true" />
@@ -79,6 +96,10 @@ export default function App() {
               <Route path="/terms" element={<LegalPage doc="terms" />} />
               <Route path="/refunds" element={<LegalPage doc="refunds" />} />
               <Route path="/cookies" element={<LegalPage doc="cookies" />} />
+              <Route path="/sign-in" element={<SignInPage />} />
+              <Route path="/begin" element={<BeginPage />} />
+              <Route path="/forgotten-password" element={<ForgottenPasswordPage />} />
+              <Route path="/new-password" element={<NewPasswordPage />} />
               <Route path="/demo" element={<DemoGate />} />
               <Route path="/planner" element={<PlannerGate />}>
                 <Route index element={<Overview />} />
@@ -97,7 +118,6 @@ export default function App() {
         </ErrorBoundary>
         <ToastHost />
         <CookieNotice />
-        <AuthModal />
         <CheckoutModal />
         <UpgradeModal />
         {/* confirms the entitlement after returning from Stripe (B2) */}

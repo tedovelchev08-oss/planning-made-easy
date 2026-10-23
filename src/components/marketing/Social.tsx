@@ -16,7 +16,7 @@ import { CurrencySelect, Reveal, Stars } from "../ui";
  * number is the same in each (€49 / $49 / £49) — never a conversion.
  */
 export function Pricing() {
-  const { openCheckout, setAuthOpen, user, mode } = useApp();
+  const { openCheckout, openAuth, user, mode } = useApp();
   const navigate = useNavigate();
   const [currency, setCurrency] = useCurrency();
 
@@ -25,11 +25,11 @@ export function Pricing() {
       // the free plan is not bought: it starts the planner
       if (mode === "demo") navigate("/demo");
       else if (user) navigate("/planner");
-      else setAuthOpen(true);
+      else openAuth("begin");
       return;
     }
     // a purchase attaches to a wedding, so it needs an account first
-    if (mode === "cloud" && !user) { setAuthOpen(true); return; }
+    if (mode === "cloud" && !user) { openAuth("begin"); return; }
     openCheckout(plan);
   };
 

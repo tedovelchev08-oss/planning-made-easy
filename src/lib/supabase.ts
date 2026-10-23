@@ -20,6 +20,16 @@ export const isSupabaseConfigured = Boolean(url && anonKey);
  */
 export type AppDatabase = Database;
 
+/**
+ * Read before the client below consumes the URL. A password-reset email links
+ * back here with "type=recovery" in the hash and signs the person in; without
+ * noticing it they landed on the homepage, signed in, with no way to choose
+ * the new password. An expired or reused link comes back with an error instead.
+ */
+const arrivedHash = typeof window === "undefined" ? "" : window.location.hash;
+export const arrivedFromResetLink = /(^#|&)type=recovery(&|$)/.test(arrivedHash);
+export const arrivedWithLinkError = /(^#|&)error_code=/.test(arrivedHash);
+
 export const sb: SupabaseClient | null = isSupabaseConfigured
   ? createClient(url as string, anonKey as string, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
