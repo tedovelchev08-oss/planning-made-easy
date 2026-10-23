@@ -6,3 +6,8 @@ build/
 
 # founder strategy notes (/founder: skills) — private business numbers, not part of the app
 founder/
+
+# Impeccable working files (screenshots, live sessions, question pages): local only
+.impeccable/review/
+.impeccable/live/
+.impeccable/questions/

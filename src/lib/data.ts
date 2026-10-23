@@ -313,6 +313,9 @@ const last = ["Andersson", "Bergman", "Costa", "Dahl", "Ekström", "Fontaine", "
 function buildGuests(): Guest[] {
   // hand out increasing seat indices per table so seated guests render at fixed seats
   const seatCount = new Map<string, number>();
+  // the demo's tables seat 8 (table 6 seats 10); a table that's full sends the
+  // next guest to the list instead of drawing 12 people round 8 chairs
+  const capacity = (table: string) => (table === "t6" ? 10 : 8);
   const nextSeat = (table: string | null): number | null => {
     if (!table) return null;
     const n = seatCount.get(table) ?? 0;
@@ -335,7 +338,10 @@ function buildGuests(): Guest[] {
   const guests: Guest[] = [];
   rich.forEach((r, i) => {
     const { plusOne, ...rest } = r;
-    const host: Guest = { id: `g-${i + 1}`, ...rest, plusOneOf: null, seat: nextSeat(r.table) };
+    // a host and their plus-one sit together, or both wait on the list
+    const fits = !!r.table && (seatCount.get(r.table) ?? 0) + (plusOne ? 2 : 1) <= capacity(r.table);
+    const table = fits ? r.table : null;
+    const host: Guest = { id: `g-${i + 1}`, ...rest, table, plusOneOf: null, seat: nextSeat(table) };
     guests.push(host);
     if (plusOne) guests.push(withPlusOne(host, plusOne, i + 1));
   });
@@ -343,7 +349,8 @@ function buildGuests(): Guest[] {
   for (let i = 0; i < 82; i++) {
     const name = `${first[i % first.length]} ${last[(i * 7) % last.length]}`;
     const rsvp: Rsvp = i < 66 ? "confirmed" : i < 79 ? "pending" : "declined";
-    const table = rsvp === "confirmed" && i % 3 !== 0 ? `t${(i % 9) + 1}` : null;
+    const wanted = rsvp === "confirmed" && i % 3 !== 0 ? `t${(i % 9) + 1}` : null;
+    const table = wanted && (seatCount.get(wanted) ?? 0) + (i % 11 === 4 ? 2 : 1) <= capacity(wanted) ? wanted : null;
     const host: Guest = {
       id: `g-${31 + i}`,
       name,
