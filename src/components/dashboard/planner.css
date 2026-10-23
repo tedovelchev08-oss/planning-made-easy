@@ -1,0 +1,98 @@
+/* The planner in the Twofold world ("Silk desk"): an onyx rail with the
+   black silk and the two rings at its foot, pages on beige paper, finished
+   tasks closing into two linked rings. Pages move into it one by one; the
+   tokens below are what they share. */
+
+.pl {
+  --pl-onyx: #0f0e0d;
+  --pl-paper: #ece3d1;
+  --pl-card: #f6f0e4;
+  --pl-line: rgb(28 26 23 / .12);
+  --pl-ink: #1c1a17;
+  --pl-ink-2: rgb(28 26 23 / .64);
+  --pl-gold: #c9a86a;
+  --pl-bronze: #7a5c28;
+  --pl-ivory: #ede3cf;
+  background: var(--pl-paper);
+  color: var(--pl-ink);
+}
+.pl ::selection { background: rgb(201 168 106 / .4); color: var(--pl-ink); }
+
+/* ------------------------------ the rail ------------------------------ */
+.pl-rail {
+  /* positioned by its own utility (sticky rail, fixed drawer) */
+  isolation: isolate;
+  background: var(--pl-onyx) url(/auth/silk-rings-1200.jpg) 24% 128% / 1150px auto no-repeat;
+  background-image: image-set(url(/auth/silk-rings-1200.webp) type("image/webp"), url(/auth/silk-rings-1200.jpg) type("image/jpeg"));
+  color: var(--pl-ivory);
+}
+.pl-rail::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, var(--pl-onyx) 0%, rgb(15 14 13 / .97) 52%, rgb(15 14 13 / .5) 100%);
+}
+.pl-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 2px;
+  font-size: 14.5px;
+  font-weight: 400;
+  color: rgb(237 227 207 / .66);
+  transition: color .2s, background-color .2s;
+}
+.pl-nav a:hover { color: var(--pl-ivory); background: rgb(237 227 207 / .05); }
+.pl-nav a.active { color: var(--pl-ivory); background: rgb(237 227 207 / .08); box-shadow: inset 2px 0 0 var(--pl-gold); }
+.pl-nav a.active svg { color: var(--pl-gold); }
+.pl-us b { display: block; font: 400 27px/1.05 var(--font-display); }
+.pl-us b i { font: italic 400 .7em var(--font-accent); color: var(--pl-gold); margin: 0 .08em; }
+.pl-us p { margin-top: 6px; font: italic 400 16px/1.35 var(--font-accent); color: rgb(237 227 207 / .72); }
+.pl-us p span { color: var(--pl-gold); }
+
+/* ------------------------------ cards ------------------------------ */
+.pl-card {
+  background: var(--pl-card);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgb(255 255 255 / .6) inset, 0 18px 40px -30px rgb(60 40 15 / .55);
+}
+.pl-card-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 22px 24px 14px;
+  border-bottom: 1px solid var(--pl-line);
+}
+.pl-card-h h2, .pl-card-h h3 { font: 400 26px/1 var(--font-display); }
+.pl-card-h small { font-size: 13px; color: var(--pl-ink-2); }
+.pl-row + .pl-row { border-top: 1px solid var(--pl-line); }
+
+/* a task's tick: one ring, and a second closes into it when it's done */
+.pl-ring { position: relative; width: 26px; height: 22px; flex: none; }
+.pl-ring::before, .pl-ring::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.4px solid rgb(28 26 23 / .35);
+  transition: left .45s cubic-bezier(.16, 1, .3, 1), opacity .3s, border-color .3s;
+}
+.pl-ring::after { opacity: 0; }
+.pl-ring.is-done::before { border-color: var(--pl-gold); }
+.pl-ring.is-done::after { left: 8px; opacity: 1; border-color: var(--pl-bronze); }
+button:hover > .pl-ring:not(.is-done)::before { border-color: var(--pl-bronze); }
+
+.pl-meter { display: flex; height: 3px; margin-top: 10px; overflow: hidden; border-radius: 2px; background: rgb(28 26 23 / .1); }
+.pl-meter > * { height: 100%; }
+
+.pl-who { font: italic 400 16px/1 var(--font-accent); color: var(--pl-bronze); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-ring::before, .pl-ring::after { transition: none; }
+}
