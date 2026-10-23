@@ -1,47 +1,31 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { ArrowRight, Flower2, Heart, MapPin, Sparkles } from "lucide-react";
-import { useApp, useCountUp, usePrefersReducedMotion, useStats } from "../../lib/store";
+import { useApp, usePrefersReducedMotion, useStats } from "../../lib/store";
 import { playChime } from "../../lib/sound";
 import { fmtDate, fmtMoney, timeAgo } from "../../lib/data";
 import { greetingKey, useT } from "../../lib/i18n";
-import { Reveal } from "../ui";
 import CalendarCard from "./CalendarCard";
 
-const chapterOf = (days: number): [string, string] =>
-  days > 330 ? ["I", "The dreaming chapter"]
-  : days > 240 ? ["II", "Venue & vendor season"]
-  : days > 150 ? ["III", "The details chapter"]
-  : days > 60 ? ["IV", "The calm before"]
-  : days > 14 ? ["V", "Final touches"]
-  : ["VI", "The big week"];
+/**
+ * Today. The week comes first, because that is what the two of you came to
+ * do; where you stand follows as one short summary, then the decision that
+ * is waiting and the latest replies.
+ */
 
-function StatCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+/** a share of a whole, as a width; never NaN when the whole is 0 */
+const share = (part: number, whole: number) => `${whole > 0 ? Math.max(0, Math.min(100, (part / whole) * 100)) : 0}%`;
+
+function Stat({ label, value, of, children }: { label: string; value: string; of?: string; children: React.ReactNode }) {
   return (
-    <Reveal className={className}>
-      <div className="group h-full rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md transition-all duration-500 hover:-translate-y-1 hover:bg-white/85 hover:shadow-lift">
-        {children}
+    <div className="pl-row py-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-[13.5px] text-[var(--pl-ink-2)]">{label}</span>
+        <b className="font-display text-[24px] font-normal leading-none tabular-nums">
+          {value}{of && <small className="ml-1.5 font-sans text-[13px] font-light text-[var(--pl-ink-2)]">of {of}</small>}
+        </b>
       </div>
-    </Reveal>
-  );
-}
-
-function ProgressRing({ pct }: { pct: number }) {
-  const shown = useCountUp(pct);
-  const C = 2 * Math.PI * 30;
-  return (
-    <div className="relative h-20 w-20">
-      <svg viewBox="0 0 72 72" className="h-20 w-20 -rotate-90">
-        <circle cx="36" cy="36" r="30" fill="none" stroke="rgb(15 14 13 / 0.08)" strokeWidth="7" />
-        <motion.circle
-          cx="36" cy="36" r="30" fill="none" stroke="#66704f" strokeWidth="7" strokeLinecap="round"
-          strokeDasharray={C} initial={{ strokeDashoffset: C }} animate={{ strokeDashoffset: C * (1 - pct / 100) }}
-          transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-        />
-      </svg>
-      <span className="absolute inset-0 flex items-center justify-center font-display text-xl text-ink">{shown}%</span>
+      <div className="pl-meter" aria-hidden="true">{children}</div>
     </div>
   );
 }
@@ -51,162 +35,118 @@ export default function Overview() {
   const { t } = useT();
   const stats = useStats();
   const reduced = usePrefersReducedMotion();
+  const { partnerA, partnerB } = db.wedding;
 
-  const budgetLeft = useCountUp(stats.remaining);
-  const confirmedShown = useCountUp(stats.confirmed);
-  const daysShown = useCountUp(stats.days);
-
-  const weekTasks = useMemo(() => db.tasks.filter((t) => t.week), [db.tasks]);
-  const weekDone = weekTasks.filter((t) => t.done).length;
+  const weekTasks = useMemo(() => db.tasks.filter((x) => x.week), [db.tasks]);
+  const weekDone = weekTasks.filter((x) => x.done).length;
+  const weekLeft = weekTasks.length - weekDone;
   const nextVendor = db.vendors.find((v) => v.status === "Proposal");
+  const who = (a: string) => (a === "A" ? partnerA : a === "T" ? partnerB : "Together");
 
   const toggleWeek = (id: string) => {
-    const t = db.tasks.find((x) => x.id === id);
-    const tasks = db.tasks.map((x) => (x.id === id ? { ...x, done: !x.done } : x));
-    patch({ tasks });
-    playChime(t && !t.done ? "done" : "undo");
-    if (t && !t.done) {
-      const all = weekTasks.every((w) => (w.id === id ? true : w.done));
-      if (all) {
-        playChime("sparkle");
-        toast("This week, handled", "Every focus task is done. Go be engaged.");
-        if (!reduced) confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 }, colors: ["#e3cfa5", "#c9a86a", "#b4b99f", "#cfc6b4", "#f7f2e8"] });
-      }
+    const task = db.tasks.find((x) => x.id === id);
+    patch({ tasks: db.tasks.map((x) => (x.id === id ? { ...x, done: !x.done } : x)) });
+    playChime(task && !task.done ? "done" : "undo");
+    if (task && !task.done && weekTasks.every((w) => (w.id === id ? true : w.done))) {
+      playChime("sparkle");
+      toast("This week, handled", "Every task for the week is done.");
+      if (!reduced) confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ["#c9a86a", "#e6cd95", "#7a5c28", "#ede3cf"] });
     }
   };
 
+  const summary = weekTasks.length === 0
+    ? "Nothing is set for this week yet."
+    : weekLeft === 0 ? "Everything for this week is done."
+    : `${weekLeft} ${weekLeft === 1 ? "thing" : "things"} left this week.`;
+
   return (
-    <div className="space-y-7">
-      {/* greeting */}
-      <Reveal>
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="flex items-center gap-3 text-[0.64rem] font-extrabold uppercase tracking-[0.28em] text-gold-deep">
-              <span className="h-px w-8 bg-gold/70" aria-hidden="true" />
-              Chapter {chapterOf(stats.days)[0]} · {chapterOf(stats.days)[1]}
-            </p>
-            <h2 className="mt-3 font-display text-3xl tracking-tight text-ink sm:text-4xl">
-              {t(greetingKey())}, <em className="text-blush-deep">{db.wedding.names}.</em>
-            </h2>
-            <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.9rem] font-semibold text-ink-2">
-              <span>{fmtDate(db.wedding.date)}</span>
-              <span className="text-ink-mute">·</span>
-              <span className="inline-flex items-center gap-1"><MapPin size={13} className="text-sage-deep" /> {db.wedding.venue}, {db.wedding.location}</span>
-            </p>
-          </div>
-          <Link to="/planner/timeline" className="group inline-flex items-center gap-2 rounded-full border border-ink/15 bg-white/70 px-5 py-2.5 text-[0.84rem] font-bold text-ink transition hover:border-ink/40 hover:bg-white cursor-pointer">
-            View full timeline <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
-          </Link>
-        </div>
-      </Reveal>
-
-      {/* stat cards */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard>
-          <div className="flex items-center gap-5">
-            <ProgressRing pct={stats.progressPct} />
-            <div>
-              <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-ink-mute">Planning progress</p>
-              <p className="mt-1 font-display text-2xl text-ink">{stats.tasksDone}<span className="text-base text-ink-mute">/{stats.tasksTotal}</span></p>
-              <p className="text-[0.72rem] font-semibold text-sage-deep">moments arranged</p>
-            </div>
-          </div>
-        </StatCard>
-
-        <StatCard>
-          <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-ink-mute">Budget remaining</p>
-          <p className="mt-2 font-display text-[2rem] leading-none text-ink">{fmtMoney(budgetLeft)}</p>
-          <div className="mt-4 flex h-2.5 overflow-hidden rounded-full bg-ink/8">
-            <motion.span initial={{ width: 0 }} animate={{ width: `${(stats.paid / stats.totalBudget) * 100}%` }} transition={{ duration: 1.3 }} className="bg-gold" />
-            <motion.span initial={{ width: 0 }} animate={{ width: `${((stats.committed - stats.paid) / stats.totalBudget) * 100}%` }} transition={{ duration: 1.3, delay: 0.15 }} className="bg-blush" />
-          </div>
-          <p className="mt-2 text-[0.72rem] font-semibold text-ink-mute">
-            <span className="text-gold-deep">{fmtMoney(stats.paid)} paid</span> · {fmtMoney(stats.committed - stats.paid)} committed
-          </p>
-        </StatCard>
-
-        <StatCard>
-          <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-ink-mute">Guests confirmed</p>
-          <p className="mt-2 font-display text-[2rem] leading-none text-ink">
-            {confirmedShown}<span className="text-base text-ink-mute"> / {stats.total}</span>
-          </p>
-          <div className="mt-4 flex h-2.5 overflow-hidden rounded-full bg-ink/8">
-            <motion.span initial={{ width: 0 }} animate={{ width: `${(stats.confirmed / stats.total) * 100}%` }} transition={{ duration: 1.3 }} className="bg-sage" />
-            <motion.span initial={{ width: 0 }} animate={{ width: `${(stats.pending / stats.total) * 100}%` }} transition={{ duration: 1.3, delay: 0.15 }} className="bg-blush" />
-          </div>
-          {/* The plus-one and "yes this week" pills lived here. Both were real
-              numbers with nowhere to go — no click-through, no action — so they
-              read as decoration. The counts that matter are already in the line
-              below and on the guest list. */}
-          <p className="mt-2 text-[0.72rem] font-semibold text-ink-mute">
-            {stats.pending} pending · {stats.declined} with love, no
-          </p>
-        </StatCard>
-
-        <StatCard>
-          <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-ink-mute">Countdown</p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <p className="font-display text-[2rem] leading-none text-ink">{daysShown}</p>
-            <span className="text-sm font-bold text-ink-mute">days</span>
-          </div>
-
-        </StatCard>
+    <div className="space-y-6">
+      {/* on a phone the rail isn't there, so the couple open the page */}
+      <div className="-mx-4 -mt-7 bg-[var(--pl-onyx)] px-5 pb-6 pt-5 text-[var(--pl-ivory)] sm:-mx-8 lg:hidden">
+        <p className="font-display text-[34px] leading-none">
+          {partnerA}{partnerB && <><i className="mx-1.5 font-accent text-[0.7em] text-[var(--pl-gold)]">&amp;</i>{partnerB}</>}
+        </p>
+        <p className="mt-2 font-accent text-[17px] italic text-[var(--pl-ivory)]/75">
+          {fmtDate(db.wedding.date)} · <span className="text-[var(--pl-gold)]">{stats.days} days to go</span>
+        </p>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1.55fr_1fr]">
-        {/* this week */}
-        <Reveal>
-          <section className="h-full rounded-[1.8rem] border border-white/70 bg-white/60 p-7 backdrop-blur-md" aria-label="This week">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-display text-[1.5rem] text-ink">This week</h3>
-                <p className="text-[0.78rem] font-semibold text-ink-mute">Four small yeses keep the whole plan calm.</p>
-              </div>
-              <span className="rounded-full bg-sage-soft px-3 py-1.5 text-[0.7rem] font-extrabold text-sage-deep">{weekDone}/{weekTasks.length} done</span>
-            </div>
+      <header>
+        <h1 className="font-display text-[40px] leading-none sm:text-[46px]">{t(greetingKey())}</h1>
+        <p className="mt-2 text-[15px] text-[var(--pl-ink-2)]">
+          {summary} <span className="hidden lg:inline">{db.wedding.venue && `${db.wedding.venue}${db.wedding.location ? `, ${db.wedding.location}` : ""}.`}</span>
+        </p>
+      </header>
 
-            <ul className="mt-6 space-y-2.5">
-              {weekTasks.map((t) => (
-                <li key={t.id}>
-                  <button
-                    onClick={() => toggleWeek(t.id)}
-                    aria-pressed={t.done}
-                    className={`group flex w-full items-center gap-4 rounded-2xl border px-4 py-3.5 text-left transition-all duration-300 cursor-pointer ${
-                      t.done ? "border-sage/50 bg-sage-soft/60" : "border-ink/10 bg-white/70 hover:border-gold/50 hover:shadow-card"
-                    }`}
-                  >
-                    <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 ${t.done ? "border-sage-deep bg-sage-deep" : "border-ink/25 bg-white group-hover:border-gold"}`}>
-                      {t.done && (
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f7f2e8" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M4.5 12.5l5 5 10-11" className="check-draw" />
-                        </svg>
-                      )}
-                    </span>
-                    <span className="flex-1">
-                      <span className={`block text-[0.95rem] font-bold transition ${t.done ? "text-ink-mute line-through decoration-sage-deep/60" : "text-ink"}`}>{t.title}</span>
-                      <span className="text-[0.7rem] font-semibold text-ink-mute">{t.assignee === "A" ? db.wedding.partnerA : t.assignee === "T" ? db.wedding.partnerB : "Together"} · this week</span>
-                    </span>
-                    {t.done && <Sparkles size={15} className="text-gold" />}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </Reveal>
-
-        {/* side column */}
+      <div className="grid items-start gap-5 lg:grid-cols-[1.35fr_1fr]">
         <div className="space-y-5">
-          <Reveal delay={0.05}>
-            <CalendarCard />
-          </Reveal>
+          {/* this week */}
+          <section className="pl-card" aria-labelledby="week-h">
+            <div className="pl-card-h">
+              <h2 id="week-h">This week</h2>
+              {weekTasks.length > 0 && <small>{weekDone} of {weekTasks.length} done</small>}
+            </div>
+            {weekTasks.length === 0 ? (
+              <p className="px-6 py-6 text-[15px] text-[var(--pl-ink-2)]">
+                Choose a few tasks for the week on the <Link to="/planner/timeline" className="text-[var(--pl-bronze)] underline underline-offset-4">timeline</Link>, and they'll wait here.
+              </p>
+            ) : (
+              <ul>
+                {weekTasks.map((x) => (
+                  <li key={x.id} className="pl-row">
+                    <button
+                      onClick={() => toggleWeek(x.id)} aria-pressed={x.done}
+                      className="flex w-full items-center gap-4 px-6 py-4 text-left transition hover:bg-[rgb(28_26_23/.025)] cursor-pointer"
+                    >
+                      <span className={`pl-ring${x.done ? " is-done" : ""}`} aria-hidden="true" />
+                      <span className="min-w-0 flex-1">
+                        <span className={`block text-[15.5px] ${x.done ? "text-[var(--pl-ink-2)] line-through decoration-[rgb(28_26_23/.3)]" : ""}`}>{x.title}</span>
+                        {x.due && <span className="block text-[12.5px] text-[var(--pl-ink-2)]">{x.done ? "done" : `due ${fmtDate(`${x.due}T12:00:00`, { weekday: "long", day: "numeric", month: "short" })}`}</span>}
+                      </span>
+                      <span className="pl-who">{who(x.assignee)}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="border-t border-[var(--pl-line)] px-6 py-3.5">
+              <Link to="/planner/timeline" className="text-[13.5px] text-[var(--pl-bronze)] underline underline-offset-4">The whole timeline</Link>
+            </div>
+          </section>
 
+          <CalendarCard />
+        </div>
+
+        <div className="space-y-5">
+          {/* where you stand */}
+          <section className="pl-card" aria-labelledby="stand-h">
+            <div className="pl-card-h"><h2 id="stand-h">Where you stand</h2></div>
+            <div className="px-6 pb-2">
+              <Stat label="Guests who said yes" value={String(stats.confirmed)} of={String(stats.total)}>
+                <span className="bg-[#7aa06a]" style={{ width: share(stats.confirmed, stats.total) }} />
+                <span className="bg-[var(--pl-gold)]" style={{ width: share(stats.pending, stats.total) }} />
+              </Stat>
+              <Stat label="Budget left to commit" value={fmtMoney(stats.remaining)} of={fmtMoney(stats.totalBudget)}>
+                <span className="bg-[var(--pl-ink)]" style={{ width: share(stats.paid, stats.totalBudget) }} />
+                <span className="bg-[var(--pl-gold)]" style={{ width: share(stats.committed - stats.paid, stats.totalBudget) }} />
+              </Stat>
+              <Stat label="Plan arranged" value={String(stats.tasksDone)} of={String(stats.tasksTotal)}>
+                <span className="bg-[var(--pl-bronze)]" style={{ width: `${stats.progressPct}%` }} />
+              </Stat>
+            </div>
+            <p className="border-t border-[var(--pl-line)] px-6 py-3.5 text-[13px] text-[var(--pl-ink-2)]">
+              {fmtMoney(stats.paid)} paid · {stats.pending} still to answer · {stats.declined} can't come
+            </p>
+          </section>
+
+          {/* the decision that's waiting */}
           {nextVendor && (
-            <Reveal delay={0.08}>
-              <section className="rounded-[1.8rem] border border-blush/40 bg-blush-soft/50 p-6 backdrop-blur-md" aria-label="Next decision">
-                <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-blush-deep">Next decision</p>
-                <h3 className="mt-2 font-display text-xl text-ink">{nextVendor.company}</h3>
-                <p className="text-[0.8rem] font-semibold text-ink-2">{nextVendor.category} · {fmtMoney(nextVendor.price)} · proposal ready</p>
-                <p className="mt-2 line-clamp-2 text-[0.82rem] leading-relaxed text-ink-2">{nextVendor.notes}</p>
+            <section className="pl-card" aria-labelledby="decide-h">
+              <div className="pl-card-h"><h2 id="decide-h">Waiting on you</h2><small>a proposal</small></div>
+              <div className="px-6 py-5">
+                <p className="font-display text-[22px] leading-tight">{nextVendor.company}</p>
+                <p className="mt-1 text-[13.5px] text-[var(--pl-ink-2)]">{nextVendor.category} · {fmtMoney(nextVendor.price)}</p>
+                {nextVendor.notes && <p className="mt-2 line-clamp-2 text-[14px] leading-relaxed text-[var(--pl-ink-2)]">{nextVendor.notes}</p>}
                 <div className="mt-4 flex gap-2">
                   <button
                     onClick={() => {
@@ -218,46 +158,36 @@ export default function Overview() {
                           : "Contract signed. Link the vendor to a budget category to track its commitment.",
                       );
                     }}
-                    className="flex-1 rounded-full bg-ink py-2.5 text-[0.8rem] font-bold text-cream transition hover:bg-ink/85 cursor-pointer"
+                    className="h-11 flex-1 rounded-[2px] bg-[var(--pl-onyx)] text-[12px] font-medium uppercase tracking-[0.16em] text-[var(--pl-ivory)] transition hover:bg-[#2a2622] cursor-pointer"
                   >
-                    Approve & book
+                    Book them
                   </button>
-                  <Link to="/planner/vendors" className="rounded-full border border-ink/15 px-4 py-2.5 text-[0.8rem] font-bold text-ink transition hover:border-ink/40">
+                  <Link to="/planner/vendors" className="flex h-11 items-center rounded-[2px] border border-[var(--pl-line)] px-4 text-[13.5px] transition hover:border-[rgb(28_26_23/.35)]">
                     Later
                   </Link>
                 </div>
-              </section>
-            </Reveal>
+              </div>
+            </section>
           )}
 
-          <Reveal delay={0.2}>
-            <section className="rounded-[1.8rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md" aria-label="Recent activity">
-              <div className="flex items-center justify-between">
-                <h3 className="flex items-center gap-2 font-display text-lg text-ink">
-                  Pulse
-                  <span className="h-2 w-2 rounded-full bg-sage-deep anim-pulse-soft" aria-hidden="true" />
-                </h3>
-                <Link to="/planner/page?tab=rsvp" className="text-[0.74rem] font-bold text-gold-deep transition hover:underline">RSVPs →</Link>
+          {/* the latest replies */}
+          {db.rsvpLog.length > 0 && (
+            <section className="pl-card" aria-labelledby="replies-h">
+              <div className="pl-card-h">
+                <h2 id="replies-h">Latest replies</h2>
+                <Link to="/planner/page?tab=rsvp" className="text-[13px] text-[var(--pl-bronze)] underline underline-offset-4">All replies</Link>
               </div>
-              <ul className="mt-4 space-y-3">
+              <ul className="px-6 pb-2">
                 {db.rsvpLog.slice(0, 4).map((e) => (
-                  <li key={e.id} className="flex items-center gap-3">
-                    <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${e.answer === "yes" ? "bg-sage-soft text-sage-deep" : "bg-blush-soft text-blush-deep"}`}>
-                      {e.answer === "yes" ? <Heart size={12} fill="currentColor" /> : <Flower2 size={12} />}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-[0.82rem]">
-                      <span className="font-extrabold text-ink">{e.name}</span>{" "}
-                      <span className="font-semibold text-ink-mute">{e.answer === "yes" ? "is coming" : "can't make it"}</span>
-                    </span>
-                    <span className="shrink-0 text-[0.66rem] font-bold text-ink-mute">{timeAgo(e.at)}</span>
+                  <li key={e.id} className="pl-row flex items-baseline gap-3 py-3 text-[14.5px]">
+                    <span className={`h-2 w-2 shrink-0 translate-y-[-1px] rounded-full ${e.answer === "yes" ? "bg-[#7aa06a]" : "bg-[#b55a45]"}`} aria-hidden="true" />
+                    <span className="min-w-0 flex-1 truncate">{e.name} <span className="text-[var(--pl-ink-2)]">{e.answer === "yes" ? "is coming" : "can't make it"}</span></span>
+                    <span className="shrink-0 text-[12.5px] text-[var(--pl-ink-2)]">{timeAgo(e.at)}</span>
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 border-t border-ink/8 pt-3 text-[0.72rem] font-semibold text-ink-mute">
-                {stats.pending} still deciding · a gentle nudge works wonders
-              </p>
             </section>
-          </Reveal>
+          )}
         </div>
       </div>
     </div>

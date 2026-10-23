@@ -91,11 +91,11 @@ export default function Reminders() {
       <button
         onClick={() => { setOpen((o) => !o); setPopup(null); }}
         aria-label={shown.length ? `Reminders, ${shown.length} new` : "Reminders"} aria-expanded={open}
-        className="relative flex h-9 w-9 items-center justify-center rounded-full border border-ink/15 text-ink-2 transition hover:border-ink/40 hover:text-ink cursor-pointer"
+        className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-[color-mix(in_srgb,currentColor_8%,transparent)] cursor-pointer"
       >
-        <Bell size={15} />
+        <Bell size={18} strokeWidth={1.6} />
         {shown.length > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-ink px-1 text-[0.62rem] font-extrabold text-cream" aria-hidden="true">
+          <span className="absolute right-0.5 top-0.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-[#c9a86a] px-1 text-[10.5px] font-medium text-[#0f0e0d]" aria-hidden="true">
             {shown.length > 9 ? "9+" : shown.length}
           </span>
         )}

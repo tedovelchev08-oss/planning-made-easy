@@ -1,19 +1,20 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Armchair, BellRing, CalendarDays, Check, Clock3, ExternalLink, Gift, Globe, LayoutDashboard,
+  Armchair, BellRing, Check, Clock3, ExternalLink, Gift, Globe, LayoutDashboard,
   Download, Link2, Loader2, LogOut, Menu, Plus, Search, Store, Trash2, Users, Wallet, X,
 } from "lucide-react";
 import { useApp, useStats, type SyncStatus } from "../../lib/store";
 import { SUPPORT_EMAIL, guestLink } from "../../lib/links";
 import { downloadExport } from "../../lib/exportData";
 import { deleteAccount } from "../../lib/api";
-import { initials, planLabel } from "../../lib/data";
+import { fmtDate, initials, planLabel } from "../../lib/data";
 import { useT } from "../../lib/i18n";
 import { Logo, Modal, Pill, btn } from "../ui";
 import CmdK from "./CmdK";
 import Reminders from "./Reminders";
+import "./planner.css";
 
 const MODULES = [
   { path: "", key: "nav.dashboard", icon: LayoutDashboard, end: true },
@@ -35,7 +36,7 @@ function SyncChip() {
   const { sync } = useApp();
   const kept = sync.durable !== false;
   const meta: Record<SyncStatus, { label: string; short: string; dot: string; cls: string }> = {
-    demo: { label: "Demo · in-memory", short: "Demo", dot: "bg-lav-deep", cls: "border-lav/60 bg-lav-soft/70 text-lav-deep" },
+    demo: { label: "Demo, nothing is saved", short: "Demo", dot: "bg-lav-deep", cls: "border-lav/60 bg-lav-soft/70 text-lav-deep" },
     booting: { label: "Loading plan", short: "Loading", dot: "bg-ink-mute anim-pulse-soft", cls: "border-ink/10 bg-white/60 text-ink-mute" },
     saving: { label: sync.pending > 0 ? `Saving · ${sync.pending}` : "Saving", short: "Saving", dot: "bg-gold anim-pulse-soft", cls: "border-gold/40 bg-gold-soft/70 text-gold-deep" },
     saved: { label: "Saved", short: "Saved", dot: "bg-sage-deep", cls: "border-sage/50 bg-sage-soft/70 text-sage-deep" },
@@ -58,7 +59,7 @@ function SyncChip() {
     <span
       role="status" aria-live="polite"
       title={detail}
-      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[0.62rem] font-extrabold uppercase tracking-[0.1em] md:px-3 md:text-[0.64rem] md:tracking-[0.12em] ${m.cls}`}
+      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[12px] font-medium md:px-3 ${m.cls}`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} aria-hidden="true" />
       <span className="md:hidden">{m.short}</span>
@@ -66,15 +67,6 @@ function SyncChip() {
       <span className="sr-only">{`. ${detail}`}</span>
     </span>
   );
-}
-
-/** ambient planner light — shifts with the hour so the room feels lived-in */
-function plannerGlows() {
-  const h = new Date().getHours();
-  if (h >= 5 && h < 12) return ["bg-blush/25", "bg-gold-soft/45", "bg-lav/20"];
-  if (h >= 12 && h < 17) return ["bg-sage/25", "bg-blush/18", "bg-lav/15"];
-  if (h >= 17 && h < 22) return ["bg-lav/30", "bg-blush/22", "bg-sage/15"];
-  return ["bg-lav/22", "bg-blush/15", "bg-gold-soft/25"];
 }
 
 export default function Shell() {
@@ -155,7 +147,6 @@ export default function Shell() {
     toast("Signed out", farewell, "info");
   };
 
-  const glows = useMemo(() => plannerGlows(), []);
   const pct = stats.progressPct;
   const link = guestLink({ slug: db.wedding.slug });
 
@@ -177,46 +168,29 @@ export default function Shell() {
   const setDrawerLike = (to: string) => { setDockOpen(false); window.location.hash = `#${to}`; };
 
   const sidebar = (
-    <nav className="flex h-full flex-col gap-1 p-4" aria-label="Planner modules">
+    <nav className="pl-nav flex flex-col gap-0.5 px-3 py-2" aria-label="Planner modules">
       {MODULES.map((m) => (
-        <NavLink
-          key={m.path}
-          to={`/planner/${m.path}`}
-          end={m.end}
-          className={({ isActive }) =>
-            `group flex items-center gap-3 rounded-2xl px-4 py-3 text-[0.9rem] font-semibold transition-all duration-300 ${
-              isActive
-                ? "bg-ink text-cream shadow-card"
-                : "text-ink-2 hover:bg-white/70 hover:text-ink hover:translate-x-0.5"
-            }`
-          }
-        >
-          <m.icon size={17} className="shrink-0 transition-transform duration-300 group-hover:scale-110" />
+        <NavLink key={m.path} to={m.path ? `/planner/${m.path}` : "/planner"} end={m.end}>
+          <m.icon size={17} strokeWidth={1.6} className="shrink-0" />
           {t(m.key)}
           {m.path === "page" && db.rsvpLog.some((e) => !e.synced) && (
-            <span className="ml-auto h-2 w-2 rounded-full bg-blush anim-pulse-soft" title="New RSVP answers" />
+            <span className="ml-auto h-2 w-2 rounded-full bg-[var(--pl-gold)]" title="New RSVP answers" />
           )}
         </NavLink>
       ))}
-
-      {/* The "Your plan" panel sat here: three lines of static text plus an
-          "Explore Luxe" button that opened the Wedding Page editor rather than
-          any upgrade. The plan is already named in the account menu. */}
     </nav>
   );
 
-  return (
-    <div className="relative flex h-full min-h-screen flex-col lg:flex-row">
-      {/* ambient planner light */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className={`anim-bob absolute -top-40 left-[6%] h-[26rem] w-[26rem] rounded-full blur-3xl ${glows[0]}`} />
-        <div className={`anim-bob absolute right-[4%] top-[30%] h-[22rem] w-[22rem] rounded-full blur-3xl ${glows[1]}`} style={{ animationDelay: "-3.5s" }} />
-        <div className={`anim-bob absolute bottom-[-6rem] left-[38%] h-[24rem] w-[24rem] rounded-full blur-3xl ${glows[2]}`} style={{ animationDelay: "-6s" }} />
-        {[14, 42, 71, 88].map((left, i) => (
-          <span key={left} className="inv-petal opacity-70" style={{ left: `${left}%`, animationDuration: `${16 + i * 4}s`, animationDelay: `${i * 5}s` }} />
-        ))}
-      </div>
+  // the couple, at the foot of the rail
+  const us = (
+    <div className="pl-us mt-auto border-t border-white/10 px-6 pb-7 pt-5">
+      <b>{db.wedding.partnerA}{db.wedding.partnerB && <><i>&amp;</i>{db.wedding.partnerB}</>}</b>
+      <p>{fmtDate(db.wedding.date, { day: "numeric", month: "long", year: "numeric" })}<br /><span>{stats.days} {stats.days === 1 ? "day" : "days"} to go</span></p>
+    </div>
+  );
 
+  return (
+    <div className="pl relative flex h-full min-h-screen flex-col lg:flex-row">
       <CmdK open={cmdOpen} onClose={() => setCmdOpen(false)} />
 
       <Modal open={deleteInfo} onClose={() => { if (!deleting) setDeleteInfo(false); }} label="Delete my account">
@@ -255,13 +229,11 @@ export default function Shell() {
         </form>
       </Modal>
 
-      {/* desktop sidebar */}
-      <aside className="sticky top-0 z-30 hidden h-screen w-[264px] shrink-0 border-r border-white/60 bg-white/40 backdrop-blur-xl lg:block">
-        <div className="flex items-center justify-between px-6 py-5">
-          <NavLink to="/"><Logo /></NavLink>
-          <span className="rounded-full bg-blush-soft px-2.5 py-1 text-[0.6rem] font-extrabold uppercase tracking-[0.16em] text-blush-deep">Planner</span>
-        </div>
+      {/* desktop rail */}
+      <aside className="pl-rail sticky top-0 z-30 hidden h-screen w-[256px] shrink-0 flex-col lg:flex">
+        <div className="px-6 pb-8 pt-7"><NavLink to="/" aria-label="Twofold, home"><Logo dark /></NavLink></div>
         {sidebar}
+        {us}
       </aside>
 
       {/* mobile drawer */}
@@ -274,22 +246,23 @@ export default function Shell() {
               onClick={() => setDrawerOpen(false)}
             />
             <motion.aside
-              className="fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col bg-cream shadow-glass lg:hidden"
+              className="pl-rail fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col shadow-glass lg:hidden"
               initial={{ x: -300 }} animate={{ x: 0 }} exit={{ x: -300 }}
               transition={{ type: "spring", stiffness: 300, damping: 32 }}
               aria-label="Planner navigation"
             >
               <div className="flex items-center justify-between px-6 py-5">
-                <Logo />
-                <button onClick={() => setDrawerOpen(false)} aria-label="Close menu" className="rounded-full bg-ink/5 p-2 text-ink-2 cursor-pointer"><X size={16} /></button>
+                <Logo dark />
+                <button onClick={() => setDrawerOpen(false)} aria-label="Close menu" className="rounded-full p-2.5 text-[var(--pl-ivory)]/70 hover:text-[var(--pl-ivory)] cursor-pointer"><X size={17} /></button>
               </div>
               {/* the nav fills the drawer's height; without this wrapper it pushed
                   the sign-out button below the screen, where it could not be reached */}
               <div className="min-h-0 flex-1 overflow-y-auto">{sidebar}</div>
-              <div className="px-4 pb-6">
+              {us}
+              <div className="px-3 pb-6">
                 <button
                   onClick={() => { setDrawerOpen(false); void leave("See you at the next planning session."); }}
-                  className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-[0.9rem] font-bold text-blush-deep transition hover:bg-blush-soft cursor-pointer"
+                  className="flex w-full items-center gap-3 rounded-[2px] px-3 py-3 text-[14.5px] text-[var(--pl-ivory)]/66 transition hover:bg-white/5 hover:text-[var(--pl-ivory)] cursor-pointer"
                 >
                   <LogOut size={16} /> {leaveLabel}
                 </button>
@@ -301,39 +274,35 @@ export default function Shell() {
 
       <div className="relative flex min-w-0 flex-1 flex-col">
         {/* topbar */}
-        <header className="sticky top-0 z-30 border-b border-ink/8 bg-cream/70 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 border-b border-[var(--pl-line)] bg-[var(--pl-onyx)] text-[var(--pl-ivory)] lg:bg-[var(--pl-paper)]/90 lg:text-[var(--pl-ink)] lg:backdrop-blur-md">
           <div className="flex items-center gap-3 px-4 py-3 sm:px-6">
-            <button onClick={() => setDrawerOpen(true)} aria-label="Open menu" className="rounded-full border border-ink/15 p-2.5 lg:hidden cursor-pointer">
-              <Menu size={17} />
+            <button onClick={() => setDrawerOpen(true)} aria-label="Open menu" className="-ml-1 rounded-full p-2.5 lg:hidden cursor-pointer">
+              <Menu size={19} strokeWidth={1.6} />
             </button>
-            <NavLink to="/" className="lg:hidden"><Logo /></NavLink>
+            <NavLink to="/" className="lg:hidden" aria-label="Twofold, home"><Logo dark /></NavLink>
 
             <button
               onClick={() => setCmdOpen(true)}
-              className="ml-auto hidden items-center gap-2.5 rounded-full border border-ink/12 bg-white/60 py-2 pl-3.5 pr-2.5 text-[0.76rem] font-bold text-ink-mute transition hover:border-ink/35 hover:text-ink sm:flex cursor-pointer"
+              className="ml-auto hidden h-10 w-60 items-center gap-2.5 rounded-[2px] border border-[var(--pl-line)] bg-[var(--pl-card)] px-3 text-[13.5px] text-[var(--pl-ink-2)] transition hover:border-[rgb(28_26_23/.3)] hover:text-[var(--pl-ink)] lg:flex cursor-pointer"
             >
-              <Search size={13} />
+              <Search size={15} strokeWidth={1.6} />
               Search the plan
-              <kbd className="rounded-md border border-ink/15 bg-white px-1.5 py-0.5 text-[0.6rem] font-extrabold">⌘K</kbd>
+              <kbd className="ml-auto rounded-[2px] border border-[var(--pl-line)] px-1.5 py-0.5 font-sans text-[11px]">⌘K</kbd>
             </button>
-            <button onClick={() => setCmdOpen(true)} aria-label="Search the plan" className="ml-auto rounded-full border border-ink/15 p-2.5 text-ink-2 transition hover:border-ink/40 sm:ml-0 sm:hidden cursor-pointer">
-              <Search size={15} />
+            <button onClick={() => setCmdOpen(true)} aria-label="Search the plan" className="ml-auto rounded-full p-2.5 lg:hidden cursor-pointer">
+              <Search size={18} strokeWidth={1.6} />
             </button>
 
             <SyncChip />
 
             <Reminders />
 
-            <span className="hidden items-center gap-2 rounded-full border border-gold/40 bg-gold-soft/60 px-3.5 py-2 text-[0.72rem] font-extrabold text-gold-deep lg:flex">
-              <CalendarDays size={13} /> {stats.days} days
-            </span>
-
             {/* account */}
             <div className="relative">
               <button
                 onClick={() => setAccountOpen((o) => !o)}
                 aria-label="Account menu" aria-expanded={accountOpen}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-blush text-[0.66rem] font-extrabold text-ink shadow-sm ring-2 ring-white transition hover:scale-105 cursor-pointer"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--pl-gold)] text-[12px] font-medium text-[var(--pl-onyx)] transition hover:brightness-105 cursor-pointer"
               >
                 {user ? initials(user.name) : mode === "demo" ? "M·T" : "··"}
               </button>
@@ -344,7 +313,7 @@ export default function Shell() {
                     <motion.div
                       initial={{ opacity: 0, y: 8, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.98 }}
                       transition={{ duration: 0.18 }}
-                      className="absolute right-0 top-12 z-50 w-64 overflow-hidden rounded-2xl border border-white/70 bg-cream/95 shadow-glass backdrop-blur-xl"
+                      className="absolute right-0 top-12 z-50 w-64 overflow-hidden rounded-[3px] bg-[var(--pl-card)] text-[var(--pl-ink)] shadow-glass"
                       role="menu" aria-label="Account"
                     >
                       <div className="px-4 py-4">
@@ -355,7 +324,7 @@ export default function Shell() {
 
                       {mode === "cloud" && weddingId && (
                         <div className="border-t border-ink/8 px-4 py-3.5">
-                          <p className="text-[0.6rem] font-extrabold uppercase tracking-[0.16em] text-ink-mute">Invite your partner</p>
+                          <p className="text-[13px] font-medium text-ink-2">Invite your partner</p>
                           {invited ? (
                             <p className="mt-2 flex items-start gap-1.5 text-[0.76rem] font-bold leading-snug text-sage-deep">
                               <Check size={13} className="mt-0.5 shrink-0" /> Invite sent — when they sign up with this email, your plan becomes theirs too.
@@ -418,18 +387,14 @@ export default function Shell() {
             </div>
           </div>
 
-          {/* the journey line — how far through the plan you are */}
-          <div className="absolute inset-x-0 bottom-0 h-[2.5px] bg-ink/6" aria-hidden="true">
+          {/* the journey line: how far through the plan you are */}
+          <div className="absolute inset-x-0 bottom-0 h-[2px] bg-white/10 lg:bg-[rgb(28_26_23/.06)]" aria-hidden="true">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${pct}%` }}
               transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-              className="relative h-full bg-gradient-to-r from-gold via-blush-deep to-sage-deep"
-            >
-              <span className="absolute -top-[5px] right-0 flex h-3 w-3 -translate-y-0 items-center justify-center">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="#9a7a3f" className="drop-shadow-sm"><path d="M12 21S3.5 15.4 1.6 10.6C.3 7.3 2.4 4 5.8 4c2.4 0 4 1.4 6.2 3.8C14.2 5.4 15.8 4 18.2 4c3.4 0 5.5 3.3 4.2 6.6C20.5 15.4 12 21 12 21z" /></svg>
-              </span>
-            </motion.div>
+              className="h-full bg-[var(--pl-gold)]"
+            />
           </div>
         </header>
 
@@ -449,7 +414,7 @@ export default function Shell() {
         onClick={() => setDockOpen(true)}
         aria-label="Quick actions"
         whileTap={{ scale: 0.9 }}
-        className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-ink text-cream shadow-glass transition hover:scale-105 lg:hidden cursor-pointer"
+        className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--pl-gold)] text-[var(--pl-onyx)] shadow-[0_14px_30px_-12px_rgb(0_0_0/.6)] transition hover:brightness-105 lg:hidden cursor-pointer"
         style={{ marginBottom: "env(safe-area-inset-bottom)" }}
       >
         <Plus size={22} />
@@ -462,20 +427,20 @@ export default function Shell() {
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 340, damping: 32 }}
-              className="absolute inset-x-0 bottom-0 rounded-t-[1.8rem] bg-cream p-5 shadow-glass"
+              className="absolute inset-x-0 bottom-0 rounded-t-[14px] bg-[var(--pl-card)] p-5 shadow-glass"
               style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
               role="dialog" aria-modal="true" aria-label="Quick actions"
             >
               <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-ink/15" aria-hidden="true" />
-              <p className="mb-3 text-center text-[0.62rem] font-extrabold uppercase tracking-[0.24em] text-ink-mute">Quick actions</p>
+              <p className="mb-4 text-center font-display text-[24px] text-[var(--pl-ink)]">Quick actions</p>
               <div className="grid grid-cols-3 gap-2.5">
                 {dockActions.map((a) => (
                   <button
                     key={a.label}
                     onClick={a.run}
-                    className="flex flex-col items-center gap-2 rounded-2xl border border-ink/10 bg-white/75 px-2 py-4 text-[0.72rem] font-bold text-ink transition hover:border-gold/60 hover:bg-white hover:shadow-card active:scale-95 cursor-pointer"
+                    className="flex flex-col items-center gap-2 rounded-[3px] border border-[var(--pl-line)] bg-[var(--pl-paper)]/60 px-2 py-4 text-[13px] text-[var(--pl-ink)] transition hover:border-[var(--pl-gold)] active:scale-95 cursor-pointer"
                   >
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blush-soft text-blush-deep">{a.icon}</span>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--pl-onyx)] text-[var(--pl-gold)]">{a.icon}</span>
                     {a.label}
                   </button>
                 ))}
@@ -487,7 +452,7 @@ export default function Shell() {
 
       {/* mobile bottom tabs */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/40 bg-cream/85 backdrop-blur-xl lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 bg-[var(--pl-onyx)] lg:hidden"
         style={{ paddingBottom: "max(0.375rem, env(safe-area-inset-bottom))" }}
         aria-label="Primary"
       >
@@ -495,19 +460,17 @@ export default function Shell() {
           {MODULES.slice(0, 5).map((m) => (
             <NavLink
               key={m.path}
-              to={`/planner/${m.path}`}
+              to={m.path ? `/planner/${m.path}` : "/planner"}
               end={m.end}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-1 rounded-2xl py-2 text-[0.6rem] font-bold transition-colors ${
-                  isActive ? "text-blush-deep" : "text-ink-mute hover:text-ink"
+                `flex min-h-12 flex-col items-center justify-center gap-1 py-1.5 text-[11px] transition-colors ${
+                  isActive ? "text-[var(--pl-ivory)]" : "text-[var(--pl-ivory)]/55 hover:text-[var(--pl-ivory)]"
                 }`
               }
             >
               {({ isActive }) => (
                 <>
-                  <span className={`rounded-2xl px-4 py-1.5 transition-all duration-300 ${isActive ? "bg-blush-soft shadow-sm" : ""}`}>
-                    <m.icon size={19} />
-                  </span>
+                  <m.icon size={20} strokeWidth={1.6} className={isActive ? "text-[var(--pl-gold)]" : ""} />
                   {t(m.key).split(" ")[0]}
                 </>
               )}

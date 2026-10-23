@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CalendarHeart, ChevronLeft, ChevronRight, Clock3, Heart, Inbox } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock3, Heart, Inbox } from "lucide-react";
 import { PHASES, Task, toDayKey } from "../../lib/data";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
 import { playChime } from "../../lib/sound";
@@ -78,16 +78,14 @@ export default function CalendarCard() {
   const hasAnything = (info?: DayInfo) => !!info && (info.tasks.length > 0 || info.wedding || info.deadline);
 
   return (
-    <section className="rounded-[1.8rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md" aria-label="Planning calendar">
+    <section className="pl-card p-6" aria-label="Planning calendar">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="flex items-center gap-2 font-display text-lg text-ink">
-          <CalendarHeart size={17} className="text-blush-deep" /> The calendar
-        </h3>
+        <h3 className="font-display text-[26px] leading-none text-ink">Calendar</h3>
         <div className="flex items-center gap-1.5">
           {!isCurrentMonth && (
             <button
               onClick={() => { setMonth(new Date(today.getFullYear(), today.getMonth(), 1)); setSelected(todayIso); }}
-              className="rounded-full bg-gold-soft px-3 py-1.5 text-[0.64rem] font-extrabold uppercase tracking-wide text-gold-deep transition hover:brightness-105 cursor-pointer"
+              className="rounded-full border border-[rgb(122_92_40/.35)] px-3 py-1.5 text-[12px] font-medium text-[#7a5c28] transition hover:bg-[rgb(122_92_40/.08)] cursor-pointer"
             >
               Today
             </button>
