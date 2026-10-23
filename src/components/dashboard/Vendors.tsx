@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Building2, Check, FileText, Mail, Pencil, Phone, Plus, X } from "lucide-react";
-import { Vendor, VendorStatus, VENDOR_CATEGORIES, fmtMoney, toDayKey } from "../../lib/data";
+import { Check, ChevronDown, FileText, Mail, Phone, Plus, X } from "lucide-react";
+import { Vendor, VendorStatus, VENDOR_CATEGORIES, fmtDate, fmtMoney, toDayKey } from "../../lib/data";
 import { useApp } from "../../lib/store";
-import { Field, Modal, Pill, Reveal, btn, inputCls, selectCls } from "../ui";
+import { Field, Modal, btn, inputCls, selectCls } from "../ui";
 
 const STATUSES: VendorStatus[] = ["Inquiry", "Proposal", "Booked", "Declined"];
 
@@ -60,118 +60,126 @@ export default function Vendors() {
     setEditing(null);
   };
 
+  // what needs a decision comes first, then what's settled, then the rest
+  const ORDER: Record<VendorStatus, number> = { Proposal: 0, Booked: 1, Inquiry: 2, Declined: 3 };
+  const sorted = [...rows].sort((a, b) => ORDER[a.status] - ORDER[b.status]);
+  const STATUS_DOT: Record<VendorStatus, string> = {
+    Proposal: "bg-[var(--pl-gold)]", Booked: "bg-[#7aa06a]", Inquiry: "bg-[rgb(28_26_23/.3)]", Declined: "bg-[#b55a45]",
+  };
+  const fmtDue = (d: string) => fmtDate(`${d}T12:00:00`, { day: "numeric", month: "short", year: "numeric" });
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl text-ink">Vendor Hub</h2>
-          <p className="text-[0.85rem] font-semibold text-ink-2">
-            {fmtMoney(bookedSpend)} booked · <span className="text-blush-deep">{proposals} proposal{proposals === 1 ? "" : "s"} awaiting a decision</span>
+          <h1 className="font-display text-[40px] leading-none sm:text-[46px]">Vendors</h1>
+          <p className="mt-2 text-[15px] text-[var(--pl-ink-2)]">
+            {fmtMoney(bookedSpend)} booked{proposals > 0 && <> · {proposals} {proposals === 1 ? "proposal waits" : "proposals wait"} for a decision</>}
           </p>
         </div>
-        <button onClick={() => { setIsNew(true); setEditing(blank()); }} className={`${btn.ink} !py-2.5`}><Plus size={15} /> Add vendor</button>
-      </div>
+        <button onClick={() => { setIsNew(true); setEditing(blank()); }} className="inline-flex h-10 items-center gap-2 rounded-[2px] bg-[var(--pl-onyx)] px-4 text-[12px] font-medium uppercase tracking-[0.14em] text-[var(--pl-ivory)] transition hover:bg-[#2a2622] cursor-pointer">
+          <Plus size={15} strokeWidth={1.8} /> Add a vendor
+        </button>
+      </header>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {(["all", ...STATUSES] as const).map((s) => (
-          <button key={s} onClick={() => setStatusFilter(s)}
-            className={`rounded-full px-4 py-2 text-[0.78rem] font-bold transition-all cursor-pointer ${statusFilter === s ? "bg-ink text-cream shadow-card" : "border border-ink/15 bg-white/60 text-ink-2 hover:border-ink/40"}`}>
-            {s === "all" ? "All" : s}
-          </button>
-        ))}
-        <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)} className={`${selectCls} ml-auto`} aria-label="Filter by category">
-          <option value="all">All categories</option>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0" role="tablist" aria-label="Filter by status">
+          {(["all", ...STATUSES] as const).map((st) => (
+            <button key={st} role="tab" aria-selected={statusFilter === st} onClick={() => setStatusFilter(st)}
+              className={`h-10 shrink-0 rounded-full px-4 text-[13.5px] transition cursor-pointer ${statusFilter === st ? "bg-[var(--pl-onyx)] text-[var(--pl-ivory)]" : "border border-[var(--pl-line)] bg-[var(--pl-card)] hover:border-[rgb(28_26_23/.3)]"}`}>
+              {st === "all" ? "Everyone" : st === "Proposal" ? "Proposals" : st === "Inquiry" ? "Asked" : st}
+            </button>
+          ))}
+        </div>
+        <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)} className="h-10 rounded-[2px] border border-[var(--pl-line)] bg-[var(--pl-card)] px-3 text-[13.5px] sm:ml-auto cursor-pointer" aria-label="Filter by category">
+          <option value="all">Every kind</option>
           {VENDOR_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
 
-      {rows.length === 0 ? (
-        <div className="rounded-[1.6rem] border border-dashed border-ink/15 bg-white/50 px-8 py-14 text-center">
-          <p className="font-display text-xl text-ink">Nothing in this view</p>
-          <p className="mt-2 text-[0.9rem] text-ink-2">Try another status, or add the vendor you're courting.</p>
+      {sorted.length === 0 ? (
+        <div className="rounded-[3px] border border-dashed border-[rgb(28_26_23/.2)] px-8 py-14 text-center">
+          <p className="font-display text-[24px]">No vendors here</p>
+          <p className="mt-2 text-[15px] text-[var(--pl-ink-2)]">Try another filter, or add the vendor you're talking to.</p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {rows.map((v, i) => {
-            const paidSum = v.payments.filter((p) => p.paid).reduce((s, p) => s + p.amount, 0);
+        <ul className="pl-card">
+          {sorted.map((v) => {
+            const paidSum = v.payments.filter((p) => p.paid).reduce((sum, p) => sum + p.amount, 0);
+            const next = v.payments.find((p) => !p.paid);
             return (
-              <Reveal key={v.id} delay={(i % 3) * 0.06}>
-                <article
-                  id={`vendor-${v.id}`}
-                  className={`group relative flex h-full flex-col rounded-[1.6rem] border p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:bg-white/90 hover:shadow-lift ${
-                    flash === v.id ? "border-gold bg-gold-soft/40 shadow-lift" : "border-white/70 bg-white/65"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <Pill tone="gold">{v.category}</Pill>
-                    <div className="relative">
-                      <button onClick={() => setMenuFor(menuFor === v.id ? null : v.id)} aria-label={`Change status of ${v.company}`} aria-expanded={menuFor === v.id} className="cursor-pointer transition hover:scale-105">
-                        <Pill tone={v.status}>{v.status} ▾</Pill>
-                      </button>
-                      <AnimatePresence>
-                        {menuFor === v.id && (
-                          <>
-                            <motion.button className="fixed inset-0 z-20 cursor-default" exit={{ pointerEvents: "none" }} aria-label="Close menu" onClick={() => setMenuFor(null)} />
-                            <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-                              className="absolute right-0 z-30 mt-2 w-36 overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-lift">
-                              {STATUSES.map((s) => (
-                                <button key={s} onClick={() => { update({ ...v, status: s }); setMenuFor(null); toast(`${v.company} → ${s}`); }}
-                                  className={`block w-full px-4 py-2.5 text-left text-[0.8rem] font-bold transition hover:bg-blush-soft/60 cursor-pointer ${v.status === s ? "text-blush-deep" : "text-ink-2"}`}>
-                                  {s}
-                                </button>
-                              ))}
-                            </motion.div>
-                          </>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-
-                  <h3 className="mt-3.5 font-display text-[1.35rem] leading-tight text-ink">{v.company}</h3>
-                  <p className="mt-0.5 flex items-center gap-1.5 text-[0.78rem] font-semibold text-ink-mute"><Building2 size={12} /> {v.contact || "—"}</p>
-
-                  <div className="mt-3 flex flex-col gap-1 text-[0.78rem] font-semibold text-ink-2">
-                    {v.email && <a href={`mailto:${v.email}`} className="flex w-fit items-center gap-1.5 transition hover:text-gold-deep"><Mail size={12} className="text-ink-mute" /> {v.email}</a>}
-                    {v.phone && <a href={`tel:${v.phone}`} className="flex w-fit items-center gap-1.5 transition hover:text-gold-deep"><Phone size={12} className="text-ink-mute" /> {v.phone}</a>}
-                  </div>
-
-                  <p className="mt-4 font-display text-2xl text-ink">{fmtMoney(v.price)}</p>
-
-                  {v.payments.length > 0 && (
-                    <div className="mt-3">
-                      <div className="h-1.5 overflow-hidden rounded-full bg-ink/8">
-                        <div className="h-full rounded-full bg-gold transition-all duration-700" style={{ width: `${v.price ? (paidSum / v.price) * 100 : 0}%` }} />
-                      </div>
-                      <div className="mt-2 space-y-1">
-                        {v.payments.map((p) => (
-                          <p key={p.label} className="flex items-center justify-between text-[0.7rem] font-semibold text-ink-mute">
-                            <span className="flex items-center gap-1.5">
-                              {p.paid ? <Check size={11} className="text-sage-deep" /> : <span className="h-2 w-2 rounded-full border border-ink/25" />}
-                              {p.label} · {p.due}
-                            </span>
-                            {fmtMoney(p.amount)}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {v.notes && <p className="mt-3 line-clamp-2 text-[0.8rem] leading-relaxed text-ink-2">{v.notes}</p>}
-
-                  <div className="mt-auto flex items-center justify-between pt-4">
-                    <button
-                      onClick={() => { update({ ...v, contract: !v.contract }); toast(v.contract ? "Contract unsigned" : "Contract signed", v.contract ? undefined : "Filed safely in the hub."); }}
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.7rem] font-extrabold transition cursor-pointer ${v.contract ? "border-sage/60 bg-sage-soft text-sage-deep" : "border-dashed border-ink/25 text-ink-mute hover:border-gold hover:text-gold-deep"}`}
-                    >
-                      <FileText size={12} /> {v.contract ? "Contract signed" : "No contract yet"}
+              <li key={v.id} id={`vendor-${v.id}`} className={`pl-row px-5 py-4 transition-colors sm:px-6 ${flash === v.id ? "bg-[rgb(201_168_106/.18)]" : ""}`}>
+                <div className="grid gap-x-6 gap-y-2 md:grid-cols-[minmax(0,1.5fr)_150px_minmax(0,1.4fr)_220px] md:items-center">
+                  {/* who */}
+                  <div className="min-w-0">
+                    <button onClick={() => { setIsNew(false); setEditing({ ...v }); }} className="block max-w-full truncate text-left font-display text-[22px] leading-tight hover:underline hover:decoration-[rgb(28_26_23/.3)] hover:underline-offset-4 cursor-pointer" aria-label={`Edit ${v.company}`}>
+                      {v.company}
                     </button>
-                    <button onClick={() => { setIsNew(false); setEditing({ ...v }); }} aria-label={`Edit ${v.company}`} className="rounded-full p-2 text-ink-mute transition hover:bg-gold-soft hover:text-gold-deep cursor-pointer"><Pencil size={14} /></button>
+                    <p className="mt-0.5 truncate text-[13px] text-[var(--pl-ink-2)]">{[v.category, v.contact].filter(Boolean).join(" · ")}</p>
                   </div>
-                </article>
-              </Reveal>
+
+                  {/* where it stands */}
+                  <div className="relative">
+                    <button onClick={() => setMenuFor(menuFor === v.id ? null : v.id)} aria-label={`Change status of ${v.company}`} aria-expanded={menuFor === v.id}
+                      className="inline-flex h-9 items-center gap-2 rounded-full border border-[var(--pl-line)] px-3 text-[13px] transition hover:border-[rgb(28_26_23/.3)] cursor-pointer">
+                      <span className={`h-[7px] w-[7px] rounded-full ${STATUS_DOT[v.status]}`} aria-hidden="true" />
+                      {v.status === "Inquiry" ? "Asked" : v.status}
+                      <ChevronDown size={13} strokeWidth={1.6} className="text-[var(--pl-ink-2)]" />
+                    </button>
+                    <AnimatePresence>
+                      {menuFor === v.id && (
+                        <>
+                          <motion.button className="fixed inset-0 z-20 cursor-default" exit={{ pointerEvents: "none" }} aria-label="Close menu" onClick={() => setMenuFor(null)} />
+                          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                            className="absolute left-0 z-30 mt-1.5 w-40 overflow-hidden rounded-[3px] bg-[var(--pl-card)] shadow-[0_18px_40px_-16px_rgb(0_0_0/.45)] ring-1 ring-[var(--pl-line)]">
+                            {STATUSES.map((st) => (
+                              <button key={st} onClick={() => { update({ ...v, status: st }); setMenuFor(null); toast(`${v.company}: ${st === "Inquiry" ? "asked" : st.toLowerCase()}`); }}
+                                className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[14px] transition hover:bg-[rgb(28_26_23/.05)] cursor-pointer ${v.status === st ? "text-[var(--pl-bronze)]" : ""}`}>
+                                <span className={`h-[7px] w-[7px] rounded-full ${STATUS_DOT[st]}`} aria-hidden="true" />
+                                {st === "Inquiry" ? "Asked" : st}
+                              </button>
+                            ))}
+                          </motion.div>
+                        </>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* the money */}
+                  <div className="min-w-0">
+                    <p className="font-display text-[22px] leading-tight tabular-nums">{fmtMoney(v.price)}</p>
+                    <p className="text-[13px] text-[var(--pl-ink-2)]">
+                      {v.payments.length === 0
+                        ? (v.status === "Booked" ? "No payments scheduled yet" : v.notes ? v.notes : "—")
+                        : next
+                          ? `${fmtMoney(paidSum)} paid · next ${fmtMoney(next.amount)} on ${fmtDue(next.due)}`
+                          : "Paid in full"}
+                    </p>
+                    {v.payments.length > 0 && (
+                      <div className="mt-2 flex h-[3px] max-w-[260px] overflow-hidden rounded-full bg-[rgb(28_26_23/.1)]" aria-hidden="true">
+                        <span className="bg-[var(--pl-ink)]" style={{ width: `${v.price ? Math.min(100, (paidSum / v.price) * 100) : 0}%` }} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* contract and contact */}
+                  <div className="flex items-center gap-1 md:justify-end">
+                    <button
+                      onClick={() => { update({ ...v, contract: !v.contract }); toast(v.contract ? "Contract unsigned" : "Contract signed", v.contract ? undefined : "Noted against this vendor."); }}
+                      aria-pressed={v.contract}
+                      className={`inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] transition cursor-pointer ${v.contract ? "text-[#4f7a43]" : "border border-dashed border-[rgb(28_26_23/.25)] text-[var(--pl-ink-2)] hover:border-[var(--pl-bronze)]"}`}
+                    >
+                      {v.contract ? <Check size={14} strokeWidth={2} /> : <FileText size={14} strokeWidth={1.6} />}
+                      {v.contract ? "Signed" : "No contract"}
+                    </button>
+                    {v.email && <a href={`mailto:${v.email}`} aria-label={`Email ${v.company}`} className="rounded-full p-2.5 text-[var(--pl-ink-2)] transition hover:bg-[rgb(28_26_23/.06)] hover:text-[var(--pl-ink)]"><Mail size={15} strokeWidth={1.6} /></a>}
+                    {v.phone && <a href={`tel:${v.phone}`} aria-label={`Call ${v.company}`} className="rounded-full p-2.5 text-[var(--pl-ink-2)] transition hover:bg-[rgb(28_26_23/.06)] hover:text-[var(--pl-ink)]"><Phone size={15} strokeWidth={1.6} /></a>}
+                  </div>
+                </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
 
       <Modal open={!!editing} onClose={() => setEditing(null)} label={isNew ? "Add vendor" : "Edit vendor"}>
@@ -191,7 +199,7 @@ export default function Vendors() {
               <Field label="Phone"><input className={inputCls} value={editing.phone} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} placeholder="+1 …" /></Field>
               <Field label="Status">
                 <select className={`${selectCls} w-full`} value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value as VendorStatus })}>
-                  {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  {STATUSES.map((s) => <option key={s} value={s}>{s === "Inquiry" ? "Asked" : s}</option>)}
                 </select>
               </Field>
               <div className="flex items-end pb-1">
@@ -215,7 +223,7 @@ export default function Vendors() {
               {/* payment schedule — drives the paid figure in Budget */}
               <div className="sm:col-span-2">
                 <div className="flex items-center justify-between">
-                  <span className="mb-1.5 block text-[0.72rem] font-bold uppercase tracking-[0.14em] text-ink-mute">Payment schedule</span>
+                  <span className="mb-1.5 block text-[0.85rem] font-medium text-ink-2">Payment schedule</span>
                   <button
                     onClick={() => setEditing({ ...editing, payments: [...editing.payments, { label: editing.payments.length === 0 ? "Deposit" : `Payment ${editing.payments.length + 1}`, amount: 0, due: toDayKey(new Date().toISOString()), paid: false }] })}
                     className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1.5 text-[0.7rem] font-extrabold text-ink-2 transition hover:border-gold hover:text-gold-deep cursor-pointer"
