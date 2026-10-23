@@ -31,6 +31,38 @@
   background: #0f0e0d url(/auth/silk-rings-2200.jpg) center / cover no-repeat;
   background-image: image-set(url(/auth/silk-rings-2200.webp) type("image/webp"), url(/auth/silk-rings-2200.jpg) type("image/jpeg"));
 }
+/* candlelight: a warm light drifts slowly across the folds */
+.tf-auth-light {
+  position: absolute;
+  inset: -20%;
+  mix-blend-mode: soft-light;
+  background: radial-gradient(28% 34% at 50% 50%, rgb(255 214 150 / .8), rgb(255 190 120 / 0) 70%);
+  animation: tf-auth-drift 11s ease-in-out infinite alternate;
+}
+@keyframes tf-auth-drift { from { transform: translate(-22%, -6%); } to { transform: translate(18%, 8%); } }
+/* and now and then the diamond catches it. Its place in the photograph,
+   wherever the photograph is cropped: centre (25.1%, 70.7%) of a 16:9 frame */
+.tf-auth-glint {
+  --fx: .251; --fy: .707;
+  position: absolute;
+  left: calc(50vw + (var(--fx) - .5) * max(100vw, 177.78vh));
+  top: calc(50vh + (var(--fy) - .5) * max(100vh, 56.25vw));
+  width: 84px; height: 84px; margin: -42px 0 0 -42px;
+  opacity: 0;
+  animation: tf-auth-glint 6.5s ease-in-out infinite 1.5s;
+}
+.tf-auth-glint::before, .tf-auth-glint::after {
+  content: ""; position: absolute; left: 50%; top: 50%; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #fff 40%, #fff 60%, transparent); box-shadow: 0 0 12px 3px rgb(255 255 255 / .7);
+  transform: translate(-50%, -50%);
+}
+.tf-auth-glint::before { width: 100%; height: 1.5px; }
+.tf-auth-glint::after { width: 1.5px; height: 100%; background: linear-gradient(transparent, #fff 40%, #fff 60%, transparent); }
+@keyframes tf-auth-glint {
+  0%, 74%, 100% { opacity: 0; transform: scale(.3) rotate(0deg); }
+  82% { opacity: .95; transform: scale(1) rotate(22deg); }
+  90% { opacity: 0; transform: scale(.55) rotate(45deg); }
+}
 .tf-auth-silk::after {
   content: "";
   position: absolute;
@@ -104,12 +136,13 @@
 .tf-auth-card input[type="password"] { font: 400 16px/1.3 -apple-system, "Segoe UI", system-ui, sans-serif; letter-spacing: .18em; padding: 12px 56px 11px 0; }
 .tf-auth-field input[type="text"] { padding-right: 56px; }
 .tf-auth-show {
-  position: absolute; right: 0; bottom: 8px;
-  padding: 6px 0 6px 12px;
-  background: none; border: 0; cursor: pointer;
-  font: 400 13px/1 var(--font-body); color: var(--bronze);
+  position: absolute; right: -8px; bottom: 2px;
+  width: 44px; height: 44px; display: grid; place-items: center;
+  background: none; border: 0; border-radius: 50%; cursor: pointer;
+  color: var(--bronze); transition: color .2s, background-color .2s;
 }
-.tf-auth-show:hover { color: var(--k); }
+.tf-auth-show svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+.tf-auth-show:hover { color: var(--k); background: rgb(122 92 40 / .08); }
 .tf-auth-error { margin-top: 18px; font-size: 14px; font-weight: 400; line-height: 1.45; color: var(--fail); }
 .tf-auth-error a { color: inherit; text-underline-offset: 3px; }
 .tf-auth-check { margin-top: 16px; }
@@ -137,6 +170,78 @@
 .tf-auth-card :focus-visible { outline: 1.5px solid var(--bronze); outline-offset: 3px; }
 .tf-auth-card input:focus-visible { outline: none; }
 
+/* the wedding day: a field that opens the ring calendar (laptop) or the dials (phone) */
+.tf-day { position: relative; }
+.tf-day-field {
+  width: 100%; text-align: left; cursor: pointer;
+  border: 0; border-bottom: 1px solid var(--k22); background: transparent; border-radius: 0;
+  padding: 9px 30px 10px 0; font: 300 18px/1.3 var(--font-body); color: var(--k);
+  background: no-repeat right 2px center / 18px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a5c28' stroke-width='1.3' stroke-linecap='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='1.5'/%3E%3Cpath d='M3.5 10h17M8 3v4M16 3v4'/%3E%3C/svg%3E");
+  transition: border-color .25s, box-shadow .25s;
+}
+.tf-day-field.is-empty { color: rgb(28 26 23 / .42); }
+.tf-day-field:hover { border-bottom-color: rgb(28 26 23 / .42); }
+.tf-day-field[aria-expanded="true"] { border-bottom-color: var(--bronze); box-shadow: 0 1px 0 var(--bronze); }
+.tf-day-panel {
+  margin-top: 10px; background: #f3ead8; border-radius: 3px; padding: 14px 14px 10px;
+  box-shadow: 0 18px 36px -18px rgb(0 0 0 / .45), inset 0 0 0 1px rgb(122 92 40 / .18);
+  animation: tf-day-open .35s cubic-bezier(.16, 1, .3, 1);
+}
+@keyframes tf-day-open { from { opacity: 0; transform: translateY(-6px); } }
+@media (min-width: 960px) {
+  .tf-day-panel { position: absolute; z-index: 5; left: 0; right: 0; top: 100%; }
+}
+
+.tf-cal-head { display: flex; justify-content: space-between; align-items: center; }
+.tf-cal-head p { font: 400 24px/1 var(--font-display); }
+.tf-cal-head p i { font: italic 400 19px var(--font-accent); color: var(--bronze); }
+.tf-cal-head button { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; color: var(--bronze); cursor: pointer; }
+.tf-cal-head button:hover:not(:disabled) { background: rgb(122 92 40 / .1); }
+.tf-cal-head button:disabled { opacity: .3; cursor: default; }
+.tf-cal-head svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.tf-cal-grid { margin-top: 8px; }
+.tf-cal-row { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }
+.tf-cal-dn { font: 500 10px/1 var(--font-body); letter-spacing: .14em; color: var(--k55); padding: 6px 0 8px; }
+.tf-cal-day {
+  position: relative; width: 100%; height: 38px; border: 0; background: none; cursor: pointer;
+  font: 300 15px/1 var(--font-body); color: var(--k); font-variant-numeric: tabular-nums;
+}
+.tf-cal-day:disabled { color: rgb(28 26 23 / .24); cursor: default; }
+.tf-cal-day:hover:not(:disabled):not(.is-picked) { color: var(--bronze); font-weight: 400; }
+.tf-cal-day.is-today::after { content: ""; position: absolute; left: 50%; bottom: 4px; width: 3px; height: 3px; margin-left: -1.5px; border-radius: 50%; background: var(--bronze); }
+/* the chosen day, inside two linked rings */
+.tf-cal-day.is-picked { font-weight: 400; }
+.tf-cal-day.is-picked::before, .tf-cal-day.is-picked::after {
+  content: ""; position: absolute; top: 4px; width: 30px; height: 30px; margin: 0; border-radius: 50%;
+  border: 1.5px solid #b08d4c; background: none;
+}
+.tf-cal-day.is-picked::before { left: calc(50% - 19px); }
+.tf-cal-day.is-picked::after { left: calc(50% - 11px); bottom: auto; border-color: var(--bronze); }
+.tf-cal-day:focus-visible { outline: 1.5px solid var(--bronze); outline-offset: -2px; border-radius: 50%; }
+.tf-cal-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 6px; padding-top: 8px; border-top: 1px solid rgb(28 26 23 / .1); }
+.tf-cal-foot span { font: italic 400 16px var(--font-accent); color: var(--k70); }
+.tf-cal-foot button, .tf-dials-foot > button { border: 0; background: none; padding: 8px 0; cursor: pointer; font: 400 13px var(--font-body); color: var(--bronze); text-decoration: underline; text-underline-offset: 4px; }
+
+.tf-dials-spelled { margin: 2px 0 8px; font: italic 400 20px/1.3 var(--font-accent); color: var(--k); }
+.tf-dials { position: relative; display: grid; grid-template-columns: .7fr 1.5fr 1fr; transition: opacity .25s; }
+.tf-dials.is-off { opacity: .45; }
+.tf-dials::before { content: ""; position: absolute; left: 0; right: 0; top: 84px; height: 42px; border-top: 1px solid rgb(122 92 40 / .55); border-bottom: 1px solid rgb(122 92 40 / .55); pointer-events: none; }
+.tf-dials::after { content: ""; position: absolute; inset: 0; background: linear-gradient(#f3ead8, rgb(243 234 216 / 0) 36%, rgb(243 234 216 / 0) 64%, #f3ead8); pointer-events: none; }
+.tf-dial { height: 210px; overflow-y: auto; scroll-snap-type: y mandatory; scrollbar-width: none; overscroll-behavior: contain; text-align: center; }
+.tf-dial::-webkit-scrollbar { display: none; }
+.tf-dial:focus-visible { outline: 1.5px solid var(--bronze); outline-offset: -2px; }
+.tf-dial-pad { height: 84px; }
+.tf-dial button { display: block; width: 100%; height: 42px; scroll-snap-align: center; border: 0; background: none; cursor: pointer; font: 300 17px/42px var(--font-body); color: var(--k55); }
+.tf-dial button.is-on { font: 400 26px/42px var(--font-display); color: var(--k); }
+.tf-dials-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 6px; border-top: 1px solid rgb(28 26 23 / .1); }
+.tf-switch { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--k70); cursor: pointer; }
+.tf-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.tf-switch span { position: relative; width: 38px; height: 22px; border-radius: 11px; background: rgb(28 26 23 / .2); transition: background .2s; }
+.tf-switch span::after { content: ""; position: absolute; left: 2px; top: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s cubic-bezier(.16, 1, .3, 1); }
+.tf-switch input:checked + span { background: var(--bronze); }
+.tf-switch input:checked + span::after { transform: translateX(16px); }
+.tf-switch input:focus-visible + span { outline: 1.5px solid var(--bronze); outline-offset: 3px; }
+
 /* phone: the rings at the top of the screen, the card below them */
 @media (max-width: 959px) {
   .tf-auth-silk {
@@ -144,6 +249,7 @@
     background-size: 1050px auto;
     background-position: -110px -205px;
   }
+  .tf-auth-glint { left: calc(-110px + var(--fx) * 1050px); top: calc(-205px + var(--fy) * 590.6px); width: 60px; height: 60px; margin: -30px 0 0 -30px; }
   .tf-auth-silk::after { background: linear-gradient(180deg, rgb(15 14 13 / .35), rgb(15 14 13 / 0) 12%, rgb(15 14 13 / 0) 28%, rgb(15 14 13 / .75) 48%); }
   .tf-auth-main { align-content: start; padding: 262px 12px 16px; }
 }
@@ -164,6 +270,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tf-auth-names:not(.is-empty) { animation: none; }
+  .tf-auth-names:not(.is-empty), .tf-day-panel { animation: none; }
+  .tf-auth-light { animation: none; transform: translate(-10%, 0); }
+  .tf-auth-glint { display: none; }
   .tf-auth-send, .tf-auth-card input { transition: none; }
 }
