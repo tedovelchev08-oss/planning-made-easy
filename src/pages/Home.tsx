@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import Nav from "../components/marketing/Nav";
-import Hero from "../components/marketing/Hero";
-import { Features, HowItWorks, Marquee } from "../components/marketing/Sections";
+import { FoldHero, GuestSide, HonestNotes, InvitationShelf } from "../components/marketing/Landing";
 import { Pricing, Stories } from "../components/marketing/Social";
 import { FinalCta, Footer } from "../components/marketing/Closing";
 
@@ -11,18 +10,18 @@ export default function Home() {
   }, []);
 
   return (
-    <>
+    <div className="tf-land">
       <Nav />
       <main>
-        <Hero />
-        <Marquee />
-        <Features />
-        <HowItWorks />
+        <FoldHero />
+        <InvitationShelf />
+        <GuestSide />
         <Pricing />
         <Stories />
+        <HonestNotes />
         <FinalCta />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
