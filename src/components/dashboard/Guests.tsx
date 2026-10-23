@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Copy, Download, Mail, MessageSquare, Pencil, Plus, Search, Trash2, Upload, Users, X } from "lucide-react";
-import { Guest, MEALS, Rsvp, initials } from "../../lib/data";
+import { Copy, Download, Mail, MessageSquare, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
+import { Guest, MEALS, Rsvp } from "../../lib/data";
 import { useApp } from "../../lib/store";
 import { parseCsvLine, toCsvRow } from "../../lib/csv";
 import { FREE_GUEST_WARN_AT, PLANS, can, formatPrice, guestLimit } from "../../lib/plans";
 import { useCurrency } from "../../lib/currency";
-import { EmptyState, Field, Modal, Pill, btn, inputCls, selectCls } from "../ui";
+import { EmptyState, Field, Modal, btn, inputCls, selectCls } from "../ui";
 
 const RSVPS: Rsvp[] = ["confirmed", "pending", "declined"];
 
@@ -217,194 +217,194 @@ export default function Guests() {
     toast("Guests imported", `${added.length} names joined the list.`);
   };
 
-  const partyTag = (p: Guest["party"]) =>
-    p === "A" ? <span className="rounded-full bg-blush-soft px-1.5 py-0.5 text-[0.58rem] font-extrabold text-blush-deep">{db.wedding.partnerA}</span>
-    : p === "B" ? <span className="rounded-full bg-sage-soft px-1.5 py-0.5 text-[0.58rem] font-extrabold text-sage-deep">{db.wedding.partnerB}</span>
-    : <span className="rounded-full bg-lav-soft px-1.5 py-0.5 text-[0.58rem] font-extrabold text-lav-deep">Shared</span>;
+  // the answer, in the words a couple uses
+  const ANSWER: Record<Rsvp, { word: string; dot: string }> = {
+    confirmed: { word: "Coming", dot: "bg-[#7aa06a]" },
+    pending: { word: "Waiting", dot: "bg-[var(--pl-gold)]" },
+    declined: { word: "Can’t come", dot: "bg-[#b55a45]" },
+  };
+  const side = (g: Guest) => (g.party === "A" ? `${db.wedding.partnerA}’s side` : g.party === "B" ? `${db.wedding.partnerB}’s side` : "Both sides");
+  const answerChip = (g: Guest) => (
+    <button
+      onClick={() => cycleRsvp(g)}
+      title={g.plusOneOf ? "Follows their host’s answer" : "Tap to change the answer"}
+      aria-label={`Change RSVP for ${g.name} — currently ${g.rsvp}; activates the next state`}
+      className="inline-flex min-h-9 items-center gap-2 whitespace-nowrap rounded-full border border-[var(--pl-line)] px-3 text-[13px] transition hover:border-[rgb(28_26_23/.3)] cursor-pointer"
+    >
+      <span className={`h-[7px] w-[7px] rounded-full ${ANSWER[g.rsvp].dot}`} aria-hidden="true" />
+      {ANSWER[g.rsvp].word}
+    </button>
+  );
+  const plSelect = "h-9 w-full max-w-[190px] rounded-[2px] border border-[var(--pl-line)] bg-transparent px-2 text-[13.5px] text-[var(--pl-ink)] outline-none transition hover:border-[rgb(28_26_23/.3)] focus-visible:border-[var(--pl-bronze)] cursor-pointer";
+  const quiet = "inline-flex h-10 items-center gap-2 rounded-[2px] border border-[var(--pl-line)] bg-[var(--pl-card)] px-3.5 text-[13.5px] transition hover:border-[rgb(28_26_23/.3)] cursor-pointer";
 
   return (
     <div className="space-y-5">
-      {/* toolbar */}
-      <div className="flex flex-wrap items-center gap-2.5">
-        <div className="relative min-w-[220px] flex-1">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-mute" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search guests, notes, plus-ones…" className={`${inputCls} pl-10`} aria-label="Search guests" />
+      {/* the page's title, and what you can do here */}
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-[40px] leading-none sm:text-[46px]">Guests</h1>
+          <p className="mt-2 text-[15px] text-[var(--pl-ink-2)]">
+            {counts.all} invited · {counts.confirmed} coming · {counts.pending} still to answer
+          </p>
         </div>
-        <button onClick={() => (room > 0 ? openEdit(emptyForm(), true) : openUpgrade("unlimitedGuests"))} className={`${btn.ink} !py-2.5`}><Plus size={15} /> Add guest</button>
-        <button onClick={() => (can(db.plan, "exports") ? exportCsv() : openUpgrade("exports"))} className={`${btn.outline} !py-2.5`}><Download size={14} /> Export</button>
-        <button onClick={() => fileRef.current?.click()} className={`${btn.outline} !py-2.5`}><Upload size={14} /> Import CSV</button>
-        <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" aria-label="Import CSV file"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) importCsv(f); e.target.value = ""; }} />
-      </div>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => (room > 0 ? openEdit(emptyForm(), true) : openUpgrade("unlimitedGuests"))} className="inline-flex h-10 items-center gap-2 rounded-[2px] bg-[var(--pl-onyx)] px-4 text-[12px] font-medium uppercase tracking-[0.14em] text-[var(--pl-ivory)] transition hover:bg-[#2a2622] cursor-pointer">
+            <Plus size={15} strokeWidth={1.8} /> Add a guest
+          </button>
+          <button onClick={() => (can(db.plan, "exports") ? exportCsv() : openUpgrade("exports"))} className={quiet} aria-label="Export the guest list"><Download size={15} strokeWidth={1.6} /><span className="hidden sm:inline">Export</span></button>
+          <button onClick={() => fileRef.current?.click()} className={quiet} aria-label="Import a guest list"><Upload size={15} strokeWidth={1.6} /><span className="hidden sm:inline">Import a list</span></button>
+          <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" aria-label="Import CSV file"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) importCsv(f); e.target.value = ""; }} />
+        </div>
+      </header>
 
-      {/* the free plan's guest limit — mentioned kindly before it's reached */}
+      {/* the free plan's guest limit, mentioned kindly before it's reached */}
       {limit !== Infinity && db.guests.length >= FREE_GUEST_WARN_AT && (
-        <div role="status" className={`flex flex-wrap items-center gap-3 rounded-2xl border px-5 py-3.5 ${room > 0 ? "border-gold/40 bg-gold-soft/45" : "border-blush-deep/40 bg-blush-soft/60"}`}>
-          <Users size={16} className={room > 0 ? "text-gold-deep" : "text-blush-deep"} aria-hidden="true" />
-          <p className="min-w-0 flex-1 text-[0.85rem] font-semibold text-ink-2">
+        <div role="status" className="pl-card flex flex-wrap items-center gap-3 px-5 py-4" style={{ boxShadow: `inset 3px 0 0 ${room > 0 ? "#c9a86a" : "#b55a45"}` }}>
+          <p className="min-w-0 flex-1 text-[14.5px] text-[var(--pl-ink-2)]">
             {room > 0 ? (
-              <><strong className="text-ink">Your celebration is growing!</strong> {PLANS.essential.name} includes up to {limit} guests — {room} {room === 1 ? "place" : "places"} left.</>
+              <><span className="text-[var(--pl-ink)]">Your list is growing.</span> {PLANS.essential.name} has room for {limit} guests, and {room} {room === 1 ? "place is" : "places are"} left.</>
             ) : (
-              <><strong className="text-ink">You've reached the {PLANS.essential.name} guest limit.</strong> Everyone on your list stays; upgrading lifts the limit.</>
+              <><span className="text-[var(--pl-ink)]">You’ve reached the {PLANS.essential.name} guest limit.</span> Everyone on your list stays; upgrading lifts the limit.</>
             )}
           </p>
-          <button onClick={() => openUpgrade("unlimitedGuests")} className={`${room > 0 ? btn.outline : btn.ink} !px-4 !py-2 text-[0.78rem]`}>
-            {room > 0 ? "About Celebration" : `Upgrade to ${PLANS.celebration.name} — ${formatPrice(PLANS.celebration.price, currency)} one-time`}
+          <button onClick={() => openUpgrade("unlimitedGuests")} className={room > 0 ? quiet : "inline-flex h-10 items-center rounded-[2px] bg-[var(--pl-onyx)] px-4 text-[13.5px] text-[var(--pl-ivory)] cursor-pointer"}>
+            {room > 0 ? `About ${PLANS.celebration.name}` : `Upgrade to ${PLANS.celebration.name}, ${formatPrice(PLANS.celebration.price, currency)} once`}
           </button>
         </div>
       )}
 
-      {/* filter chips */}
-      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter by RSVP">
-        {([["all", "All"], ["confirmed", "Confirmed"], ["pending", "Pending"], ["declined", "Declined"]] as const).map(([k, label]) => (
-          <button key={k} role="tab" aria-selected={filter === k} onClick={() => setFilter(k)}
-            className={`rounded-full px-4 py-2 text-[0.8rem] font-bold transition-all duration-300 cursor-pointer ${filter === k ? "bg-ink text-cream shadow-card" : "border border-ink/15 bg-white/60 text-ink-2 hover:border-ink/40"}`}>
-            {label} <span className={filter === k ? "text-gold" : "text-ink-mute"}>{counts[k]}</span>
-          </button>
-        ))}
+      {/* find someone, or narrow the list by their answer */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative w-full sm:w-72">
+          <Search size={16} strokeWidth={1.6} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--pl-ink-2)]" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a guest, a note, a plus-one" aria-label="Search guests"
+            className="h-10 w-full rounded-[2px] border border-[var(--pl-line)] bg-[var(--pl-card)] pl-9 pr-3 text-[14px] outline-none placeholder:text-[rgb(28_26_23/.42)] focus-visible:border-[var(--pl-bronze)]" />
+        </div>
+        <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0" role="tablist" aria-label="Filter by RSVP">
+          {([["all", "Everyone"], ["confirmed", "Coming"], ["pending", "Waiting"], ["declined", "Can’t come"]] as const).map(([k, label]) => (
+            <button key={k} role="tab" aria-selected={filter === k} onClick={() => setFilter(k)}
+              className={`h-10 shrink-0 whitespace-nowrap rounded-full px-4 text-[13.5px] transition cursor-pointer ${filter === k ? "bg-[var(--pl-onyx)] text-[var(--pl-ivory)]" : "border border-[var(--pl-line)] bg-[var(--pl-card)] hover:border-[rgb(28_26_23/.3)]"}`}>
+              {label} <span className={`tabular-nums ${filter === k ? "text-[var(--pl-gold)]" : "text-[var(--pl-ink-2)]"}`}>{counts[k]}</span>
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* plates the kitchen needs: confirmed guests, plus-ones included */}
+      {mealTally.length > 0 && (
+        <p className="text-[13.5px] text-[var(--pl-ink-2)]" aria-label="Confirmed meal counts">
+          For the kitchen:{" "}
+          {mealTally.map(([meal, n], k) => (
+            <span key={meal}>{k > 0 && " · "}<span className="text-[var(--pl-ink)]">{meal}</span> <span className="tabular-nums">{n}</span></span>
+          ))}
+        </p>
+      )}
 
       {/* bulk bar */}
       <AnimatePresence>
         {selected.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
-            className="flex flex-wrap items-center gap-2 rounded-2xl border border-gold/40 bg-gold-soft/50 px-4 py-3"
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+            className="pl-card flex flex-wrap items-center gap-2 px-4 py-3"
           >
-            <span className="text-[0.82rem] font-extrabold text-ink">{selected.length} selected</span>
-            <span className="mx-1 h-4 w-px bg-ink/15" />
-            <button onClick={() => bulk((g) => ({ ...g, rsvp: "confirmed" }), "Marked confirmed")} className="rounded-full bg-sage px-3.5 py-1.5 text-[0.74rem] font-bold text-ink transition hover:brightness-105 cursor-pointer">Confirm</button>
-            <button onClick={() => bulk((g) => ({ ...g, rsvp: "pending" }), "Set to pending")} className="rounded-full bg-blush px-3.5 py-1.5 text-[0.74rem] font-bold text-ink transition hover:brightness-105 cursor-pointer">Pending</button>
-            <select value={bulkTable} onChange={(e) => setBulkTable(e.target.value)} className={selectCls} aria-label="Choose table for bulk assign">
-              <option value="">Assign table…</option>
+            <span className="text-[14px]">{selected.length} selected</span>
+            <span className="mx-1 h-4 w-px bg-[var(--pl-line)]" />
+            <button onClick={() => bulk((g) => ({ ...g, rsvp: "confirmed" }), "Marked as coming")} className={quiet}>Mark as coming</button>
+            <button onClick={() => bulk((g) => ({ ...g, rsvp: "pending" }), "Set to waiting")} className={quiet}>Set to waiting</button>
+            <select value={bulkTable} onChange={(e) => setBulkTable(e.target.value)} className={`${plSelect} !h-10`} aria-label="Choose table for bulk assign">
+              <option value="">Seat at a table…</option>
               {db.tables.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
-            <button disabled={!bulkTable} onClick={() => { bulk((g) => ({ ...g, table: bulkTable }), "Tables assigned"); setBulkTable(""); }} className="rounded-full bg-lav px-3.5 py-1.5 text-[0.74rem] font-bold text-ink transition hover:brightness-105 disabled:opacity-40 cursor-pointer">Apply table</button>
-            <button onClick={() => { setDb((d) => ({ ...d, guests: d.guests.filter((g) => !selected.includes(g.id)) })); toast("Guests removed", `${selected.length} removed from the list`, "info"); setSelected([]); }} className="rounded-full bg-ink/85 px-3.5 py-1.5 text-[0.74rem] font-bold text-cream transition hover:bg-ink cursor-pointer">Delete</button>
-            <button onClick={() => setSelected([])} aria-label="Clear selection" className="ml-auto rounded-full p-1.5 text-ink-mute hover:text-ink cursor-pointer"><X size={15} /></button>
+            <button disabled={!bulkTable} onClick={() => { bulk((g) => ({ ...g, table: bulkTable }), "Tables assigned"); setBulkTable(""); }} className={`${quiet} disabled:opacity-40`}>Seat them</button>
+            <button onClick={() => { setDb((d) => ({ ...d, guests: d.guests.filter((g) => !selected.includes(g.id)) })); toast("Guests removed", `${selected.length} removed from the list`, "info"); setSelected([]); }} className={`${quiet} text-[#a53d28]`}>Remove</button>
+            <button onClick={() => setSelected([])} aria-label="Clear selection" className="ml-auto rounded-full p-2 text-[var(--pl-ink-2)] hover:text-[var(--pl-ink)] cursor-pointer"><X size={16} /></button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* table */}
-      {/* confirmed plates per meal — plus-ones count as real guests */}
-      {mealTally.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2" aria-label="Confirmed meal counts">
-          <span className="text-[0.66rem] font-extrabold uppercase tracking-[0.16em] text-ink-mute">Plates</span>
-          {mealTally.map(([meal, n]) => (
-            <span key={meal} className="rounded-full border border-sage/50 bg-sage-soft/60 px-3 py-1 text-[0.72rem] font-extrabold text-sage-deep">
-              {meal} · {n}
-            </span>
-          ))}
-        </div>
-      )}
-
       {db.guests.length === 0 ? (
         <EmptyState
-          title="Your guest list is still quiet."
-          body="Add your first guest and we'll take it from there — RSVPs, meals, tables, the works."
-          action={<button onClick={() => { setIsNew(true); setEditing(emptyForm()); }} className={btn.ink}><Plus size={15} /> Add your first guest</button>}
+          title="Your guest list is still empty"
+          body="Add the first guest, or import a list you already have. Answers, meals and tables all live here."
+          action={<button onClick={() => { setIsNew(true); setEditing(emptyForm()); }} className={btn.ink}><Plus size={15} /> Add the first guest</button>}
         />
       ) : rows.length === 0 ? (
-        <EmptyState title="No guests match" body="Loosen the search or switch the RSVP filter — they're probably in there somewhere." />
+        <EmptyState title="No one matches" body="Try a shorter search, or switch back to Everyone." />
       ) : (
         <>
         {/* phone: one line per guest. Tap the name to edit, the answer to change it */}
-        <ul className="divide-y divide-ink/6 overflow-hidden rounded-[1.6rem] border border-white/70 bg-white/60 shadow-sm md:hidden" aria-label="Guests">
+        <ul className="pl-card overflow-hidden md:hidden" aria-label="Guests">
           {rows.map((g) => {
             const isPlusOne = !!g.plusOneOf;
             const host = hostOf(g);
             const table = g.table ? db.tables.find((t) => t.id === g.table)?.name : null;
             return (
-              <li key={g.id} className={`flex items-center gap-3 px-4 py-3 ${isPlusOne ? "bg-cream/60 pl-8" : ""}`}>
-                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[0.62rem] font-extrabold ${isPlusOne ? "bg-gold-soft text-gold-deep" : g.party === "A" ? "bg-blush-soft text-blush-deep" : g.party === "B" ? "bg-sage-soft text-sage-deep" : "bg-lav-soft text-lav-deep"}`} aria-hidden="true">
-                  {isPlusOne ? "+1" : initials(g.name)}
-                </span>
+              <li key={g.id} className={`pl-row flex items-center gap-3 px-4 py-3 ${isPlusOne ? "pl-9" : ""}`}>
                 <button onClick={() => openEdit(g, false)} className="min-w-0 flex-1 py-1 text-left cursor-pointer" aria-label={`Edit ${g.name}`}>
-                  <span className="block truncate text-[0.95rem] font-bold text-ink">{g.name}</span>
-                  <span className="block truncate text-[0.78rem] text-ink-2">
-                    {[isPlusOne ? `+1 of ${host?.name.split(" ")[0] ?? "guest"}` : null, g.meal, table ?? (g.rsvp === "confirmed" ? "Not seated" : null), g.dietary].filter(Boolean).join(" · ") || "No meal or table yet"}
+                  <span className="block truncate text-[15.5px]">{g.name}</span>
+                  <span className="block truncate text-[12.5px] text-[var(--pl-ink-2)]">
+                    {[isPlusOne ? `with ${host?.name.split(" ")[0] ?? "a guest"}` : null, g.meal, table ?? (g.rsvp === "confirmed" ? "not seated" : null), g.dietary].filter(Boolean).join(" · ") || side(g)}
                   </span>
                 </button>
-                <button onClick={() => cycleRsvp(g)} aria-label={`Change RSVP for ${g.name} — currently ${g.rsvp}; activates the next state`} className="flex min-h-11 shrink-0 items-center cursor-pointer">
-                  <Pill tone={g.rsvp}>{g.rsvp === "confirmed" ? "✓ confirmed" : g.rsvp}</Pill>
-                </button>
+                {answerChip(g)}
               </li>
             );
           })}
         </ul>
-        <div className="hidden overflow-x-auto rounded-[1.6rem] border border-white/70 bg-white/60 shadow-sm backdrop-blur-md md:block">
-          <table className="w-full min-w-[860px] text-left text-[0.88rem]">
+
+        <div className="pl-card hidden overflow-x-auto md:block">
+          <table className="w-full min-w-[860px] text-left text-[14.5px]">
             <thead>
-              <tr className="border-b border-ink/8 text-[0.66rem] uppercase tracking-[0.16em] text-ink-mute">
-                <th className="w-10 px-4 py-3.5">
-                  <input type="checkbox" aria-label="Select all visible guests" className="accent-[#0f0e0d]"
+              <tr className="border-b border-[var(--pl-line)] text-[12.5px] text-[var(--pl-ink-2)]">
+                <th className="w-12 px-5 py-3.5 font-normal">
+                  <input type="checkbox" aria-label="Select all visible guests" className="h-4 w-4 accent-[#0f0e0d]"
                     checked={selected.length > 0 && rows.every((r) => selected.includes(r.id))}
                     onChange={(e) => setSelected(e.target.checked ? rows.map((r) => r.id) : [])} />
                 </th>
-                <th className="px-3 py-3.5 font-extrabold">Guest</th>
-                <th className="px-3 py-3.5 font-extrabold">RSVP</th>
-                <th className="px-3 py-3.5 font-extrabold">Meal</th>
-                <th className="px-3 py-3.5 font-extrabold">Plus one</th>
-                <th className="px-3 py-3.5 font-extrabold">Table</th>
-                <th className="px-3 py-3.5 font-extrabold">Notes</th>
-                <th className="px-3 py-3.5" />
+                <th className="px-3 py-3.5 font-normal">Guest</th>
+                <th className="px-3 py-3.5 font-normal">Answer</th>
+                <th className="px-3 py-3.5 font-normal">Meal</th>
+                <th className="px-3 py-3.5 font-normal">Table</th>
+                <th className="px-3 py-3.5 font-normal">Notes</th>
+                <th className="px-3 py-3.5"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody>
               {rows.map((g) => {
                 const isPlusOne = !!g.plusOneOf;
                 const host = hostOf(g);
-                const ownPlusOne = isPlusOne ? null : plusOneOfHost(g.id);
                 return (
-                  <tr key={g.id} className={`group border-b border-ink/5 transition-colors duration-200 ${isPlusOne ? "bg-cream/60" : ""} ${selected.includes(g.id) ? "bg-gold-soft/30" : !isPlusOne ? "hover:bg-blush-soft/30" : ""}`}>
-                    <td className="px-4 py-3">
-                      <input type="checkbox" aria-label={`Select ${g.name}`} className="accent-[#0f0e0d]" checked={selected.includes(g.id)} onChange={() => toggleSelect(g.id)} />
+                  <tr key={g.id} className={`group border-b border-[var(--pl-line)] last:border-0 transition-colors ${selected.includes(g.id) ? "bg-[rgb(201_168_106/.12)]" : "hover:bg-[rgb(28_26_23/.025)]"}`}>
+                    <td className="px-5 py-3">
+                      <input type="checkbox" aria-label={`Select ${g.name}`} className="h-4 w-4 accent-[#0f0e0d]" checked={selected.includes(g.id)} onChange={() => toggleSelect(g.id)} />
                     </td>
-                    <td className="px-3 py-3">
-                      <div className={`flex items-center gap-3 ${isPlusOne ? "pl-6" : ""}`}>
-                        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-extrabold ${isPlusOne ? "bg-gold-soft text-gold-deep" : g.party === "A" ? "bg-blush-soft text-blush-deep" : g.party === "B" ? "bg-sage-soft text-sage-deep" : "bg-lav-soft text-lav-deep"}`}>
-                          {isPlusOne ? "+1" : initials(g.name)}
-                        </span>
-                        <div>
-                          <p className="flex flex-wrap items-center gap-2 font-bold text-ink">
-                            {g.name}
-                            {isPlusOne
-                              ? <span className="rounded-full bg-gold-soft px-2 py-0.5 text-[0.58rem] font-extrabold text-gold-deep">+1 of {host?.name.split(" ")[0] ?? "guest"}</span>
-                              : partyTag(g.party)}
-                          </p>
-                          {g.dietary && <p className="text-[0.66rem] font-semibold text-gold-deep">{g.dietary}</p>}
-                        </div>
-                      </div>
+                    <td className={`px-3 py-3 ${isPlusOne ? "pl-8" : ""}`}>
+                      <span className="block">{g.name}</span>
+                      <span className="block text-[12.5px] text-[var(--pl-ink-2)]">
+                        {[isPlusOne ? `Plus-one of ${host?.name.split(" ")[0] ?? "a guest"}` : side(g), g.dietary].filter(Boolean).join(" · ")}
+                      </span>
                     </td>
+                    <td className="px-3 py-3">{answerChip(g)}</td>
                     <td className="px-3 py-3">
-                      <button onClick={() => cycleRsvp(g)} title={isPlusOne ? "Mirrors the host's RSVP" : "Click to change RSVP"} aria-label={`Change RSVP for ${g.name} — currently ${g.rsvp}; activates the next state`} className="cursor-pointer transition hover:scale-105">
-                        <Pill tone={g.rsvp}>{g.rsvp === "confirmed" ? "✓ confirmed" : g.rsvp}</Pill>
-                      </button>
-                    </td>
-                    <td className="px-3 py-3">
-                      <select value={g.meal ?? ""} onChange={(e) => updateGuest({ ...g, meal: e.target.value || null })} className={`${selectCls} !py-1.5 text-[0.78rem]`} aria-label={`Meal for ${g.name}`}>
-                        <option value="">—</option>
+                      <select value={g.meal ?? ""} onChange={(e) => updateGuest({ ...g, meal: e.target.value || null })} className={plSelect} aria-label={`Meal for ${g.name}`}>
+                        <option value="">Not chosen</option>
                         {MEALS.map((m) => <option key={m} value={m}>{m}</option>)}
                       </select>
                     </td>
-                    <td className="px-3 py-3 font-semibold text-ink-2">
-                      {isPlusOne
-                        ? <span className="text-ink-mute/60">—</span>
-                        : ownPlusOne ? ownPlusOne.name : <span className="text-ink-mute/60">—</span>}
-                    </td>
                     <td className="px-3 py-3">
-                      <select value={g.table ?? ""} onChange={(e) => updateGuest({ ...g, table: e.target.value || null, seat: null })} className={`${selectCls} !py-1.5 text-[0.78rem]`} aria-label={`Table for ${g.name}`}>
-                        <option value="">Unseated</option>
+                      <select value={g.table ?? ""} onChange={(e) => updateGuest({ ...g, table: e.target.value || null, seat: null })} className={plSelect} aria-label={`Table for ${g.name}`}>
+                        <option value="">Not seated</option>
                         {db.tables.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                       </select>
                     </td>
-                    <td className="max-w-[180px] truncate px-3 py-3 text-[0.8rem] font-semibold text-ink-2">{g.notes || <span className="text-ink-mute/60">—</span>}</td>
+                    <td className="max-w-[200px] truncate px-3 py-3 text-[13.5px] text-[var(--pl-ink-2)]">{g.notes || "—"}</td>
                     <td className="px-3 py-3">
-                      <div className="flex justify-end gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100">
-                        <button onClick={() => { setMessaging(g); setMsgBody(""); }} aria-label={`Message ${g.name}`} className="rounded-full p-2 text-ink-mute transition hover:bg-lav-soft hover:text-lav-deep cursor-pointer"><MessageSquare size={14} /></button>
-                        <button onClick={() => openEdit(g, false)} aria-label={`Edit ${g.name}`} className="rounded-full p-2 text-ink-mute transition hover:bg-gold-soft hover:text-gold-deep cursor-pointer"><Pencil size={14} /></button>
-                        <button onClick={() => remove(g.id)} aria-label={`Remove ${g.name}`} className="rounded-full p-2 text-ink-mute transition hover:bg-blush-soft hover:text-blush-deep cursor-pointer"><Trash2 size={14} /></button>
+                      <div className="flex justify-end gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                        <button onClick={() => { setMessaging(g); setMsgBody(""); }} aria-label={`Message ${g.name}`} className="rounded-full p-2 text-[var(--pl-ink-2)] transition hover:bg-[rgb(28_26_23/.06)] hover:text-[var(--pl-ink)] cursor-pointer"><MessageSquare size={15} strokeWidth={1.6} /></button>
+                        <button onClick={() => openEdit(g, false)} aria-label={`Edit ${g.name}`} className="rounded-full p-2 text-[var(--pl-ink-2)] transition hover:bg-[rgb(28_26_23/.06)] hover:text-[var(--pl-ink)] cursor-pointer"><Pencil size={15} strokeWidth={1.6} /></button>
+                        <button onClick={() => remove(g.id)} aria-label={`Remove ${g.name}`} className="rounded-full p-2 text-[var(--pl-ink-2)] transition hover:bg-[rgb(181_90_69/.12)] hover:text-[#a53d28] cursor-pointer"><Trash2 size={15} strokeWidth={1.6} /></button>
                       </div>
                     </td>
                   </tr>
@@ -416,7 +416,7 @@ export default function Guests() {
         </>
       )}
 
-      <p className="flex items-center gap-2 text-[0.74rem] font-semibold text-ink-mute"><Users size={13} /> Showing {rows.length} of {db.guests.length} guests · click an RSVP pill to cycle its state</p>
+      <p className="text-[13px] text-[var(--pl-ink-2)]">Showing {rows.length} of {db.guests.length} guests. Tap an answer to change it.</p>
 
       {/* add / edit modal */}
       <Modal open={!!editing} onClose={() => setEditing(null)} label={isNew ? "Add guest" : "Edit guest"}>
@@ -436,7 +436,7 @@ export default function Guests() {
               </Field>
               <Field label="RSVP">
                 <select className={`${selectCls} w-full`} value={editing.rsvp} onChange={(e) => setEditing({ ...editing, rsvp: e.target.value as Rsvp })}>
-                  {RSVPS.map((r) => <option key={r} value={r}>{r}</option>)}
+                  {RSVPS.map((r) => <option key={r} value={r}>{ANSWER[r].word}</option>)}
                 </select>
               </Field>
               <Field label="Meal">
@@ -457,7 +457,7 @@ export default function Guests() {
               </div>
               {editing.plusOneOf === null && (
                 <div className="rounded-2xl border border-gold/35 bg-gold-soft/35 p-4 sm:col-span-2">
-                  <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.16em] text-gold-deep">Plus-one · counted everywhere</p>
+                  <p className="text-[14px] font-medium text-ink">Their plus-one, counted everywhere</p>
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     <input className={inputCls} value={plusOneDraft.name} onChange={(e) => setPlusOneDraft({ ...plusOneDraft, name: e.target.value })} placeholder="Their name (blank = no plus-one)" aria-label="Plus-one name" />
                     <select className={`${selectCls} w-full`} value={plusOneDraft.meal ?? ""} onChange={(e) => setPlusOneDraft({ ...plusOneDraft, meal: e.target.value || null })} aria-label="Plus-one meal">
