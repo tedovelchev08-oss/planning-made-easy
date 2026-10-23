@@ -760,23 +760,38 @@ export async function acceptPendingInvites(): Promise<number> {
 
 /* ------------------------------ auth ------------------------------ */
 
+/** the couple's names and day, as typed on "begin your plan" (yyyy-mm-dd or "") */
+export type SignupWedding = { partner_a: string; partner_b: string; wedding_date: string };
+
 /**
  * Every call that can create an account or send an email carries the
  * Turnstile token. Supabase Auth checks it once its captcha setting is on
  * (Authentication → Attack Protection), and ignores it before that.
  */
 export const authApi = {
-  signUp: (email: string, password: string, captchaToken?: string) =>
-    requireSb().auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin, captchaToken } }),
+  /**
+   * The names and the day typed on "begin your plan" travel with the account
+   * (user metadata), so the first-run setup can start from them on whichever
+   * device the confirmation link is opened.
+   */
+  signUp: (email: string, password: string, captchaToken?: string, wedding?: SignupWedding) =>
+    requireSb().auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin, captchaToken, data: wedding ?? {} } }),
   signIn: (email: string, password: string, captchaToken?: string) =>
     requireSb().auth.signInWithPassword({ email, password, options: { captchaToken } }),
-  magicLink: (email: string, captchaToken?: string) =>
-    requireSb().auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin, captchaToken } }),
   reset: (email: string, captchaToken?: string) =>
     requireSb().auth.resetPasswordForEmail(email, { redirectTo: window.location.origin, captchaToken }),
+  /** the reset link signs the person in; this is where they choose the new password */
+  updatePassword: (password: string) => requireSb().auth.updateUser({ password }),
+  /** what "begin your plan" stored on the account, if anything */
+  signupWedding: async (): Promise<SignupWedding> => {
+    const meta = (await requireSb().auth.getUser()).data.user?.user_metadata ?? {};
+    const text = (v: unknown) => (typeof v === "string" ? v.trim().slice(0, 80) : "");
+    const date = text(meta.wedding_date);
+    return { partner_a: text(meta.partner_a), partner_b: text(meta.partner_b), wedding_date: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : "" };
+  },
   signOut: () => requireSb().auth.signOut(),
-  onAuthChange: (cb: (userId: string | null, email: string | null) => void) =>
-    requireSb().auth.onAuthStateChange((_e, session) =>
-      cb(session?.user?.id ?? null, session?.user?.email ?? null)),
+  onAuthChange: (cb: (userId: string | null, email: string | null, event: string) => void) =>
+    requireSb().auth.onAuthStateChange((event, session) =>
+      cb(session?.user?.id ?? null, session?.user?.email ?? null, event)),
   session: async () => (await requireSb().auth.getSession()).data.session,
 };

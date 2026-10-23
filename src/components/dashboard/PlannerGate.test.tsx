@@ -1,49 +1,51 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 
 const state = { mode: "cloud", user: null as null | { name: string; email: string }, booting: false };
-const setAuthOpen = vi.fn();
 
 vi.mock("../../lib/store", () => ({
-  useApp: () => ({ ...state, setAuthOpen }),
+  useApp: () => ({ ...state }),
 }));
 vi.mock("./Shell", () => ({ default: () => <div>PLANNER</div> }));
-vi.mock("../ui", () => ({
-  Logo: () => <span>luma</span>,
-  btn: { ink: "", ghost: "" },
-}));
 
 import PlannerGate from "./PlannerGate";
 
-const renderGate = () => render(<MemoryRouter><PlannerGate /></MemoryRouter>);
+function SignIn() {
+  const { search } = useLocation();
+  return <p>SIGN IN {search}</p>;
+}
+
+const renderGate = (path = "/planner") => render(
+  <MemoryRouter initialEntries={[path]}>
+    <Routes>
+      <Route path="/planner/*" element={<PlannerGate />} />
+      <Route path="/sign-in" element={<SignIn />} />
+    </Routes>
+  </MemoryRouter>,
+);
 
 beforeEach(() => {
-  setAuthOpen.mockClear();
   Object.assign(state, { mode: "cloud", user: null, booting: false });
 });
 
 describe("PlannerGate", () => {
-  it("asks a signed-out visitor to sign in instead of showing an empty planner", () => {
-    renderGate();
+  it("sends a signed-out visitor to sign in instead of showing an empty planner, and back after", () => {
+    renderGate("/planner/guests");
     expect(screen.queryByText("PLANNER")).toBeNull();
-    expect(screen.getByRole("heading", { name: "Sign in to your planner" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Sign in" })).toBeTruthy();
-    expect(setAuthOpen).toHaveBeenCalledWith(true);
+    expect(screen.getByText(/SIGN IN/).textContent).toContain("next=%2Fplanner%2Fguests");
   });
 
   it("shows the planner to a signed-in couple", () => {
     state.user = { name: "maya", email: "maya@example.com" };
     renderGate();
     expect(screen.getByText("PLANNER")).toBeTruthy();
-    expect(setAuthOpen).not.toHaveBeenCalled();
   });
 
   it("lets the planner show its own loading state while the session boots", () => {
     state.booting = true;
     renderGate();
     expect(screen.getByText("PLANNER")).toBeTruthy();
-    expect(setAuthOpen).not.toHaveBeenCalled();
   });
 
   it("always shows the planner in demo mode, which has no accounts", () => {

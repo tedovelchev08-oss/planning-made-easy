@@ -102,15 +102,15 @@ interface AppCtx {
   dismissToast: (id: number) => void;
   user: User | null;
   signOut: () => void;
-  authOpen: boolean;
-  setAuthOpen: (v: boolean) => void;
+  /** goes to the sign-in page, or to "begin your plan" */
+  openAuth: (view?: "sign-in" | "begin") => void;
   /** the paid feature the upgrade prompt is explaining, or null when closed */
   upgrade: Feature | null;
   openUpgrade: (f: Feature) => void;
   closeUpgrade: () => void;
-  /** opens the sign-up form with this email already filled in */
+  /** opens "begin your plan" with this email already filled in */
   startSignup: (email: string) => void;
-  /** consumed by the auth form when it opens */
+  /** consumed by the begin page when it opens; kept out of the URL */
   signupEmail: string | null;
   checkout: Plan | null;
   openCheckout: (p: Plan) => void;
@@ -280,12 +280,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [user, setUser] = useState<User | null>(() =>
     mode === "demo" ? { name: "Maya & Theo", email: "demo@example.com" } : null);
-  const [authOpen, setAuthOpen] = useState(false);
   const [upgrade, setUpgrade] = useState<Feature | null>(null);
   const openUpgrade = useCallback((f: Feature) => setUpgrade(f), []);
   const closeUpgrade = useCallback(() => setUpgrade(null), []);
   const [signupEmail, setSignupEmail] = useState<string | null>(null);
-  const startSignup = useCallback((email: string) => { setSignupEmail(email); setAuthOpen(true); }, []);
+  const openAuth = useCallback((view: "sign-in" | "begin" = "sign-in") => {
+    window.location.hash = view === "begin" ? "/begin" : "/sign-in";
+  }, []);
+  const startSignup = useCallback((email: string) => { setSignupEmail(email); openAuth("begin"); }, [openAuth]);
   const [checkout, setCheckout] = useState<Plan | null>(null);
   const [sync, setSync] = useState<SyncState>({ status: mode === "demo" ? "demo" : "booting", lastSaved: null, pending: 0 });
   const [booting, setBooting] = useState(mode === "cloud");
@@ -591,7 +593,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setBooting(false);
           setSync({ status: "saved", lastSaved: null, pending: 0 });
         }
-        subscription = authApi.onAuthChange((id, email) => {
+        subscription = authApi.onAuthChange((id, email, event) => {
+          // a reset link signed them in: the next step is choosing the new password
+          if (event === "PASSWORD_RECOVERY") window.location.hash = "/new-password";
           if (id) {
             setUser({ name: email?.split("@")[0] ?? "You", email: email ?? "" });
             // Supabase reports SIGNED_IN / TOKEN_REFRESHED for the same person
@@ -846,12 +850,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AppCtx>(() => ({
     db, setDb, patch, toast, toasts, dismissToast,
     user, signOut,
-    authOpen, setAuthOpen, startSignup, signupEmail,
+    openAuth, startSignup, signupEmail,
     upgrade, openUpgrade, closeUpgrade,
     checkout, openCheckout, closeCheckout,
     mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner,
     refreshEntitlement, saveNow,
-  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, authOpen, startSignup, signupEmail, upgrade, openUpgrade, closeUpgrade, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement, saveNow]);
+  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, openAuth, startSignup, signupEmail, upgrade, openUpgrade, closeUpgrade, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement, saveNow]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
