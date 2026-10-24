@@ -142,3 +142,30 @@ describe("GuestInvite — a wedding using one of the owner's own designs (Block 
     payload = unpublished;
   });
 });
+
+describe("GuestInvite — the registry under the reply (0021)", () => {
+  it("lists the couple's gifts, links only the web ones, and marks given ones", async () => {
+    payload = {
+      ...(unpublished as object),
+      registry: [
+        { name: "Walnut boards", store: "Etsy", purchased: false, url: "https://etsy.com/x" },
+        { name: "Linen set", store: "Sferra", purchased: true, url: "https://sferra.com" },
+        { name: "Odd link", store: "Shop", purchased: false, url: "javascript:alert(1)" },
+      ],
+    };
+    render(<MemoryRouter initialEntries={["/invite?slug=ana-and-ben"]}><GuestInvite /></MemoryRouter>);
+    const section = await screen.findByRole("region", { name: "Our registry" });
+    expect(section.textContent).toMatch(/Walnut boards/);
+    expect(screen.getByRole("link", { name: "View Walnut boards" }).getAttribute("href")).toBe("https://etsy.com/x");
+    expect(screen.queryByRole("link", { name: "View Linen set" })).toBeNull();
+    expect(section.textContent).toMatch(/Given/);
+    expect(screen.queryByRole("link", { name: "View Odd link" })).toBeNull();
+    payload = unpublished;
+  });
+
+  it("shows nothing when there is no registry", async () => {
+    render(<MemoryRouter initialEntries={["/invite?slug=ana-and-ben"]}><GuestInvite /></MemoryRouter>);
+    await screen.findByText("Will you join us?");
+    expect(screen.queryByRole("region", { name: "Our registry" })).toBeNull();
+  });
+});

@@ -1,120 +1,114 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { ExternalLink, Gift, Heart, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ExternalLink, Plus, X } from "lucide-react";
 import { fmtMoney } from "../../lib/data";
-import { useApp, useCountUp } from "../../lib/store";
-import { EmptyState, Field, Modal, Pill, Reveal, btn, inputCls } from "../ui";
+import { useApp } from "../../lib/store";
+import { Field, Modal, inputCls } from "../ui";
+import { Lining } from "./Panel";
+
+/** only real web links open; anything else is just a note on the gift */
+const isWeb = (url: string) => /^https?:\/\//i.test(url);
 
 export default function Registry() {
   const { db, setDb, toast } = useApp();
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ name: "", store: "", price: "", url: "" });
-  const [raised, setRaised] = useState(1850);
-  const raisedShown = useCountUp(raised);
 
-  const gifted = db.registry.filter((r) => r.purchased).length;
-  const fundGoal = 5000;
+  const given = db.registry.filter((r) => r.purchased).length;
+  const open = db.invitation.live;
 
   const toggle = (id: string) => {
     const item = db.registry.find((r) => r.id === id);
     setDb((d) => ({ ...d, registry: d.registry.map((r) => (r.id === id ? { ...r, purchased: !r.purchased } : r)) }));
-    if (item && !item.purchased) toast("Marked as gifted", `${item.name} — someone has excellent taste.`);
+    if (item && !item.purchased) toast("Marked as given", item.name);
   };
 
   const add = () => {
-    if (!form.name.trim() || !form.store.trim()) { toast("Name and store, at least", undefined, "warn"); return; }
+    if (!form.name.trim() || !form.store.trim()) { toast("Add the gift's name and where it's from", undefined, "warn"); return; }
+    const url = form.url.trim();
     setDb((d) => ({
       ...d,
-      registry: [...d.registry, { id: `r-${Date.now()}`, name: form.name.trim(), store: form.store.trim(), price: Number(form.price) || 0, url: form.url || "#", purchased: false }],
+      registry: [...d.registry, { id: `r-${Date.now()}`, name: form.name.trim(), store: form.store.trim(), price: Number(form.price) || 0, url: url && !isWeb(url) ? `https://${url}` : url, purchased: false }],
     }));
-    toast("Added to registry", form.name.trim());
+    toast("Added to your registry", form.name.trim());
     setAdding(false);
     setForm({ name: "", store: "", price: "", url: "" });
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl text-ink">Registry</h2>
-          <p className="text-[0.85rem] font-semibold text-ink-2">{gifted} of {db.registry.length} promised · guests see this on your wedding website</p>
+          <h1 className="font-display text-[40px] leading-none sm:text-[46px]">Registry</h1>
+          <p className="mt-2 text-[15px] text-[var(--pl-ink-2)]">
+            {db.registry.length === 0
+              ? "The gifts you'd love, for guests who ask."
+              : <><span className="tabular-nums text-[var(--pl-ink)]">{given} of {db.registry.length}</span> already given. Guests see the list under your invitation{open ? "" : " once it's open"}.</>}
+          </p>
         </div>
-        <button onClick={() => setAdding(true)} className={`${btn.ink} !py-2.5`}><Plus size={15} /> Add gift idea</button>
-      </div>
-
-      {/* honeymoon fund */}
-      <Reveal>
-        <section className="relative overflow-hidden rounded-[1.8rem] bg-ink p-7 text-cream shadow-lift sm:p-9">
-          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-blush/25 blur-3xl" aria-hidden="true" />
-          <div className="pointer-events-none absolute -bottom-20 left-1/4 h-56 w-56 rounded-full bg-lav/20 blur-3xl" aria-hidden="true" />
-          <div className="relative flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold">The honeymoon fund</p>
-              <h3 className="mt-2 font-display text-3xl">Amalfi, <em className="text-blush">slowly.</em></h3>
-              <p className="mt-2 max-w-sm text-[0.88rem] font-semibold text-cream/60">Guests contribute here instead of a toaster. Everyone wins.</p>
-            </div>
-            <div className="text-right">
-              <p className="font-display text-[2.4rem] leading-none">{fmtMoney(raisedShown)}</p>
-              <p className="text-[0.74rem] font-bold text-cream/50">of {fmtMoney(fundGoal)} dreamed</p>
-            </div>
-          </div>
-          <div className="relative mt-6 h-2.5 overflow-hidden rounded-full bg-cream/15">
-            <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (raised / fundGoal) * 100)}%` }} transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }} className="h-full rounded-full bg-gradient-to-r from-gold via-blush to-lav" />
-          </div>
-          <button onClick={() => { setRaised((r) => r + 250); toast("Contribution received", `${fmtMoney(250)} toward Amalfi. The lemon groves await.`); }} className={`${btn.gold} relative mt-6 !py-2.5`}>
-            <Gift size={14} /> Simulate a contribution
-          </button>
-        </section>
-      </Reveal>
+        <button onClick={() => setAdding(true)} className="pl-act"><Plus size={15} strokeWidth={1.8} /> Add a gift</button>
+      </header>
 
       {db.registry.length === 0 ? (
-        <EmptyState title="No gifts yet" body="Add the things you'd actually love — from linen to a lemon grove fund." action={<button onClick={() => setAdding(true)} className={btn.ink}><Plus size={15} /> Add gift idea</button>} />
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {db.registry.map((r, i) => (
-            <Reveal key={r.id} delay={(i % 3) * 0.06}>
-              <article className={`group flex h-full flex-col rounded-[1.5rem] border bg-white/65 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${r.purchased ? "border-sage/50 bg-sage-soft/40" : "border-white/70 hover:bg-white/90"}`}>
-                <div className="flex items-start justify-between">
-                  <Pill tone={r.purchased ? "confirmed" : "gold"}>{r.purchased ? "Gifted" : r.store}</Pill>
-                  <a href={r.url === "#fund" ? undefined : r.url} target={r.url.startsWith("http") ? "_blank" : undefined} rel="noreferrer" aria-label={`View ${r.name} at ${r.store}`} className={`rounded-full p-2 transition ${r.url.startsWith("http") ? "text-ink-mute hover:bg-gold-soft hover:text-gold-deep" : "pointer-events-none opacity-30"}`}>
-                    <ExternalLink size={14} />
-                  </a>
-                </div>
-                <h3 className="mt-3 font-display text-[1.2rem] leading-snug text-ink">{r.name}</h3>
-                <p className="mt-1 text-[0.8rem] font-semibold text-ink-mute">{r.store}{r.price > 0 && ` · ${fmtMoney(r.price)}`}</p>
-                <div className="mt-auto flex items-center justify-between pt-5">
-                  <button
-                    onClick={() => toggle(r.id)}
-                    aria-pressed={r.purchased}
-                    className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[0.78rem] font-extrabold transition-all duration-300 cursor-pointer ${r.purchased ? "bg-sage text-ink" : "border border-ink/15 text-ink-2 hover:border-blush-deep hover:text-blush-deep"}`}
-                  >
-                    <motion.span animate={r.purchased ? { scale: [1, 1.4, 1] } : {}} transition={{ duration: 0.45 }}>
-                      <Heart size={14} fill={r.purchased ? "#0f0e0d" : "none"} />
-                    </motion.span>
-                    {r.purchased ? "Gifted with love" : "Mark gifted"}
-                  </button>
-                  <button onClick={() => { setDb((d) => ({ ...d, registry: d.registry.filter((x) => x.id !== r.id) })); toast("Removed from registry", undefined, "info"); }} className="text-[0.72rem] font-bold text-ink-mute transition hover:text-blush-deep cursor-pointer">
-                    Remove
-                  </button>
-                </div>
-              </article>
-            </Reveal>
-          ))}
+        <div className="rounded-[3px] border border-dashed border-[rgb(28_26_23/.2)] px-8 py-14 text-center">
+          <p className="font-display text-[24px]">No gifts yet</p>
+          <p className="mx-auto mt-2 max-w-sm text-[15px] text-[var(--pl-ink-2)]">Add the things you'd actually use, from linen to a fund for the honeymoon. Each one can link to its shop.</p>
+          <button onClick={() => setAdding(true)} className="pl-quiet mt-6"><Plus size={14} strokeWidth={1.8} /> Add the first gift</button>
         </div>
+      ) : (
+        <section className="pl-card" aria-label="Your registry">
+          <ul>
+            {db.registry.map((r) => (
+              <li key={r.id} className="pl-row flex items-center gap-3 px-4 py-3.5 sm:gap-4 sm:px-6">
+                <button
+                  onClick={() => toggle(r.id)}
+                  aria-pressed={r.purchased}
+                  aria-label={r.purchased ? `${r.name}: given. Mark as not given` : `Mark ${r.name} as given`}
+                  className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition hover:bg-[rgb(28_26_23/.05)] cursor-pointer"
+                >
+                  <span className={`pl-ring${r.purchased ? " is-done" : ""}`} aria-hidden="true" />
+                </button>
+                <div className="min-w-0 flex-1">
+                  <p className={`truncate font-display text-[21px] leading-tight sm:text-[22px] ${r.purchased ? "text-[var(--pl-ink-2)]" : ""}`}><Lining text={r.name} /></p>
+                  <p className="mt-0.5 truncate text-[13px] text-[var(--pl-ink-2)]">
+                    {r.store}{r.price > 0 && <span className="tabular-nums"> · {fmtMoney(r.price)}</span>}
+                    {r.purchased && <span className="pl-who ml-2 !text-[15px]">given</span>}
+                  </p>
+                </div>
+                {isWeb(r.url) && (
+                  <a href={r.url} target="_blank" rel="noreferrer" aria-label={`Open ${r.name} at ${r.store}`}
+                    className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] text-[var(--pl-bronze)] transition hover:bg-[rgb(28_26_23/.05)] hover:text-[var(--pl-ink)]">
+                    <ExternalLink size={14} strokeWidth={1.6} /><span className="hidden sm:inline">Shop</span>
+                  </a>
+                )}
+                <button
+                  onClick={() => { setDb((d) => ({ ...d, registry: d.registry.filter((x) => x.id !== r.id) })); toast("Removed from your registry", r.name, "info"); }}
+                  aria-label={`Remove ${r.name}`}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--pl-ink-2)] transition hover:bg-[rgb(28_26_23/.05)] hover:text-[#a53d28] cursor-pointer"
+                >
+                  <X size={15} strokeWidth={1.6} />
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="border-t border-[var(--pl-line)] px-4 py-3.5 text-[13px] text-[var(--pl-ink-2)] sm:px-6">
+            Tick a gift once it's been given; guests see it as taken. <Link to="/planner/invitation" className="pl-link !text-[13px]">See the invitation</Link>
+          </p>
+        </section>
       )}
 
-      <Modal open={adding} onClose={() => setAdding(false)} label="Add registry item">
+      <Modal open={adding} onClose={() => setAdding(false)} label="Add a gift">
         <div className="p-7 sm:p-8">
-          <h2 className="font-display text-2xl text-ink">A new wish</h2>
+          <h2 className="font-display text-[28px] leading-none">A gift you'd love</h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2"><Field label="Gift name"><input className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Walnut serving boards" autoFocus /></Field></div>
-            <Field label="Store"><input className={inputCls} value={form.store} onChange={(e) => setForm({ ...form, store: e.target.value })} placeholder="Etsy" /></Field>
-            <Field label="Price (optional)"><input type="number" min={0} className={inputCls} value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="120" /></Field>
-            <div className="sm:col-span-2"><Field label="Link"><input className={inputCls} value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://…" /></Field></div>
+            <div className="sm:col-span-2"><Field label="The gift"><input className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Walnut serving boards" autoFocus /></Field></div>
+            <Field label="Shop"><input className={inputCls} value={form.store} onChange={(e) => setForm({ ...form, store: e.target.value })} placeholder="Etsy" /></Field>
+            <Field label="Price (optional)"><input type="number" min={0} inputMode="decimal" className={inputCls} value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="120" /></Field>
+            <div className="sm:col-span-2"><Field label="Link (optional)"><input type="url" inputMode="url" className={inputCls} value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://…" /></Field></div>
           </div>
-          <div className="mt-7 flex justify-end gap-3">
-            <button onClick={() => setAdding(false)} className={btn.ghost}>Cancel</button>
-            <button onClick={add} className={btn.ink}><Plus size={14} /> Add to registry</button>
+          <div className="mt-7 flex items-center justify-end gap-5">
+            <button onClick={() => setAdding(false)} className="pl-link">Cancel</button>
+            <button onClick={add} className="pl-act"><Plus size={14} strokeWidth={1.8} /> Add the gift</button>
           </div>
         </div>
       </Modal>

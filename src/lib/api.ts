@@ -512,9 +512,9 @@ export interface PublicInvitation {
     hero_photo: string; animations: boolean; published: boolean; domain: string;
   };
   custom: { id: string; name: string; dataUrl: string | null; html: string | null } | null;
-  /** Absent until the site is published: get_public_wedding drops the key
-   *  (and reduces `website` to { published: false }) for unpublished sites. */
-  registry?: { name: string; store: string }[];
+  /** 0021: on every live invitation (links only when http(s)). Absent from
+   *  servers still on 0020 for an unpublished website, so it stays optional. */
+  registry?: { name: string; store: string; purchased?: boolean; url?: string | null }[];
 }
 
 /** What get_public_wedding returns for an invitation the couple hasn't opened yet (0011). */

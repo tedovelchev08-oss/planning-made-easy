@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Armchair, BellRing, Check, Clock3, ExternalLink, Gift, Globe, LayoutDashboard,
+  Armchair, BellRing, Check, Clock3, ExternalLink, Gift, LayoutDashboard, Mail,
   Download, Link2, Loader2, LogOut, Menu, Plus, Search, Store, Trash2, Users, Wallet, X,
 } from "lucide-react";
 import { useApp, useStats, type SyncStatus } from "../../lib/store";
@@ -24,7 +24,7 @@ const MODULES = [
   { path: "vendors", key: "nav.vendors", icon: Store },
   { path: "seating", key: "nav.seating", icon: Armchair },
   { path: "registry", key: "nav.registry", icon: Gift },
-  { path: "page", key: "nav.page", icon: Globe },
+  { path: "invitation", key: "nav.page", icon: Mail },
 ];
 
 /**
@@ -161,7 +161,7 @@ export default function Shell() {
     { label: "Add guest", icon: <Users size={19} />, run: () => { window.dispatchEvent(new CustomEvent("luma:guest-add")); setDrawerLike("/planner/guests"); } },
     { label: "Invite link", icon: <Link2 size={19} />, run: () => { copyLink(); setDockOpen(false); } },
     { label: "Guest page", icon: <ExternalLink size={19} />, run: () => { window.location.hash = "#/invite"; setDockOpen(false); } },
-    { label: "RSVPs", icon: <BellRing size={19} />, run: () => setDrawerLike("/planner/page?tab=rsvp") },
+    { label: "RSVPs", icon: <BellRing size={19} />, run: () => setDrawerLike("/planner/invitation?tab=replies") },
     { label: "New task", icon: <Clock3 size={19} />, run: () => setDrawerLike("/planner/timeline") },
     { label: "Seating", icon: <Armchair size={19} />, run: () => setDrawerLike("/planner/seating") },
   ];

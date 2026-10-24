@@ -49,15 +49,15 @@ export const btn = {
 /* ------------------------------ inputs ------------------------------ */
 
 export const inputCls =
-  "w-full rounded-xl border border-ink/15 bg-white/80 px-4 py-2.5 text-[0.95rem] text-ink placeholder:text-ink-mute/70 focus:border-gold/60 focus:outline-none focus:ring-2 focus:ring-gold/25 transition";
+  "w-full rounded-[2px] border border-[rgb(28_26_23/.16)] bg-[#fbf7ef] px-3.5 py-2.5 text-[15px] text-[#1c1a17] placeholder:text-[rgb(28_26_23/.42)] caret-[#7a5c28] hover:border-[rgb(28_26_23/.3)] focus:border-[#7a5c28] focus:outline-none focus:ring-1 focus:ring-[#7a5c28] transition";
 
 export const selectCls =
-  "rounded-xl border border-ink/15 bg-white/80 px-3 py-2 text-sm text-ink focus:border-gold/60 focus:outline-none focus:ring-2 focus:ring-gold/25 transition cursor-pointer";
+  "rounded-[2px] border border-[rgb(28_26_23/.16)] bg-[#fbf7ef] px-3 py-2.5 text-[14px] text-[#1c1a17] hover:border-[rgb(28_26_23/.3)] focus:border-[#7a5c28] focus:outline-none focus:ring-1 focus:ring-[#7a5c28] transition cursor-pointer";
 
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[0.72rem] font-bold uppercase tracking-[0.14em] text-ink-mute">{label}</span>
+      <span className="mb-1.5 block text-[13px] text-[rgb(28_26_23/.7)]">{label}</span>
       {children}
     </label>
   );
@@ -244,8 +244,8 @@ export function ToastHost() {
 /** A small "Celebration" / "Luxe" marker on a control the current plan doesn't include. */
 export function PlanTag({ plan }: { plan: Plan }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-gold-soft px-2 py-0.5 text-[0.58rem] font-extrabold uppercase tracking-[0.12em] text-gold-deep">
-      <Lock size={8} aria-hidden="true" /> {PLANS[plan].name}
+    <span className="inline-flex items-center gap-1 whitespace-nowrap text-[12.5px] text-[#7a5c28]">
+      <Lock size={11} strokeWidth={1.8} aria-hidden="true" /> {PLANS[plan].name}
     </span>
   );
 }
