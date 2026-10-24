@@ -23,6 +23,12 @@ import {
   CheckoutModal, CheckoutReturnGate, ErrorBoundary, OnboardingModal, ToastHost, UpgradeModal,
 } from "./components/ui";
 
+/** /planner/page?tab=… → /planner/invitation, keeping which tab was asked for */
+function OldPageLink() {
+  const { search } = useLocation();
+  return <Navigate to={`/planner/invitation${search}`} replace />;
+}
+
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -109,7 +115,9 @@ export default function App() {
                 <Route path="vendors" element={<Vendors />} />
                 <Route path="seating" element={<Seating />} />
                 <Route path="registry" element={<Registry />} />
-                <Route path="page" element={<PageHub />} />
+                <Route path="invitation" element={<PageHub />} />
+                {/* the wedding page became the invitation (Oct 2026): old links still land */}
+                <Route path="page" element={<OldPageLink />} />
                 <Route path="*" element={<Overview />} />
               </Route>
               <Route path="*" element={<NotFound />} />

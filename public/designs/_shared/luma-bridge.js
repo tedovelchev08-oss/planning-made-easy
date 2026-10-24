@@ -169,6 +169,8 @@
     if (blank(d.hashtag)) hide(document.getElementById('footer-hashtag'));
     if (blank(d.rsvpDeadline)) hide(document.getElementById('rsvp-deadline-text'));
 
+    renderRegistry(d.registry);
+
     if (d.rsvpOpen === false) {
       hide(document.getElementById('rsvp'));
       hideLinksTo('#rsvp');
@@ -179,6 +181,89 @@
 
     show();
   };
+
+  /* The couple's registry, under the reply: a short list in the design's
+     own colours and heading face. Built with textContent only. */
+  function renderRegistry(items) {
+    var old = document.getElementById('luma-registry');
+    if (old) old.parentNode.removeChild(old);
+    if (!items || !items.length) return;
+    var anchor = document.getElementById('rsvp');
+    var host = anchor && anchor.style.display !== 'none' ? anchor : document.querySelector('footer');
+    var look = window.getComputedStyle(host || document.body);
+    var heading = document.querySelector('#rsvp h2, h2');
+    var face = heading ? window.getComputedStyle(heading).fontFamily : 'inherit';
+
+    if (!document.getElementById('luma-registry-style')) {
+      var css = document.createElement('style');
+      css.id = 'luma-registry-style';
+      css.textContent =
+        '#luma-registry{position:relative;z-index:5;isolation:isolate;padding:4.5rem 1.5rem;text-align:center}' +
+        '#luma-registry h2{font-size:clamp(1.9rem,6vw,2.6rem);font-weight:400;line-height:1.1;margin:0}' +
+        '#luma-registry p.lr-lead{margin:.9rem auto 0;max-width:30rem;opacity:.72;font-size:.98rem;line-height:1.6}' +
+        '#luma-registry ul{list-style:none;margin:2.2rem auto 0;padding:0;max-width:34rem;text-align:left}' +
+        '#luma-registry li{display:flex;align-items:baseline;gap:1rem;padding:.95rem 0;border-top:1px solid color-mix(in srgb,currentColor 18%,transparent)}' +
+        '#luma-registry li:last-child{border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent)}' +
+        '#luma-registry .lr-name{flex:1;min-width:0;font-size:1.05rem}' +
+        '#luma-registry .lr-store{display:block;font-size:.82rem;opacity:.62;margin-top:.15rem}' +
+        '#luma-registry a{color:inherit;font-size:.9rem;text-decoration:underline;text-underline-offset:4px;white-space:nowrap}' +
+        '#luma-registry .lr-given{font-size:.85rem;font-style:italic;opacity:.6;white-space:nowrap}' +
+        '#luma-registry li.is-given .lr-name{opacity:.55}';
+      document.head.appendChild(css);
+    }
+
+    var sec = document.createElement('section');
+    sec.id = 'luma-registry';
+    sec.setAttribute('aria-label', 'Our registry');
+    // its own ground, above the design's drawn decorations (a thread, stars)
+    var ground = [host, document.body, document.documentElement].map(function (el) {
+      return el ? window.getComputedStyle(el).backgroundColor : '';
+    }).filter(function (c) { return c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent'; })[0];
+    sec.style.color = look.color;
+    if (ground) sec.style.backgroundColor = ground;
+    var h = document.createElement('h2');
+    h.textContent = 'Our registry';
+    h.style.fontFamily = face;
+    var lead = document.createElement('p');
+    lead.className = 'lr-lead';
+    lead.textContent = 'Having you there is the gift. If you would like to give something more, these are things we would love.';
+    var ul = document.createElement('ul');
+    items.forEach(function (it) {
+      var li = document.createElement('li');
+      if (it.given) li.className = 'is-given';
+      var name = document.createElement('span');
+      name.className = 'lr-name';
+      name.textContent = it.name;
+      if (it.store) {
+        var st = document.createElement('span');
+        st.className = 'lr-store';
+        st.textContent = it.store;
+        name.appendChild(st);
+      }
+      li.appendChild(name);
+      if (it.given) {
+        var g = document.createElement('span');
+        g.className = 'lr-given';
+        g.textContent = 'Given';
+        li.appendChild(g);
+      } else if (it.url && /^https?:\/\//i.test(it.url)) {
+        var a = document.createElement('a');
+        a.href = it.url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = 'View';
+        a.setAttribute('aria-label', 'View ' + it.name);
+        li.appendChild(a);
+      }
+      ul.appendChild(li);
+    });
+    sec.appendChild(h);
+    sec.appendChild(lead);
+    sec.appendChild(ul);
+    if (host && host.tagName !== 'FOOTER' && host.parentNode) host.parentNode.insertBefore(sec, host.nextSibling);
+    else if (host && host.parentNode) host.parentNode.insertBefore(sec, host);
+    else document.body.appendChild(sec);
+  }
 
   function formatDate(iso) {
     var p = String(iso || '').split('-');

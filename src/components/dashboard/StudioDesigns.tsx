@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Crown, ExternalLink, Lock, Music, Plus, Sparkles, Trash2 } from "lucide-react";
+import { Check, ExternalLink, Lock, Music, Plus, Trash2 } from "lucide-react";
 import {
   DESIGN_LIMITS, STUDIO_DESIGNS, STUDIO_PREFIX, designPath, planAllows, toInvitationData, tracksOf,
   type DesignData, type StudioDesign,
@@ -7,7 +7,8 @@ import {
 import { useApp, type Db, type InvitationConfig } from "../../lib/store";
 import { PLANS } from "../../lib/plans";
 import { playChime } from "../../lib/sound";
-import { Field, Pill, btn, inputCls } from "../ui";
+import { Field, inputCls } from "../ui";
+import { Panel } from "./Panel";
 import { PhotoUpload } from "./PhotoUpload";
 import { deletePhoto, isUploadedPhoto } from "../../lib/api";
 
@@ -40,6 +41,7 @@ export function previewData(db: Db, design: StudioDesign): Record<string, unknow
       music: { track: cfg.music.track, uploadName: cfg.music.uploadName, url: cfg.music.uploadUrl },
       design_data: cfg.designData ?? {},
     },
+    registry: db.registry.map((r) => ({ name: r.name, store: r.store, url: r.url, purchased: r.purchased })),
   }, design);
 }
 
@@ -72,7 +74,7 @@ function StudioCard({ design, initials }: { design: StudioDesign; initials: stri
         <span aria-hidden="true" className="absolute inset-2.5 border" style={{ borderColor: `${ink}80`, outline: `1px solid ${ink}40`, outlineOffset: "3px" }} />
       )}
       <span className="relative flex h-16 w-16 items-center justify-center rounded-full border font-display text-xl" style={{ borderColor: `${ink}99` }}>{initials}</span>
-      <span className="relative text-[0.5rem] font-extrabold uppercase tracking-[0.3em]">{design.name}</span>
+      <span className="relative text-[0.5rem] uppercase tracking-[0.3em]">{design.name}</span>
     </span>
   );
 }
@@ -90,29 +92,25 @@ export function StudioGallery({ cfg, setCfg }: { cfg: InvitationConfig; setCfg: 
   };
 
   return (
-    <div className="mt-5">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
-          <Sparkles size={12} /> Studio designs · {STUDIO_DESIGNS.length}
-        </p>
-        <p className="text-[0.68rem] font-semibold text-ink-mute">Hand-made invitations with their own music and motion</p>
-      </div>
-      <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto pb-1">
+    <div>
+      <h3 className="font-display text-[22px] leading-none">Studio designs</h3>
+      <p className="mt-1.5 text-[13px] text-[var(--pl-ink-2)]">Made by hand, each with its own music and movement.</p>
+      <div className="no-scrollbar -mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pb-2 pt-1 sm:mx-0 sm:px-0">
         {STUDIO_DESIGNS.map((d) => {
           const active = cfg.templateId === `${STUDIO_PREFIX}${d.id}`;
           const locked = !planAllows(db.plan, d);
           return (
             <button key={d.id} onClick={() => choose(d)} aria-pressed={active} title={d.blurb}
-              className={`group relative w-36 shrink-0 overflow-hidden rounded-[1.1rem] border-2 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-lift cursor-pointer ${active ? "border-gold shadow-card" : "border-transparent"}`}>
+              className={`group relative w-36 shrink-0 overflow-hidden rounded-[3px] bg-[var(--pl-card)] text-left shadow-[0_14px_30px_-24px_rgb(60_40_15/.6)] transition cursor-pointer ${active ? "ring-2 ring-[var(--pl-gold)] ring-offset-2 ring-offset-[var(--pl-paper)]" : "ring-1 ring-[var(--pl-line)] hover:ring-[rgb(28_26_23/.3)]"}`}>
               <span className={`block ${locked ? "opacity-80 saturate-[0.55]" : ""}`}><StudioCard design={d} initials={initials} /></span>
               {locked && (
-                <span className="absolute inset-x-0 top-0 flex aspect-[4/5] items-center justify-center bg-ink/25">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cream/90 text-gold-deep shadow-card"><Lock size={13} /><span className="sr-only">{PLANS[d.plan].name}</span></span>
+                <span className="absolute inset-x-0 top-0 flex aspect-[4/5] items-center justify-center bg-[rgb(15_14_13/.25)]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--pl-card)] text-[var(--pl-bronze)]"><Lock size={13} strokeWidth={1.8} /><span className="sr-only">{PLANS[d.plan].name}</span></span>
                 </span>
               )}
-              <span className="flex items-center justify-between bg-white/95 px-2.5 py-1.5">
-                <span className="truncate text-[0.68rem] font-extrabold text-ink">{d.name}</span>
-                {active ? <Check size={11} strokeWidth={3.5} className="shrink-0 text-gold-deep" /> : <Crown size={11} className="shrink-0 text-gold-deep" />}
+              <span className="flex items-center justify-between gap-2 px-2.5 py-2">
+                <span className="truncate text-[13px]">{d.name}</span>
+                {active && <Check size={13} strokeWidth={2} className="shrink-0 text-[var(--pl-bronze)]" aria-label="Chosen" />}
               </span>
             </button>
           );
@@ -130,12 +128,12 @@ export function StudioPreviewPane({ design }: { design: StudioDesign }) {
   return (
     <div className="grid gap-0 sm:grid-cols-[220px_1fr]">
       <StudioCard design={design} initials={initials} />
-      <div className="flex flex-col justify-center gap-3 bg-white px-6 py-6">
-        <p className="font-display text-2xl text-ink">{design.name}</p>
-        <p className="text-[0.85rem] leading-relaxed text-ink-2">{design.blurb}. Your names, date and venue come from your wedding; the details on the right fill the rest.</p>
-        <p className="text-[0.76rem] font-semibold text-ink-mute">Anything you leave empty is simply left out, so guests never see placeholder text.</p>
-        <button onClick={() => openStudioPreview(db, design)} className={`${btn.ink} self-start !py-2.5`}>
-          <ExternalLink size={14} /> Open the preview
+      <div className="flex flex-col justify-center gap-3 bg-[var(--pl-card)] px-6 py-6">
+        <p className="font-display text-[28px] leading-none">{design.name}</p>
+        <p className="text-[14.5px] leading-relaxed text-[var(--pl-ink-2)]">{design.blurb}. Your names, date and venue come from your wedding; the details beside it fill the rest.</p>
+        <p className="text-[13px] text-[var(--pl-ink-2)]">Anything you leave empty is left out, so guests never see sample text.</p>
+        <button onClick={() => openStudioPreview(db, design)} className="pl-quiet self-start">
+          <ExternalLink size={14} strokeWidth={1.6} /> Open it in a new tab
         </button>
       </div>
     </div>
@@ -150,9 +148,10 @@ const ICONS = [
 ] as const;
 
 const L = DESIGN_LIMITS;
-const label = "text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute";
-const card = "rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md";
-const small = `${inputCls} !px-3 !py-2 !text-[0.85rem]`;
+const small = `${inputCls} !px-3 !py-2 !text-[14px]`;
+/** one repeated thing in a list (a moment, a question, a photo) */
+const item = "space-y-2 border-t border-[var(--pl-line)] pt-3 first:border-t-0 first:pt-0";
+const addBtn = "pl-quiet w-full";
 
 export function StudioDetails({ cfg, setCfg, design }: {
   cfg: InvitationConfig; setCfg: (p: Partial<InvitationConfig>) => void; design: StudioDesign;
@@ -179,39 +178,42 @@ export function StudioDetails({ cfg, setCfg, design }: {
 
   return (
     <>
-      <section className={`${card} space-y-3`} aria-label="Your photo">
-        <h3 className={label}>{design.extras ? "Main photo" : "Your photo"}</h3>
+      <Panel title={design.extras ? "Main photo" : "Your photo"} label="Your photo">
+        <div className="space-y-3">
         <PhotoUpload photo={cfg.photo} onChange={(photo) => setCfg({ photo })} />
-        {!isUploadedPhoto(cfg.photo) && <p className="text-[0.72rem] font-semibold text-ink-mute">Until you add one, {design.name} shows your initials.</p>}
-      </section>
+        {!isUploadedPhoto(cfg.photo) && <p className="text-[13px] text-[var(--pl-ink-2)]">Until you add one, {design.name} shows your initials.</p>}
+        </div>
+      </Panel>
 
-      <section className={`${card} space-y-3`} aria-label={`${design.name} details`}>
-        <h3 className={label}>The details</h3>
-        <p className="text-[0.76rem] font-semibold text-ink-mute">Names, date, time and venue come from your wedding settings.</p>
+      <Panel title="The details" label={`${design.name} details`}>
+        <div className="space-y-3">
+        <p className="text-[13px] text-[var(--pl-ink-2)]">Names, date, time and venue come from your wedding settings.</p>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Dress code"><input className={inputCls} maxLength={L.dressCode} placeholder="Black tie" value={dd.dressCode ?? ""} onChange={(e) => set({ dressCode: e.target.value })} /></Field>
           <Field label="Reply by"><input className={inputCls} maxLength={L.rsvpDeadline} placeholder="1 May 2027" value={dd.rsvpDeadline ?? ""} onChange={(e) => set({ rsvpDeadline: e.target.value })} /></Field>
         </div>
         <Field label="Dress code note"><input className={inputCls} maxLength={L.dressCodeNote} placeholder="Midnight colours welcome" value={dd.dressCodeNote ?? ""} onChange={(e) => set({ dressCodeNote: e.target.value })} /></Field>
         <Field label="Hashtag"><input className={inputCls} maxLength={L.hashtag} placeholder="#AnaAndBoris" value={dd.hashtag ?? ""} onChange={(e) => set({ hashtag: e.target.value })} /></Field>
-      </section>
+        </div>
+      </Panel>
 
       {design.extras && <StudioExtras cfg={cfg} setCfg={setCfg} design={design} />}
 
-      <section className={`${card} space-y-3`}>
-        <h3 className={label}>How you met</h3>
+      <Panel title="How you met">
+        <div className="space-y-3">
         <textarea className={inputCls} rows={3} maxLength={L.story} placeholder="A few lines about the two of you" aria-label="Your story, first paragraph" value={dd.story1 ?? ""} onChange={(e) => set({ story1: e.target.value })} />
         <textarea className={inputCls} rows={3} maxLength={L.story} placeholder="A second paragraph, if you like" aria-label="Your story, second paragraph" value={dd.story2 ?? ""} onChange={(e) => set({ story2: e.target.value })} />
-      </section>
+        </div>
+      </Panel>
 
-      <section className={`${card} space-y-3`}>
-        <h3 className={label}>The day's schedule</h3>
+      <Panel title="The day's schedule">
+        <div className="space-y-3">
         {schedule.map((s, i) => (
-          <div key={i} className="space-y-2 rounded-2xl border border-ink/10 bg-white/70 p-3">
+          <div key={i} className={item}>
             <div className="grid grid-cols-[84px_1fr_auto] gap-2">
               <input className={small} maxLength={L.time} placeholder="16:00" aria-label={`Moment ${i + 1}: time`} value={s.time ?? ""} onChange={(e) => set({ schedule: setItem(schedule, i, { time: e.target.value }) })} />
               <input className={small} maxLength={L.title} placeholder="Ceremony" aria-label={`Moment ${i + 1}: what happens`} value={s.title ?? ""} onChange={(e) => set({ schedule: setItem(schedule, i, { title: e.target.value }) })} />
-              <button onClick={() => { forgetPhoto(s.photo); set({ schedule: schedule.filter((_, j) => j !== i) }); }} aria-label={`Remove moment ${i + 1}`} className="rounded-full p-2 text-ink-mute transition hover:text-blush-deep cursor-pointer"><Trash2 size={14} /></button>
+              <button onClick={() => { forgetPhoto(s.photo); set({ schedule: schedule.filter((_, j) => j !== i) }); }} aria-label={`Remove moment ${i + 1}`} className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--pl-ink-2)] transition hover:bg-[rgb(28_26_23/.05)] hover:text-[#a53d28] cursor-pointer"><Trash2 size={14} /></button>
             </div>
             <div className="grid grid-cols-[1fr_110px] gap-2">
               <input className={small} maxLength={L.venue} placeholder="Where (optional)" aria-label={`Moment ${i + 1}: where`} value={s.venue ?? ""} onChange={(e) => set({ schedule: setItem(schedule, i, { venue: e.target.value }) })} />
@@ -226,50 +228,50 @@ export function StudioDetails({ cfg, setCfg, design }: {
           </div>
         ))}
         {schedule.length < L.items && (
-          <button onClick={() => set({ schedule: [...schedule, { time: "", title: "", venue: "", icon: "fa-heart" }] })} className={`${btn.outline} w-full !py-2 text-[0.8rem]`}>
+          <button onClick={() => set({ schedule: [...schedule, { time: "", title: "", venue: "", icon: "fa-heart" }] })} className={addBtn}>
             <Plus size={14} /> Add a moment
           </button>
         )}
-      </section>
+        </div>
+      </Panel>
 
-      <section className={`${card} space-y-3`}>
-        <h3 className={label}>Questions guests ask</h3>
+      <Panel title="Questions guests ask">
+        <div className="space-y-3">
         {faq.map((f, i) => (
-          <div key={i} className="space-y-2 rounded-2xl border border-ink/10 bg-white/70 p-3">
+          <div key={i} className={item}>
             <div className="grid grid-cols-[1fr_auto] gap-2">
               <input className={small} maxLength={L.question} placeholder="Are children welcome?" aria-label={`Question ${i + 1}`} value={f.question ?? ""} onChange={(e) => set({ faq: setItem(faq, i, { question: e.target.value }) })} />
-              <button onClick={() => set({ faq: faq.filter((_, j) => j !== i) })} aria-label={`Remove question ${i + 1}`} className="rounded-full p-2 text-ink-mute transition hover:text-blush-deep cursor-pointer"><Trash2 size={14} /></button>
+              <button onClick={() => set({ faq: faq.filter((_, j) => j !== i) })} aria-label={`Remove question ${i + 1}`} className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--pl-ink-2)] transition hover:bg-[rgb(28_26_23/.05)] hover:text-[#a53d28] cursor-pointer"><Trash2 size={14} /></button>
             </div>
             <textarea className={small} rows={2} maxLength={L.answer} placeholder="Your answer" aria-label={`Answer ${i + 1}`} value={f.answer ?? ""} onChange={(e) => set({ faq: setItem(faq, i, { answer: e.target.value }) })} />
           </div>
         ))}
         {faq.length < L.items && (
-          <button onClick={() => set({ faq: [...faq, { question: "", answer: "" }] })} className={`${btn.outline} w-full !py-2 text-[0.8rem]`}>
+          <button onClick={() => set({ faq: [...faq, { question: "", answer: "" }] })} className={addBtn}>
             <Plus size={14} /> Add a question
           </button>
         )}
-      </section>
+        </div>
+      </Panel>
 
       {tracksOf(design).length > 0 && (
-      <section className={`${card} space-y-2`} aria-label="Music">
-        <div className="flex items-center justify-between">
-          <h3 className={label}>Music</h3>
-          {uploaded && <Pill tone="gold"><Music size={10} /> your song</Pill>}
-        </div>
+      <Panel title="Music" aside={uploaded ? <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--pl-bronze)]"><Music size={13} strokeWidth={1.6} aria-hidden="true" /> your song</span> : undefined}>
+        <div className="space-y-2">
         {uploaded && (
-          <p className="text-[0.76rem] font-semibold text-ink-2">“{cfg.music.uploadName}” plays when guests open it. Pick a track below to use that instead.</p>
+          <p className="text-[13.5px] text-[var(--pl-ink-2)]">“{cfg.music.uploadName}” plays when guests open it. Pick a track below to use that instead.</p>
         )}
         {[{ id: "none", name: "No music", composer: "Quiet" }, ...tracksOf(design)].map((t) => (
           <button key={t.id} onClick={() => pickTrack(t.id)} aria-pressed={track === t.id}
-            className={`flex w-full items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left transition cursor-pointer ${track === t.id ? "border-gold/60 bg-gold-soft/50" : "border-ink/12 hover:border-ink/30"}`}>
-            <span className="flex-1">
-              <span className="block text-[0.8rem] font-extrabold text-ink">{t.name}</span>
-              <span className="text-[0.66rem] font-semibold text-ink-mute">{t.composer}</span>
+            className={`flex w-full items-center gap-3 rounded-[2px] border px-3.5 py-2.5 text-left transition cursor-pointer ${track === t.id ? "border-[var(--pl-gold)] bg-[rgb(201_168_106/.12)]" : "border-[var(--pl-line)] hover:border-[rgb(28_26_23/.3)]"}`}>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[14.5px]">{t.name}</span>
+              <span className="block font-accent text-[15px] italic text-[var(--pl-ink-2)]">{t.composer}</span>
             </span>
-            {track === t.id && <Check size={13} strokeWidth={3.4} className="text-gold-deep" />}
+            {track === t.id && <Check size={14} strokeWidth={2} className="text-[var(--pl-bronze)]" aria-hidden="true" />}
           </button>
         ))}
-      </section>
+        </div>
+      </Panel>
       )}
     </>
   );
@@ -290,13 +292,13 @@ function StudioExtras({ cfg, setCfg, design }: {
   return (
     <>
       {x.photos.length > 0 && (
-      <section className={`${card} space-y-4`} aria-label={`${design.name} photos`}>
-        <h3 className={label}>More photos</h3>
-        <p className="text-[0.72rem] font-semibold text-ink-mute">Any you leave out show {design.name}'s own drawings instead.</p>
+      <Panel title="More photos" label={`${design.name} photos`}>
+        <div className="space-y-4">
+        <p className="text-[13px] text-[var(--pl-ink-2)]">Any you leave out show {design.name}'s own drawings instead.</p>
         {x.photos.map((slot) => (
           <div key={slot.key} className="space-y-1.5">
-            <p className="text-[0.8rem] font-extrabold text-ink">{slot.label}</p>
-            {slot.hint && <p className="text-[0.68rem] font-semibold text-ink-mute">{slot.hint}</p>}
+            <p className="text-[14.5px]">{slot.label}</p>
+            {slot.hint && <p className="text-[12.5px] text-[var(--pl-ink-2)]">{slot.hint}</p>}
             <PhotoUpload photo={photos[slot.key] ?? null} label={slot.label}
               onChange={(url) => {
                 const next = { ...photos };
@@ -305,14 +307,15 @@ function StudioExtras({ cfg, setCfg, design }: {
               }} />
           </div>
         ))}
-      </section>
+        </div>
+      </Panel>
       )}
 
       {x.gallery > 0 && (
-        <section className={`${card} space-y-3`} aria-label="Gallery">
-          <h3 className={label}>Gallery · up to {x.gallery}</h3>
+        <Panel title="Gallery" label="Gallery" aside={<span className="text-[13px] text-[var(--pl-ink-2)]">up to <span className="tabular-nums">{x.gallery}</span></span>}>
+        <div className="space-y-3">
           {gallery.map((g, i) => (
-            <div key={g.photo ?? i} className="space-y-2 rounded-2xl border border-ink/10 bg-white/70 p-3">
+            <div key={g.photo ?? i} className={item}>
               <PhotoUpload photo={g.photo ?? null} label={`Gallery photo ${i + 1}`}
                 onChange={(url) => set({ gallery: url ? gallery.map((x2, j) => (j === i ? { ...x2, photo: url } : x2)) : gallery.filter((_, j) => j !== i) })} />
               <input className={small} maxLength={60} placeholder="A caption (optional)" aria-label={`Gallery photo ${i + 1}: caption`} value={g.caption ?? ""}
@@ -322,29 +325,29 @@ function StudioExtras({ cfg, setCfg, design }: {
           {gallery.length < x.gallery && (
             <PhotoUpload photo={null} label="New gallery photo" onChange={(url) => { if (url) set({ gallery: [...gallery, { photo: url, caption: "" }] }); }} />
           )}
-        </section>
+        </div>
+      </Panel>
       )}
 
       {(x.choices ?? []).map((c) => {
         const current = dd.choices?.[c.key] ?? c.options[0].value;
         return (
-          <section key={c.key} className={`${card} space-y-2`} aria-label={c.label}>
-            <h3 className={label}>{c.label}</h3>
-            <div className="grid grid-cols-3 gap-2">
+          <Panel key={c.key} title={c.label}>
+            <div className="pl-seg flex w-full" role="group" aria-label={c.label}>
               {c.options.map((o) => (
                 <button key={o.value} onClick={() => set({ choices: { ...(dd.choices ?? {}), [c.key]: o.value } })} aria-pressed={current === o.value}
-                  className={`rounded-xl border px-3 py-2.5 text-[0.76rem] font-bold transition cursor-pointer ${current === o.value ? "border-gold/60 bg-gold-soft/50 text-ink" : "border-ink/12 text-ink-mute hover:border-ink/30"}`}>
+                  className="min-w-0 flex-1 !px-2">
                   {o.label}
                 </button>
               ))}
             </div>
-          </section>
+          </Panel>
         );
       })}
 
-      <section className={`${card} space-y-3`} aria-label={`${design.name} wording`}>
-        <h3 className={label}>Wording</h3>
-        <p className="text-[0.72rem] font-semibold text-ink-mute">Left empty, a line is either left out or shows {design.name}'s own wording.</p>
+      <Panel title="Wording" label={`${design.name} wording`}>
+        <div className="space-y-3">
+        <p className="text-[13px] text-[var(--pl-ink-2)]">Left empty, a line is either left out or shows {design.name}'s own wording.</p>
         {x.texts.map((t) => (
           <Field key={t.key} label={t.label}>
             {t.multiline ? (
@@ -356,7 +359,8 @@ function StudioExtras({ cfg, setCfg, design }: {
             )}
           </Field>
         ))}
-      </section>
+        </div>
+      </Panel>
     </>
   );
 }

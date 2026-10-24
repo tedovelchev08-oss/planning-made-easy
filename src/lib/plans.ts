@@ -92,7 +92,7 @@ export const PLANS: Record<Plan, PlanInfo> = {
     id: "celebration",
     name: "Celebration",
     tagline: "Everything you need to plan your celebration from start to finish.",
-    value: "For couples planning in earnest: every guest, every invitation design, personal RSVP links, your wedding website, and the seating sheet your venue will ask for.",
+    value: "For couples planning in earnest: every guest, every invitation design, personal RSVP links, and the seating sheet your venue will ask for.",
     price: 49,
     priceNote: "One-time — no subscription",
     featured: true,
@@ -103,7 +103,6 @@ export const PLANS: Record<Plan, PlanInfo> = {
       "Colours, fonts & photos",
       "A personal RSVP link for every guest",
       "Meal choices & notes on RSVPs",
-      "Your wedding website",
       "Printable seating chart & guest export",
       "Share by WhatsApp, Messenger, text & email",
       "Use your own invitation design",
@@ -113,7 +112,7 @@ export const PLANS: Record<Plan, PlanInfo> = {
     id: "luxe",
     name: "Luxe",
     tagline: "The complete Twofold experience.",
-    value: "For an invitation guests remember: animated designs, falling petals and gold shimmer, music when they open it, and a website that moves.",
+    value: "For an invitation guests remember: animated designs, falling petals and gold shimmer, and music when they open it.",
     price: 99,
     priceNote: "One-time — no subscription",
     features: [
@@ -121,7 +120,6 @@ export const PLANS: Record<Plan, PlanInfo> = {
       "6 animated premium designs",
       "Petals, shimmer & animated type",
       "Music on your invitation",
-      "Website scroll animations",
       "Marble, oak & noir table finishes",
     ],
   },
@@ -155,15 +153,13 @@ export type Feature =
   | "customize"
   | "personalLinks"
   | "rsvpDetails"
-  | "website"
   | "exports"
   | "shareKit"
   | "premiumDesigns"
   | "motion"
   | "music"
   | "premiumSkins"
-  | "customDesigns"
-  | "websiteMotion";
+  | "customDesigns";
 
 /** Which plan unlocks each feature, and how the upgrade prompt describes it. */
 export const FEATURES: Record<Feature, { plan: Plan; title: string; body: string }> = {
@@ -172,7 +168,6 @@ export const FEATURES: Record<Feature, { plan: Plan; title: string; body: string
   customize: { plan: "celebration", title: "Colours, fonts & photos", body: "Make the invitation yours — your palette, your type, your photo." },
   personalLinks: { plan: "celebration", title: "Personal RSVP links", body: "Send each guest their own link. Their name arrives pre-filled, and you see exactly who has replied." },
   rsvpDetails: { plan: "celebration", title: "Meal choices & notes", body: "Collect meal choices and a personal note with every RSVP — straight into your guest list." },
-  website: { plan: "celebration", title: "Your wedding website", body: "Story, schedule, travel and registry on one calm page, at the same address as your invitation." },
   exports: { plan: "celebration", title: "Printable seating chart & guest export", body: "The seating sheet your venue and caterer will ask for, and your guest list as a spreadsheet." },
   shareKit: { plan: "celebration", title: "Share kit", body: "Send your invitation by WhatsApp, Messenger, text or email, and see where every RSVP came from." },
   premiumDesigns: { plan: "luxe", title: "Animated premium designs", body: "Six premium originals that come alive when your guests open them." },
@@ -180,7 +175,6 @@ export const FEATURES: Record<Feature, { plan: Plan; title: string; body: string
   music: { plan: "luxe", title: "Music on your invitation", body: "A song plays softly when guests open your invitation." },
   premiumSkins: { plan: "luxe", title: "Premium table finishes", body: "Marble, oak and noir finishes for your seating chart." },
   customDesigns: { plan: "celebration", title: "Your own invitation design", body: "Bring a design you made yourself and use it as your invitation, RSVP and all." },
-  websiteMotion: { plan: "luxe", title: "Website scroll animations", body: "Sections that drift in as your guests scroll." },
 };
 
 export const can = (plan: Plan, feature: Feature) => planRank(plan) >= planRank(FEATURES[feature].plan);

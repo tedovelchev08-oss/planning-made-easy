@@ -14,7 +14,7 @@ Guests also meet Twofold, but only through what a couple sends them: the invitat
 
 ## Product Purpose
 
-Twofold is the wedding planner two people share. Guests and their answers, budget, timeline, vendors, seating and the registry live in one plan both partners edit, and every change shows on both screens straight away. Couples send their own invitation and wedding page; guests answer from their phone and the answers land in the plan.
+Twofold is the wedding planner two people share. Guests and their answers, budget, timeline, vendors, seating and the registry live in one plan both partners edit, and every change shows on both screens straight away. Couples send one invitation link; guests open it on their phone, see the registry beneath it, and their answers land in the plan.
 
 Success: a couple keeps the whole wedding in Twofold from the first guest list to the seating chart they hand the venue, and enjoys doing it together.
 
@@ -30,8 +30,9 @@ Planned together, live: one plan, two people, every change on both screens. Free
 
 ## Capabilities and Constraints
 
-- Plans: Engaged (free: budget, timeline, vendors, seating, registry, up to 50 guests, a simple invitation with RSVP, planning with a partner); Celebration €49 and Luxe €99, one-time (every guest, every invitation design, personal RSVP links, wedding website, the venue's seating sheet). Source of truth: `src/lib/plans.ts`.
+- Plans: Engaged (free: budget, timeline, vendors, seating, registry, up to 50 guests, a simple invitation with RSVP, planning with a partner); Celebration €49 and Luxe €99, one-time (every guest, every invitation design, personal RSVP links, the venue's seating sheet). Source of truth: `src/lib/plans.ts`.
 - The couple's own invitation designs are paid features; the free plan is the planner.
+- There is no separate wedding website (retired Oct 2026): the invitation is the one page guests open, with the registry under the reply.
 - Accounts and data: Supabase; the planner caches the plan on the device and syncs edits in the background. A demo mode runs without accounts.
 - No own domain yet: the public address is planning-made-easy.vercel.app.
 - Terms: guests answer Coming, Waiting or Can't come; tasks belong to one partner or to both ("Together"); vendors are Asked, Proposal, Booked or Declined.

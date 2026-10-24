@@ -285,3 +285,22 @@ describe("api/invitation", () => {
     expect((await call({ slug: "ana-boris" })).statusCode).toBe(502);
   });
 });
+
+describe("studio designs: the registry (0021)", () => {
+  it("passes the gifts on, keeping only web links", () => {
+    const data = toInvitationData(wedding({
+      registry: [
+        { name: "Walnut boards", store: "Etsy", url: "https://etsy.com/x", purchased: false },
+        { name: "Linen", store: null, url: "javascript:alert(1)", purchased: true },
+      ],
+    }), celestial) as { registry: { name: string; store: string; url: string; given: boolean }[] };
+    expect(data.registry).toEqual([
+      { name: "Walnut boards", store: "Etsy", url: "https://etsy.com/x", given: false },
+      { name: "Linen", store: "", url: "", given: true },
+    ]);
+  });
+
+  it("sends an empty list when there is none", () => {
+    expect((toInvitationData(wedding(), celestial) as { registry: unknown[] }).registry).toEqual([]);
+  });
+});
