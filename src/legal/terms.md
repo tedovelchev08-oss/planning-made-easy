@@ -1,6 +1,6 @@
 # Terms of service
 
-**Last updated: October 16, 2026**
+**Last updated: November 13, 2026**
 
 These terms are an agreement between you and **Teodor Yovchev Velchev**, doing business as **Twofold** ("**we**", "**us**", "**our**"), Sofia, Bulgaria, for the use of Twofold, the online wedding planner at [planning-made-easy.vercel.app](https://planning-made-easy.vercel.app) (the "**Services**").
 
@@ -24,8 +24,8 @@ You must be at least 18 years old and able to enter into a binding contract. You
 Twofold offers a free plan and two paid plans:
 
 - **Engaged** (free): the planner, including budget, timeline, vendors, seating, gift registry, up to 50 guests, an invitation with an RSVP link, and planning together with a partner.
-- **Celebration** (€49, $49 or £49, one-time): everything in Engaged, plus unlimited guests, all invitation designs, personal RSVP links, a wedding website, printable seating and guest export, and your own invitation design.
-- **Luxe** (€99, $99 or £99, one-time): everything in Celebration, plus animated designs and effects, music on your invitation, website animations and extra table finishes.
+- **Celebration** (€49, $49 or £49, one-time): everything in Engaged, plus unlimited guests, all invitation designs, personal RSVP links, printable seating and guest export, and your own invitation design.
+- **Luxe** (€99, $99 or £99, one-time): everything in Celebration, plus animated designs and effects, music on your invitation and extra table finishes.
 
 The plan pages in the app show the full, current list of features for each plan.
 
@@ -52,7 +52,7 @@ If you are a consumer in the EU or UK, you have **14 days** from your purchase t
 
 - **You own your content.** You give us permission to store, copy and display it only as needed to run the Services for you, for example to show your invitation to the guests you share it with. This permission ends when your content is deleted, apart from copies in backups, which expire.
 - **You must have the right to use it.** Only upload photos, designs and music that you own or have permission to use, and only add other people's information when you need it to plan your wedding (see the privacy policy).
-- **Shared links are public to anyone who has them.** When you open your invitation or website, anyone with the link can see what you chose to show. Personal RSVP links let anyone with the link answer for that guest. Share links carefully.
+- **Shared links are public to anyone who has them.** When you open your invitation, anyone with the link can see what you chose to show. Personal RSVP links let anyone with the link answer for that guest. Share links carefully.
 - **Keep your own copy.** You can download your data at any time with **Export my data** in the account menu.
 
 ## 7. Acceptable use
