@@ -59,7 +59,7 @@
 }
 
 *{ box-sizing:border-box; margin:0; padding:0 }
-html{ -webkit-text-size-adjust:100%; background:#8e4d3c }
+html{ -webkit-text-size-adjust:100%; background:#8e4d3c; overflow-x:clip }
 body{
   font-family:var(--util);
   color:var(--ink);

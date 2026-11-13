@@ -121,6 +121,20 @@
   }
   function blank(v) { return !v || !String(v).trim(); }
 
+  /* A photo the couple added, still showing inside `sec`: not empty, not an
+     initials placeholder (an SVG data URL), and not inside something hidden. */
+  function shownPhoto(sec) {
+    var imgs = sec.querySelectorAll('img');
+    for (var i = 0; i < imgs.length; i++) {
+      var src = imgs[i].getAttribute('src') || '';
+      if (!src || src.indexOf('data:image/svg') === 0) continue;
+      var n = imgs[i];
+      while (n && n !== sec && !n.hidden && n.style.display !== 'none') n = n.parentElement;
+      if (n === sec) return true;
+    }
+    return false;
+  }
+
   window.lumaAfterRender = function (d) {
     // date and place without a dangling bullet when the address is empty
     var place = d.venueAddress || d.venueName;
@@ -143,6 +157,16 @@
         hide(story);
         hideLinksTo('#our-story');
       }
+      // designs with their own story section mark it data-luma-story, and its
+      // words data-luma-story-text: the photo alone, or nothing
+      document.querySelectorAll('[data-luma-story]').forEach(function (sec) {
+        if (shownPhoto(sec)) {
+          sec.querySelectorAll('[data-luma-story-text]').forEach(hide);
+        } else {
+          hide(sec);
+          if (sec.id) hideLinksTo('#' + sec.id);
+        }
+      });
     } else {
       if (blank(d.story1)) hide(document.getElementById('story-text-1'));
       if (blank(d.story2)) hide(document.getElementById('story-text-2'));
