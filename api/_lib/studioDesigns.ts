@@ -351,6 +351,8 @@ export interface PublicWedding {
     music?: { track?: string | null; uploadName?: string | null; url?: string | null } | null;
     design_data?: DesignData | null;
   } | null;
+  /** 0021: the couple's registry, on every live invitation */
+  registry?: { name: string; store?: string | null; url?: string | null; purchased?: boolean | null }[] | null;
 }
 
 /** The couple's details for a studio design (invitation_config.design_data). */
@@ -474,6 +476,13 @@ export function toInvitationData(w: PublicWedding, design: StudioDesign): Record
     ...(design.mainPhotoKey && design.mainPhotoKey !== "heroPhoto" ? { [design.mainPhotoKey]: photoUrl(w.invitation?.photo) } : {}),
     ...extrasOf(design, dd),
     rsvpOpen: w.invitation?.collect_rsvp !== false,
+    // shown under the reply by luma-bridge.js; only web links survive
+    registry: (w.registry ?? []).slice(0, 40).map((r) => ({
+      name: String(r.name ?? "").slice(0, 120),
+      store: String(r.store ?? "").slice(0, 80),
+      url: /^https?:\/\//i.test(r.url ?? "") ? r.url : "",
+      given: !!r.purchased,
+    })),
     isGuestView: true,
   };
 }

@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Heart, Loader2, Play, Sparkles, StopCircle } from "lucide-react";
 import { MEALS, RsvpSource, configureFormat, fmtDate, seedTemplates } from "../lib/data";
-import { useApp, usePrefersReducedMotion, type Db, type InvitationConfig } from "../lib/store";
+import { useApp, usePrefersReducedMotion, type InvitationConfig } from "../lib/store";
 import { getGuestByToken, getPublicInvitation, submitRsvp, type PublicInvitation } from "../lib/api";
 import { playChime, useChimeLoop } from "../lib/sound";
 import { leaveFor, siteHost } from "../lib/links";
@@ -11,7 +11,6 @@ import { can } from "../lib/plans";
 import { Turnstile, type TurnstileHandle } from "../components/Turnstile";
 import { planAllows, studioDesignOf, studioInviteUrl } from "../../api/_lib/studioDesigns";
 import { InviteArt } from "../components/dashboard/Invitations";
-import { SiteBody } from "../components/dashboard/Website";
 import { DesignFrame, Logo, SafeImg } from "../components/ui";
 import { localPhoto } from "../lib/images";
 
@@ -185,17 +184,13 @@ export default function GuestInvite() {
   const custom: PublicCustom = pub ? pub.custom : db.customTemplates.find((c) => c.id === cfg.templateId) ?? null;
   const names = pub ? pub.names : db.wedding.names;
   const dateIso = pub ? pub.date : db.wedding.date;
-  const website = pub
-    ? { ...pub.website, heroPhoto: localPhoto(pub.website.hero_photo) }
-    : db.website;
-  /** minimal Db-shaped object so SiteBody can render the public record */
-  const siteDb: Db = pub
-    ? {
-        ...db,
-        wedding: { ...db.wedding, names: pub.names, partnerA: pub.partnerA, partnerB: pub.partnerB, date: pub.date, venue: pub.venue, location: pub.location },
-        registry: (pub.registry ?? []).map((r, i) => ({ id: `pr-${i}`, name: r.name, store: r.store, price: 0, url: "#", purchased: false })),
-      }
-    : db;
+  /** the couple's registry, shown under the reply (0021: on every live invitation) */
+  const gifts = (pub ? pub.registry ?? [] : db.registry).map((r) => ({
+    name: r.name,
+    store: r.store ?? "",
+    given: !!r.purchased,
+    url: r.url && /^https?:\/\//i.test(r.url) ? r.url : null,
+  }));
 
   const template = seedTemplates.find((t) => t.id === cfg.templateId) ?? seedTemplates[0];
   const colors = cfg.colors ?? { bg: template.bg, ink: template.ink, accent: template.accent };
@@ -516,24 +511,35 @@ export default function GuestInvite() {
         </motion.section>
         )}
 
-        {/* the rest of the story — the wedding website, living on this same page */}
-        {website.published && (
+        {gifts.length > 0 && (
           <motion.section
             initial={reduced ? false : { opacity: 0, y: 36 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-12 overflow-hidden rounded-panel shadow-lift"
-            style={{ border: `1px solid ${colors.accent}44` }}
-            aria-label="Wedding details"
+            className="mt-12 px-1 text-center"
+            aria-label="Our registry"
           >
-            <SiteBody
-              w={{ ...website, sections: { ...website.sections, hero: false, rsvp: false } }}
-              db={siteDb}
-              anim={luxe && website.animations && !reduced}
-              footer={false}
-              onRsvp={() => rsvpRef.current?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" })}
-            />
+            <h2 className="text-[1.9rem] leading-tight sm:text-[2.2rem]" style={{ fontWeight: serif ? 500 : 700 }}>Our registry</h2>
+            <p className="mx-auto mt-2 max-w-sm text-body leading-relaxed opacity-70">
+              Having you there is the gift. If you would like to give something more, these are things we would love.
+            </p>
+            <ul className="mx-auto mt-6 max-w-md text-left">
+              {gifts.map((g, i) => (
+                <li key={`${g.name}-${i}`} className="flex items-baseline gap-4 py-3.5" style={{ borderTop: `1px solid ${colors.accent}33`, ...(i === gifts.length - 1 ? { borderBottom: `1px solid ${colors.accent}33` } : {}) }}>
+                  <span className={`min-w-0 flex-1 ${g.given ? "opacity-55" : ""}`}>
+                    <span className="block text-body">{g.name}</span>
+                    {g.store && <span className="block text-caption opacity-60">{g.store}</span>}
+                  </span>
+                  {g.given ? (
+                    <span className="shrink-0 text-caption italic opacity-60">Given</span>
+                  ) : g.url ? (
+                    <a href={g.url} target="_blank" rel="noopener noreferrer" aria-label={`View ${g.name}`}
+                      className="shrink-0 text-caption underline underline-offset-4" style={{ textDecorationColor: colors.accent }}>View</a>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
           </motion.section>
         )}
 

@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Activity, Check, Copy, Crown, Heart, Instagram, Link2, Loader2, Lock, Mail, MessageCircle, Monitor,
-  Music, Play, Send, Share2, Smartphone, Sparkles, StopCircle, Tablet, Trash2, UploadCloud, X,
+  Check, Copy, ExternalLink, Heart, Instagram, Link2, Loader2, Lock, Mail, MessageCircle, Monitor,
+  Music, Play, Send, Smartphone, Sparkles, StopCircle, Tablet, Trash2, UploadCloud, X,
 } from "lucide-react";
 import { Guest, MEALS, MUSIC_TRACKS, RsvpEntry, TEMPLATE_CATS, Template, bestGuestMatch, fmtDate, seedTemplates, timeAgo } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
@@ -12,8 +12,9 @@ import { useCurrency } from "../../lib/currency";
 import { guestLink } from "../../lib/links";
 import { MUSIC_TYPES, deleteMusic, deletePhoto, isUploadedPhoto, musicFileProblem, uploadMusic } from "../../lib/api";
 import { PhotoUpload } from "./PhotoUpload";
+import { Lining, Panel } from "./Panel";
 import { playChime, useChimeLoop } from "../../lib/sound";
-import { DesignFrame, Field, Modal, Pill, PlanTag, SafeImg, btn, inputCls } from "../ui";
+import { DesignFrame, Field, Modal, Pill, PlanTag, SafeImg, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
 import { STUDIO_DESIGNS, studioDesignOf, tracksOf } from "../../../api/_lib/studioDesigns";
 import { StudioDetails, StudioGallery, StudioPreviewPane, openStudioPreview, writePreview } from "./StudioDesigns";
@@ -382,13 +383,6 @@ export default function Invitations() {
   const designLocked = (t: Template) =>
     t.luxe ? !can(db.plan, "premiumDesigns") : t.id !== FREE_DESIGN_ID && !can(db.plan, "allDesigns");
 
-  /** take the couple to the share card, whose links really reach guests */
-  const shareWithGuests = () => {
-    const card = document.querySelector<HTMLElement>('[aria-label="Share your wedding page"]');
-    card?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
-    card?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
-  };
-
   const setCfg = (p: Partial<typeof cfg>) => patch({ invitation: { ...cfg, ...p } });
   /** a change only paid plans make: applies it, or explains the upgrade */
   const setPaid = (feature: Feature, p: Partial<typeof cfg>) => (can(db.plan, feature) ? setCfg(p) : openUpgrade(feature));
@@ -410,154 +404,107 @@ export default function Invitations() {
   return (
     <div className="space-y-6">
       {isLuxeTemplate && !luxeUnlocked && (
-        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-gold/40 bg-gold-soft/50 px-5 py-3.5">
-          <Lock size={15} className="text-gold-deep" />
-          <p className="text-[0.85rem] font-bold text-ink">This Luxe design previews statically — upgrade to set its petals, shimmer and motion loose.</p>
-          <button onClick={() => openUpgrade("premiumDesigns")} className="ml-auto rounded-full bg-ink px-4 py-2 text-[0.78rem] font-bold text-cream transition hover:bg-ink/85 cursor-pointer">Upgrade to {PLANS.luxe.name}</button>
+        <div role="note" className="pl-card flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4 shadow-[inset_3px_0_0_var(--pl-gold),0_18px_40px_-30px_rgb(60_40_15/.55)]">
+          <Lock size={15} strokeWidth={1.6} className="shrink-0 text-[var(--pl-bronze)]" aria-hidden="true" />
+          <p className="min-w-0 flex-1 text-[14.5px]">This {PLANS.luxe.name} design shows still here. With {PLANS.luxe.name}, its petals, shimmer and motion play for your guests.</p>
+          <button onClick={() => openUpgrade("premiumDesigns")} className="pl-quiet">See {PLANS.luxe.name}</button>
         </div>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_330px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         {/* preview */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-2xl text-ink">
-              {studio ? studio.name : activeCustom ? activeCustom.name : template.name}{" "}
-              <span className="text-base italic text-ink-mute">· {studio ? "studio design" : activeCustom ? "your design" : template.cat}</span>
+        <section className="pl-card min-w-0 self-start" aria-label="Preview">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--pl-line)] px-5 pb-3.5 pt-5 sm:px-6">
+            <h2 className="min-w-0 font-display text-[26px] leading-none">
+              <Lining text={studio ? studio.name : activeCustom ? activeCustom.name : template.name} />{" "}
+              <span className="font-accent text-[18px] italic text-[var(--pl-bronze)]">{studio ? "a studio design" : activeCustom ? "your own design" : template.cat}</span>
             </h2>
             {!studio && (
-            <div className="flex rounded-full border border-ink/12 bg-white/70 p-1">
-              {([["desktop", Monitor], ["tablet", Tablet], ["mobile", Smartphone]] as const).map(([d, Icon]) => (
-                <button key={d} onClick={() => setDevice(d)} aria-label={`${d} preview`} className={`rounded-full p-2 transition cursor-pointer ${device === d ? "bg-ink text-cream" : "text-ink-mute hover:text-ink"}`}>
-                  <Icon size={14} />
-                </button>
-              ))}
-            </div>
+              <div className="pl-seg" role="group" aria-label="Preview size">
+                {([["desktop", Monitor, "Laptop"], ["tablet", Tablet, "Tablet"], ["mobile", Smartphone, "Phone"]] as const).map(([d, Icon, name]) => (
+                  <button key={d} onClick={() => setDevice(d)} aria-pressed={device === d} aria-label={`${name} preview`} className="!px-3">
+                    <Icon size={15} strokeWidth={1.6} />
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
-          <div className="rounded-[1.8rem] border border-white/70 bg-white/50 p-4 backdrop-blur-md sm:p-6">
-            <div className={`mx-auto overflow-hidden rounded-[1.2rem] border border-ink/10 shadow-lift transition-all duration-500 ${device === "mobile" ? "max-w-[340px]" : device === "tablet" ? "max-w-[560px]" : "max-w-full"}`}>
-              <div className="flex items-center gap-1.5 border-b border-ink/8 bg-white px-4 py-2.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-blush" /><span className="h-2.5 w-2.5 rounded-full bg-gold" /><span className="h-2.5 w-2.5 rounded-full bg-sage" />
-                <span className="ml-3 rounded-full bg-ink/5 px-2.5 py-0.5 text-[0.62rem] font-bold text-ink-mute">invitation preview</span>
-                {animated && <Pill tone="gold" className="ml-auto"><Sparkles size={10} /> animated</Pill>}
-              </div>
-              <div className="max-h-[560px] overflow-y-auto">
-                {studio ? (
-                  <StudioPreviewPane design={studio} />
-                ) : activeCustom ? (
-                  activeCustom.html ? (
-                    <div>
-                      <DesignFrame html={activeCustom.html} title={`${activeCustom.name} — live invitation`} className="h-[540px] bg-white" />
-                      <div className="border-t border-ink/8 bg-white px-5 py-3.5 text-[0.76rem] font-semibold text-ink-2">
-                        A <em className="font-display italic text-ink">live</em> Luxe original — fully interactive above. RSVP, meals and notes still collect on the guest page beneath it.
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <img src={activeCustom.dataUrl ?? ""} alt={`${activeCustom.name} — your invitation design`} className="w-full" />
-                      <div className="border-t border-ink/8 bg-white px-5 py-3.5 text-[0.76rem] font-semibold text-ink-2">
-                        A Luxe original — your artwork <em className="font-display italic text-ink">is</em> the invitation. Wording stays off-card; RSVP, meals and notes still collect on the guest page beneath it.
-                      </div>
-                    </div>
-                  )
+          <div className="bg-[rgb(28_26_23/.035)] px-3 py-5 sm:px-6 sm:py-6">
+            <div className={`mx-auto max-h-[600px] overflow-y-auto rounded-[3px] shadow-[0_24px_50px_-28px_rgb(0_0_0/.5)] ring-1 ring-[var(--pl-line)] transition-[max-width] duration-500 ${device === "mobile" ? "max-w-[340px]" : device === "tablet" ? "max-w-[560px]" : "max-w-full"}`}>
+              {studio ? (
+                <StudioPreviewPane design={studio} />
+              ) : activeCustom ? (
+                activeCustom.html ? (
+                  <DesignFrame html={activeCustom.html} title={`${activeCustom.name}, your invitation`} className="h-[540px] bg-white" />
                 ) : (
-                  <InviteArt key={template.id + device} template={template} colors={colors} serif={serif} cfg={cfg} animated={animated && !reduced} dateIso={db.wedding.date} />
-                )}
-              </div>
+                  <img src={activeCustom.dataUrl ?? ""} alt={`${activeCustom.name}, your invitation design`} className="w-full" />
+                )
+              ) : (
+                <InviteArt key={template.id + device} template={template} colors={colors} serif={serif} cfg={cfg} animated={animated && !reduced} dateIso={db.wedding.date} />
+              )}
             </div>
+            {activeCustom && (
+              <p className="mx-auto mt-4 max-w-xl text-center text-[13px] text-[var(--pl-ink-2)]">
+                {activeCustom.html ? "Your own design runs exactly as you built it." : "Your artwork is the invitation."} The reply form, meals and notes sit beneath it on the guest page.
+              </p>
+            )}
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <button onClick={() => (studio ? openStudioPreview(db, studio) : setLive(true))} className={`${btn.ink} !py-3`}><Play size={14} /> Live preview</button>
-            <a href="#/invite" target="_blank" rel="noreferrer" className={`${btn.outline} !py-3`}><Link2 size={14} /> Guest page</a>
-            {/* Twofold does not email guests. This used to fake a "Send to N guests"
-                run ("Invitations sent… via Resend") while nothing left the app.
-                It now leads to the share card, whose links really work. */}
-            <button onClick={shareWithGuests} className={`${btn.blush} !py-3`}><Send size={14} /> Share with guests</button>
+          <div className="flex flex-wrap items-center gap-3 border-t border-[var(--pl-line)] px-5 py-4 sm:px-6">
+            <button onClick={() => (studio ? openStudioPreview(db, studio) : setLive(true))} className="pl-act"><Play size={14} strokeWidth={1.8} /> Preview as a guest</button>
+            <a href="#/invite" target="_blank" rel="noreferrer" className="pl-quiet"><ExternalLink size={14} strokeWidth={1.6} /> Open the guest page</a>
+            {animated && <span className="ml-auto inline-flex items-center gap-1.5 text-[13px] text-[var(--pl-ink-2)]"><Sparkles size={13} strokeWidth={1.6} className="text-[var(--pl-bronze)]" /> Animated for guests</span>}
           </div>
-        </div>
+        </section>
 
         {/* controls */}
-        <div className="space-y-5">
-          {/* 0011: an invitation is closed until the couple opens it, so a
-              guessed address shows nothing of a wedding not yet shared */}
-          <section className={`rounded-[1.6rem] border p-6 backdrop-blur-md ${cfg.live ? "border-sage/60 bg-sage-soft/50" : "border-gold/40 bg-gold-soft/40"}`}>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={cfg.live}
-              onClick={() => {
-                setCfg({ live: !cfg.live });
-                toast(cfg.live ? "Invitation closed" : "Invitation open to guests",
-                  cfg.live ? "Guests opening your link now see “not open yet”." : "Anyone with your link can see it and RSVP.");
-              }}
-              className="flex w-full items-center justify-between gap-4 text-left cursor-pointer"
-            >
-              <span>
-                <span className="block text-[0.95rem] font-extrabold text-ink">Open to guests</span>
-                <span className="mt-1 block text-[0.78rem] font-semibold leading-snug text-ink-2">
-                  {cfg.live
-                    ? "On. Anyone with your link sees your invitation and can RSVP."
-                    : "Off. Only you can see it. Guests opening your link see “not open yet” — your names, date and venue stay private."}
-                </span>
-              </span>
-              <span className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${cfg.live ? "bg-sage-deep" : "bg-ink/20"}`}>
-                <span className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${cfg.live ? "translate-x-5" : ""}`} />
-              </span>
-            </button>
-          </section>
-
+        <div className="min-w-0 space-y-5">
           {studio ? (
             <StudioDetails cfg={cfg} setCfg={setCfg} design={studio} />
           ) : isHtmlDesign ? (
-            <section className="rounded-[1.6rem] border border-gold/40 bg-gold-soft/40 p-6 backdrop-blur-md">
-              <h3 className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
-                <Sparkles size={12} /> Live HTML design
-              </h3>
-              <p className="mt-3 text-[0.85rem] leading-relaxed text-ink-2">
-                This original brings its own look, wording and interactions — nothing to restyle here.
-                RSVP collection, meals, notes, music and motion below still wrap around it on the guest page.
+            <Panel title="Your own design">
+              <p className="text-[14px] leading-relaxed text-[var(--pl-ink-2)]">
+                It brings its own look, wording and movement, so there is nothing to restyle here. The reply options, music and motion below still apply on the guest page.
               </p>
-            </section>
+            </Panel>
           ) : (
           <>
-          <section className="rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md">
-            <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">Wording</h3>
-            <div className="mt-4 space-y-3">
+          <Panel title="Wording">
+            <div className="space-y-3.5">
               <Field label="Names"><input className={inputCls} value={cfg.names} onChange={(e) => setCfg({ names: e.target.value })} /></Field>
               <Field label="Opening line"><input className={inputCls} value={cfg.line1} onChange={(e) => setCfg({ line1: e.target.value })} /></Field>
               <Field label="Invitation line"><input className={inputCls} value={cfg.line2} onChange={(e) => setCfg({ line2: e.target.value })} /></Field>
               <Field label="Venue line"><input className={inputCls} value={cfg.venueLine} onChange={(e) => setCfg({ venueLine: e.target.value })} /></Field>
             </div>
-          </section>
+          </Panel>
 
-          <section className="rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md">
-            <h3 className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">
-              Colors & type {!can(db.plan, "customize") && <PlanTag plan="celebration" />}
-            </h3>
-            <div className="mt-4 flex flex-wrap gap-2.5">
-              <button onClick={() => setPaid("customize", { colors: null })} aria-label="Template default colors" className={`h-9 w-9 rounded-full border-2 transition cursor-pointer ${cfg.colors === null ? "border-ink scale-110" : "border-white shadow-sm"}`} style={{ background: `linear-gradient(135deg, ${template.bg} 50%, ${template.accent} 50%)` }} />
-              {PALETTES.map((p) => (
-                <button key={p.name} onClick={() => setPaid("customize", { colors: p })} aria-label={`${p.name} palette`} title={p.name}
-                  className={`h-9 w-9 rounded-full border-2 transition cursor-pointer ${cfg.colors && cfg.colors.bg === p.bg && cfg.colors.accent === p.accent ? "border-ink scale-110" : "border-white shadow-sm hover:scale-105"}`}
-                  style={{ background: `linear-gradient(135deg, ${p.bg} 45%, ${p.accent} 45%)` }} />
-              ))}
+          <Panel title="Colours and type" aside={!can(db.plan, "customize") ? <PlanTag plan="celebration" /> : undefined}>
+            <div className="flex flex-wrap gap-3">
+              <button onClick={() => setPaid("customize", { colors: null })} aria-label="The design's own colours" aria-pressed={cfg.colors === null}
+                className={`h-9 w-9 rounded-full transition cursor-pointer ${cfg.colors === null ? "ring-2 ring-[var(--pl-bronze)] ring-offset-2 ring-offset-[var(--pl-card)]" : "ring-1 ring-[var(--pl-line)] hover:ring-[rgb(28_26_23/.35)]"}`}
+                style={{ background: `linear-gradient(135deg, ${template.bg} 50%, ${template.accent} 50%)` }} />
+              {PALETTES.map((p) => {
+                const on = !!cfg.colors && cfg.colors.bg === p.bg && cfg.colors.accent === p.accent;
+                return (
+                  <button key={p.name} onClick={() => setPaid("customize", { colors: p })} aria-label={`${p.name} colours`} aria-pressed={on} title={p.name}
+                    className={`h-9 w-9 rounded-full transition cursor-pointer ${on ? "ring-2 ring-[var(--pl-bronze)] ring-offset-2 ring-offset-[var(--pl-card)]" : "ring-1 ring-[var(--pl-line)] hover:ring-[rgb(28_26_23/.35)]"}`}
+                    style={{ background: `linear-gradient(135deg, ${p.bg} 45%, ${p.accent} 45%)` }} />
+                );
+              })}
             </div>
-            <div className="mt-4 flex rounded-full bg-ink/5 p-1 text-[0.78rem] font-bold">
-              <button onClick={() => setPaid("customize", { fontSerif: true })} className={`flex-1 rounded-full py-2 transition cursor-pointer ${serif ? "bg-white shadow-sm text-ink" : "text-ink-mute"}`}>Classic serif</button>
-              <button onClick={() => setPaid("customize", { fontSerif: false })} className={`flex-1 rounded-full py-2 transition cursor-pointer ${!serif ? "bg-white shadow-sm text-ink" : "text-ink-mute"}`}>Modern sans</button>
+            <div className="pl-seg mt-5 flex w-full" role="group" aria-label="Lettering">
+              <button onClick={() => setPaid("customize", { fontSerif: true })} aria-pressed={serif} className="flex-1">Classic serif</button>
+              <button onClick={() => setPaid("customize", { fontSerif: false })} aria-pressed={!serif} className="flex-1">Modern sans</button>
             </div>
-          </section>
+          </Panel>
           </>
           )}
 
-          <section className="rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md">
-            <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">RSVP options</h3>
-            <div className="mt-4 space-y-2.5">
+          <Panel title="Replies">
+            <div className="-my-1.5">
               {/* studio designs ask for names, party size and notes in their own form */}
-              {(studio ? [["rsvp", "RSVP form"]] as const : [["rsvp", "RSVP button"], ["meal", "Meal selection"], ["notes", "Guest notes"]] as const).map(([key, label]) => {
+              {(studio ? [["rsvp", "Reply form"]] as const : [["rsvp", "Reply button"], ["meal", "Meal choice"], ["notes", "A note to you"]] as const).map(([key, label]) => {
                 // what guests will actually see: meal and notes need Celebration
                 const paid = key !== "rsvp";
                 const on = cfg[key] && (!paid || can(db.plan, "rsvpDetails"));
@@ -565,120 +512,106 @@ export default function Invitations() {
                   <button key={key}
                     onClick={() => (paid ? setPaid("rsvpDetails", { [key]: !on } as Partial<typeof cfg>) : setCfg({ rsvp: !cfg.rsvp }))}
                     aria-pressed={on}
-                    className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-[0.85rem] font-bold transition cursor-pointer ${on ? "border-sage/60 bg-sage-soft/60 text-ink" : "border-ink/12 text-ink-mute hover:border-ink/30"}`}>
-                    <span className="flex items-center gap-2">{label} {paid && !can(db.plan, "rsvpDetails") && <PlanTag plan="celebration" />}</span>
-                    <span className={`flex h-5 w-9 items-center rounded-full p-0.5 transition-colors ${on ? "bg-sage-deep" : "bg-ink/15"}`}>
-                      <span className={`h-4 w-4 rounded-full bg-white shadow transition-transform ${on ? "translate-x-4" : ""}`} />
-                    </span>
+                    className="pl-row flex min-h-[48px] w-full items-center justify-between gap-3 py-2 text-left text-[14.5px] cursor-pointer">
+                    <span className="flex flex-wrap items-center gap-x-3 gap-y-1">{label} {paid && !can(db.plan, "rsvpDetails") && <PlanTag plan="celebration" />}</span>
+                    <span className="pl-switch" aria-hidden="true" />
                   </button>
                 );
               })}
             </div>
-          </section>
+          </Panel>
 
           {/* a studio design without music (no player) has no song to upload either */}
           {(!studio || tracksOf(studio).length > 0) && <LuxeStudio cfg={cfg} setCfg={setCfg} unlocked={luxeUnlocked} songOnly={!!studio} />}
 
           {!studio && template.photo && (
-            <section className="rounded-[1.6rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md">
-              <h3 className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">Photo</h3>
-              <div className="mt-4 grid grid-cols-3 gap-2">
+            <Panel title="Photo" aside={!can(db.plan, "customize") ? <PlanTag plan="celebration" /> : undefined}>
+              <div className="grid grid-cols-3 gap-2">
                 {PHOTO_CHOICES.map((p) => (
                   <button key={p.label} onClick={() => {
                     if (!can(db.plan, "customize")) { openUpgrade("customize"); return; }
                     // a built-in photo replaces an uploaded one, whose file is then removed
                     if (isUploadedPhoto(cfg.photo) && mode === "cloud" && weddingId) void deletePhoto(weddingId, cfg.photo).catch(() => {});
                     setCfg({ photo: p.src });
-                  }} aria-label={`Use ${p.label}`} title={p.label}
-                    className={`overflow-hidden rounded-xl border-2 transition cursor-pointer ${cfg.photo === p.src ? "border-gold" : "border-transparent opacity-80 hover:opacity-100"}`}>
-                    <img src={p.src} alt={p.label} className="h-14 w-full object-cover" loading="lazy" />
+                  }} aria-label={`Use ${p.label}`} aria-pressed={cfg.photo === p.src} title={p.label}
+                    className={`overflow-hidden rounded-[2px] transition cursor-pointer ${cfg.photo === p.src ? "ring-2 ring-[var(--pl-gold)] ring-offset-2 ring-offset-[var(--pl-card)]" : "opacity-85 hover:opacity-100"}`}>
+                    <img src={p.src} alt="" className="h-14 w-full object-cover" loading="lazy" />
                   </button>
                 ))}
               </div>
               <div className="mt-4">
                 {can(db.plan, "customize")
                   ? <PhotoUpload photo={cfg.photo} onChange={(photo) => setCfg({ photo: photo ?? template.photo ?? null })} />
-                  : <button onClick={() => openUpgrade("customize")} className="text-[0.78rem] font-bold text-ink-mute transition hover:text-ink cursor-pointer">Upload your own photo · <PlanTag plan="celebration" /></button>}
+                  : <button onClick={() => openUpgrade("customize")} className="pl-link">Use your own photo</button>}
               </div>
-            </section>
+            </Panel>
           )}
         </div>
       </div>
 
-      {/* template gallery */}
-      <section aria-label="Invitation templates">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="mr-3 font-display text-2xl text-ink">Templates</h2>
-          {["all", ...TEMPLATE_CATS].map((c) => (
-            <button key={c} onClick={() => setCat(c)} className={`rounded-full px-4 py-2 text-[0.76rem] font-bold capitalize transition cursor-pointer ${cat === c ? "bg-ink text-cream shadow-card" : "border border-ink/15 bg-white/60 text-ink-2 hover:border-ink/40"}`}>
-              {c}
-            </button>
-          ))}
-          <Pill tone="gold">{seedTemplates.length + STUDIO_DESIGNS.length + db.customTemplates.length} designs</Pill>
-          <button onClick={() => (can(db.plan, "customDesigns") ? setImportOpen(true) : openUpgrade("customDesigns"))} className={`${btn.outline} ml-auto !px-4 !py-2 text-[0.78rem]`}>
-            <UploadCloud size={14} /> Add Luxe designs
+      {/* the designs */}
+      <section aria-label="Invitation designs" className="space-y-5 pt-2">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="font-display text-[32px] leading-none">Designs</h2>
+            <p className="mt-2 text-[14px] text-[var(--pl-ink-2)]"><span className="tabular-nums">{seedTemplates.length + STUDIO_DESIGNS.length + db.customTemplates.length}</span> to choose from. Pick one and it becomes your invitation.</p>
+          </div>
+          <button onClick={() => (can(db.plan, "customDesigns") ? setImportOpen(true) : openUpgrade("customDesigns"))} className="pl-quiet">
+            <UploadCloud size={14} strokeWidth={1.6} /> Use your own design
           </button>
         </div>
 
         <StudioGallery cfg={cfg} setCfg={setCfg} />
 
         {db.customTemplates.length > 0 && (
-          <div className="mt-5">
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
-                <Crown size={12} /> Luxe collection · {db.customTemplates.length}
-              </p>
-              <p className="text-[0.68rem] font-semibold text-ink-mute">Your own designs · part of {PLANS[FEATURES.customDesigns.plan].name}{!can(db.plan, "customDesigns") && " · locked on your plan"}</p>
-            </div>
-            <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto pb-1">
+          <div>
+            <h3 className="font-display text-[22px] leading-none">Your own designs</h3>
+            <p className="mt-1.5 text-[13px] text-[var(--pl-ink-2)]">Part of {PLANS[FEATURES.customDesigns.plan].name}{!can(db.plan, "customDesigns") && ", which your plan doesn't include yet"}.</p>
+            <div className="no-scrollbar -mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pb-2 pt-1 sm:mx-0 sm:px-0">
               {db.customTemplates.map((c) => {
                 const active = c.id === cfg.templateId;
                 const locked = !can(db.plan, "customDesigns");
                 return (
-                  <div key={c.id} className={`group relative w-36 shrink-0 overflow-hidden rounded-[1.1rem] border-2 transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${active ? "border-gold shadow-card" : "border-transparent"}`}>
+                  <div key={c.id} className={`group relative w-36 shrink-0 overflow-hidden rounded-[3px] bg-[var(--pl-card)] shadow-[0_14px_30px_-24px_rgb(60_40_15/.6)] transition ${active ? "ring-2 ring-[var(--pl-gold)] ring-offset-2 ring-offset-[var(--pl-paper)]" : "ring-1 ring-[var(--pl-line)]"}`}>
                     <button
                       onClick={() => {
                         if (locked) { openUpgrade("customDesigns"); return; }
                         setCfg({ templateId: c.id, colors: null, fontSerif: null });
                         playChime("place");
-                        toast(`Design — ${c.name}`, "Your original, front and center.");
+                        toast(`Design: ${c.name}`, "Your own design is now your invitation.");
                       }}
                       aria-pressed={active}
-                      className="block w-full cursor-pointer"
+                      className="block w-full text-left cursor-pointer"
                     >
                       <span className="relative block">
                         {c.html ? (
-                          <div className={`aspect-[4/5] w-full transition duration-500 ${locked ? "opacity-80 saturate-[0.55]" : ""}`}>
+                          <div className={`aspect-[4/5] w-full ${locked ? "opacity-80 saturate-[0.55]" : ""}`}>
                             <DesignFrame html={c.html} title={`${c.name} preview`} interactive={false} thumbWidth={144} thumbHeight={180} />
                           </div>
                         ) : (
-                          <img src={c.dataUrl ?? ""} alt={c.name} className={`aspect-[4/5] w-full object-cover transition duration-500 ${locked ? "opacity-80 saturate-[0.55]" : ""}`} />
-                        )}
-                        {c.html && !locked && (
-                          <span className="absolute left-1.5 top-1.5 rounded-full bg-ink/85 px-2 py-0.5 text-[0.52rem] font-extrabold uppercase tracking-[0.14em] text-gold shadow-card">Live HTML</span>
+                          <img src={c.dataUrl ?? ""} alt="" className={`aspect-[4/5] w-full object-cover ${locked ? "opacity-80 saturate-[0.55]" : ""}`} />
                         )}
                         {locked && (
-                          <span className="absolute inset-0 flex items-center justify-center bg-ink/25">
-                            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cream/90 text-gold-deep shadow-card"><Lock size={13} /></span>
+                          <span className="absolute inset-0 flex items-center justify-center bg-[rgb(15_14_13/.25)]">
+                            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--pl-card)] text-[var(--pl-bronze)]"><Lock size={13} strokeWidth={1.8} /></span>
                           </span>
                         )}
                       </span>
-                      <span className="flex items-center justify-between bg-white/95 px-2.5 py-1.5">
-                        <span className="truncate text-[0.68rem] font-extrabold text-ink">{c.name}</span>
-                        {active ? <Check size={11} strokeWidth={3.5} className="shrink-0 text-gold-deep" /> : <Crown size={11} className="shrink-0 text-gold-deep" />}
+                      <span className="flex items-center justify-between gap-2 px-2.5 py-2">
+                        <span className="truncate text-[13px]">{c.name}</span>
+                        {active && <Check size={13} strokeWidth={2} className="shrink-0 text-[var(--pl-bronze)]" aria-label="Chosen" />}
                       </span>
                     </button>
                     <button
                       onClick={() => {
                         const remaining = db.customTemplates.filter((x) => x.id !== c.id);
                         patch({ customTemplates: remaining, invitation: cfg.templateId === c.id ? { ...cfg, templateId: seedTemplates[0].id } : cfg });
-                        toast(`${c.name} removed from the Luxe bundle`, undefined, "info");
+                        toast(`${c.name} removed`, undefined, "info");
                       }}
-                      aria-label={`Remove ${c.name} from the Luxe collection`}
-                      title="Owner only — remove from the Luxe bundle"
-                      className="absolute right-1.5 top-1.5 rounded-full bg-ink/80 p-1.5 text-cream opacity-0 transition group-hover:opacity-100 focus:opacity-100 hover:bg-blush-deep cursor-pointer"
+                      aria-label={`Remove ${c.name}`}
+                      className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-[rgb(15_14_13/.8)] text-[var(--pl-ivory)] opacity-0 transition group-hover:opacity-100 focus:opacity-100 hover:bg-[#a53d28] cursor-pointer"
                     >
-                      <Trash2 size={11} />
+                      <Trash2 size={13} strokeWidth={1.6} />
                     </button>
                   </div>
                 );
@@ -687,44 +620,56 @@ export default function Invitations() {
           </div>
         )}
 
-        <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-          {templates.map((t) => {
-            const c = resolveColors(t, null);
-            const active = t.id === cfg.templateId;
-            const locked = designLocked(t);
-            return (
-              <button
-                key={t.id}
-                onClick={() => choose(t)}
-                aria-pressed={active}
-                className={`group relative overflow-hidden rounded-[1.2rem] border-2 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-lift cursor-pointer ${active ? "border-gold shadow-card" : "border-transparent"}`}
-              >
-                <div className="aspect-[4/5] w-full" style={{ background: c.bg, color: c.ink }}>
-                  {t.photo ? (
-                    <img src={t.photo} alt={`${t.name} template`} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
-                  ) : (
-                    <div className="flex h-full flex-col items-center justify-center gap-1.5 p-4 text-center">
-                      <span className="h-6 w-10 rounded-t-full border-t-2" style={{ borderColor: c.accent }} aria-hidden="true" />
-                      <span className="font-display text-lg leading-tight" style={{ fontFamily: t.serif ? "'Playfair Display', serif" : "'Nunito Sans', sans-serif", fontWeight: t.serif ? 600 : 800 }}>M <em style={{ color: c.accent }}>&</em> T</span>
-                      <span className="text-[0.5rem] font-extrabold uppercase tracking-[0.3em]" style={{ color: c.accent }}>Save the date</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center justify-between bg-white/90 px-3 py-2 backdrop-blur">
-                  <span className="text-[0.7rem] font-extrabold text-ink">{t.name}</span>
-                  {locked ? (
-                    <span className="flex items-center gap-1 text-gold-deep"><Lock size={11} aria-hidden="true" /><span className="sr-only">{t.luxe ? PLANS.luxe.name : PLANS.celebration.name}</span></span>
-                  ) : t.luxe ? <span className="text-gold-deep"><Crown size={11} /></span> : null}
-                </div>
-                {active && (
-                  <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-ink shadow-card"><Check size={11} strokeWidth={3.5} /></span>
-                )}
+        <div>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h3 className="font-display text-[22px] leading-none">Classic designs</h3>
+          </div>
+          <div className="no-scrollbar -mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Show designs">
+            {["all", ...TEMPLATE_CATS].map((c) => (
+              <button key={c} onClick={() => setCat(c)} aria-pressed={cat === c}
+                className={`h-10 shrink-0 rounded-full px-4 text-[13.5px] capitalize transition cursor-pointer ${cat === c ? "bg-[var(--pl-onyx)] text-[var(--pl-ivory)]" : "border border-[var(--pl-line)] bg-[var(--pl-card)] hover:border-[rgb(28_26_23/.3)]"}`}>
+                {c === "all" ? "All" : c}
               </button>
-            );
-          })}
+            ))}
+          </div>
+
+          <div className="no-scrollbar -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-2 pt-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 xl:grid-cols-6">
+            {templates.map((t) => {
+              const c = resolveColors(t, null);
+              const active = t.id === cfg.templateId;
+              const locked = designLocked(t);
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => choose(t)}
+                  aria-pressed={active}
+                  className={`group relative w-36 shrink-0 overflow-hidden rounded-[3px] bg-[var(--pl-card)] text-left shadow-[0_14px_30px_-24px_rgb(60_40_15/.6)] transition sm:w-auto cursor-pointer ${active ? "ring-2 ring-[var(--pl-gold)] ring-offset-2 ring-offset-[var(--pl-paper)]" : "ring-1 ring-[var(--pl-line)] hover:ring-[rgb(28_26_23/.3)]"}`}
+                >
+                  <div className="aspect-[4/5] w-full overflow-hidden" style={{ background: c.bg, color: c.ink }}>
+                    {t.photo ? (
+                      <img src={t.photo} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" loading="lazy" />
+                    ) : (
+                      <div className="flex h-full flex-col items-center justify-center gap-1.5 p-4 text-center">
+                        <span className="h-6 w-10 rounded-t-full border-t-2" style={{ borderColor: c.accent }} aria-hidden="true" />
+                        <span className="text-lg leading-tight" style={{ fontFamily: t.serif ? "'Playfair Display', serif" : "'Nunito Sans', sans-serif", fontWeight: t.serif ? 600 : 800 }}>M <em style={{ color: c.accent }}>&</em> T</span>
+                        <span className="text-[0.5rem] uppercase tracking-[0.3em]" style={{ color: c.accent }}>Save the date</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+                    <span className="truncate text-[13px]">{t.name}</span>
+                    {active ? (
+                      <Check size={13} strokeWidth={2} className="shrink-0 text-[var(--pl-bronze)]" aria-label="Chosen" />
+                    ) : locked ? (
+                      <span className="flex shrink-0 items-center text-[var(--pl-bronze)]"><Lock size={12} strokeWidth={1.8} aria-hidden="true" /><span className="sr-only">{t.luxe ? PLANS.luxe.name : PLANS.celebration.name}</span></span>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
-
 
       <ImportDesignsModal open={importOpen} onClose={() => setImportOpen(false)} />
       <AnimatePresence>{live && <LivePreview onClose={() => setLive(false)} />}</AnimatePresence>
@@ -732,10 +677,11 @@ export default function Invitations() {
   );
 }
 
+
 /* ------------------------------ share link card ------------------------------ */
 
 export function ShareCard() {
-  const { db, toast, openUpgrade } = useApp();
+  const { db, patch, toast, openUpgrade } = useApp();
   const shareKit = can(db.plan, "shareKit");
   const [copied, setCopied] = useState(false);
   // cloud links carry the real slug so any device lands on this couple's page;
@@ -766,35 +712,52 @@ export function ShareCard() {
   };
 
   const channels = [
-    { label: "WhatsApp", icon: MessageCircle, href: `https://wa.me/?text=${encodeURIComponent(messageFor("whatsapp"))}`, tint: "hover:border-[#25D366]/70 hover:text-[#128C4A]" },
-    { label: "Instagram", icon: Instagram, href: "https://www.instagram.com/", copyFirst: true, tint: "hover:border-blush-deep/70 hover:text-blush-deep" },
-    { label: "Messenger", icon: Send, href: `https://www.facebook.com/dialog/send?link=${encodeURIComponent(guestLink({ slug, src: "messenger" }))}&app_id=140586622674265&redirect_uri=${encodeURIComponent(link)}`, tint: "hover:border-lav-deep/70 hover:text-lav-deep" },
-    { label: "Text", icon: MessageCircle, href: `sms:?&body=${encodeURIComponent(messageFor("link"))}`, tint: "hover:border-sage-deep/70 hover:text-sage-deep" },
-    { label: "Email", icon: Mail, href: `mailto:?subject=${encodeURIComponent(`${db.wedding.names} — you're invited ♥`)}&body=${encodeURIComponent(messageFor("email"))}`, tint: "hover:border-gold-deep/70 hover:text-gold-deep" },
+    { label: "WhatsApp", icon: MessageCircle, href: `https://wa.me/?text=${encodeURIComponent(messageFor("whatsapp"))}` },
+    { label: "Instagram", icon: Instagram, href: "https://www.instagram.com/", copyFirst: true },
+    { label: "Messenger", icon: Send, href: `https://www.facebook.com/dialog/send?link=${encodeURIComponent(guestLink({ slug, src: "messenger" }))}&app_id=140586622674265&redirect_uri=${encodeURIComponent(link)}` },
+    { label: "Text", icon: MessageCircle, href: `sms:?&body=${encodeURIComponent(messageFor("link"))}` },
+    { label: "Email", icon: Mail, href: `mailto:?subject=${encodeURIComponent(`${db.wedding.names} — you're invited ♥`)}&body=${encodeURIComponent(messageFor("email"))}` },
   ];
 
+  const open = db.invitation.live;
+  const toggleOpen = () => {
+    patch({ invitation: { ...db.invitation, live: !open } });
+    toast(open ? "Invitation closed" : "Open to guests",
+      open ? "Anyone opening your link now sees that it isn't open yet." : "Anyone with your link can see it and reply.");
+  };
+
   return (
-    <section aria-label="Share your wedding page" className="relative overflow-hidden rounded-[1.8rem] bg-ink p-6 text-cream shadow-lift sm:p-8">
-      <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-blush/25 blur-3xl" aria-hidden="true" />
-      <div className="pointer-events-none absolute -bottom-24 left-1/4 h-56 w-56 rounded-full bg-lav/20 blur-3xl" aria-hidden="true" />
-      <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center">
-        <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.22em] text-gold">
-            <Share2 size={12} /> Share the wedding page
+    <section aria-label="Share your invitation" className="pl-share relative overflow-hidden rounded-[3px] bg-[var(--pl-onyx)] text-[var(--pl-ivory)] shadow-[0_24px_50px_-30px_rgb(0_0_0/.6)]">
+      <div className="relative grid gap-7 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-10">
+        <div className="min-w-0">
+          <h2 className="font-display text-[28px] leading-[1.05] sm:text-[34px]">The link your guests open</h2>
+          <p className="mt-3 max-w-md text-[15px] leading-relaxed text-[rgb(237_227_207/.72)]">
+            Your invitation and its reply form, at one address. Send it however you talk to people; every answer lands in Replies.
           </p>
-          <h2 className="mt-2 font-display text-2xl leading-snug sm:text-[1.7rem]">
-            One link. <em className="text-blush">Everything.</em>
-          </h2>
-          <p className="mt-2 max-w-md text-[0.85rem] font-semibold leading-relaxed text-cream/60">
-            Guests land on your page — the invitation, your story, the schedule, the registry — and RSVP right there.
-            Drop the link in WhatsApp, an Instagram DM, a family group chat; every answer lands in the RSVPs tab.
-          </p>
-          {!db.invitation.live && (
-            <p role="status" className="mt-3 max-w-md rounded-2xl border border-gold/50 bg-gold/15 px-4 py-2.5 text-[0.8rem] font-bold text-cream">
-              Your invitation isn't open yet — guests with this link will see “not open yet”. Switch on “Open to guests” in the editor below before you share it.
-            </p>
-          )}
-          <div className="mt-4 flex flex-wrap items-center gap-2">
+          {/* 0011: an invitation is closed until the couple opens it, so a
+              guessed address shows nothing of a wedding not yet shared */}
+          <button type="button" role="switch" aria-checked={open} onClick={toggleOpen}
+            className="mt-6 flex w-full max-w-md items-center gap-4 rounded-[2px] border border-[rgb(237_227_207/.16)] px-4 py-3.5 text-left transition hover:border-[rgb(237_227_207/.32)] cursor-pointer">
+            <span className="pl-switch on-dark" aria-hidden="true" />
+            <span className="min-w-0">
+              <span className="block text-[15px]">Open to guests</span>
+              <span className="mt-0.5 block text-[13px] leading-snug text-[rgb(237_227_207/.62)]">
+                {open ? "Anyone with the link sees your invitation and can reply." : "Off. Guests with the link see “not open yet”; your names, date and venue stay private."}
+              </span>
+            </span>
+          </button>
+        </div>
+
+        <div className="min-w-0 self-end">
+          <div className="flex items-center gap-2 rounded-[2px] border border-[rgb(237_227_207/.2)] bg-[rgb(237_227_207/.05)] p-1.5 pl-3.5">
+            <Link2 size={14} strokeWidth={1.6} className="shrink-0 text-[var(--pl-gold)]" aria-hidden="true" />
+            <span className="min-w-0 flex-1 truncate text-[14px] text-[rgb(237_227_207/.9)]" title={link}>{link.replace(/^https?:\/\//, "")}</span>
+            <button onClick={copy}
+              className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-[2px] bg-[var(--pl-gold)] px-4 text-[12px] font-medium uppercase tracking-[0.14em] text-[var(--pl-onyx)] transition hover:bg-[#d8b97c] cursor-pointer">
+              {copied ? <Check size={14} strokeWidth={2} /> : <Copy size={14} strokeWidth={1.8} />} {copied ? "Copied" : "Copy"}
+            </button>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-1.5">
             {channels.map((c) => (
               <a
                 key={c.label}
@@ -806,25 +769,14 @@ export function ShareCard() {
                   if (!shareKit) { e.preventDefault(); openUpgrade("shareKit"); return; }
                   if (c.copyFirst) copy();
                 }}
-                className={`inline-flex items-center gap-1.5 rounded-full border border-cream/20 px-3.5 py-2 text-[0.74rem] font-bold text-cream/85 transition-all duration-300 hover:bg-cream/10 ${c.tint}`}
+                className="inline-flex h-10 items-center gap-1.5 rounded-full border border-[rgb(237_227_207/.2)] px-3.5 text-[13px] text-[rgb(237_227_207/.85)] transition hover:border-[rgb(237_227_207/.45)] hover:text-[var(--pl-ivory)]"
               >
-                <c.icon size={13} /> {c.label}
+                <c.icon size={14} strokeWidth={1.6} /> {c.label}
               </a>
             ))}
+            {!shareKit && <span className="inline-flex h-10 items-center gap-1 px-1 text-[12.5px] text-[var(--pl-gold)]"><Lock size={11} strokeWidth={1.8} aria-hidden="true" /> {PLANS.celebration.name}</span>}
           </div>
-        </div>
-        <div className="w-full lg:w-[380px]">
-          <div className="flex items-center gap-2 rounded-2xl border border-cream/20 bg-cream/10 p-2 pl-4 backdrop-blur">
-            <Link2 size={14} className="shrink-0 text-gold" />
-            <span className="min-w-0 flex-1 truncate font-mono text-[0.78rem] text-cream/90" title={link}>{link.replace("https://", "")}</span>
-            <button
-              onClick={copy}
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-4 py-2.5 text-[0.78rem] font-extrabold transition-all duration-300 active:scale-95 cursor-pointer ${copied ? "bg-sage text-ink" : "bg-gold text-ink hover:brightness-110"}`}
-            >
-              {copied ? <Check size={13} strokeWidth={3.4} /> : <Copy size={13} />} {copied ? "Copied" : "Copy"}
-            </button>
-          </div>
-          <button onClick={nativeShare} className="mt-2.5 w-full rounded-2xl border border-cream/20 py-2.5 text-[0.78rem] font-bold text-cream/80 transition hover:bg-cream/10 cursor-pointer">
+          <button onClick={nativeShare} className="mt-3 text-[13.5px] text-[rgb(237_227_207/.75)] underline underline-offset-4 transition hover:text-[var(--pl-ivory)] cursor-pointer">
             Or use your phone's share sheet
           </button>
         </div>
@@ -835,12 +787,12 @@ export function ShareCard() {
 
 /* ------------------------------ RSVP tracker ------------------------------ */
 
-const SOURCE_META: Record<string, { icon: typeof Link2; label: string; cls: string }> = {
-  link: { icon: Link2, label: "Link", cls: "bg-gold-soft text-gold-deep" },
-  whatsapp: { icon: MessageCircle, label: "WhatsApp", cls: "bg-sage-soft text-sage-deep" },
-  instagram: { icon: Instagram, label: "Instagram", cls: "bg-blush-soft text-blush-deep" },
-  messenger: { icon: Send, label: "Messenger", cls: "bg-lav-soft text-lav-deep" },
-  email: { icon: Mail, label: "Email", cls: "bg-ink/6 text-ink-2" },
+const SOURCE_META: Record<string, { icon: typeof Link2; label: string }> = {
+  link: { icon: Link2, label: "Link" },
+  whatsapp: { icon: MessageCircle, label: "WhatsApp" },
+  instagram: { icon: Instagram, label: "Instagram" },
+  messenger: { icon: Send, label: "Messenger" },
+  email: { icon: Mail, label: "Email" },
 };
 
 /** Copies a guest's personal invite link — their name arrives pre-filled. */
@@ -863,9 +815,9 @@ function PersonalLinkButton({ guest, token }: { guest: string; token: string }) 
         }
       }}
       aria-label={`Copy personal invite link for ${guest}`}
-      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-[0.66rem] font-extrabold transition cursor-pointer ${copied ? "bg-sage text-ink" : "bg-ink text-cream hover:bg-ink/85"}`}
+      className="pl-quiet !h-9 shrink-0"
     >
-      {copied ? <Check size={11} strokeWidth={3.4} /> : <Copy size={11} />} {copied ? "Copied" : "Copy"}
+      {copied ? <Check size={13} strokeWidth={2} /> : <Copy size={13} strokeWidth={1.6} />} {copied ? "Copied" : "Copy link"}
     </button>
   );
 }
@@ -931,7 +883,7 @@ export function RsvpTracker() {
     });
     playChime("done");
     const po = entry.answer === "yes" && entry.plusOne?.trim() ? ` + ${entry.plusOne.trim()}` : "";
-    toast(`${entry.name}${po} synced`, "Their answer now counts in your guest list.");
+    toast(`${entry.name}${po} counted`, "Their answer is in your guest list.");
   };
 
   /** genuinely unknown name → create a real guest (plus their plus-one) */
@@ -978,13 +930,13 @@ export function RsvpTracker() {
       syncedIds.push(e.id);
     }
     if (!applied) {
-      toast("Nothing auto-synced", "The rest need a glance — they're fuzzy matches or new guests.", "info");
+      toast("Nothing to add on its own", "These need a quick look: a name that's close to a guest's, or someone new.", "info");
       return;
     }
     if (!fits(guests)) return;
     patch({ guests, rsvpLog: db.rsvpLog.map((e) => (syncedIds.includes(e.id) ? { ...e, synced: true } : e)) });
     playChime("sparkle");
-    toast("Confident RSVPs synced", `${applied} merged — fuzzy ones are below for a quick yes/no.`);
+    toast("Added to your guest list", `${applied} ${applied === 1 ? "answer" : "answers"} counted. Any left need a quick look below.`);
   };
 
   /** a ready-to-paste reminder — Twofold doesn't send it, the couple does */
@@ -999,118 +951,121 @@ export function RsvpTracker() {
     }
   };
 
+  const total = Math.max(1, db.guests.length);
+  const pendingWithToken = db.guests.filter((g) => g.rsvp === "pending" && g.token);
+
   return (
-    <section aria-label="RSVP tracker" className="rounded-[1.8rem] border border-white/70 bg-white/60 p-6 backdrop-blur-md sm:p-8">
-      <div className="flex flex-wrap items-center gap-4">
-        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blush-soft text-blush-deep"><Activity size={19} /></span>
-        <div className="min-w-0 flex-1">
-          <h2 className="font-display text-2xl text-ink">Who's coming?</h2>
-          {/* while the planner loads, the list is this device's last copy: say so, not as if it were final */}
-          {booting ? (
-            <p role="status" className="flex items-center gap-1.5 text-[0.8rem] font-semibold text-ink-mute">
-              <Loader2 size={13} className="animate-spin" aria-hidden="true" /> Checking for new answers…
-            </p>
-          ) : (
-            <p className="text-[0.8rem] font-semibold text-ink-mute">Every answer from your link, messages and emails — as it happens.</p>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button onClick={() => void remind()} disabled={waiting === 0} className="rounded-full border border-ink/15 px-4 py-2 text-[0.76rem] font-bold text-ink-2 transition hover:border-blush-deep hover:text-blush-deep disabled:opacity-40 cursor-pointer">
-            Copy a reminder · {waiting} pending
-          </button>
-          {unsynced.length > 0 && (
-            <button onClick={syncAll} className="rounded-full bg-ink px-4 py-2 text-[0.76rem] font-bold text-cream transition hover:bg-ink/85 cursor-pointer">
-              Sync {unsynced.length} to guest list
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-5 grid grid-cols-3 gap-3">
-        {[
-          { label: "Joyfully yes", value: confirmed, cls: "text-sage-deep", bar: "bg-sage" },
-          { label: "Still deciding", value: waiting, cls: "text-blush-deep", bar: "bg-blush" },
-          { label: "With love, no", value: declined, cls: "text-ink-mute", bar: "bg-ink/30" },
-        ].map((s) => (
-          <div key={s.label} className="rounded-2xl border border-ink/8 bg-white/70 p-4">
-            <p className={`font-display text-3xl ${s.cls}`}>{s.value}</p>
-            <p className="mt-0.5 text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-ink-mute">{s.label}</p>
-            <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-ink/8">
-              <motion.div initial={{ width: 0 }} animate={{ width: `${(s.value / Math.max(1, db.guests.length)) * 100}%` }} transition={{ duration: 1 }} className={`h-full rounded-full ${s.bar}`} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* per-guest personal links — the fastest way to convert the undecided */}
-      {(() => {
-        const pendingWithToken = db.guests.filter((g) => g.rsvp === "pending" && g.token);
-        if (pendingWithToken.length === 0) return null;
-        return (
-          <div className="mt-5 rounded-2xl border border-gold/30 bg-gold-soft/35 p-5">
-            <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-gold-deep">
-              <Link2 size={12} /> Personal links · guests still deciding
-            </p>
-            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-              {pendingWithToken.slice(0, 6).map((g) => (
-                <li key={g.id} className="flex items-center gap-2.5 rounded-xl border border-ink/8 bg-white/75 px-3 py-2">
-                  <span className="min-w-0 flex-1 truncate text-[0.82rem] font-bold text-ink">{g.name}</span>
-                  <PersonalLinkButton guest={g.name} token={g.token ?? ""} />
-                </li>
-              ))}
-            </ul>
-            {pendingWithToken.length > 6 && (
-              <p className="mt-2.5 text-[0.7rem] font-semibold text-ink-mute">+{pendingWithToken.length - 6} more waiting on their own link</p>
-            )}
-          </div>
-        );
-      })()}
-
-      {log.length === 0 ? (
-        <p className="mt-5 rounded-2xl border border-dashed border-ink/15 px-5 py-8 text-center text-[0.88rem] font-semibold text-ink-mute">
-          No RSVPs yet — share your link above and the answers will start rolling in here.
+    <section aria-label="Replies" className="space-y-5">
+      {/* while the planner loads, the list is this device's last copy: say so, not as if it were final */}
+      {booting ? (
+        <p role="status" className="flex items-center gap-2 text-[14px] text-[var(--pl-ink-2)]">
+          <Loader2 size={14} className="animate-spin" aria-hidden="true" /> Checking for new answers…
         </p>
       ) : (
-        <ul className="mt-5 divide-y divide-ink/6">
-          {log.map((e) => {
-            const meta = SOURCE_META[e.source] ?? SOURCE_META.link;
-            const Icon = meta.icon;
-            const m = matchFor(e);
-            return (
-              <li key={e.id} className="flex flex-wrap items-center gap-3 py-3.5 sm:flex-nowrap">
-                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[0.62rem] font-extrabold ${e.answer === "yes" ? "bg-sage-soft text-sage-deep" : "bg-blush-soft text-blush-deep"}`}>
-                  {e.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="flex flex-wrap items-center gap-2 text-[0.9rem] font-bold text-ink">
-                    {e.name}
-                    <Pill tone={e.answer === "yes" ? "confirmed" : "declined"}>{e.answer === "yes" ? "attending" : "can't make it"}</Pill>
-                    {e.meal && <span className="text-[0.68rem] font-bold text-ink-mute">· {e.meal}</span>}
-                    {e.answer === "yes" && e.plusOne && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gold-soft px-2 py-0.5 text-[0.64rem] font-extrabold text-gold-deep">+1 {e.plusOne}</span>
-                    )}
-                  </p>
-                  {e.note && <p className="mt-0.5 truncate text-[0.78rem] italic text-ink-2">“{e.note}”</p>}
-                </div>
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.64rem] font-extrabold ${meta.cls}`}><Icon size={11} /> {meta.label}</span>
-                <span className="text-[0.7rem] font-bold text-ink-mute">{timeAgo(e.at)}</span>
-                {e.synced ? (
-                  <span className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold text-sage-deep"><Check size={12} strokeWidth={3} /> synced</span>
-                ) : m.guest && m.exact ? (
-                  <button onClick={() => apply(e.id)} className="rounded-full bg-gold px-3 py-1.5 text-[0.68rem] font-extrabold text-ink transition hover:brightness-105 cursor-pointer">Sync →</button>
-                ) : m.guest ? (
-                  <span className="flex items-center gap-1.5" title={`Fuzzy match — ${Math.round(m.score * 100)}% similar to ${m.guest.name}`}>
-                    <span className="max-w-[110px] truncate text-[0.62rem] font-bold text-ink-mute">≈ {m.guest.name}</span>
-                    <button onClick={() => apply(e.id, m.guest!.id)} className="rounded-full bg-gold px-2.5 py-1.5 text-[0.62rem] font-extrabold text-ink transition hover:brightness-105 cursor-pointer">Yes</button>
-                    <button onClick={() => addAsNewGuest(e.id)} className="rounded-full border border-ink/20 px-2.5 py-1.5 text-[0.62rem] font-extrabold text-ink-2 transition hover:border-ink/50 cursor-pointer">New</button>
-                  </span>
-                ) : (
-                  <button onClick={() => addAsNewGuest(e.id)} className="rounded-full border border-dashed border-ink/30 px-3 py-1.5 text-[0.64rem] font-extrabold text-ink-2 transition hover:border-gold hover:text-gold-deep cursor-pointer">+ add guest</button>
-                )}
+        <p className="text-[14px] text-[var(--pl-ink-2)]">Every answer from your link, messages and emails, as it arrives.</p>
+      )}
+
+      <div className="pl-card px-5 py-5 sm:px-6">
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: "Coming", value: confirmed, dot: "bg-[#7aa06a]" },
+            { label: "Waiting", value: waiting, dot: "bg-[var(--pl-gold)]" },
+            { label: "Can't come", value: declined, dot: "bg-[#b55a45]" },
+          ].map((s) => (
+            <div key={s.label} className="min-w-0">
+              <p className="text-[34px] font-light leading-none tabular-nums sm:text-[40px]">{s.value}</p>
+              <p className="mt-2 flex items-center gap-2 text-[13.5px] text-[var(--pl-ink-2)]"><span className={`h-2 w-2 shrink-0 rounded-full ${s.dot}`} aria-hidden="true" />{s.label}</p>
+            </div>
+          ))}
+        </div>
+        <div className="pl-meter" aria-hidden="true">
+          <span className="bg-[#7aa06a]" style={{ width: `${(confirmed / total) * 100}%` }} />
+          <span className="bg-[var(--pl-gold)]" style={{ width: `${(waiting / total) * 100}%` }} />
+          <span className="bg-[#b55a45]" style={{ width: `${(declined / total) * 100}%` }} />
+        </div>
+        <div className="mt-5 flex flex-wrap gap-3">
+          {unsynced.length > 0 && (
+            <button onClick={syncAll} className="pl-act">Add {unsynced.length} to the guest list</button>
+          )}
+          <button onClick={() => void remind()} disabled={waiting === 0} className="pl-quiet">
+            <Copy size={14} strokeWidth={1.6} /> <span>Copy a reminder for the <span className="tabular-nums">{waiting}</span> waiting</span>
+          </button>
+        </div>
+      </div>
+
+      {/* per-guest personal links: the fastest way to hear from the undecided */}
+      {pendingWithToken.length > 0 && (
+        <section className="pl-card" aria-label="Personal links">
+          <div className="pl-card-h">
+            <h3>Their own links</h3>
+            <small>Each one fills in the guest's name</small>
+          </div>
+          <ul className="grid sm:grid-cols-2">
+            {pendingWithToken.slice(0, 6).map((g) => (
+              <li key={g.id} className="flex items-center gap-3 border-b border-[var(--pl-line)] px-5 py-2.5 sm:px-6 sm:odd:border-r">
+                <span className="min-w-0 flex-1 truncate text-[14.5px]">{g.name}</span>
+                <PersonalLinkButton guest={g.name} token={g.token ?? ""} />
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+          {pendingWithToken.length > 6 && (
+            <p className="px-5 py-3 text-[13px] text-[var(--pl-ink-2)] sm:px-6"><span className="tabular-nums">{pendingWithToken.length - 6}</span> more are waiting on their own link. Find them in Guests.</p>
+          )}
+        </section>
+      )}
+
+      {log.length === 0 ? (
+        <div className="rounded-[3px] border border-dashed border-[rgb(28_26_23/.2)] px-8 py-14 text-center">
+          <p className="font-display text-[24px]">No replies yet</p>
+          <p className="mx-auto mt-2 max-w-sm text-[15px] text-[var(--pl-ink-2)]">Share your link from the invitation and the answers will arrive here.</p>
+        </div>
+      ) : (
+        <section className="pl-card" aria-label="Every answer">
+          <div className="pl-card-h">
+            <h3>Every answer</h3>
+            <small className="tabular-nums">{log.length}</small>
+          </div>
+          <ul>
+            {log.map((e) => {
+              const source = SOURCE_META[e.source] ?? SOURCE_META.link;
+              const Icon = source.icon;
+              const m = matchFor(e);
+              const yes = e.answer === "yes";
+              return (
+                <li key={e.id} className="pl-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5 sm:flex-nowrap sm:px-6">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e4d6bb] text-[12px] tracking-[0.04em]" aria-hidden="true">
+                    {e.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[15px]">
+                      <span className="truncate">{e.name}</span>
+                      <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--pl-ink-2)]"><span className={`h-[7px] w-[7px] rounded-full ${yes ? "bg-[#7aa06a]" : "bg-[#b55a45]"}`} aria-hidden="true" />{yes ? "Coming" : "Can't come"}</span>
+                      {e.meal && <span className="text-[13px] text-[var(--pl-ink-2)]">{e.meal}</span>}
+                      {yes && e.plusOne && <span className="pl-who !text-[15px]">with {e.plusOne}</span>}
+                    </p>
+                    {e.note && <p className="mt-0.5 truncate font-accent text-[16px] italic text-[var(--pl-ink-2)]">“{e.note}”</p>}
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[12.5px] text-[var(--pl-ink-2)]"><Icon size={12} strokeWidth={1.6} aria-hidden="true" /> {source.label} · {timeAgo(e.at)}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {e.synced ? (
+                      <span className="inline-flex items-center gap-1.5 text-[13px] text-[#4f7a43]"><Check size={14} strokeWidth={2} aria-hidden="true" /> In your list</span>
+                    ) : m.guest && m.exact ? (
+                      <button onClick={() => apply(e.id)} className="pl-quiet !h-9">Add to the list</button>
+                    ) : m.guest ? (
+                      <>
+                        <span className="max-w-[150px] truncate text-[13px] text-[var(--pl-ink-2)]" title={`${Math.round(m.score * 100)}% like ${m.guest.name}`}>Is this {m.guest.name}?</span>
+                        <button onClick={() => apply(e.id, m.guest!.id)} className="pl-quiet !h-9">Yes</button>
+                        <button onClick={() => addAsNewGuest(e.id)} className="pl-link !text-[13px]">New guest</button>
+                      </>
+                    ) : (
+                      <button onClick={() => addAsNewGuest(e.id)} className="pl-quiet !h-9">Add as a guest</button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
     </section>
   );
@@ -1125,7 +1080,7 @@ function LuxeStudio({ cfg, setCfg, unlocked, songOnly = false }: {
   /** a studio design brings its own motion and tracks: only the couple's own song applies */
   songOnly?: boolean;
 }) {
-  const { toast, openUpgrade, db, mode, weddingId } = useApp();
+  const { toast, openUpgrade, mode, weddingId } = useApp();
   const [currency] = useCurrency();
   const fileRef = useRef<HTMLInputElement>(null);
   const motion = cfg.motion;
@@ -1177,25 +1132,28 @@ function LuxeStudio({ cfg, setCfg, unlocked, songOnly = false }: {
     }
   };
 
+  const option = (on: boolean) =>
+    `flex w-full items-center gap-3 rounded-[2px] border px-3.5 py-2.5 text-left transition disabled:cursor-not-allowed cursor-pointer ${on ? "border-[var(--pl-gold)] bg-[rgb(201_168_106/.12)]" : "border-[var(--pl-line)] hover:border-[rgb(28_26_23/.3)]"}`;
+
   const body = (
     <>
       {!songOnly && (
       <div>
-        <p className="text-[0.72rem] font-extrabold text-ink-2">Petals & motion</p>
-        <div className="mt-2 flex rounded-full bg-ink/5 p-1 text-[0.74rem] font-bold">
+        <p className="text-[13px] text-[rgb(28_26_23/.7)]">Petals</p>
+        <div className="pl-seg mt-2 flex w-full" role="group" aria-label="Petals">
           {(["off", "gentle", "lush"] as const).map((p) => (
-            <button key={p} disabled={!unlocked} onClick={() => { setCfg({ motion: { ...motion, petals: p } }); if (p !== "off") playChime("place"); }}
-              className={`flex-1 rounded-full py-2 capitalize transition disabled:cursor-not-allowed ${motion.petals === p ? "bg-white text-ink shadow-sm" : "text-ink-mute hover:text-ink"}`}>
+            <button key={p} disabled={!unlocked} aria-pressed={motion.petals === p} onClick={() => { setCfg({ motion: { ...motion, petals: p } }); if (p !== "off") playChime("place"); }}
+              className="flex-1 capitalize disabled:cursor-not-allowed">
               {p}
             </button>
           ))}
         </div>
-        <div className="mt-2.5 grid grid-cols-2 gap-2">
-          {([[ "shimmer", "Shimmering gold"], ["type", "Animated type"]] as const).map(([key, label]) => (
+        <div className="mt-2">
+          {([["shimmer", "Shimmering gold"], ["type", "Animated lettering"]] as const).map(([key, label]) => (
             <button key={key} disabled={!unlocked} onClick={() => setCfg({ motion: { ...motion, [key]: !motion[key] } })} aria-pressed={motion[key]}
-              className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-[0.74rem] font-bold transition disabled:cursor-not-allowed ${motion[key] ? "border-gold/50 bg-gold-soft/50 text-ink" : "border-ink/12 text-ink-mute"}`}>
+              className="pl-row flex min-h-[46px] w-full items-center justify-between gap-3 py-2 text-left text-[14.5px] disabled:cursor-not-allowed cursor-pointer">
               {label}
-              <span className={`h-2 w-2 rounded-full ${motion[key] ? "bg-gold" : "bg-ink/20"}`} />
+              <span className="pl-switch" aria-hidden="true" />
             </button>
           ))}
         </div>
@@ -1203,34 +1161,33 @@ function LuxeStudio({ cfg, setCfg, unlocked, songOnly = false }: {
       )}
 
       <div className={songOnly ? "" : "mt-5"}>
-        <p className="text-[0.72rem] font-extrabold text-ink-2">{songOnly ? "Your own song" : "Background music"}</p>
+        <p className="text-[13px] text-[rgb(28_26_23/.7)]">{songOnly ? "Your own song" : "Music"}</p>
         <div className="mt-2 space-y-2">
           {!songOnly && MUSIC_TRACKS.map((t) => (
-            <button key={t.id} disabled={!unlocked} onClick={() => { setCfg({ music: { ...music, track: t.id } }); playChime("place"); }}
-              className={`flex w-full items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left transition disabled:cursor-not-allowed ${music.track === t.id ? "border-gold/60 bg-gold-soft/50" : "border-ink/12 hover:border-ink/30"}`}>
-              <span className={`flex h-8 w-8 items-center justify-center rounded-full ${music.track === t.id ? "bg-gold text-ink" : "bg-ink/6 text-ink-mute"}`}><Music size={13} /></span>
-              <span className="flex-1">
-                <span className="block text-[0.8rem] font-extrabold text-ink">{t.name}</span>
-                <span className="text-[0.66rem] font-semibold text-ink-mute">{t.mood}</span>
+            <button key={t.id} disabled={!unlocked} aria-pressed={music.track === t.id} onClick={() => { setCfg({ music: { ...music, track: t.id } }); playChime("place"); }}
+              className={option(music.track === t.id)}>
+              <Music size={15} strokeWidth={1.6} className={music.track === t.id ? "text-[var(--pl-bronze)]" : "text-[var(--pl-ink-2)]"} aria-hidden="true" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[14.5px]">{t.name}</span>
+                <span className="block font-accent text-[15px] italic text-[var(--pl-ink-2)]">{t.mood}</span>
               </span>
-              {music.track === t.id && <Check size={13} strokeWidth={3.4} className="text-gold-deep" />}
+              {music.track === t.id && <Check size={14} strokeWidth={2} className="text-[var(--pl-bronze)]" aria-hidden="true" />}
             </button>
           ))}
           <button disabled={!unlocked || uploading} aria-busy={uploading} onClick={() => fileRef.current?.click()}
-            className={`flex w-full items-center gap-3 rounded-xl border border-dashed px-3.5 py-2.5 text-left transition disabled:cursor-not-allowed ${music.track === "upload" ? "border-gold/60 bg-gold-soft/50" : "border-ink/20 hover:border-gold/60"}`}>
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blush-soft text-blush-deep"><UploadCloud size={13} /></span>
-            <span className="flex-1">
-              <span className="block text-[0.8rem] font-extrabold text-ink">
+            className={`${option(music.track === "upload")} border-dashed`}>
+            <UploadCloud size={15} strokeWidth={1.6} className="text-[var(--pl-bronze)]" aria-hidden="true" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[14.5px]">
                 {uploading ? "Uploading…" : music.uploadUrl && music.uploadName ? `“${music.uploadName}”` : "Upload your song"}
               </span>
-              <span className="text-[0.66rem] font-semibold text-ink-mute">
-                {music.uploadUrl ? "tap to replace it" : "your first dance track · MP3, M4A, WAV or OGG, up to 8 MB"}
+              <span className="block text-[12.5px] text-[var(--pl-ink-2)]">
+                {music.uploadUrl ? "Tap to replace it" : "MP3, M4A, WAV or OGG, up to 8 MB"}
               </span>
             </span>
           </button>
           {music.uploadUrl && (
-            <button disabled={!unlocked || uploading} onClick={() => void removeTrack()}
-              className="w-full rounded-xl px-3.5 py-2 text-left text-[0.72rem] font-bold text-ink-mute transition hover:text-blush-deep disabled:cursor-not-allowed cursor-pointer">
+            <button disabled={!unlocked || uploading} onClick={() => void removeTrack()} className="pl-link !text-[13px] disabled:cursor-not-allowed">
               Remove this song
             </button>
           )}
@@ -1242,26 +1199,19 @@ function LuxeStudio({ cfg, setCfg, unlocked, songOnly = false }: {
   );
 
   return (
-    <section className={`relative overflow-hidden rounded-[1.6rem] border p-6 backdrop-blur-md ${unlocked ? "border-gold/40 bg-gradient-to-br from-gold-soft/40 to-white/60" : "border-white/70 bg-white/60"}`}>
-      <div className="flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
-          <Crown size={12} /> Luxe studio
-        </h3>
-        {unlocked ? <Pill tone="gold">unlocked</Pill> : <Pill tone="pending"><Lock size={9} /> Luxe</Pill>}
-      </div>
-      <div className={`mt-4 ${unlocked ? "" : "pointer-events-none opacity-55"}`}>{body}</div>
-      {!unlocked && (
-        <div className="mt-4 rounded-2xl bg-ink p-4 text-cream">
-          <p className="text-[0.8rem] font-bold leading-snug">Motion, petals and music are the Luxe difference — animated invitations guests actually gasp at.</p>
-          <button onClick={() => openUpgrade("motion")} className="mt-3 w-full rounded-full bg-gold py-2.5 text-[0.8rem] font-extrabold text-ink transition hover:brightness-110 cursor-pointer">
-            Unlock with {PLANS.luxe.name} · {formatPrice(PLANS.luxe.price, currency)} one-time
+    <Panel title={songOnly ? "Your own song" : "Music and motion"} aside={unlocked ? undefined : <PlanTag plan="luxe" />}>
+      <div className={unlocked ? "" : "pointer-events-none opacity-55"} aria-disabled={!unlocked || undefined}>{body}</div>
+      {!unlocked ? (
+        <div className="mt-5 border-t border-[var(--pl-line)] pt-4">
+          <p className="text-[14px] leading-snug">Petals, shimmer and a song when guests open it come with {PLANS.luxe.name}.</p>
+          <button onClick={() => openUpgrade("motion")} className="pl-act mt-3 w-full">
+            {PLANS.luxe.name} · {formatPrice(PLANS.luxe.price, currency)} once
           </button>
         </div>
+      ) : (
+        <p className="mt-4 text-[13px] text-[var(--pl-ink-2)]">Heard when you preview as a guest, and by your guests.</p>
       )}
-      {unlocked && (
-        <p className="mt-4 text-[0.68rem] font-semibold text-ink-mute">Heard in Live preview and on your guest page{db.plan === "luxe" ? "" : ""}.</p>
-      )}
-    </section>
+    </Panel>
   );
 }
 
@@ -1296,13 +1246,13 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
 
   const importFiles = async (files: FileList | File[]) => {
     const list = Array.from(files).filter((f) => f.type.startsWith("image/") || /\.html?$/i.test(f.name) || f.type.includes("html"));
-    if (!list.length) { toast("HTML or images only", "Complete .html invitations, or PNG/JPG exports from Canva, Figma, Photoshop…", "warn"); return; }
+    if (!list.length) { toast("Only HTML, PNG or JPG files", "A complete .html page, or an image exported from Canva, Figma or Photoshop.", "warn"); return; }
     setBusy(true);
     let used = db.customTemplates.reduce((s, c) => s + (c.dataUrl?.length ?? c.html?.length ?? 0), 0);
     const added: typeof db.customTemplates = [];
     let skipped = 0;
     for (const f of list) {
-      if (used > 4 * 1024 * 1024) { toast("Storage is getting full", "Browser storage caps the collection around 4 MB — remove an old design to add more.", "warn"); break; }
+      if (used > 4 * 1024 * 1024) { toast("There's no room for more", "Your own designs can take up to about 4 MB together. Remove one to add another.", "warn"); break; }
       const pretty = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").replace(/\b\w/g, (ch: string) => ch.toUpperCase()) || "My design";
       const isHtml = /\.html?$/i.test(f.name) || f.type.includes("html");
       try {
@@ -1322,29 +1272,22 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
     if (added.length) {
       patch({ customTemplates: [...added, ...db.customTemplates] });
       playChime("sparkle");
-      const liveCount = added.filter((a) => a.html).length;
       toast(
-        added.length === 1 ? `“${added[0].name}” joined the Luxe collection` : `${added.length} designs joined the Luxe collection`,
-        liveCount
-          ? `${liveCount} live HTML invitation${liveCount > 1 ? "s" : ""} — interactive everywhere, crown-gated until Luxe.`
-          : "Crown-gated in the gallery — couples on Luxe unlock them.",
+        added.length === 1 ? `“${added[0].name}” added` : `${added.length} designs added`,
+        "Choose it under Designs to make it your invitation.",
       );
     }
-    if (skipped) toast(`${skipped} file${skipped > 1 ? "s" : ""} skipped`, "Didn't look like a valid HTML document.", "warn");
+    if (skipped) toast(`${skipped} file${skipped > 1 ? "s" : ""} skipped`, "They didn't look like a complete HTML page.", "warn");
     setBusy(false);
   };
 
   return (
-    <Modal open={open} onClose={onClose} label="Add your own invitation design">
+    <Modal open={open} onClose={onClose} label="Use your own invitation design">
       <div className="p-7 sm:p-8">
-        <p className="flex items-center gap-2 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
-          <Crown size={13} /> {PLANS[FEATURES.customDesigns.plan].name} · your own design
-        </p>
-        <h2 className="mt-2 font-display text-[1.7rem] text-ink">Use your own invitation design</h2>
-        <p className="mt-2 text-[0.85rem] leading-relaxed text-ink-2">
-          Bring an invitation you made yourself: a <strong className="text-ink">complete HTML design</strong> (it runs live
-          and interactive, exactly as you built it) or flat PNG/JPG artwork. Your guests still RSVP beneath it, with meal
-          choices and notes, just like any Twofold design.
+        <h2 className="font-display text-[30px] leading-none">Use your own design</h2>
+        <p className="mt-3 text-[14.5px] leading-relaxed text-[var(--pl-ink-2)]">
+          Bring an invitation you made yourself: a complete HTML page (it runs exactly as you built it) or a PNG or JPG.
+          Guests still reply beneath it, with meal choices and notes. Part of {PLANS[FEATURES.customDesigns.plan].name}.
         </p>
 
         <button
@@ -1352,25 +1295,23 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={(e) => { e.preventDefault(); setDragOver(false); void importFiles(e.dataTransfer.files); }}
-          className={`mt-5 flex w-full cursor-pointer flex-col items-center gap-3 rounded-[1.4rem] border-2 border-dashed px-6 py-10 text-center transition-all duration-300 ${dragOver ? "border-gold bg-gold-soft/50 scale-[1.01]" : "border-ink/20 bg-white/60 hover:border-gold/60 hover:bg-gold-soft/25"}`}
+          className={`mt-6 flex w-full cursor-pointer flex-col items-center gap-2.5 rounded-[3px] border border-dashed px-6 py-10 text-center transition ${dragOver ? "border-[var(--pl-gold)] bg-[rgb(201_168_106/.14)]" : "border-[rgb(28_26_23/.25)] hover:border-[var(--pl-bronze)]"}`}
         >
-          <span className={`flex h-14 w-14 items-center justify-center rounded-full transition ${dragOver ? "bg-gold text-ink" : "bg-blush-soft text-blush-deep"}`}>
-            <UploadCloud size={22} />
-          </span>
-          <span className="text-[0.95rem] font-extrabold text-ink">{busy ? "Reading & bundling…" : dragOver ? "Let go — they're in good hands" : "Drag invitations here, or tap to browse"}</span>
-          <span className="text-[0.72rem] font-semibold text-ink-mute">HTML · PNG · JPG — self-contained HTML runs live (inline CSS/JS; CDN fonts & linked images fine)</span>
+          <UploadCloud size={22} strokeWidth={1.4} className="text-[var(--pl-bronze)]" aria-hidden="true" />
+          <span className="text-[15px]">{busy ? "Reading your files…" : dragOver ? "Let go to add them" : "Drop your files here, or choose them"}</span>
+          <span className="text-[12.5px] text-[var(--pl-ink-2)]">HTML, PNG or JPG. An HTML page should carry its own styles; fonts and images from links are fine.</span>
         </button>
         <input ref={inputRef} type="file" accept=".html,.htm,image/*" multiple className="hidden" aria-label="Choose invitation files"
           onChange={(e) => { if (e.target.files?.length) void importFiles(e.target.files); e.target.value = ""; }} />
 
         {db.customTemplates.length > 0 && (
-          <p className="mt-4 text-center text-[0.76rem] font-bold text-ink-2">
-            {db.customTemplates.length} design{db.customTemplates.length > 1 ? "s" : ""} imported — manage them in “My designs”.
+          <p className="mt-4 text-center text-[13px] text-[var(--pl-ink-2)]">
+            <span className="tabular-nums">{db.customTemplates.length}</span> of your own design{db.customTemplates.length > 1 ? "s" : ""} added. They're under Designs.
           </p>
         )}
 
-        <div className="mt-6 flex justify-end">
-          <button onClick={onClose} className={btn.ink}>Done</button>
+        <div className="mt-7 flex justify-end">
+          <button onClick={onClose} className="pl-act">Done</button>
         </div>
       </div>
     </Modal>

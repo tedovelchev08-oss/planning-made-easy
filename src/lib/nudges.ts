@@ -92,7 +92,7 @@ export function nudgesFor(db: Db, today: string): Nudge[] {
       id: "rsvps-waiting", tone: "attention",
       title: waiting.length === 1 ? "A new RSVP answer" : `${waiting.length} new RSVP answers`,
       body: `${list(waiting.map((e) => e.name))} replied. Add ${waiting.length === 1 ? "it" : "them"} to your guest list.`,
-      action: { label: "Review answers", to: "/planner/page?tab=rsvp" },
+      action: { label: "Review answers", to: "/planner/invitation?tab=replies" },
     });
   }
 
@@ -113,7 +113,7 @@ export function nudgesFor(db: Db, today: string): Nudge[] {
       out.push({
         id: "invitation-closed", tone: "tip", title: "Your invitation isn't open yet",
         body: "Guests who open your link see \"not open yet\". Turn on Open to guests when you're ready.",
-        action: { label: "Open invitation", to: "/planner/page" },
+        action: { label: "Open invitation", to: "/planner/invitation" },
       });
     }
   }

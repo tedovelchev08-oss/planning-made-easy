@@ -175,7 +175,7 @@ export default function Overview() {
             <section className="pl-card" aria-labelledby="replies-h">
               <div className="pl-card-h">
                 <h2 id="replies-h">Latest replies</h2>
-                <Link to="/planner/page?tab=rsvp" className="text-[13px] text-[var(--pl-bronze)] underline underline-offset-4">All replies</Link>
+                <Link to="/planner/invitation?tab=replies" className="text-[13px] text-[var(--pl-bronze)] underline underline-offset-4">All replies</Link>
               </div>
               <ul className="px-6 pb-2">
                 {db.rsvpLog.slice(0, 4).map((e) => (

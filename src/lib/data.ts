@@ -445,7 +445,7 @@ export const seedTasks: Task[] = [
   task("Order wedding bands", "p3", true, "B", false, -45),
   task("Plan the morning-after brunch", "p3", true, "A"),
   task("Confirm transportation quotes", "p3", true, "T"),
-  task("Publish the wedding website", "p3", true, "B"),
+  task("Open the invitation to guests", "p3", true, "B"),
   // 1 month — 4/8
   task("Chase remaining RSVPs", "p1", true, "B", false, -10),
   task("Final dress fitting", "p1", true, "A", false, -6),
@@ -703,7 +703,7 @@ export const seedRegistry: RegistryItem[] = [
   { id: "r5", name: "Walnut Record Player", store: "Audio-Technica", price: 350, url: "https://www.audio-technica.com", purchased: false },
   { id: "r6", name: "Chef's Knife, Damascus", store: "Korin", price: 290, url: "https://www.korin.com", purchased: false },
   { id: "r7", name: "Weekender Bags × 2", store: "Away", price: 300, url: "https://www.awaytravel.com", purchased: false },
-  { id: "r8", name: "Honeymoon Fund — Amalfi", store: "Twofold Fund", price: 0, url: "#fund", purchased: false },
+  { id: "r8", name: "Towards the honeymoon in Amalfi", store: "A gift of any size", price: 0, url: "", purchased: false },
 ];
 
 /* ------------------------------ templates ---------------------------- */
@@ -771,22 +771,7 @@ export const FEATURES = [
   { id: "timeline", icon: "timeline", title: "Timeline", body: "Turn a giant wedding checklist into a calm weekly rhythm that knows what's next.", span: "third" },
   { id: "vendors", icon: "vendors", title: "Vendor Hub", body: "Proposals, contracts, contacts and decisions — together at last.", span: "third" },
   { id: "seating", icon: "seating", title: "Seating Studio", body: "Visually arrange tables and guests on a living canvas.", span: "third" },
-  { id: "world", icon: "world", title: "Wedding World", body: "Connect invitations, RSVPs, your website, photos and memories into one world your guests step into — and you get to keep forever.", span: "banner" },
-] as const;
-
-/* ------------------------------ website ---------------------------- */
-
-export const SITE_SECTIONS = [
-  { id: "hero", label: "Hero" },
-  { id: "story", label: "Our Story" },
-  { id: "details", label: "Wedding Details" },
-  { id: "schedule", label: "Schedule" },
-  { id: "venue", label: "Venue" },
-  { id: "travel", label: "Travel" },
-  { id: "registry", label: "Registry" },
-  { id: "gallery", label: "Gallery" },
-  { id: "rsvp", label: "RSVP" },
-  { id: "music", label: "Music" },
+  { id: "world", icon: "world", title: "Wedding World", body: "Connect invitations, RSVPs, photos and memories into one world your guests step into — and you get to keep forever.", span: "banner" },
 ] as const;
 
 /* ------------------------------ helpers ---------------------------- */

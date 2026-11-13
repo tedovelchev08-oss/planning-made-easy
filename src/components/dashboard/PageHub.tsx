@@ -1,38 +1,34 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Globe, Inbox, Mail } from "lucide-react";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
 import Invitations, { RsvpTracker, ShareCard } from "./Invitations";
-import Website from "./Website";
 
 /* ------------------------------------------------------------------ */
-/* The Wedding Page — invitation, website and RSVPs merged into one   */
-/* studio around a single guest-facing page.                          */
+/* The invitation: the one page guests open. Choosing and sharing it,  */
+/* and the replies it brings back. (It used to sit beside a separate   */
+/* wedding website; the invitation now does that job on its own.)     */
 /* ------------------------------------------------------------------ */
 
 const TABS = [
-  { id: "invitation", label: "Invitation", icon: Mail },
-  { id: "website", label: "Website", icon: Globe },
-  { id: "rsvps", label: "RSVPs", icon: Inbox },
+  { id: "invitation", label: "The invitation" },
+  { id: "replies", label: "Replies" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
+
+/** ?tab= as older links wrote it (rsvp, rsvps, website) */
+const tabOf = (p: string | null): TabId => (p === "replies" || p === "rsvp" || p === "rsvps" ? "replies" : "invitation");
 
 export default function PageHub() {
   const { db } = useApp();
   const reduced = usePrefersReducedMotion();
   const [params, setParams] = useSearchParams();
   const paramTab = params.get("tab");
-  const [tab, setTab] = useState<TabId>(() =>
-    paramTab === "rsvp" || paramTab === "rsvps" ? "rsvps" : paramTab === "website" ? "website" : "invitation");
+  const [tab, setTab] = useState<TabId>(() => tabOf(paramTab));
 
   // keep the tab and the ?tab= param in sync (deep links, back/forward)
-  useEffect(() => {
-    if (paramTab === "rsvp" || paramTab === "rsvps") setTab("rsvps");
-    else if (paramTab === "website") setTab("website");
-    else if (paramTab === "invitation") setTab("invitation");
-  }, [paramTab]);
+  useEffect(() => { setTab(tabOf(paramTab)); }, [paramTab]);
 
   const changeTab = (t: TabId) => {
     setTab(t);
@@ -40,74 +36,41 @@ export default function PageHub() {
   };
 
   const unsynced = db.rsvpLog.filter((e) => !e.synced).length;
+  const replied = db.guests.filter((g) => g.rsvp !== "pending").length;
 
   return (
     <div className="space-y-6">
-      {/* header + tabs */}
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.22em] text-gold-deep">One link · one page</p>
-          <h2 className="mt-1.5 font-display text-3xl tracking-tight text-ink sm:text-4xl">
-            The wedding <em className="text-blush-deep">page</em>
-          </h2>
-          <p className="mt-2 max-w-lg text-[0.9rem] font-semibold text-ink-2">
-            Your invitation opens it, your website completes it, and every RSVP lands in one tracker. Built in one place.
+          <h1 className="font-display text-[40px] leading-none sm:text-[46px]">Invitation</h1>
+          <p className="mt-2 text-[15px] text-[var(--pl-ink-2)]">
+            {db.invitation.live
+              ? <>Open to guests. <span className="tabular-nums text-[var(--pl-ink)]">{replied} of {db.guests.length}</span> have replied.</>
+              : "Not open yet: only the two of you can see it."}
           </p>
         </div>
-
-        <div
-          role="tablist" aria-label="Wedding page sections"
-          className="inline-flex shrink-0 items-center gap-1 self-start rounded-full border border-ink/12 bg-white/70 p-1.5 backdrop-blur-md sm:self-auto"
-        >
-          {TABS.map((t) => {
-            const active = tab === t.id;
-            return (
-              <button
-                key={t.id} role="tab" aria-selected={active}
-                onClick={() => changeTab(t.id)}
-                className={`relative inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[0.8rem] font-extrabold transition-colors duration-300 cursor-pointer ${active ? "text-cream" : "text-ink-mute hover:text-ink"}`}
-              >
-                {active && !reduced && (
-                  <motion.span
-                    layoutId="pagehub-tab"
-                    className="absolute inset-0 rounded-full bg-ink"
-                    transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                  />
-                )}
-                {active && reduced && <span className="absolute inset-0 rounded-full bg-ink" />}
-                <t.icon size={14} className="relative" />
-                <span className="relative">{t.label}</span>
-                {t.id === "rsvps" && unsynced > 0 && (
-                  <motion.span
-                    initial={reduced ? false : { scale: 0.4, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 380, damping: 20 }}
-                    className="relative flex h-5 min-w-5 items-center justify-center rounded-full bg-blush-deep px-1 text-[0.6rem] font-extrabold text-white"
-                  >
-                    {unsynced} new
-                  </motion.span>
-                )}
-              </button>
-            );
-          })}
+        <div role="tablist" aria-label="Invitation" className="pl-seg">
+          {TABS.map((t) => (
+            <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => changeTab(t.id)}>
+              {t.label}
+              {t.id === "replies" && unsynced > 0 && (
+                <span className={`ml-1.5 tabular-nums ${tab === t.id ? "text-[var(--pl-gold)]" : "text-[var(--pl-bronze)]"}`}>· {unsynced} new</span>
+              )}
+            </button>
+          ))}
         </div>
-      </div>
+      </header>
 
-      {/* the one link guests receive */}
-      <ShareCard />
-
-      {/* tab content */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={tab}
-          initial={reduced ? false : { opacity: 0, y: 18 }}
+          initial={reduced ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={reduced ? undefined : { opacity: 0, y: -12 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          exit={reduced ? undefined : { opacity: 0 }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          className="space-y-6"
         >
-          {tab === "invitation" && <Invitations />}
-          {tab === "website" && <Website />}
-          {tab === "rsvps" && <RsvpTracker />}
+          {tab === "invitation" ? <><ShareCard /><Invitations /></> : <RsvpTracker />}
         </motion.div>
       </AnimatePresence>
     </div>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import {
-  Armchair, BellRing, Check, Clock3, CornerDownLeft, ExternalLink, Gift, Globe,
+  Armchair, BellRing, Check, Clock3, CornerDownLeft, ExternalLink, Gift, Mail,
   LayoutDashboard, Link2, Search, Store, Users, Wallet,
 } from "lucide-react";
 import { useApp } from "../../lib/store";
@@ -27,7 +27,7 @@ const MODULES: { path: string; label: string; icon: React.ReactNode }[] = [
   { path: "/planner/vendors", label: "Vendors", icon: <Store size={15} /> },
   { path: "/planner/seating", label: "Seating", icon: <Armchair size={15} /> },
   { path: "/planner/registry", label: "Registry", icon: <Gift size={15} /> },
-  { path: "/planner/page", label: "Wedding Page", icon: <Globe size={15} /> },
+  { path: "/planner/invitation", label: "Invitation", icon: <Mail size={15} /> },
 ];
 
 export default function CmdK({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -74,7 +74,7 @@ export default function CmdK({ open, onClose }: { open: boolean; onClose: () => 
         },
       },
       { id: "a-guest", group: "Actions", label: "Open the guest page", hint: "what guests see", icon: <ExternalLink size={15} />, run: () => { window.location.hash = "#/invite"; onClose(); } },
-      { id: "a-rsvps", group: "Actions", label: "Review new RSVPs", hint: "link answers waiting", icon: <BellRing size={15} />, run: nav("/planner/page?tab=rsvp") },
+      { id: "a-rsvps", group: "Actions", label: "Review new RSVPs", hint: "link answers waiting", icon: <BellRing size={15} />, run: nav("/planner/invitation?tab=replies") },
     ];
     out.push(...actions.filter((a) => !ql || a.label.toLowerCase().includes(ql)));
 

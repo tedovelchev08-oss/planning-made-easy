@@ -40,8 +40,8 @@ export function Pricing() {
           Start free. <em className="text-champagne">Upgrade once, if you love it.</em>
         </h2>
         <p className="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed text-ivory/70">
-          Plan the whole wedding on {PLANS.essential.name} for free. When you want every guest, every design and your
-          own website, upgrade with one payment. No subscription, nothing to cancel.
+          Plan the whole wedding on {PLANS.essential.name} for free. When you want every guest and every invitation
+          design, upgrade with one payment. No subscription, nothing to cancel.
         </p>
         <CurrencySelect value={currency} onChange={setCurrency} tone="dark" className="mt-6" />
 

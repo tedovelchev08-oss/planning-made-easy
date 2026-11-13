@@ -1,6 +1,6 @@
 # Privacy policy
 
-**Last updated: October 20, 2026**
+**Last updated: November 13, 2026**
 
 This privacy policy explains how **Teodor Yovchev Velchev**, doing business as **Twofold** ("**we**", "**us**", "**our**"), collects, uses, stores and shares personal information when you use Twofold, the online wedding planner at [planning-made-easy.vercel.app](https://planning-made-easy.vercel.app) (the "**Services**"), including when you:
 
@@ -25,7 +25,7 @@ We decide how your personal information is processed, so we are its controller. 
 
 - your **email address** and **password** (stored only as a secure hash by our sign-in provider; we never see it);
 - your and your partner's **names**, the wedding **date**, **venue** and **location**, and your preferences (language, currency, time zone);
-- everything you enter while planning: guests, seating, budget, vendors, tasks, gift list, invitation and website designs, photos and songs you upload;
+- everything you enter while planning: guests, seating, budget, vendors, tasks, gift list, invitation designs, photos and songs you upload;
 - if you invite a partner to plan with you, their **email address**.
 
 **Payment information.** When you buy a plan, you enter your card and billing details on **Stripe's** payment page. Twofold never receives or stores your card details. We receive a record of the purchase from Stripe (the plan, amount, currency, date and Stripe's payment reference). Stripe's privacy notice: [stripe.com/privacy](https://stripe.com/privacy)
