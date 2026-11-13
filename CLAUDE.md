@@ -40,15 +40,16 @@ own clone of this repo. Chats don't share history; this file and git are the sha
 
 As of 2026-11-13:
 
-- **main** is at PR #107 (Silk planner: frame, guests, money, timeline, seating). Phase 1 and most
-  of Phase 2 of the production audit are merged; the Twofold rebrand merged in #96, the landing
-  rebuild in #97.
-- **Open: PR #108** "one Invitation page; Registry in the Silk desk look", branch
-  `feat/planner-silk-registry-page`. All checks green, mergeable. Note before merging:
-  - it adds migration `0021_registry_on_invitation.sql`, which runs on production at merge;
-  - it retires the separate wedding website and removes it from the Celebration and Luxe
-    feature lists in `src/lib/plans.ts`. Stripe product descriptions and any marketing copy that
-    still promise a website need the same change.
+- **main** is at PR #108 (merged 2026-11-13): one Invitation page (invitation, replies, share
+  link, open-to-guests switch) and the Registry in the Silk desk look. The separate wedding
+  website is retired; migration `0021_registry_on_invitation.sql` (registry now travels with the
+  live invitation; nothing deleted) ran on production at merge. Terms and privacy no longer
+  promise a website. Before #108: the Silk planner (#103-#107), the Twofold rebrand (#96), the
+  landing rebuild (#97); Phase 1 and most of Phase 2 of the production audit.
+- Terms promise "we won't take away features from a plan you have already paid for". Retiring the
+  website was fine only because Stripe isn't live yet; once it is, removing a paid feature needs
+  a plan for existing buyers.
+- The GitHub CLI (`gh`) is installed on the Windows PC, signed in as `tedovelchev08-oss`.
 - `polish/all-designs` has one unmerged commit from 2026-10-21; probably superseded. Check
   before deleting.
 - **Go-live is blocked on the owner, not code** (`docs/GO-LIVE.md`): business registration and
