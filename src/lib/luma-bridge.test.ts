@@ -154,6 +154,23 @@ describe("luma-bridge", () => {
     await new Promise((r) => setTimeout(r, 120));
   });
 
+  it("lets the lines with both names, and the monogram, follow a name as it's typed", async () => {
+    localStorage.setItem("luma.designPreview", JSON.stringify({ invitation }));
+    boot("?preview=1&quiet=1&edit=1");
+    document.body.insertAdjacentHTML("beforeend", `
+      <h1><span data-field="partner1">Ana</span> &amp; <span data-field="partner2">Boris</span></h1>
+      <p data-field="coupleNames">Ana &amp; Boris</p>
+      <span data-field="initial1">A</span><span data-field="initial2">B</span>`);
+    w.lumaAfterRender(await w.lumaBoot);
+    const first = document.querySelector('h1 [data-field="partner1"]') as HTMLElement;
+    first.textContent = "Mila";
+    first.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(document.querySelector('[data-field="coupleNames"]')!.textContent).toBe("Mila & Boris");
+    expect(document.querySelector('[data-field="initial1"]')!.textContent).toBe("M");
+    expect(document.querySelector('[data-field="coupleNames"]')!.hasAttribute("contenteditable")).toBe(false);
+    await new Promise((r) => setTimeout(r, 120));
+  });
+
   it("is never editable for guests", async () => {
     boot(`?token=${TOKEN}`);
     document.body.insertAdjacentHTML("beforeend", `<p data-field="venueName">Villa Lago</p>`);
