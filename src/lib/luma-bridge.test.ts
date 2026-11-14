@@ -128,6 +128,37 @@ describe("luma-bridge", () => {
     expect(skipped).toHaveBeenCalled();
   });
 
+  it("makes the couple's words editable on the planner's stage, mirror images included in step", async () => {
+    localStorage.setItem("luma.designPreview", JSON.stringify({ invitation }));
+    boot("?preview=1&quiet=1&edit=1");
+    document.body.insertAdjacentHTML("beforeend", `
+      <h1><span data-sync="personOne">Ana</span> &amp; <span data-sync="personTwo">Boris</span></h1>
+      <span class="reflect" aria-hidden="true" data-sync="personOne">Ana</span>
+      <p data-field="venueName">Villa Lago</p>
+      <p data-field="dateAndPlace">June 12, 2027</p>
+      <p id="closing" data-edit="closingMsg">Until We Meet</p>`);
+    w.lumaAfterRender(await w.lumaBoot);
+    const first = document.querySelector('h1 [data-sync="personOne"]') as HTMLElement;
+    expect(first.getAttribute("contenteditable")).toBe("true");
+    expect(first.getAttribute("aria-label")).toBe("First name");
+    expect(document.querySelector('[data-field="venueName"]')!.getAttribute("contenteditable")).toBe("true");
+    expect(document.getElementById("closing")!.getAttribute("contenteditable")).toBe("true");
+    // composite lines (date and place) and mirror images are not typed into
+    expect(document.querySelector('[data-field="dateAndPlace"]')!.hasAttribute("contenteditable")).toBe(false);
+    const reflection = document.querySelector('.reflect') as HTMLElement;
+    expect(reflection.hasAttribute("contenteditable")).toBe(false);
+    first.textContent = "Anna";
+    first.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(reflection.textContent).toBe("Anna");
+  });
+
+  it("is never editable for guests", async () => {
+    boot(`?token=${TOKEN}`);
+    document.body.insertAdjacentHTML("beforeend", `<p data-field="venueName">Villa Lago</p>`);
+    w.lumaAfterRender(await w.lumaBoot);
+    expect(document.querySelector('[data-field="venueName"]')!.hasAttribute("contenteditable")).toBe(false);
+  });
+
   it("keeps the opening for a guest-style preview", async () => {
     localStorage.setItem("luma.designPreview", JSON.stringify({ invitation }));
     boot("?preview=1");
