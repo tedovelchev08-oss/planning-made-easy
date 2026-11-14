@@ -57,6 +57,19 @@ As of 2026-11-13:
   is removed (the page is hidden until the couple's details load). Any design with a timed
   opening must do the same, or guests arrive mid-animation. Note: the in-app test browser
   freezes CSS animations when its window is off screen; judge animation timing on a real phone.
+- PR #112: a reset link no longer traps people on /new-password (AuthLinks redirects once).
+- PR #113 (2026-11-14): Italiana retired. Display type is Cormorant Garamond: page titles Light 300
+  upright (`h1.font-display`), section/card titles italic 400 (`h2/h3.font-display`, `.pl-card-h`).
+  Owner rejected bold/generic serifs; never use semibold or bold display type. Planner grows to
+  1560px on 2xl screens.
+- **In progress: Invitation page redesign "A + C"** (owner's choice, mocks at
+  https://claude.ai/artifact/Va1KAjFt6eU2nJos3qcjJu): full-screen invitation edited in place
+  (click text to type, dashed "+ Add" for empty sections, floating bar: design, colours,
+  phone/desktop, see as guest), plus a guided first-time walk-through. Steps: 1b full-screen page
+  and floating bar; 2 edit in place on built-in designs; 3 studio designs (need field markers);
+  4 guided walk-through.
+- Unresolved: owner saw the dashboard wider than the phone screen after zooming out on an iPhone,
+  on a preview URL with a near-empty plan. Not reproduced with demo data at 375px.
 - The GitHub CLI (`gh`) is installed on the Windows PC, signed in as `tedovelchev08-oss`.
 - `polish/all-designs` has one unmerged commit from 2026-10-21; probably superseded. Check
   before deleting.
