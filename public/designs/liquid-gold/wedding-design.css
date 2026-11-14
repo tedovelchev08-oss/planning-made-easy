@@ -310,6 +310,7 @@ body.reveal .hero-inner{opacity:1}
 .hero-eyebrow{font-size:var(--t-eyebrow);letter-spacing:.6em;text-indent:.6em;color:var(--wgray);text-transform:uppercase;margin-bottom:3.4rem}
 .hero-names{font-family:var(--serif);font-weight:400;line-height:1.04;font-size:clamp(3rem,10.5vw,8.6rem);
   letter-spacing:.1em;color:var(--ivory)}
+.hero-names .hn{text-transform:uppercase}
 .hero-names .amp{display:block;font-style:italic;font-size:.34em;color:var(--g-cham);letter-spacing:.3em;margin:.3em 0}
 .hero-date{margin-top:3.4rem;font-size:.78rem;letter-spacing:.72em;text-indent:.72em;color:var(--g-cham)}
 .hero-state{margin-top:2.4rem;font-family:var(--serif);font-style:italic;font-weight:400;

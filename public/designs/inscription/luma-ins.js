@@ -66,6 +66,8 @@
     if (ap === 'a' && h === 12) h = 0;
     return { h: h, mi: mi };
   }
+  // a name the planner can type on (luma-bridge.js, edit mode)
+  function named(key, text) { var s = el('span', null, text); s.setAttribute('data-edit', key); return s; }
   function real(url) { return /^(https:|blob:)/.test(txt(url)); }
 
   function render(d) {
@@ -84,9 +86,9 @@
     var h1 = document.querySelector('.inscription h1');
     if (h1) {
       h1.textContent = '';
-      h1.appendChild(document.createTextNode(one));
+      h1.appendChild(named('partner1', one));
       h1.appendChild(el('span', 'amp', 'and'));
-      h1.appendChild(document.createTextNode(two));
+      h1.appendChild(named('partner2', two));
     }
     var below = document.querySelector('.inscription .below');
     if (below && dp) {
@@ -123,7 +125,10 @@
         if (!f[1]) return;
         var div = el('div');
         div.appendChild(el('dt', null, f[0]));
-        div.appendChild(el('dd', null, f[1]));
+        var dd = el('dd', null, f[1]);
+        if (f[0] === 'Where') dd.setAttribute('data-edit', 'venueName');
+        if (f[0] === 'Address') dd.setAttribute('data-edit', 'venueAddress');
+        div.appendChild(dd);
         facts.appendChild(div);
       });
     }
@@ -206,7 +211,7 @@
     function go() {
       render(d);
       if (typeof window.lumaAfterRender === 'function') window.lumaAfterRender(d);
-      start('stone.js?v=6').then(function () { return start('page.js?v=2'); });
+      start('stone.js?v=7').then(function () { return start('page.js?v=2'); });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);
     else go();

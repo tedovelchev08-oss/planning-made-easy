@@ -54,7 +54,7 @@
 <section class="scene" id="hero">
 
   <div class="inscription">
-    <p class="above"></p>
+    <p class="above" data-edit="inscriptionAbove" data-edit-label="The line above your names"></p>
 
     <h1 class="cut"></h1>
 
@@ -83,8 +83,8 @@
     </figure>
     <div class="words" data-reveal>
       <p class="eyebrow">How it started</p>
-      <h2 id="storyHeadline"></h2>
-      <p class="body" id="storyP1"></p>
+      <h2 id="storyHeadline" data-edit="storyHeadline" data-edit-label="Story headline"></h2>
+      <p class="body" id="storyP1" data-edit="story1"></p>
     </div>
   </div>
 </section>
@@ -99,11 +99,11 @@
   <div class="wrap">
     <div class="tablet" data-tablet>
       <div class="pair">
-        <p class="who cut" id="whoOne"></p>
+        <p class="who cut" id="whoOne" data-follow="partner1"></p>
         <p class="join">and</p>
-        <p class="who cut" id="whoTwo"></p>
+        <p class="who cut" id="whoTwo" data-follow="partner2"></p>
       </div>
-      <p class="note" id="storyP2"></p>
+      <p class="note" id="storyP2" data-edit="story2"></p>
     </div>
   </div>
 </section>
@@ -139,7 +139,7 @@
 <section class="sec" id="schedule">
   <div class="wrap">
     <div class="head r">
-      <h2 id="scheduleHeading"></h2>
+      <h2 id="scheduleHeading" data-edit="scheduleHeading" data-edit-label="Schedule heading"></h2>
     </div>
     <div class="hours off-r" id="tlItems" data-hours>
       <span class="channel" aria-hidden="true"></span>
@@ -155,7 +155,7 @@
 <section class="sec" id="gallery">
   <div class="wrap">
     <div class="head r">
-      <h2 id="galleryHeading"></h2>
+      <h2 id="galleryHeading" data-edit="galleryHeading" data-edit-label="Photographs heading"></h2>
     </div>
     <div class="plates" data-reveal>
     </div>
@@ -256,6 +256,6 @@
 <p class="hint" id="hint">Tap to bring the light</p>
 
 <script src="../_shared/luma-bridge.js?v=8"></script>
-<script src="luma-ins.js?v=1"></script>
+<script src="luma-ins.js?v=2"></script>
 </body>
 </html>

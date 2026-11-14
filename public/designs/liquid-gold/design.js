@@ -278,7 +278,8 @@ function buildContent(){
   set('introMarkA', w.couple.personOne.charAt(0).toUpperCase());
   set('introMarkB', String.fromCharCode(38) + ' ' + w.couple.personTwo.charAt(0).toUpperCase());
   set('heroEyebrow', w.hero.eyebrow);
-  html('heroNames', `${esc(w.couple.personOne.toUpperCase())}<span class="amp">&amp;</span>${esc(w.couple.personTwo.toUpperCase())}`);
+  /* each name in its own span, capitals from CSS: the planner types on them, and keeps their own case */
+  html('heroNames', `<span class="hn" data-edit="partner1">${esc(w.couple.personOne)}</span><span class="amp">&amp;</span><span class="hn" data-edit="partner2">${esc(w.couple.personTwo)}</span>`);
   set('heroDate', w.date.display);
   set('heroState', w.hero.statement);
   set('menuDate', w.date.display);
