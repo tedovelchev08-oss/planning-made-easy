@@ -150,6 +150,8 @@ describe("luma-bridge", () => {
     first.textContent = "Anna";
     first.dispatchEvent(new Event("input", { bubbles: true }));
     expect(reflection.textContent).toBe("Anna");
+    // let this preview's own "skip the opening" timer run before the next test builds its page
+    await new Promise((r) => setTimeout(r, 120));
   });
 
   it("is never editable for guests", async () => {
