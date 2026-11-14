@@ -55,6 +55,14 @@ describe("studioEditPatch", () => {
     expect(studioEditPatch(db, cinema, "heroPlace", "x")).toBeNull();
   });
 
+  it("saves Red Thread's and Glasshouse's own lines", () => {
+    const red = STUDIO_DESIGNS.find((d) => d.id === "red-thread")!;
+    const glass = STUDIO_DESIGNS.find((d) => d.id === "glasshouse")!;
+    expect(studioEditPatch(db, red, "heroQuote", "It never breaks.")!.invitation!.designData!.texts!.heroQuote).toBe("It never breaks.");
+    expect(studioEditPatch(db, glass, "glassNote", "Still growing")!.invitation!.designData!.texts!.glassNote).toBe("Still growing");
+    expect(studioEditPatch(db, red, "glassNote", "x")).toBeNull();
+  });
+
   it("ignores keys a design wasn't given, and anything that isn't text", () => {
     expect(studioEditPatch(db, celestial, "closingMsg", "Until then")).toBeNull();
     expect(studioEditPatch(db, celestial, "plan", "luxe")).toBeNull();

@@ -76,9 +76,9 @@
   <div class="ov-copy">
     <div class="ov-eyeb" id="ovEyeb">Together with their families</div>
     <div class="ov-names">
-      <span data-sync="one"></span>
+      <span data-sync="one" data-follow="partner1"></span>
       <span class="ov-amp">and</span>
-      <span data-sync="two"></span>
+      <span data-sync="two" data-follow="partner2"></span>
     </div>
   </div>
   <button class="intro-skip" id="introSkip">Skip</button>
@@ -144,11 +144,11 @@
       <div class="hero-copy">
         <div class="rule"></div>
         <h1 class="hero-names">
-          <span class="hero-name" data-sync="one"></span>
+          <span class="hero-name" data-sync="one" data-edit="partner1"></span>
           <span class="hero-amp">and</span>
-          <span class="hero-name" data-sync="two"></span>
+          <span class="hero-name" data-sync="two" data-edit="partner2"></span>
         </h1>
-        <p class="hero-sub" id="heroSub">A glasshouse is where things are kept growing out of season. Come and stand in ours for an evening.</p>
+        <p class="hero-sub" id="heroSub" data-edit="heroQuote" data-edit-label="Opening lines">A glasshouse is where things are kept growing out of season. Come and stand in ours for an evening.</p>
       </div>
 
       <div class="hero-meta">
@@ -164,8 +164,8 @@
   <section class="sec glass" id="beginning" data-luma-story>
     <div class="wrap">
       <div class="b-copy" data-luma-story-text>
-        <h2 class="sec-title" id="storyTitle"></h2>
-        <p class="sec-text" id="storyP1">We met in a nursery, arguing quietly about whether it needed more light or less.</p>
+        <h2 class="sec-title" id="storyTitle" data-edit="storyTitle" data-edit-label="Story heading"></h2>
+        <p class="sec-text" id="storyP1" data-edit="story1">We met in a nursery, arguing quietly about whether it needed more light or less.</p>
       </div>
       <div class="frame" id="heroPhoto">
         <div class="ph"><div class="ph-tag"></div></div>
@@ -184,8 +184,8 @@
         <span class="u-w u-amp" id="story-amp"></span>
         <span class="u-w" id="word-me"></span>
       </div>
-      <div class="u-us" id="story-us"></div>
-      <p class="u-text" id="storyP2"></p>
+      <div class="u-us" id="story-us" data-edit="glassNote" data-edit-label="A small line under glass"></div>
+      <p class="u-text" id="storyP2" data-edit="story2"></p>
     </div>
   </section>
 
@@ -204,13 +204,13 @@
         <span class="lc-hole" aria-hidden="true"></span>
         <div class="lc-issuer" id="dayIssuer"></div>
         <div class="lc-species">
-          <span data-sync="one"></span><i>&amp;</i><span data-sync="two"></span>
+          <span data-sync="one" data-follow="partner1"></span><i>&amp;</i><span data-sync="two" data-follow="partner2"></span>
         </div>
         <div class="lc-date" data-sync="date"></div>
         <dl class="lc-rows">
           <div><dt>Ceremony</dt><dd id="dayTime">4:00 pm</dd></div>
-          <div><dt>Position</dt><dd id="dayVenue"></dd></div>
-          <div><dt>Address</dt><dd id="dayAddr"></dd></div>
+          <div><dt>Position</dt><dd id="dayVenue" data-edit="venueName"></dd></div>
+          <div><dt>Address</dt><dd id="dayAddr" data-edit="venueAddress"></dd></div>
           <div><dt>Notes</dt><dd id="dayDress">Summer dress</dd></div>
         </dl>
       </div>
@@ -295,7 +295,7 @@
              answer by, and how to reach the couple if the form will not play. -->
         <p class="rsvp-foot">
           <span id="rsvpDeadlineLine">Kindly reply by 1st May, 2027</span>
-          <a id="rsvpEmailLink" href="#"></a>
+          <a id="rsvpEmailLink" href="#" data-edit="rsvpEmailText" data-edit-label="Contact for questions"></a>
         </p>
       </form>
 
@@ -325,7 +325,7 @@
   <div class="cl-copy">
     <div class="cf-title" id="closeText">See you there</div>
     <div class="cf-sub" id="closeSub">With love,</div>
-    <div class="cf-names" id="closeNames"></div>
+    <div class="cf-names" id="closeNames" data-follow-names></div>
   </div>
   <button type="button" class="cl-close" id="closeDismiss">Close</button>
 </div>
