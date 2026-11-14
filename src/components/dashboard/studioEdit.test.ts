@@ -31,6 +31,14 @@ describe("studioEditPatch", () => {
     expect(p.invitation!.designData!.texts!.closingMsg).toHaveLength(40);
   });
 
+  it("saves Riviera's and Palm Springs' own lines", () => {
+    const riviera = STUDIO_DESIGNS.find((d) => d.id === "riviera")!;
+    const springs = STUDIO_DESIGNS.find((d) => d.id === "palm-springs")!;
+    expect(studioEditPatch(db, riviera, "heroPlace", "Portovenere")!.invitation!.designData!.texts!.heroPlace).toBe("Portovenere");
+    expect(studioEditPatch(db, springs, "inviteLine", "poolside, at dusk")!.invitation!.designData!.texts!.inviteLine).toBe("poolside, at dusk");
+    expect(studioEditPatch(db, springs, "heroPlace", "Portovenere")).toBeNull();
+  });
+
   it("ignores keys a design wasn't given, and anything that isn't text", () => {
     expect(studioEditPatch(db, celestial, "closingMsg", "Until then")).toBeNull();
     expect(studioEditPatch(db, celestial, "plan", "luxe")).toBeNull();

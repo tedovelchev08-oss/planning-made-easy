@@ -74,13 +74,13 @@
     </div>
 
     <h1 class="hero-names">
-      <span class="hn hn1" data-sync="one"></span>
-      <span class="hn hn2"><span class="amp">&amp;</span><span data-sync="two"></span></span>
+      <span class="hn hn1" data-sync="one" data-edit="partner1"></span>
+      <span class="hn hn2"><span class="amp">&amp;</span><span data-sync="two" data-edit="partner2"></span></span>
     </h1>
 
     <div class="hero-details">
       <p class="hero-when" data-sync="dateWords"></p>
-      <p class="hero-where" id="heroPlace"></p>
+      <p class="hero-where" id="heroPlace" data-edit="heroPlace" data-edit-label="Where, in a few words"></p>
       <a class="btn-baize" href="#rsvp" id="heroCta">Reply</a>
     </div>
 
@@ -118,8 +118,8 @@
   <section class="sec" id="story">
     <div class="story-col">
       <h2 class="sec-title" id="storyTitle">How it began</h2>
-      <p class="story-p" id="storyP1"></p>
-      <p class="story-p" id="storyP2"></p>
+      <p class="story-p" id="storyP1" data-edit="story1"></p>
+      <p class="story-p" id="storyP2" data-edit="story2"></p>
     </div>
   </section>
 
@@ -133,8 +133,8 @@
       <div class="day-info">
         <p class="day-when" data-sync="dateWords"></p>
         <p class="day-time" id="dayTime">4:00 PM</p>
-        <h2 class="day-venue" id="dayVenue"></h2>
-        <p class="day-addr" id="dayAddr"></p>
+        <h2 class="day-venue" id="dayVenue" data-edit="venueName"></h2>
+        <p class="day-addr" id="dayAddr" data-edit="venueAddress"></p>
         <p class="day-dress" id="dayDress">Black tie</p>
         <div class="day-links">
           <a id="venueLink" href="#" target="_blank" rel="noopener">Directions</a>
@@ -221,13 +221,13 @@
         <button type="button" class="done-again" id="rsvpAgain">Send a different reply</button>
       </div>
 
-      <p class="rsvp-contact" id="rsvpContact"></p>
+      <p class="rsvp-contact" id="rsvpContact" data-edit="rsvpEmailText" data-edit-label="Contact for questions"></p>
     </div>
   </section>
 
   <footer class="site-foot">
-    <span class="foot-names" id="footNames"></span>
-    <span class="foot-tag" id="footTag"></span>
+    <span class="foot-names" id="footNames" data-follow-names></span>
+    <span class="foot-tag" id="footTag" data-edit="hashtag"></span>
   </footer>
 </main>
 
@@ -273,7 +273,7 @@ let invitationData = {
 </script>
 
 <!-- Luma first: the core awaits window.lumaBoot -->
-<script src="../_shared/luma-bridge.js?v=6"></script>
+<script src="../_shared/luma-bridge.js?v=7"></script>
 
 
 <!-- Shared behaviour for every design. Loaded after the data. -->

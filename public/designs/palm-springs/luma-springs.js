@@ -95,9 +95,12 @@
     var names = byId('inviteNames');
     if (names) {
       names.textContent = '';
-      names.appendChild(document.createTextNode(one));
+      var first = el('span', '', one), second = el('span', '', two);
+      first.setAttribute('data-edit', 'partner1');
+      second.setAttribute('data-edit', 'partner2');
+      names.appendChild(first);
       names.appendChild(el('span', 'amp', ' & '));
-      names.appendChild(document.createTextNode(two));
+      names.appendChild(second);
     }
     setText('inviteLine', txt(d.inviteLine, 'request the pleasure of your company, poolside'));
     setText('inviteDate', dp ? dp.weekday + ', the ' + ORD[dp.d] + ' of ' + dp.month : '');
