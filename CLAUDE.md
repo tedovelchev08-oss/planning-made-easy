@@ -49,6 +49,10 @@ As of 2026-11-13:
 - Terms promise "we won't take away features from a plan you have already paid for". Retiring the
   website was fine only because Stripe isn't live yet; once it is, removing a paid feature needs
   a plan for existing buyers.
+- PR #110 (2026-11-14): designs with their own story section mark it `data-luma-story` (words:
+  `data-luma-story-text`) so `luma-bridge.js` hides it when the couple wrote no story (Glasshouse,
+  Red Thread, All In, Cinema). A new design with a custom story section needs the same markers.
+  Bump `luma-bridge.js?v=` in every design when the bridge changes (now v=3).
 - The GitHub CLI (`gh`) is installed on the Windows PC, signed in as `tedovelchev08-oss`.
 - `polish/all-designs` has one unmerged commit from 2026-10-21; probably superseded. Check
   before deleting.
