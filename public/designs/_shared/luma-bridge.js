@@ -414,7 +414,7 @@
       if (el) found.push(el);
     });
     found.forEach(function (el) { el.classList.add('tf-guide'); });
-    if (found[0]) found[0].scrollIntoView({ block: 'center', behavior: smooth && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'smooth' : 'auto' });
+    if (found[0]) found[0].scrollIntoView({ block: 'center', behavior: smooth && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'smooth' : 'instant' });
   }
   if (editing) {
     window.addEventListener('message', function (e) {
