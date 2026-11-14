@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Check, Copy, ExternalLink, Heart, Instagram, Link2, Loader2, Lock, Mail, MessageCircle, Monitor,
-  Music, Play, Send, Smartphone, Sparkles, StopCircle, Tablet, Trash2, UploadCloud, X,
+  Check, Copy, Eye, Heart, Image as ImageIcon, Instagram, LayoutTemplate, Link2, Loader2, Lock, Mail,
+  MessageCircle, Monitor, Music, Palette, Play, Send, Share2, Smartphone, Sparkles, StopCircle, Tablet, Trash2, Type,
+  UploadCloud, X,
 } from "lucide-react";
 import { Guest, MEALS, MUSIC_TRACKS, RsvpEntry, TEMPLATE_CATS, Template, bestGuestMatch, fmtDate, seedTemplates, timeAgo } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
@@ -16,8 +17,8 @@ import { Lining, Panel } from "./Panel";
 import { playChime, useChimeLoop } from "../../lib/sound";
 import { DesignFrame, Field, Modal, Pill, PlanTag, SafeImg, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
-import { STUDIO_DESIGNS, studioDesignOf, tracksOf } from "../../../api/_lib/studioDesigns";
-import { StudioDetails, StudioGallery, StudioPreviewPane, openStudioPreview, writePreview } from "./StudioDesigns";
+import { STUDIO_DESIGNS, designPath, studioDesignOf, tracksOf } from "../../../api/_lib/studioDesigns";
+import { StudioDetails, StudioGallery, openStudioPreview, writePreview } from "./StudioDesigns";
 
 /* ------------------------------ palette & font presets ------------------------------ */
 
@@ -401,75 +402,16 @@ export default function Invitations() {
   };
 
 
-  return (
-    <div className="space-y-6">
-      {isLuxeTemplate && !luxeUnlocked && (
-        <div role="note" className="pl-card flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4 shadow-[inset_3px_0_0_var(--pl-gold),0_18px_40px_-30px_rgb(60_40_15/.55)]">
-          <Lock size={15} strokeWidth={1.6} className="shrink-0 text-[var(--pl-bronze)]" aria-hidden="true" />
-          <p className="min-w-0 flex-1 text-[14.5px]">This {PLANS.luxe.name} design shows still here. With {PLANS.luxe.name}, its petals, shimmer and motion play for your guests.</p>
-          <button onClick={() => openUpgrade("premiumDesigns")} className="pl-quiet">See {PLANS.luxe.name}</button>
-        </div>
-      )}
+  const [sheet, setSheet] = useState<string | null>(null);
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-        {/* preview */}
-        <section className="pl-card min-w-0 self-start" aria-label="Preview">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--pl-line)] px-5 pb-3.5 pt-5 sm:px-6">
-            <h2 className="min-w-0 font-display text-[26px] leading-none">
-              <Lining text={studio ? studio.name : activeCustom ? activeCustom.name : template.name} />{" "}
-              <span className="font-accent text-[18px] italic text-[var(--pl-bronze)]">{studio ? "a studio design" : activeCustom ? "your own design" : template.cat}</span>
-            </h2>
-            {!studio && (
-              <div className="pl-seg" role="group" aria-label="Preview size">
-                {([["desktop", Monitor, "Laptop"], ["tablet", Tablet, "Tablet"], ["mobile", Smartphone, "Phone"]] as const).map(([d, Icon, name]) => (
-                  <button key={d} onClick={() => setDevice(d)} aria-pressed={device === d} aria-label={`${name} preview`} className="!px-3">
-                    <Icon size={15} strokeWidth={1.6} />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="bg-[rgb(28_26_23/.035)] px-3 py-5 sm:px-6 sm:py-6">
-            <div className={`mx-auto max-h-[600px] overflow-y-auto rounded-[3px] shadow-[0_24px_50px_-28px_rgb(0_0_0/.5)] ring-1 ring-[var(--pl-line)] transition-[max-width] duration-500 ${device === "mobile" ? "max-w-[340px]" : device === "tablet" ? "max-w-[560px]" : "max-w-full"}`}>
-              {studio ? (
-                <StudioPreviewPane design={studio} />
-              ) : activeCustom ? (
-                activeCustom.html ? (
-                  <DesignFrame html={activeCustom.html} title={`${activeCustom.name}, your invitation`} className="h-[540px] bg-white" />
-                ) : (
-                  <img src={activeCustom.dataUrl ?? ""} alt={`${activeCustom.name}, your invitation design`} className="w-full" />
-                )
-              ) : (
-                <InviteArt key={template.id + device} template={template} colors={colors} serif={serif} cfg={cfg} animated={animated && !reduced} dateIso={db.wedding.date} />
-              )}
-            </div>
-            {activeCustom && (
-              <p className="mx-auto mt-4 max-w-xl text-center text-[13px] text-[var(--pl-ink-2)]">
-                {activeCustom.html ? "Your own design runs exactly as you built it." : "Your artwork is the invitation."} The reply form, meals and notes sit beneath it on the guest page.
-              </p>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 border-t border-[var(--pl-line)] px-5 py-4 sm:px-6">
-            <button onClick={() => (studio ? openStudioPreview(db, studio) : setLive(true))} className="pl-act"><Play size={14} strokeWidth={1.8} /> Preview as a guest</button>
-            <a href="#/invite" target="_blank" rel="noreferrer" className="pl-quiet"><ExternalLink size={14} strokeWidth={1.6} /> Open the guest page</a>
-            {animated && <span className="ml-auto inline-flex items-center gap-1.5 text-[13px] text-[var(--pl-ink-2)]"><Sparkles size={13} strokeWidth={1.6} className="text-[var(--pl-bronze)]" /> Animated for guests</span>}
-          </div>
-        </section>
-
-        {/* controls */}
-        <div className="min-w-0 space-y-5">
-          {studio ? (
-            <StudioDetails cfg={cfg} setCfg={setCfg} design={studio} />
-          ) : isHtmlDesign ? (
+  /* what each tool in the floating bar opens */
+  const wordingBody = studio ? <StudioDetails cfg={cfg} setCfg={setCfg} design={studio} /> : isHtmlDesign ? (
             <Panel title="Your own design">
               <p className="text-[14px] leading-relaxed text-[var(--pl-ink-2)]">
                 It brings its own look, wording and movement, so there is nothing to restyle here. The reply options, music and motion below still apply on the guest page.
               </p>
             </Panel>
-          ) : (
-          <>
+  ) : (
           <Panel title="Wording">
             <div className="space-y-3.5">
               <Field label="Names"><input className={inputCls} value={cfg.names} onChange={(e) => setCfg({ names: e.target.value })} /></Field>
@@ -478,7 +420,8 @@ export default function Invitations() {
               <Field label="Venue line"><input className={inputCls} value={cfg.venueLine} onChange={(e) => setCfg({ venueLine: e.target.value })} /></Field>
             </div>
           </Panel>
-
+  );
+  const coloursBody = studio || isHtmlDesign ? null : (
           <Panel title="Colours and type" aside={!can(db.plan, "customize") ? <PlanTag plan="celebration" /> : undefined}>
             <div className="flex flex-wrap gap-3">
               <button onClick={() => setPaid("customize", { colors: null })} aria-label="The design's own colours" aria-pressed={cfg.colors === null}
@@ -498,9 +441,8 @@ export default function Invitations() {
               <button onClick={() => setPaid("customize", { fontSerif: false })} aria-pressed={!serif} className="flex-1">Modern sans</button>
             </div>
           </Panel>
-          </>
-          )}
-
+  );
+  const repliesBody = (
           <Panel title="Replies">
             <div className="-my-1.5">
               {/* studio designs ask for names, party size and notes in their own form */}
@@ -520,11 +462,10 @@ export default function Invitations() {
               })}
             </div>
           </Panel>
-
-          {/* a studio design without music (no player) has no song to upload either */}
-          {(!studio || tracksOf(studio).length > 0) && <LuxeStudio cfg={cfg} setCfg={setCfg} unlocked={luxeUnlocked} songOnly={!!studio} />}
-
-          {!studio && template.photo && (
+  );
+  // a studio design without music (no player) has no song to upload either
+  const musicBody = !studio || tracksOf(studio).length > 0 ? <LuxeStudio cfg={cfg} setCfg={setCfg} unlocked={luxeUnlocked} songOnly={!!studio} /> : null;
+  const photoBody = !studio && template.photo ? (
             <Panel title="Photo" aside={!can(db.plan, "customize") ? <PlanTag plan="celebration" /> : undefined}>
               <div className="grid grid-cols-3 gap-2">
                 {PHOTO_CHOICES.map((p) => (
@@ -545,11 +486,8 @@ export default function Invitations() {
                   : <button onClick={() => openUpgrade("customize")} className="pl-link">Use your own photo</button>}
               </div>
             </Panel>
-          )}
-        </div>
-      </div>
-
-      {/* the designs */}
+  ) : null;
+  const designsBody = (
       <section aria-label="Invitation designs" className="space-y-5 pt-2">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -670,6 +608,95 @@ export default function Invitations() {
           </div>
         </div>
       </section>
+  );
+  const tools = [
+    { id: "design", label: "Design", icon: LayoutTemplate, body: designsBody },
+    { id: "words", label: studio ? "Details" : "Wording", icon: Type, body: wordingBody },
+    { id: "colours", label: "Colours", icon: Palette, body: coloursBody },
+    { id: "photo", label: "Photo", icon: ImageIcon, body: photoBody },
+    { id: "replies", label: "Replies", icon: MessageCircle, body: repliesBody },
+    { id: "music", label: "Music", icon: Music, body: musicBody },
+  ].filter((t) => t.body !== null);
+
+  return (
+    <div className="space-y-6">
+      {isLuxeTemplate && !luxeUnlocked && (
+        <div role="note" className="pl-card flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4 shadow-[inset_3px_0_0_var(--pl-gold),0_18px_40px_-30px_rgb(60_40_15/.55)]">
+          <Lock size={15} strokeWidth={1.6} className="shrink-0 text-[var(--pl-bronze)]" aria-hidden="true" />
+          <p className="min-w-0 flex-1 text-[14.5px]">This {PLANS.luxe.name} design shows still here. With {PLANS.luxe.name}, its petals, shimmer and motion play for your guests.</p>
+          <button onClick={() => openUpgrade("premiumDesigns")} className="pl-quiet">See {PLANS.luxe.name}</button>
+        </div>
+      )}
+
+      <section aria-label="Your invitation" className="pl-stage">
+        <div className="flex flex-wrap items-baseline justify-between gap-3 px-1 pb-3">
+          <h2 className="min-w-0 font-display text-[26px] leading-none">
+            <Lining text={studio ? studio.name : activeCustom ? activeCustom.name : template.name} />{" "}
+            <span className="font-accent text-[18px] italic text-[var(--pl-bronze)]">{studio ? "a studio design" : activeCustom ? "your own design" : template.cat}</span>
+          </h2>
+          {animated && <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--pl-ink-2)]"><Sparkles size={13} strokeWidth={1.6} className="text-[var(--pl-bronze)]" /> Animated for guests</span>}
+        </div>
+
+        {/* the invitation, as large as the screen allows */}
+        <div className="pl-stage-floor">
+          <div className={`mx-auto overflow-hidden rounded-[3px] bg-white shadow-[0_30px_60px_-34px_rgb(0_0_0/.55)] ring-1 ring-[var(--pl-line)] transition-[max-width] duration-500 ${device === "mobile" ? "max-w-[390px]" : device === "tablet" ? "max-w-[768px]" : "max-w-full"}`}>
+            {studio ? (
+              <iframe
+                key={studio.id}
+                src={`${designPath(studio)}?preview=1`}
+                title={`${studio.name}, your invitation`}
+                className="block w-full border-0"
+                style={{ height: device === "mobile" ? 780 : "min(86vh, 1000px)" }}
+              />
+            ) : activeCustom ? (
+              activeCustom.html ? (
+                <DesignFrame html={activeCustom.html} title={`${activeCustom.name}, your invitation`} className="h-[min(86vh,1000px)] bg-white" />
+              ) : (
+                <img src={activeCustom.dataUrl ?? ""} alt={`${activeCustom.name}, your invitation design`} className="w-full" />
+              )
+            ) : (
+              <InviteArt key={template.id + device} template={template} colors={colors} serif={serif} cfg={cfg} animated={animated && !reduced} dateIso={db.wedding.date} />
+            )}
+          </div>
+          {activeCustom && (
+            <p className="mx-auto mt-4 max-w-xl text-center text-[13px] text-[var(--pl-ink-2)]">
+              {activeCustom.html ? "Your own design runs exactly as you built it." : "Your artwork is the invitation."} The reply form, meals and notes sit beneath it on the guest page.
+            </p>
+          )}
+        </div>
+
+        {/* the floating bar: everything about the invitation, one tap away */}
+        <div className="pl-bar-wrap">
+          <div className="pl-bar no-scrollbar" role="toolbar" aria-label="Invitation tools">
+            {tools.map((t) => (
+              <button key={t.id} type="button" onClick={() => setSheet(t.id)} aria-haspopup="dialog" aria-expanded={sheet === t.id}>
+                <t.icon size={15} strokeWidth={1.6} aria-hidden="true" /> {t.label}
+              </button>
+            ))}
+            <span className="pl-bar-sep" aria-hidden="true" />
+            {([["desktop", Monitor, "Laptop"], ["tablet", Tablet, "Tablet"], ["mobile", Smartphone, "Phone"]] as const).map(([d, Icon, name]) => (
+              <button key={d} type="button" onClick={() => setDevice(d)} aria-pressed={device === d} aria-label={`${name} size`} className="pl-bar-icon">
+                <Icon size={15} strokeWidth={1.6} />
+              </button>
+            ))}
+            <span className="pl-bar-sep" aria-hidden="true" />
+            <button type="button" onClick={() => (studio ? openStudioPreview(db, studio) : setLive(true))}>
+              <Eye size={15} strokeWidth={1.6} aria-hidden="true" /> See it as a guest
+            </button>
+            <button type="button" onClick={() => setSheet("share")} aria-haspopup="dialog" aria-expanded={sheet === "share"} className="pl-bar-gold">
+              <Share2 size={15} strokeWidth={1.6} aria-hidden="true" /> Share
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <AnimatePresence>
+        {sheet && (
+          <Sheet key={sheet} wide={sheet === "design"} label={sheet === "share" ? "Share" : tools.find((t) => t.id === sheet)?.label ?? ""} onClose={() => setSheet(null)} reduced={reduced}>
+            {sheet === "share" ? <ShareCard /> : tools.find((t) => t.id === sheet)?.body}
+          </Sheet>
+        )}
+      </AnimatePresence>
 
       <ImportDesignsModal open={importOpen} onClose={() => setImportOpen(false)} />
       <AnimatePresence>{live && <LivePreview onClose={() => setLive(false)} />}</AnimatePresence>
@@ -677,6 +704,38 @@ export default function Invitations() {
   );
 }
 
+
+/* ------------------------------ a sheet beside the stage ------------------------------ */
+
+/** a tool's settings: a panel from the right on a laptop, from the bottom on a phone; "wide" spans the screen */
+function Sheet({ wide, label, onClose, reduced, children }: {
+  wide?: boolean; label: string; onClose: () => void; reduced: boolean; children: React.ReactNode;
+}) {
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    panel.current?.focus();
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-[80]">
+      <motion.button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-[rgb(15_14_13/.38)] cursor-default"
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
+      <motion.div
+        ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-label={label}
+        className={`pl-sheet ${wide ? "pl-sheet-wide" : ""}`}
+        initial={reduced ? { opacity: 0 } : wide ? { y: 40, opacity: 0 } : { x: 40, opacity: 0 }}
+        animate={{ x: 0, y: 0, opacity: 1 }}
+        exit={reduced ? { opacity: 0 } : wide ? { y: 40, opacity: 0 } : { x: 40, opacity: 0 }}
+        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <button type="button" onClick={onClose} aria-label={`Close ${label}`} className="pl-sheet-close"><X size={16} strokeWidth={1.6} /></button>
+        <div className="space-y-5">{children}</div>
+      </motion.div>
+    </div>
+  );
+}
 
 /* ------------------------------ share link card ------------------------------ */
 

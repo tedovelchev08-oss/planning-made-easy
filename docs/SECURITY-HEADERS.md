@@ -40,6 +40,7 @@ form-action 'self'
 | `connect-src` / `media-src` Supabase (production and staging) | **Everything the app does** — auth (magic links), workspace fetch/sync, and the anonymous RSVP insert via `submit_rsvp` — is a fetch to the project origin. Without it, the app is dead on arrival. The ref comes from `VITE_SUPABASE_URL` (see `.env.example`). |
 | `connect-src` Supabase wss | Supabase Realtime socket. Not used by the app today; allowed anyway so switching Realtime on later can't be blocked by a forgotten CSP. |
 | `frame-ancestors 'none'` + `X-Frame-Options: DENY` | The app is never an iframe. (Owner invitations run in `srcDoc` iframes inside the app — that direction is unaffected.) |
+| `/designs/*`: `frame-ancestors 'self'` + `X-Frame-Options: SAMEORIGIN` | The studio invitation designs are shown live inside the planner's Invitation page, an iframe on the same origin. Other sites still can't frame them; every other path keeps `'none'` / `DENY`. |
 | `base-uri 'self'` / `form-action 'self'` | Blocks `<base>` hijack and form posts to third parties. |
 | `Strict-Transport-Security` | 1 year, includeSubDomains. |
 
