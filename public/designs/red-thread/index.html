@@ -86,9 +86,9 @@
   <div class="ov-copy">
     <div class="ov-eyeb" id="ovEyeb">The Wedding Of</div>
     <div class="ov-names serif">
-      <span data-sync="one"></span>
+      <span data-sync="one" data-follow="partner1"></span>
       <span class="ov-amp">is tied to</span>
-      <span data-sync="two"></span>
+      <span data-sync="two" data-follow="partner2"></span>
     </div>
   </div>
   <button class="intro-skip" id="introSkip">Skip</button>
@@ -143,9 +143,9 @@
 
     <div class="hero-mid">
     <h1 class="hero-names">
-      <span class="hero-name" data-sync="one"></span>
+      <span class="hero-name" data-sync="one" data-edit="partner1"></span>
       <span class="hero-amp">is tied to</span>
-      <span class="hero-name" data-sync="two"></span>
+      <span class="hero-name" data-sync="two" data-edit="partner2"></span>
     </h1>
     </div>
 
@@ -157,10 +157,10 @@
 
 
     <div class="hero-foot">
-      <p class="lede hero-legend" id="heroLegend">An old story says a red thread ties those who are meant to meet. It may stretch. It may tangle. It never breaks.</p>
+      <p class="lede hero-legend" id="heroLegend" data-edit="heroQuote" data-edit-label="Opening lines">An old story says a red thread ties those who are meant to meet. It may stretch. It may tangle. It never breaks.</p>
       <div class="hero-meta">
         <span id="heroTime"></span>
-        <span id="heroPlace"></span>
+        <span id="heroPlace" data-edit="heroPlace" data-edit-label="Where, in a few words"></span>
         <span id="heroDress"></span>
       </div>
     </div>
@@ -173,7 +173,7 @@
     <div class="wrap">
       <div class="b-copy" data-luma-story-text>
         <h2 class="sec-title serif">Something quiet, becoming certain.</h2>
-        <p class="sec-text" id="storyP1"></p>
+        <p class="sec-text" id="storyP1" data-edit="story1"></p>
       </div>
       <div class="frame" id="heroPhoto">
         <div class="ph"><div class="ph-tag"></div></div>
@@ -192,7 +192,7 @@
         <span class="u-w" id="word-me">Me</span>
       </div>
       <div class="u-us serif" id="story-us">Us</div>
-      <p class="u-text" id="storyP2"></p>
+      <p class="u-text" id="storyP2" data-edit="story2"></p>
     </div>
   </section>
 
@@ -202,8 +202,8 @@
   <section class="sec" id="the-day">
     <div class="wrap">
       <div class="day-date serif" data-sync="date"></div>
-      <div class="day-venue serif" id="dayVenue"></div>
-      <div class="day-addr" id="dayAddr"></div>
+      <div class="day-venue serif" id="dayVenue" data-edit="venueName"></div>
+      <div class="day-addr" id="dayAddr" data-edit="venueAddress"></div>
       <div class="day-dress" id="dayDress"></div>
       <div class="day-links">
         <a id="venueLink" href="#" target="_blank" rel="noopener">Directions</a>
@@ -325,7 +325,7 @@
   <div class="cl-copy">
     <div class="cf-title serif" id="closeText">See you there</div>
     <div class="cf-sub" id="closeSub">With love,</div>
-    <div class="cf-names" id="closeNames"></div>
+    <div class="cf-names" id="closeNames" data-follow-names></div>
   </div>
   <button type="button" class="cl-close" id="closeDismiss">Close</button>
 </div>
