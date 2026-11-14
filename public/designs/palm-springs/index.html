@@ -46,9 +46,9 @@
 <section class="invite" id="invitation">
   <div class="still" role="img" aria-label="The pool at the hotel, in the evening light"></div>
   <div class="words rv">
-    <p class="caps" id="inviteAbove"></p>
+    <p class="caps" id="inviteAbove" data-edit="inviteAbove" data-edit-label="Above your names"></p>
     <p class="script" id="inviteNames"></p>
-    <p class="line" id="inviteLine"></p>
+    <p class="line" id="inviteLine" data-edit="inviteLine" data-edit-label="Under your names"></p>
     <span class="rule" aria-hidden="true"></span>
     <p class="formal" id="inviteDate"></p>
     <p class="formal small" id="inviteTime"></p>
@@ -62,11 +62,11 @@
   <img class="frond sway slow" src="assets/frond.png" alt="" aria-hidden="true" loading="lazy">
   <div class="letterhead rv">
     <span class="mono" data-mono aria-hidden="true"></span>
-    <p class="house" id="dayVenue"></p>
+    <p class="house" id="dayVenue" data-edit="venueName"></p>
     <span class="rule" aria-hidden="true"></span>
     <p class="formal" id="dayDate"></p>
     <p class="formal small" id="dayTime"></p>
-    <p class="addr" id="dayAddr"></p>
+    <p class="addr" id="dayAddr" data-edit="venueAddress"></p>
     <p class="dress" id="dayDress"></p>
     <p class="links">
       <a id="venueLink" href="#" target="_blank" rel="noopener">Directions</a>
@@ -82,9 +82,9 @@
     <figure class="framed rv"><img class="couple" alt="The two of you" hidden></figure>
     <div class="story-words rv">
       <p class="caps">How it started</p>
-      <h2 id="storyHeadline"></h2>
-      <p class="body" id="storyP1"></p>
-      <p class="body" id="storyP2"></p>
+      <h2 id="storyHeadline" data-edit="storyHeadline" data-edit-label="Story headline"></h2>
+      <p class="body" id="storyP1" data-edit="story1"></p>
+      <p class="body" id="storyP2" data-edit="story2"></p>
     </div>
   </div>
 </section>
@@ -93,7 +93,7 @@
   <div class="still lounger rv" role="img" aria-label="An itinerary in a leather holder on a lounger"></div>
   <div class="itinerary rv">
     <span class="mono" data-mono aria-hidden="true"></span>
-    <p class="caps" id="scheduleHeading"></p>
+    <p class="caps" id="scheduleHeading" data-edit="scheduleHeading" data-edit-label="Above the order of the day"></p>
     <p class="formal" id="sheetDay"></p>
     <ol class="rows" id="tlItems"></ol>
   </div>
@@ -101,7 +101,7 @@
 
 <section class="sec lit" id="gallery">
   <svg class="glow" aria-hidden="true"></svg>
-  <h2 class="center" id="galleryHeading"></h2>
+  <h2 class="center" id="galleryHeading" data-edit="galleryHeading" data-edit-label="Photographs heading"></h2>
   <div class="prints"></div>
 </section>
 
@@ -179,8 +179,8 @@
 <section class="closing" id="closing">
   <div class="still dusk" role="img" aria-label="The pool at dusk"></div>
   <div class="words rv">
-    <p class="script" id="closingNames"></p>
-    <p class="caps" id="closingLine"></p>
+    <p class="script" id="closingNames" data-follow-names></p>
+    <p class="caps" id="closingLine" data-edit="closingLine" data-edit-label="Under your names at the end"></p>
   </div>
 </section>
 
@@ -190,7 +190,7 @@
 </footer>
 </main>
 
-<script src="../_shared/luma-bridge.js?v=6"></script>
-<script src="luma-springs.js?v=2"></script>
+<script src="../_shared/luma-bridge.js?v=7"></script>
+<script src="luma-springs.js?v=3"></script>
 </body>
 </html>

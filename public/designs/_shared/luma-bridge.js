@@ -288,6 +288,7 @@
     var one = sameKey('partner1')[0], two = sameKey('partner2')[0];
     var p1 = one ? (one.textContent || '').trim() : '', p2 = two ? (two.textContent || '').trim() : '';
     document.querySelectorAll('[data-field="coupleNames"]').forEach(function (el) { el.textContent = p1 + ' & ' + p2; });
+    document.querySelectorAll('[data-follow-names]').forEach(function (el) { el.textContent = p1 + ' & ' + p2; });
     document.querySelectorAll('[data-field="initial1"]').forEach(function (el) { el.textContent = p1.charAt(0).toUpperCase(); });
     document.querySelectorAll('[data-field="initial2"]').forEach(function (el) { el.textContent = p2.charAt(0).toUpperCase(); });
   }
