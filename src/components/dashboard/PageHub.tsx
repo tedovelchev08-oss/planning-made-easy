@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
-import Invitations, { RsvpTracker, ShareCard } from "./Invitations";
+import Invitations, { RsvpTracker } from "./Invitations";
 
 /* ------------------------------------------------------------------ */
 /* The invitation: the one page guests open. Choosing and sharing it,  */
@@ -70,7 +70,7 @@ export default function PageHub() {
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="space-y-6"
         >
-          {tab === "invitation" ? <><ShareCard /><Invitations /></> : <RsvpTracker />}
+          {tab === "invitation" ? <Invitations /> : <RsvpTracker />}
         </motion.div>
       </AnimatePresence>
     </div>
