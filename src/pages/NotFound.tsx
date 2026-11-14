@@ -9,7 +9,11 @@ import { usePrefersReducedMotion } from "../lib/store";
 export default function NotFound() {
   const reduced = usePrefersReducedMotion();
   useEffect(() => {
+    // a reset link passes through here for a moment before AuthLinks moves on,
+    // so give the title back rather than leaving "not found" on the next page
+    const prev = document.title;
     document.title = "Page not found — Twofold";
+    return () => { document.title = prev; };
   }, []);
   return (
     <div className="relative flex min-h-[100svh] flex-col overflow-hidden">
