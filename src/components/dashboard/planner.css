@@ -253,3 +253,5 @@ button:hover > .pl-ring:not(.is-done)::before { border-color: var(--pl-bronze); 
 }
 .pl-sheet-close:hover { border-color: rgb(28 26 23 / .3); }
 .pl-sheet-close:focus-visible { outline: 2px solid var(--pl-bronze); outline-offset: 2px; }
+/* on a phone the planner's round "+" sits at the bottom right: the bar keeps clear of it */
+@media (max-width: 1023px) { .pl-bar-wrap { justify-content: flex-start; padding-right: 84px; } }
