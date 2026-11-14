@@ -53,6 +53,10 @@ As of 2026-11-13:
   `data-luma-story-text`) so `luma-bridge.js` hides it when the couple wrote no story (Glasshouse,
   Red Thread, All In, Cinema). A new design with a custom story section needs the same markers.
   Bump `luma-bridge.js?v=` in every design when the bridge changes (now v=3).
+- PR #111 (2026-11-14): Celestial and Mirror Palace openings start only once `html.luma-loading`
+  is removed (the page is hidden until the couple's details load). Any design with a timed
+  opening must do the same, or guests arrive mid-animation. Note: the in-app test browser
+  freezes CSS animations when its window is off screen; judge animation timing on a real phone.
 - The GitHub CLI (`gh`) is installed on the Windows PC, signed in as `tedovelchev08-oss`.
 - `polish/all-designs` has one unmerged commit from 2026-10-21; probably superseded. Check
   before deleting.
