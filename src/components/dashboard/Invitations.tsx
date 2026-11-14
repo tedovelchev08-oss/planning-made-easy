@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Check, Copy, Eye, Heart, Image as ImageIcon, Instagram, LayoutTemplate, Link2, Loader2, Lock, Mail,
+  Check, Compass, Copy, Eye, Heart, Image as ImageIcon, Instagram, LayoutTemplate, Link2, Loader2, Lock, Mail,
   MessageCircle, Monitor, Music, Palette, Play, Send, Share2, Smartphone, Sparkles, StopCircle, Tablet, Trash2, Type,
   UploadCloud, X,
 } from "lucide-react";
@@ -16,6 +16,7 @@ import { PhotoUpload } from "./PhotoUpload";
 import { Lining, Panel } from "./Panel";
 import { Editable, joinNames, splitNames } from "./Editable";
 import { studioEditPatch } from "./studioEdit";
+import { GuideField, GuideSwitch, InviteGuide, guideSeen, markGuideSeen, type GuideStep } from "./InviteGuide";
 import { playChime, useChimeLoop } from "../../lib/sound";
 import { DesignFrame, Field, Modal, Pill, PlanTag, SafeImg, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
@@ -132,15 +133,15 @@ export function InviteArt({
 
         {wrap(<p className="text-[0.6rem] font-extrabold uppercase tracking-[0.4em]" style={{ color: colors.accent }}>The wedding of</p>, 0.15)}
         {wrap(
-          <h3 className={`mt-3 leading-[1.06] ${compact ? "text-3xl" : "text-4xl sm:text-[2.9rem]"}`} style={{ fontWeight: serif ? 600 : 800 }}>
+          <h3 data-guide="names" className={`mt-3 leading-[1.06] ${compact ? "text-3xl" : "text-4xl sm:text-[2.9rem]"}`} style={{ fontWeight: serif ? 600 : 800 }}>
             {edit ? <Editable value={nameA} onChange={(v) => edit.set({ names: joinNames(v, nameB) })} label="First name" placeholder="First name" /> : nameA}
             <span className="mx-2 inline-block align-middle font-display italic" style={{ color: colors.accent }}>&</span>
             {edit ? <Editable value={nameB} onChange={(v) => edit.set({ names: joinNames(nameA, v) })} label="Second name" placeholder="Second name" /> : nameB}
           </h3>,
           0.25,
         )}
-        {wrap(<p className="mt-4 text-[0.82rem] tracking-wide opacity-80">{edit ? <Editable value={cfg.line1} onChange={(v) => edit.set({ line1: v })} label="Opening line" placeholder="Together with their families" /> : cfg.line1}</p>, 0.35)}
-        {wrap(<p className="text-[0.82rem] tracking-wide opacity-80">{edit ? <Editable value={cfg.line2} onChange={(v) => edit.set({ line2: v })} label="Invitation line" placeholder="request the pleasure of your company" /> : cfg.line2}</p>, 0.4)}
+        {wrap(<p data-guide="lines" className="mt-4 text-[0.82rem] tracking-wide opacity-80">{edit ? <Editable value={cfg.line1} onChange={(v) => edit.set({ line1: v })} label="Opening line" placeholder="Together with their families" /> : cfg.line1}</p>, 0.35)}
+        {wrap(<p data-guide="lines" className="text-[0.82rem] tracking-wide opacity-80">{edit ? <Editable value={cfg.line2} onChange={(v) => edit.set({ line2: v })} label="Invitation line" placeholder="request the pleasure of your company" /> : cfg.line2}</p>, 0.4)}
 
         {wrap(
           <div className="my-6 flex w-full max-w-[320px] items-center gap-4" aria-hidden="true">
@@ -152,7 +153,7 @@ export function InviteArt({
         )}
 
         {wrap(
-          <p className="font-display text-xl sm:text-2xl" style={{ fontStyle: "italic" }}>
+          <p data-guide="day" className="font-display text-xl sm:text-2xl" style={{ fontStyle: "italic" }}>
             {edit ? (
               <label className="pl-edit-date">
                 {fmtDate(dateIso, { month: "long", day: "numeric", year: "numeric" })}
@@ -162,13 +163,13 @@ export function InviteArt({
           </p>,
           0.58,
         )}
-        {wrap(<p className="mt-2 text-[0.85rem] font-semibold opacity-85">{edit ? <Editable value={cfg.venueLine} onChange={(v) => edit.set({ venueLine: v })} label="Venue" placeholder="The venue, and the town" /> : cfg.venueLine}</p>, 0.64)}
+        {wrap(<p data-guide="day" className="mt-2 text-[0.85rem] font-semibold opacity-85">{edit ? <Editable value={cfg.venueLine} onChange={(v) => edit.set({ venueLine: v })} label="Venue" placeholder="The venue, and the town" /> : cfg.venueLine}</p>, 0.64)}
 
         {edit && !cfg.rsvp && !rsvpSlot && (
-          <button type="button" onClick={edit.onAddReplies} className="pl-add mt-8 w-full max-w-[380px] px-6 py-5">+ Add a reply button<small>Guests answer, and it lands in your guest list</small></button>
+          <button type="button" data-guide="rsvp" onClick={edit.onAddReplies} className="pl-add mt-8 w-full max-w-[380px] px-6 py-5">+ Add a reply button<small>Guests answer, and it lands in your guest list</small></button>
         )}
         {(cfg.rsvp || rsvpSlot) && (
-          <div className="mt-8 w-full max-w-[380px]">
+          <div data-guide="rsvp" className="mt-8 w-full max-w-[380px]">
             {rsvpSlot ?? (
               wrap(
                 <div
@@ -475,6 +476,122 @@ export default function Invitations() {
     onAddReplies: () => setCfg({ rsvp: true }),
   };
 
+  /* the first-time walk-through (A + C, step 4): offered once per wedding on
+     this device, for the designs the couple can write on; "Guide me" in the
+     bar opens it again */
+  const guidable = !activeCustom;
+  const [guiding, setGuiding] = useState(() => guidable && !guideSeen(weddingId));
+  const stageFloor = useRef<HTMLDivElement>(null);
+  const pointing = useRef<string[]>([]);
+  const closeGuide = useCallback(() => {
+    markGuideSeen(weddingId);
+    setGuiding(false);
+  }, [weddingId]);
+  const point = useCallback((keys: string[], smooth = true) => {
+    pointing.current = keys;
+    const isStudio = !!latest.current.studio;
+    // a studio design is pointed at by the bridge inside its frame
+    stageFrame.current?.contentWindow?.postMessage({ type: "twofold:guide", keys, smooth }, window.location.origin);
+    const floor = stageFloor.current;
+    if (!floor) return;
+    floor.classList.toggle("pl-guiding", keys.length > 0 && !isStudio);
+    let firstHere: HTMLElement | null = null;
+    floor.querySelectorAll<HTMLElement>("[data-guide]").forEach((el) => {
+      const here = keys.includes(el.dataset.guide ?? "");
+      el.classList.toggle("pl-guide-here", here);
+      if (here && !firstHere) firstHere = el;
+    });
+    const target = isStudio ? floor : firstHere;
+    if (target && keys.length) {
+      const narrow = window.innerWidth < 1024;
+      (target as HTMLElement).scrollIntoView({ block: narrow || isStudio ? "start" : "center", behavior: smooth && !reduced ? "smooth" : "auto" });
+    }
+  }, [reduced]);
+  useEffect(() => { if (!guiding) point([]); }, [guiding, point]);
+  // the frame reloads as the couple types: point again once it's back
+  useEffect(() => {
+    const onReady = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin || e.source !== stageFrame.current?.contentWindow) return;
+      if ((e.data as { type?: string } | null)?.type === "twofold:ready" && pointing.current.length) {
+        stageFrame.current?.contentWindow?.postMessage({ type: "twofold:guide", keys: pointing.current, smooth: false }, window.location.origin);
+      }
+    };
+    window.addEventListener("message", onReady);
+    return () => window.removeEventListener("message", onReady);
+  }, []);
+
+  const studioSet = (key: string) => (v: string) => {
+    if (!studio) return;
+    const change = studioEditPatch(db, studio, key, v);
+    if (change) patch(change);
+  };
+  const [nameA, nameB] = studio ? [db.wedding.partnerA ?? "", db.wedding.partnerB ?? ""] : splitNames(cfg.names);
+  const guideSteps: GuideStep[] = [
+    {
+      id: "names",
+      question: "Your names, as you’d like them written",
+      help: "First names are usual. They’re the first thing your guests read.",
+      point: studio ? ["partner1", "partner2"] : ["names"],
+      body: (
+        <>
+          <GuideField label="First name" value={nameA} maxLength={40} onChange={studio ? studioSet("partner1") : (v) => setCfg({ names: joinNames(v, nameB) })} />
+          <GuideField label="Second name" value={nameB} maxLength={40} onChange={studio ? studioSet("partner2") : (v) => setCfg({ names: joinNames(nameA, v) })} />
+        </>
+      ),
+    },
+    ...(studio ? [] : [{
+      id: "lines",
+      question: "What should guests read with them?",
+      help: "Two short lines around your names. Many couples keep the wording as it is.",
+      point: ["lines"],
+      body: (
+        <>
+          <GuideField label="Opening line" value={cfg.line1} placeholder="Together with their families" onChange={(v) => setCfg({ line1: v })} />
+          <GuideField label="Invitation line" value={cfg.line2} placeholder="request the pleasure of your company" onChange={(v) => setCfg({ line2: v })} />
+        </>
+      ),
+    }]),
+    {
+      id: "day",
+      question: "When and where?",
+      help: studio ? "The date, and the place your guests will travel to." : "The date, and the venue as it should read on the invitation.",
+      point: studio ? ["venueName", "venueAddress"] : ["day"],
+      body: (
+        <>
+          <GuideField label="Date" type="date" value={db.wedding.date.slice(0, 10)} onChange={inviteEdit.onDate} />
+          {studio ? (
+            <>
+              <GuideField label="Venue" value={db.wedding.venue ?? ""} placeholder="Villa Cimbrone" onChange={studioSet("venueName")} />
+              <GuideField label="Address" value={db.wedding.location ?? ""} placeholder="Via Santa Chiara 26, Ravello" onChange={studioSet("venueAddress")} />
+            </>
+          ) : (
+            <GuideField label="Venue" value={cfg.venueLine} placeholder="The venue, and the town" onChange={(v) => setCfg({ venueLine: v })} />
+          )}
+        </>
+      ),
+    },
+    ...(studio ? [{
+      id: "story",
+      question: "How did you meet?",
+      help: "A few lines is plenty. Leave it empty and your guests won’t see the section.",
+      point: ["story1", "story", "storyHeadline"],
+      body: <GuideField label="Your story" multiline value={cfg.designData?.story1 ?? ""} placeholder="We met on a rainy Tuesday…" onChange={studioSet("story1")} />,
+    }] : []),
+    {
+      id: "replies",
+      question: "Should guests reply on the invitation?",
+      help: "Each answer lands in your guest list the moment it’s sent, on both of your screens.",
+      point: ["rsvp"],
+      body: <GuideSwitch label={studio ? "Reply form" : "Reply button"} on={cfg.rsvp} onToggle={() => setCfg({ rsvp: !cfg.rsvp })} />,
+    },
+    {
+      id: "share",
+      question: "Ready when you are",
+      help: "Everything you wrote is saved. Share the link when you’re happy, or keep going: click any words on the invitation to change them.",
+      point: [],
+    },
+  ];
+
   /* what each tool in the floating bar opens */
   const wordingBody = studio ? <StudioDetails cfg={cfg} setCfg={setCfg} design={studio} /> : isHtmlDesign ? (
             <Panel title="Your own design">
@@ -714,8 +831,12 @@ export default function Invitations() {
         {studio && (
           <p className="px-1 pb-3 text-[13.5px] text-[var(--pl-ink-2)]">Click your names, the venue and the other words on the invitation to change them. Photos, the schedule and the rest are under Details.</p>
         )}
-        {/* the invitation, as large as the screen allows */}
-        <div className="pl-stage-floor">
+        {/* the invitation, as large as the screen allows; the walk-through beside it */}
+        <div className={`pl-guide-layout ${guiding && guidable ? "is-on" : ""}`}>
+        {guiding && guidable && (
+          <InviteGuide steps={guideSteps} onPoint={point} onClose={closeGuide} onShare={() => { closeGuide(); setSheet("share"); }} />
+        )}
+        <div ref={stageFloor} className="pl-stage-floor">
           <div className={`mx-auto overflow-hidden rounded-[3px] bg-white shadow-[0_30px_60px_-34px_rgb(0_0_0/.55)] ring-1 ring-[var(--pl-line)] transition-[max-width] duration-500 ${device === "mobile" ? "max-w-[390px]" : device === "tablet" ? "max-w-[768px]" : "max-w-full"}`}>
             {studio ? (
               <iframe
@@ -742,9 +863,10 @@ export default function Invitations() {
             </p>
           )}
         </div>
+        </div>
 
         {/* the floating bar: everything about the invitation, one tap away */}
-        <div className="pl-bar-wrap">
+        {!(guiding && guidable) && <div className="pl-bar-wrap">
           <div className="pl-bar no-scrollbar" role="toolbar" aria-label="Invitation tools">
             {tools.map((t) => (
               <button key={t.id} type="button" onClick={() => setSheet(t.id)} aria-haspopup="dialog" aria-expanded={sheet === t.id}>
@@ -764,8 +886,13 @@ export default function Invitations() {
             <button type="button" onClick={() => setSheet("share")} aria-haspopup="dialog" aria-expanded={sheet === "share"} className="pl-bar-gold">
               <Share2 size={15} strokeWidth={1.6} aria-hidden="true" /> Share
             </button>
+            {guidable && (
+              <button type="button" onClick={() => setGuiding(true)}>
+                <Compass size={15} strokeWidth={1.6} aria-hidden="true" /> Guide me
+              </button>
+            )}
           </div>
-        </div>
+        </div>}
       </section>
 
       <AnimatePresence>

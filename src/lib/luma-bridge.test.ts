@@ -233,6 +233,34 @@ describe("luma-bridge", () => {
     await new Promise((r) => setTimeout(r, 120));
   });
 
+  it("points at what the planner's walk-through asks about, and only when the planner says so", async () => {
+    localStorage.setItem("luma.designPreview", JSON.stringify({ invitation }));
+    const rects = vi.spyOn(Element.prototype, "getClientRects").mockReturnValue([{}] as unknown as DOMRectList);
+    const scroll = vi.fn();
+    Element.prototype.scrollIntoView = scroll;
+    boot("?preview=1&quiet=1&edit=1");
+    document.body.insertAdjacentHTML("beforeend", `
+      <h1><span id="g1" data-edit="partner1">Ana</span> <span id="g2" data-edit="partner2">Boris</span></h1>
+      <div aria-hidden="true"><span id="g3" data-edit="partner1">Ana</span></div>`);
+    w.lumaAfterRender(await w.lumaBoot);
+    const guide = (data: unknown, origin = location.origin) =>
+      window.dispatchEvent(new MessageEvent("message", { data, origin, source: window }));
+    guide({ type: "twofold:guide", keys: ["partner1", "partner2"], smooth: true });
+    expect(document.getElementById("g1")!.classList.contains("tf-guide")).toBe(true);
+    expect(document.getElementById("g2")!.classList.contains("tf-guide")).toBe(true);
+    expect(document.getElementById("g3")!.classList.contains("tf-guide")).toBe(false);
+    expect(scroll).toHaveBeenCalledTimes(1);
+    guide({ type: "twofold:guide", keys: ["rsvp"] });
+    expect(document.getElementById("g1")!.classList.contains("tf-guide")).toBe(false);
+    expect(document.getElementById("rsvp")!.classList.contains("tf-guide")).toBe(true);
+    guide({ type: "twofold:guide", keys: ["partner1"] }, "https://elsewhere.example");
+    expect(document.getElementById("g1")!.classList.contains("tf-guide")).toBe(false);
+    guide({ type: "twofold:guide", keys: [] });
+    expect(document.querySelectorAll(".tf-guide")).toHaveLength(0);
+    rects.mockRestore();
+    await new Promise((r) => setTimeout(r, 120));
+  });
+
   it("still hides an empty story section from guests", async () => {
     boot(`?token=${TOKEN}`);
     document.body.insertAdjacentHTML("beforeend", `<section id="beg2" data-luma-story><p data-luma-story-text></p></section>`);
