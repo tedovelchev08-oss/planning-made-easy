@@ -81,9 +81,12 @@
     var h1 = byId('cardNames');
     if (h1) {
       h1.textContent = '';
-      h1.appendChild(el('span', 'n', one));
+      var first = el('span', 'n', one), second = el('span', 'n', two);
+      first.setAttribute('data-edit', 'partner1');
+      second.setAttribute('data-edit', 'partner2');
+      h1.appendChild(first);
       h1.appendChild(el('span', 'amp', '&'));
-      h1.appendChild(el('span', 'n', two));
+      h1.appendChild(second);
     }
     setText('cardDate', dp ? dp.weekday + ', the ' + ordinal(dp.d) + ' of ' + dp.month : '');
     setText('cardPlace', [venue, place !== venue ? place : ''].filter(Boolean).join(' \u00b7 '));

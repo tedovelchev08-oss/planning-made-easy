@@ -39,6 +39,14 @@ describe("studioEditPatch", () => {
     expect(studioEditPatch(db, springs, "heroPlace", "Portovenere")).toBeNull();
   });
 
+  it("saves Palm Shadow's and The Tide's own lines", () => {
+    const shadow = STUDIO_DESIGNS.find((d) => d.id === "palm-shadow")!;
+    const tide = STUDIO_DESIGNS.find((d) => d.id === "tide")!;
+    expect(studioEditPatch(db, shadow, "cardAbove", "With their families")!.invitation!.designData!.texts!.cardAbove).toBe("With their families");
+    expect(studioEditPatch(db, tide, "cardLine", "We met on a beach.")!.invitation!.designData!.texts!.cardLine).toBe("We met on a beach.");
+    expect(studioEditPatch(db, shadow, "cardLine", "x")).toBeNull();
+  });
+
   it("ignores keys a design wasn't given, and anything that isn't text", () => {
     expect(studioEditPatch(db, celestial, "closingMsg", "Until then")).toBeNull();
     expect(studioEditPatch(db, celestial, "plan", "luxe")).toBeNull();

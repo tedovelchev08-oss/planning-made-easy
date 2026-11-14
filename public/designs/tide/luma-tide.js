@@ -116,9 +116,13 @@
     var h1 = byId('cardNames');
     if (h1) {
       h1.textContent = '';
-      h1.appendChild(document.createTextNode(one));
+      // each name its own span, so the planner can let the couple type over one
+      var first = el('span', null, one), second = el('span', null, two);
+      first.setAttribute('data-edit', 'partner1');
+      second.setAttribute('data-edit', 'partner2');
+      h1.appendChild(first);
       h1.appendChild(el('em', null, 'and'));
-      h1.appendChild(document.createTextNode(two));
+      h1.appendChild(second);
     }
     setText('cardDate', dp ? dp.d + ' ' + dp.month + ' ' + dp.y : '');
     setLines(byId('cardPlace'), venue ? [venue, place !== venue ? place : ''] : [address]);
@@ -145,7 +149,11 @@
         if (!f[1]) return;
         var div = el('div');
         div.appendChild(el('dt', null, f[0]));
-        div.appendChild(el('dd', null, f[1]));
+        var dd = el('dd', null, f[1]);
+        // the venue and address can be typed over in the planner
+        if (f[0] === 'Where') dd.setAttribute('data-edit', 'venueName');
+        if (f[0] === 'Address') dd.setAttribute('data-edit', 'venueAddress');
+        div.appendChild(dd);
         facts.appendChild(div);
       });
     }
