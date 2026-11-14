@@ -114,6 +114,29 @@ describe("luma-bridge", () => {
     expect(hidden("rsvp")).toBe(false);
   });
 
+  it("opens straight onto the invitation in the planner's quiet preview", async () => {
+    localStorage.setItem("luma.designPreview", JSON.stringify({ invitation }));
+    boot("?preview=1&quiet=1");
+    document.body.insertAdjacentHTML("beforeend", `
+      <div id="envelope-overlay"><div id="envelope-box-el"></div></div>
+      <button id="introSkip">Skip</button>`);
+    const skipped = vi.fn();
+    document.getElementById("introSkip")!.addEventListener("click", skipped);
+    w.lumaAfterRender(await w.lumaBoot);
+    await new Promise((r) => setTimeout(r, 120));
+    expect(document.getElementById("envelope-overlay")!.classList.contains("envelope-overlay-hidden")).toBe(true);
+    expect(skipped).toHaveBeenCalled();
+  });
+
+  it("keeps the opening for a guest-style preview", async () => {
+    localStorage.setItem("luma.designPreview", JSON.stringify({ invitation }));
+    boot("?preview=1");
+    document.body.insertAdjacentHTML("beforeend", `<div id="envelope-overlay"><div id="envelope-box-el"></div></div>`);
+    w.lumaAfterRender(await w.lumaBoot);
+    await new Promise((r) => setTimeout(r, 120));
+    expect(document.getElementById("envelope-overlay")!.classList.contains("envelope-overlay-hidden")).toBe(false);
+  });
+
   it("shows the couple's photo alone when there's no story, and hides RSVP when they don't collect answers", async () => {
     boot("?slug=ana-boris", { heroPhoto: "https://x.supabase.co/p.jpg", rsvpOpen: false });
     w.lumaAfterRender(await w.lumaBoot);

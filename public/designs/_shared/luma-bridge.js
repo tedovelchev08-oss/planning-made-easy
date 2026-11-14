@@ -23,6 +23,10 @@
   var token = params.get('token');
   var slug = params.get('slug');
   var preview = params.get('preview') === '1';
+  /* ?quiet=1: the preview inside the planner. It reloads after every edit,
+     so the design's opening (envelope, curtain, intro) is skipped there;
+     "See it as a guest" opens the full page without it. */
+  var quiet = preview && params.get('quiet') === '1';
   var SOURCES = ['link', 'whatsapp', 'instagram', 'messenger', 'email'];
   var source = SOURCES.indexOf(params.get('src')) >= 0 ? params.get('src') : 'link';
 
@@ -37,6 +41,23 @@
 
   function show() {
     document.documentElement.classList.remove('luma-loading');
+    if (quiet) setTimeout(skipOpening, 60);
+  }
+
+  /* Open the design straight onto the invitation: the shared envelope is put
+     away without its animation, and a design with its own intro is skipped
+     through its own Skip control, so it tidies up exactly as a guest's tap
+     would. A design with neither keeps its opening. */
+  function skipOpening() {
+    var overlay = document.getElementById('envelope-overlay');
+    var box = document.getElementById('envelope-box-el');
+    if (overlay && box && !box.classList.contains('envelope-open')) {
+      box.classList.add('envelope-open');
+      overlay.classList.add('opacity-0', 'pointer-events-none', 'envelope-overlay-hidden');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+    var skip = document.querySelector('#introSkip, #skipBtn, .skip-btn, [data-skip-intro]');
+    if (skip && typeof skip.click === 'function') skip.click();
   }
 
   /* A quiet full-page message instead of the invitation (closed, missing,

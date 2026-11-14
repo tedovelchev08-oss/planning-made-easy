@@ -255,3 +255,44 @@ button:hover > .pl-ring:not(.is-done)::before { border-color: var(--pl-bronze); 
 .pl-sheet-close:focus-visible { outline: 2px solid var(--pl-bronze); outline-offset: 2px; }
 /* on a phone the planner's round "+" sits at the bottom right: the bar keeps clear of it */
 @media (max-width: 1023px) { .pl-bar-wrap { justify-content: flex-start; padding-right: 84px; } }
+
+/* ---------- editing on the invitation (A + C, step 2) ----------
+   Only the couple sees these: a dotted line where words can be changed,
+   a solid one while typing, and dashed "+ Add" slots for what's missing.
+   Drawn in the invitation's own ink (currentColor), so they suit any design. */
+.pl-editable {
+  display: inline-block;
+  min-width: 1ch;
+  border-radius: 3px;
+  outline: 1px dashed transparent;
+  outline-offset: 4px;
+  cursor: text;
+  transition: outline-color .15s, background-color .15s;
+}
+.pl-editable:hover { outline-color: color-mix(in srgb, currentColor 45%, transparent); }
+.pl-editable:focus { outline: 1.5px solid color-mix(in srgb, currentColor 80%, transparent); background: color-mix(in srgb, currentColor 6%, transparent); }
+.pl-editable:empty::before { content: attr(data-ph); opacity: .45; font-style: italic; }
+.pl-add {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  border: 1.5px dashed color-mix(in srgb, currentColor 40%, transparent);
+  background: color-mix(in srgb, currentColor 4%, transparent);
+  border-radius: 14px;
+  font-size: 13.5px; font-weight: 600; letter-spacing: .02em;
+  cursor: pointer;
+  transition: border-color .15s, background-color .15s;
+}
+.pl-add small { font-size: 12px; font-weight: 400; opacity: .7; letter-spacing: 0; }
+.pl-add:hover { border-color: color-mix(in srgb, currentColor 70%, transparent); background: color-mix(in srgb, currentColor 8%, transparent); }
+.pl-edit-photo { position: relative; display: block; cursor: pointer; }
+.pl-edit-photo-tag {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+  padding: 7px 12px; border-radius: 9999px; font: 500 12px/1 var(--font-body);
+  background: rgb(15 14 13 / .78); color: #ede3cf; opacity: 0; transition: opacity .2s;
+}
+.pl-edit-photo:hover .pl-edit-photo-tag, .pl-edit-photo:focus-visible .pl-edit-photo-tag { opacity: 1; }
+.pl-edit-date { position: relative; display: inline-block; border-radius: 3px; outline: 1px dashed transparent; outline-offset: 4px; cursor: pointer; }
+.pl-edit-date:hover, .pl-edit-date:focus-within { outline-color: color-mix(in srgb, currentColor 45%, transparent); }
+.pl-edit-date input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.pl-edit-block { cursor: pointer; outline: 1px dashed transparent; outline-offset: 4px; transition: outline-color .15s; }
+.pl-edit-block:hover, .pl-edit-block:focus-visible { outline-color: color-mix(in srgb, currentColor 45%, transparent); }
+.pl-editable:focus-visible, .pl-add:focus-visible, .pl-edit-photo:focus-visible { outline: 2px solid var(--pl-bronze); outline-offset: 3px; }
