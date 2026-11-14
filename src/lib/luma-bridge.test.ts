@@ -123,6 +123,36 @@ describe("luma-bridge", () => {
     expect((document.querySelector('a[href="#rsvp"]') as HTMLElement).style.display).toBe("none");
   });
 
+  it("hides a design's own story section without words or a photo, and its menu link", async () => {
+    boot(`?token=${TOKEN}`);
+    document.body.insertAdjacentHTML("beforeend", `
+      <a href="#beginning">Us</a>
+      <section id="beginning" data-luma-story><div data-luma-story-text><h2>How we met</h2><p></p></div>
+        <figure><img src="data:image/svg+xml,initials"></figure></section>`);
+    w.lumaAfterRender(await w.lumaBoot);
+    expect(document.getElementById("beginning")!.style.display).toBe("none");
+    expect((document.querySelector('a[href="#beginning"]') as HTMLElement).style.display).toBe("none");
+  });
+
+  it("keeps a design's story section for the couple's photo, without its empty words", async () => {
+    boot(`?token=${TOKEN}`);
+    document.body.insertAdjacentHTML("beforeend", `
+      <section id="act1" data-luma-story><div data-luma-story-text><p></p></div>
+        <figure hidden><img src="https://x.supabase.co/missing.jpg"></figure>
+        <figure><img src="https://x.supabase.co/us.jpg"></figure></section>`);
+    w.lumaAfterRender(await w.lumaBoot);
+    const sec = document.getElementById("act1")!;
+    expect(sec.style.display).toBe("");
+    expect((sec.querySelector("[data-luma-story-text]") as HTMLElement).style.display).toBe("none");
+  });
+
+  it("leaves a design's story section alone when the couple wrote one", async () => {
+    boot(`?token=${TOKEN}`, { story1: "We met in a nursery." });
+    document.body.insertAdjacentHTML("beforeend", `<section id="story" data-luma-story><div data-luma-story-text><p>x</p></div></section>`);
+    w.lumaAfterRender(await w.lumaBoot);
+    expect(document.getElementById("story")!.style.display).toBe("");
+  });
+
   it("sends the design's RSVP form to /api/rsvp with a Turnstile token", async () => {
     boot(`?token=${TOKEN}&src=whatsapp`);
     await w.lumaBoot;

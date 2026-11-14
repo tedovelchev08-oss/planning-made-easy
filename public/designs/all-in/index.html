@@ -132,10 +132,10 @@
   <!-- ============================================================
        01 - OUR STORY (photograph and words, side by side)
        ============================================================ -->
-  <section class="sec" id="story">
+  <section class="sec" id="story" data-luma-story>
     <div class="story-wrap">
       <figure class="story-photo rv"><img id="storyImg" src="" alt=""></figure>
-      <div class="story-text rv">
+      <div class="story-text rv" data-luma-story-text>
         <h2 class="sec-title left" id="storyTitle">How we met</h2>
         <p class="story-p" id="storyP1"></p>
         <p class="story-p" id="storyP2"></p>
@@ -312,7 +312,7 @@ let invitationData = {
 </script>
 
 <!-- Luma first: the core awaits window.lumaBoot -->
-<script src="../_shared/luma-bridge.js?v=2"></script>
+<script src="../_shared/luma-bridge.js?v=3"></script>
 
 
 <!-- Shared behaviour for every design. Loaded after the data. -->

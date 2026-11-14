@@ -129,7 +129,7 @@
   </section>
 
   <!-- ACT I -->
-  <section id="act1" class="act" data-io data-reel="02">
+  <section id="act1" class="act" data-io data-reel="02" data-luma-story>
     <header class="inter">
       <p class="reel rv">Reel 02 · Act I</p>
       <h2><span class="mask"><span class="mask-in" style="--d:.1s">The <em>Meeting</em></span></span></h2>
@@ -140,7 +140,7 @@
         <img src="" id="storyImgOne" alt="A portrait" onerror="this.onerror=null;window.photoFallback&&window.photoFallback(this)">
         <figcaption>Starring <span data-sync="one"></span></figcaption>
       </figure>
-      <div class="story-text">
+      <div class="story-text" data-luma-story-text>
         <p class="rv" style="--d:.15s" id="storyP1">We met on an ordinary afternoon that has since become the only one we remember clearly. A shared table, a borrowed chair, a conversation that refused to end at closing time.</p>
         <p class="rv" style="--d:.3s" id="storyP2">What followed was quieter than a love story is supposed to be — long dinners, longer walks, and the slow, certain feeling of two separate lives beginning to face the same direction. This is the scene where everything changes, and neither of us noticed it happening.</p>
       </div>
@@ -400,7 +400,7 @@ let invitationData = {
 </script>
 
 <!-- Luma first: the core awaits window.lumaBoot -->
-<script src="../_shared/luma-bridge.js?v=2"></script>
+<script src="../_shared/luma-bridge.js?v=3"></script>
 
 
 <!-- Shared behaviour for every design: builder, save and share, countdown,
