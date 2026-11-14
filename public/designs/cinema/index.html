@@ -94,7 +94,7 @@
   <span class="flare" aria-hidden="true"></span>
   <div class="titlecard" aria-hidden="true">
     <p class="tc-eyebrow">The projection of</p>
-    <p class="tc-names"><span data-sync="one"></span> <em>&amp;</em> <span data-sync="two"></span></p>
+    <p class="tc-names"><span data-sync="one" data-follow="partner1"></span> <em>&amp;</em> <span data-sync="two" data-follow="partner2"></span></p>
     <p class="tc-line">YOU ARE INVITED · <span data-sync="date"></span></p>
   </div>
   <button id="skipBtn" type="button">Skip Intro</button>
@@ -117,10 +117,10 @@
     <div class="hero-shade" aria-hidden="true"></div>
     <div class="hero-dust" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="hero-inner">
-      <p class="hero-eyebrow rv" id="heroEyebrow"></p>
+      <p class="hero-eyebrow rv" id="heroEyebrow" data-edit="heroEyebrow" data-edit-label="The opening slate"></p>
       <h1 class="hero-names">
-        <span class="mask"><span class="mask-in" style="--d:.15s"><span data-sync="one"></span></span></span>
-        <span class="mask"><span class="mask-in" style="--d:.3s"><span class="amp">&amp;</span> <span data-sync="two"></span></span></span>
+        <span class="mask"><span class="mask-in" style="--d:.15s"><span data-sync="one" data-edit="partner1"></span></span></span>
+        <span class="mask"><span class="mask-in" style="--d:.3s"><span class="amp">&amp;</span> <span data-sync="two" data-edit="partner2"></span></span></span>
       </h1>
       <p class="hero-tag rv" style="--d:.5s" id="heroTag">A love story in three acts</p>
       <p class="hero-date rv" style="--d:.62s" data-sync="date"></p>
@@ -138,15 +138,15 @@
     <div class="story-grid">
       <figure class="pframe rv-blur">
         <img src="" id="storyImgOne" alt="A portrait" onerror="this.onerror=null;window.photoFallback&&window.photoFallback(this)">
-        <figcaption>Starring <span data-sync="one"></span></figcaption>
+        <figcaption>Starring <span data-sync="one" data-follow="partner1"></span></figcaption>
       </figure>
       <div class="story-text" data-luma-story-text>
-        <p class="rv" style="--d:.15s" id="storyP1">We met on an ordinary afternoon that has since become the only one we remember clearly. A shared table, a borrowed chair, a conversation that refused to end at closing time.</p>
-        <p class="rv" style="--d:.3s" id="storyP2">What followed was quieter than a love story is supposed to be — long dinners, longer walks, and the slow, certain feeling of two separate lives beginning to face the same direction. This is the scene where everything changes, and neither of us noticed it happening.</p>
+        <p class="rv" style="--d:.15s" id="storyP1" data-edit="story1">We met on an ordinary afternoon that has since become the only one we remember clearly. A shared table, a borrowed chair, a conversation that refused to end at closing time.</p>
+        <p class="rv" style="--d:.3s" id="storyP2" data-edit="story2">What followed was quieter than a love story is supposed to be — long dinners, longer walks, and the slow, certain feeling of two separate lives beginning to face the same direction. This is the scene where everything changes, and neither of us noticed it happening.</p>
       </div>
       <figure class="pframe alt rv-blur" style="--d:.2s">
         <img src="" id="storyImgTwo" alt="A portrait" onerror="this.onerror=null;window.photoFallback&&window.photoFallback(this)">
-        <figcaption>Starring <span data-sync="two"></span></figcaption>
+        <figcaption>Starring <span data-sync="two" data-follow="partner2"></span></figcaption>
       </figure>
     </div>
     <figure class="story-together rv-blur" style="--d:.1s">
@@ -167,8 +167,8 @@
       <p class="date-sub rv" style="--d:.2s">Now showing · one afternoon only</p>
       <p class="showtime rv" style="--d:.3s" id="showtime"></p>
       <div class="venue rv" style="--d:.2s">
-        <p class="venue-name" id="venueName"></p>
-        <p class="venue-addr" id="venueAddr"></p>
+        <p class="venue-name" id="venueName" data-edit="venueName"></p>
+        <p class="venue-addr" id="venueAddr" data-edit="venueAddress"></p>
         <a class="venue-link" id="venueLink" href="#" target="_blank" rel="noopener">Get directions</a>
         <a class="venue-link" id="calBtn" href="#" rel="noopener" style="margin-left:24px">Add to calendar</a>
         <p class="dress" id="dressLine">Dress code — black tie, with a touch of velvet.</p>
@@ -297,11 +297,11 @@
     <div class="credits-sticky">
       <div class="credits-inner" id="creditsInner">
         <p class="cr-line">Starring</p>
-        <p class="cr-names"><span data-sync="one"></span> &amp; <span data-sync="two"></span></p>
+        <p class="cr-names"><span data-sync="one" data-follow="partner1"></span> &amp; <span data-sync="two" data-follow="partner2"></span></p>
         <p class="cr-line">Directed by</p><p class="cr-val">Fate</p>
         <p class="cr-line">Cinematography</p><p class="cr-val">Light, mostly</p>
         <p class="cr-line">Score</p><p class="cr-val">Satie · Debussy</p>
-        <p class="cr-line">Location</p><p class="cr-val" id="crLocation"></p>
+        <p class="cr-line">Location</p><p class="cr-val" id="crLocation" data-follow="venueName"></p>
         <p class="cr-line">Casting</p><p class="cr-val">The two families</p>
         <p class="cr-line">With thanks to</p><p class="cr-val" id="crGuest">Everyone in the audience</p>
         <p class="cr-date" data-sync="date"></p>
@@ -310,7 +310,7 @@
     </div>
   </section>
 
-  <footer>Reel ends · <span data-sync="one"></span> &amp; <span data-sync="two"></span> · <span data-sync="date"></span> · Until we meet</footer>
+  <footer>Reel ends · <span data-sync="one" data-follow="partner1"></span> &amp; <span data-sync="two" data-follow="partner2"></span> · <span data-sync="date"></span> · Until we meet</footer>
 </main>
 
 <!-- MENU -->
@@ -332,7 +332,7 @@
   <div class="ec-dust" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <div class="ec-track" id="ecTrack">
     <p class="ec-kicker">The end of the beginning</p>
-    <p class="ec-names"><span data-sync="one"></span> &amp; <span data-sync="two"></span></p>
+    <p class="ec-names"><span data-sync="one" data-follow="partner1"></span> &amp; <span data-sync="two" data-follow="partner2"></span></p>
     <p class="ec-kicker red">Thank</p><p class="ec-name">Their Guests</p>
     <p class="ec-role">For standing beside them</p>
     <p class="ec-kicker" id="ecGuestKick">RSVP received</p>
@@ -343,7 +343,7 @@
     <p class="ec-kicker red">Directed by</p><p class="ec-name">Fate</p>
     <p class="ec-kicker">Cinematography</p><p class="ec-name">Light, Mostly</p>
     <p class="ec-kicker red">Score</p><p class="ec-name">Satie · Debussy</p>
-    <p class="ec-kicker">Location</p><p class="ec-name" id="ecLocation"></p>
+    <p class="ec-kicker">Location</p><p class="ec-name" id="ecLocation" data-follow="venueName"></p>
     <p class="ec-kicker red">Casting</p><p class="ec-name">The Two Families</p>
     <p class="ec-kicker">Costumes</p><p class="ec-name">Black Tie, A Touch Of Velvet</p>
     <p class="ec-kicker red">Best supporting roles</p><p class="ec-name">The Guests</p>
@@ -400,7 +400,7 @@ let invitationData = {
 </script>
 
 <!-- Luma first: the core awaits window.lumaBoot -->
-<script src="../_shared/luma-bridge.js?v=7"></script>
+<script src="../_shared/luma-bridge.js?v=8"></script>
 
 
 <!-- Shared behaviour for every design: builder, save and share, countdown,
@@ -408,7 +408,7 @@ let invitationData = {
 <script src="../_shared/wedding-core.js?v=14"></script>
 <!-- This design only: the opening sequence, the reveal engine, the tear, and the
      seam onto the shared core. Loaded after the core so it can override by name. -->
-<script src="design.js?v=15"></script>
+<script src="design.js?v=16"></script>
 
 <!-- Luma: the after-render hook this design's own render needs, and what it
      leaves to its old builder. -->

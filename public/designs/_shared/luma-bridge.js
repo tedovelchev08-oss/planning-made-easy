@@ -326,6 +326,8 @@
       el.addEventListener('input', function () {
         var v = textOf(el, key);
         sameKey(key).forEach(function (other) { if (other !== el) other.textContent = v; });
+        // copies a design repeats but shouldn't be typed on (cards, credits): they follow
+        document.querySelectorAll('[data-follow="' + key + '"]').forEach(function (other) { other.textContent = v; });
         if (key === 'partner1' || key === 'partner2') followNames();
         send(key, v);
       });
