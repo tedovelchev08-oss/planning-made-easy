@@ -64,7 +64,7 @@
      loads after it so the Liquid Gold styling always wins the tie, and
      wedding-ui.css last because it only dresses the builder drawer. -->
 <link rel="stylesheet" href="../_shared/tailwind.css?v=70">
-<link rel="stylesheet" href="wedding-design.css?v=74">
+<link rel="stylesheet" href="wedding-design.css?v=75">
 <link rel="stylesheet" href="../_shared/wedding-ui.css?v=70">
 <!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
 <style>
@@ -170,7 +170,7 @@
            saw a page whose outline started at level 2. -->
       <h1 class="hero-names" id="heroNames"></h1>
       <p class="hero-date" id="heroDate"></p>
-      <p class="hero-state" id="heroState"></p>
+      <p class="hero-state" id="heroState" data-edit="heroQuote" data-edit-label="Opening line"></p>
     </div>
   </section>
 
@@ -186,8 +186,8 @@
          voice; these two paragraphs are theirs. The drawer has always had
          Paragraph 1 and Paragraph 2 - until now they had nowhere to land. -->
     <div class="story-prose rv" id="storyProse" style="--d:.08s">
-      <p id="storyP1"></p>
-      <p id="storyP2"></p>
+      <p id="storyP1" data-edit="story1"></p>
+      <p id="storyP2" data-edit="story2"></p>
     </div>
   </section>
 
@@ -217,8 +217,8 @@
            with no address to travel to. The calendar links still carried the
            venue, but nobody reads an invitation by downloading the .ics.
            This is the practical section, so they belong here. -->
-      <p class="d-venue rv" style="--d:.16s" id="cerVenue"></p>
-      <p class="d-addr rv" style="--d:.2s" id="cerAddr"></p>
+      <p class="d-venue rv" style="--d:.16s" id="cerVenue" data-edit="venueName"></p>
+      <p class="d-addr rv" style="--d:.2s" id="cerAddr" data-edit="venueAddress"></p>
       <p class="d-dress rv" style="--d:.24s" id="cerDress"></p>
 
       <!-- Add to Calendar. Both links are written by the core; the ics one
@@ -295,7 +295,7 @@
         <span id="rsvpDeadlinePrefix">Kindly answer before</span>
         <span id="rsvpDeadlineText"></span>
         <span class="sep">&middot;</span>
-        <span id="rsvpEmailText"></span>
+        <span id="rsvpEmailText" data-edit="rsvpEmailText" data-edit-label="Contact for questions"></span>
       </p>
 
       <form id="rsvp-form" name="rsvp" method="POST"
@@ -470,7 +470,7 @@ let invitationData = {
 </script>
 
 <!-- Luma first: the core awaits window.lumaBoot -->
-<script src="../_shared/luma-bridge.js?v=8"></script>
+<script src="../_shared/luma-bridge.js?v=9"></script>
 
 
 <!-- Shared behaviour for every design: builder, save and share, countdown,
@@ -481,7 +481,7 @@ let invitationData = {
 <!-- This design only: the opening sequence, the reveal engine, the gallery
      viewer and the seam onto the shared core.
      Loaded after the core so it can override the core's gallery renderer. -->
-<script src="design.js?v=73"></script>
+<script src="design.js?v=74"></script>
 
 <!-- Luma: the after-render hook this design's own render needs, and what it
      leaves to its old builder. -->

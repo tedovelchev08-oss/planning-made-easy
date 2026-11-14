@@ -74,12 +74,13 @@ As of 2026-11-13:
   in place, loaded with `?preview=1&quiet=1&edit=1`; the bridge posts `twofold:edit` to the
   planner, which saves through `studioEditPatch` (`src/components/dashboard/studioEdit.ts`).
   Done: Celestial, Mirror Palace (#117), Amalfi, Art Deco (#118), Riviera, Palm Springs (#119),
-  Palm Shadow, The Tide (#120), Cinema, All In (#121), Red Thread, Glasshouse (#122). Left:
-  Liquid Gold, Inscription, Map, Plaster. Markers: `data-edit="key"` (+ `data-edit-label`) makes text
+  Palm Shadow, The Tide (#120), Cinema, All In (#121), Red Thread, Glasshouse (#122), Liquid
+  Gold, Inscription (#123). Left: Map, Plaster. Capitals must come from CSS, not `toUpperCase()`,
+  or typed names are saved in capitals. Inscription's stone.js leaves editable lines unsplit. Markers: `data-edit="key"` (+ `data-edit-label`) makes text
   editable (keys: partner1/2, venueName, venueAddress, hashtag, story/story1/story2, or the
   design's own `extras.texts` key); `data-follow="key"` copies follow without being editable
   (cards, credits); `data-follow-names` lines show "A & B". Nothing inside `aria-hidden` is
-  editable. Bridge is v=8. Then 4: guided walk-through; "+ Add" for empty studio sections.
+  editable. Bridge is v=9 (reads typed letters, never innerText, which applies CSS capitals). Then 4: guided walk-through; "+ Add" for empty studio sections.
 - PR #115: Red Thread measured a hidden section after #110. Designs must never measure or
   trigger on a section that may be hidden; use the first visible one.
 - Unresolved: owner saw the dashboard wider than the phone screen after zooming out on an iPhone,

@@ -38,6 +38,8 @@
     var i = 0;
     document.querySelectorAll('.cut').forEach(function (el) {
       if (el.dataset.split) return;
+      // in the planner, a line being typed on stays whole text
+      if (el.classList.contains('tf-editable') || el.querySelector('.tf-editable')) return;
       var walk = function (node) {
         var kids = [].slice.call(node.childNodes);
         kids.forEach(function (n) {

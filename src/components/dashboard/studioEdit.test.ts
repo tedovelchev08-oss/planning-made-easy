@@ -63,6 +63,14 @@ describe("studioEditPatch", () => {
     expect(studioEditPatch(db, red, "glassNote", "x")).toBeNull();
   });
 
+  it("saves Liquid Gold's and Inscription's own lines", () => {
+    const gold = STUDIO_DESIGNS.find((d) => d.id === "liquid-gold")!;
+    const ins = STUDIO_DESIGNS.find((d) => d.id === "inscription")!;
+    expect(studioEditPatch(db, gold, "heroQuote", "Two lives. One promise.")!.invitation!.designData!.texts!.heroQuote).toBe("Two lives. One promise.");
+    expect(studioEditPatch(db, ins, "inscriptionAbove", "They are to be married")!.invitation!.designData!.texts!.inscriptionAbove).toBe("They are to be married");
+    expect(studioEditPatch(db, gold, "inscriptionAbove", "x")).toBeNull();
+  });
+
   it("ignores keys a design wasn't given, and anything that isn't text", () => {
     expect(studioEditPatch(db, celestial, "closingMsg", "Until then")).toBeNull();
     expect(studioEditPatch(db, celestial, "plan", "luxe")).toBeNull();

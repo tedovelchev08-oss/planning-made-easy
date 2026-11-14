@@ -193,6 +193,28 @@ describe("luma-bridge", () => {
     await new Promise((r) => setTimeout(r, 120));
   });
 
+  it("saves the letters as typed, not as a design's capitals show them, and keeps line breaks", async () => {
+    localStorage.setItem("luma.designPreview", JSON.stringify({ invitation }));
+    boot("?preview=1&quiet=1&edit=1");
+    document.body.insertAdjacentHTML("beforeend", `
+      <h1 style="text-transform:uppercase"><span data-edit="partner1">Ana</span></h1>
+      <p data-edit="story1">x</p>
+      <div aria-hidden="true"><span id="n2" data-edit="partner1">Ana</span><p id="s2" data-edit="story1">x</p></div>`);
+    w.lumaAfterRender(await w.lumaBoot);
+    const name = document.querySelector('[data-edit="partner1"]') as HTMLElement;
+    name.textContent = "Leo";
+    // a real browser's innerText applies text-transform
+    Object.defineProperty(name, "innerText", { get: () => "LEO", configurable: true });
+    name.dispatchEvent(new Event("input", { bubbles: true }));
+    const story = document.querySelector('[data-edit="story1"]') as HTMLElement;
+    story.innerHTML = "We met.<div>Then again.</div>";
+    story.dispatchEvent(new Event("input", { bubbles: true }));
+    // the copies get exactly what is sent to the planner
+    expect(document.getElementById("n2")!.textContent).toBe("Leo");
+    expect(document.getElementById("s2")!.textContent).toBe("We met.\nThen again.");
+    await new Promise((r) => setTimeout(r, 120));
+  });
+
   it("is never editable for guests", async () => {
     boot(`?token=${TOKEN}`);
     document.body.insertAdjacentHTML("beforeend", `<p data-field="venueName">Villa Lago</p>`);
