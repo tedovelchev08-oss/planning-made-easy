@@ -174,8 +174,11 @@
 
     if (blank(d.time)) document.querySelectorAll('[data-field="time"]').forEach(hide);
 
-    // the story: without words, show the couple's photo alone (or nothing)
-    if (blank(d.story1) && blank(d.story2)) {
+    // the story: without words, show the couple's photo alone (or nothing).
+    // Not in the planner's editor: there the empty story is a place to write it.
+    if (editing) {
+      // left visible; makeEditable() offers it as "+ Add"
+    } else if (blank(d.story1) && blank(d.story2)) {
       var story = document.getElementById('our-story');
       var hasPhoto = d.heroPhoto && d.heroPhoto.indexOf('data:image/svg') !== 0;
       if (story && hasPhoto) {
@@ -309,6 +312,31 @@
     document.querySelectorAll('[data-field="initial2"]').forEach(function (el) { el.textContent = p2.charAt(0).toUpperCase(); });
   }
 
+  /* A line a design hides when it is empty (the hidden attribute, an inline
+     display:none, a :empty rule) is shown in the editor as a dashed "+ Add"
+     slot, so the couple can write it where it will appear. Guests never get
+     here. Only the line itself is shown: if what holds it is hidden (a section
+     with nothing in it yet, a closed menu), it stays hidden. */
+  var STORY_KEYS = { story: true, story1: true, story2: true, storyHeadline: true };
+  function shown(el) { return !!el && el.getClientRects().length > 0; }
+  function revealEmpty(el, key, label) {
+    if (STORY_KEYS[key]) {
+      var sec = el.closest('.luma-empty');
+      if (sec && sec.querySelector('[data-edit="story1"],[data-edit="story"]')) sec.classList.remove('luma-empty');
+    }
+    var was = false;
+    if (el.hidden) { el.hidden = false; was = true; }
+    if (el.style.display === 'none') { el.style.display = ''; was = true; }
+    if (!shown(el) && shown(el.parentElement) && window.getComputedStyle(el).display === 'none') {
+      el.style.display = /^(SPAN|B|A|EM|I)$/.test(el.nodeName) ? 'inline-block' : 'block';
+      was = true;
+    }
+    if (was || !(el.textContent || '').trim()) {
+      el.classList.add('tf-add');
+      el.setAttribute('data-ph', '+ Add ' + label.charAt(0).toLowerCase() + label.slice(1));
+    }
+  }
+
   function makeEditable() {
     if (!document.getElementById('tf-edit-style')) {
       var css = document.createElement('style');
@@ -317,7 +345,9 @@
         '.tf-editable{border-radius:3px;outline:1px dashed transparent;outline-offset:4px;cursor:text;transition:outline-color .15s,background-color .15s}' +
         '.tf-editable:hover{outline-color:color-mix(in srgb,currentColor 50%,transparent)}' +
         '.tf-editable:focus{outline:1.5px solid color-mix(in srgb,currentColor 85%,transparent);background:color-mix(in srgb,currentColor 7%,transparent)}' +
-        '.tf-editable:empty::before{content:attr(data-ph);opacity:.45;font-style:italic}';
+        '.tf-editable:empty::before{content:attr(data-ph);opacity:.45;font-style:italic}' +
+        '.tf-editable.tf-add:empty{display:inline-block;min-width:8em;padding:.15em .5em;outline:1px dashed color-mix(in srgb,currentColor 45%,transparent)}' +
+        '.tf-editable.tf-add:empty::before{opacity:.6;font-style:normal}';
       document.head.appendChild(css);
     }
     document.querySelectorAll('[data-edit],[data-field],[data-sync]').forEach(function (el) {
@@ -330,6 +360,7 @@
       el.setAttribute('aria-label', EDIT_FIELDS[key] || el.getAttribute('data-edit-label') || 'Text');
       el.setAttribute('data-ph', EDIT_FIELDS[key] || el.getAttribute('data-edit-label') || 'Write here');
       el.spellcheck = false;
+      revealEmpty(el, key, EDIT_FIELDS[key] || el.getAttribute('data-edit-label') || 'text');
       el.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); });
       el.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' || (e.key === 'Enter' && !MULTILINE[key])) { e.preventDefault(); el.blur(); }
