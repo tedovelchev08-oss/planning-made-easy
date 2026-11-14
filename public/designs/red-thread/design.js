@@ -313,7 +313,10 @@ function railAnchors(){
      column on small screens and the bow simply runs closer to the edge. The
      threads still embrace every section and still cross at every boundary, which
      is the whole point of the design; only the scale changes. */
-  var wrapEl  = document.querySelector('.sec .wrap');
+  /* the first content column that is actually on screen: an unwritten story
+     hides its section, and a hidden column measures 0px wide, which put the
+     bow 68px from the centre, straight through the words */
+  var wrapEl  = Array.prototype.find.call(document.querySelectorAll('.sec .wrap'), function(w){ return w.offsetWidth > 0; });
   var colHalf = wrapEl ? wrapEl.offsetWidth/2 : Math.min(570, W*0.4);
   var amp     = Math.min(colHalf + (narrow ? 20 : 68), W/2 - 12);
 
@@ -371,6 +374,15 @@ function syncMainPad(){
     if(cs.display !== 'none' && cs.position === 'fixed') h = bar.offsetHeight;
   }
   document.documentElement.style.setProperty('--bar-h', h+'px');
+}
+
+/* where the thread starts being dealt out: the first section guests can see */
+function railFirstSection(){
+  for(var i=0;i<SECTION_IDS.length;i++){
+    var el = document.getElementById(SECTION_IDS[i]);
+    if(el && el.offsetParent !== null) return el;
+  }
+  return null;
 }
 
 function buildRail(){
@@ -443,7 +455,7 @@ function buildRail(){
     strokeDashoffset: 0,
     ease: 'none',
     scrollTrigger: {
-      trigger: '#beginning', start: 'top bottom',
+      trigger: (railFirstSection() || mainEl), start: 'top bottom',
       endTrigger: 'footer',  end: 'top bottom',
       scrub: 0.6, invalidateOnRefresh: true
     }
