@@ -65,9 +65,13 @@ As of 2026-11-13:
 - **In progress: Invitation page redesign "A + C"** (owner's choice, mocks at
   https://claude.ai/artifact/Va1KAjFt6eU2nJos3qcjJu): full-screen invitation edited in place
   (click text to type, dashed "+ Add" for empty sections, floating bar: design, colours,
-  phone/desktop, see as guest), plus a guided first-time walk-through. Steps: 1b full-screen page
-  and floating bar; 2 edit in place on built-in designs; 3 studio designs (need field markers);
-  4 guided walk-through.
+  phone/desktop, see as guest), plus a guided first-time walk-through. **1b done (#114):** the
+  invitation fills the page, studio designs show live in a same-origin iframe (`/designs/*` may be
+  framed by 'self' only), tools open sheets from a floating bar, sharing lives in the Share sheet.
+  Next: 2 edit in place on built-in designs (and skip studio openings in the planner preview);
+  3 studio designs (need field markers); 4 guided walk-through.
+- PR #115: Red Thread measured a hidden section after #110. Designs must never measure or
+  trigger on a section that may be hidden; use the first visible one.
 - Unresolved: owner saw the dashboard wider than the phone screen after zooming out on an iPhone,
   on a preview URL with a near-empty plan. Not reproduced with demo data at 375px.
 - The GitHub CLI (`gh`) is installed on the Windows PC, signed in as `tedovelchev08-oss`.
