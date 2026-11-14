@@ -130,8 +130,8 @@
     </figure>
     <div class="leaf" data-reveal="leaf">
       <p class="eyebrow">How it started</p>
-      <h2 id="storyHeadline"></h2>
-      <p class="body" id="storyP1"></p>
+      <h2 id="storyHeadline" data-edit="storyHeadline" data-edit-label="Story headline"></h2>
+      <p class="body" id="storyP1" data-edit="story1"></p>
     </div>
   </div>
 </section>
@@ -145,11 +145,11 @@
 <section class="sec tight" id="us">
   <div class="wrap">
     <div class="meet" data-reveal="meet">
-      <div class="sheet a"><span id="whoOne"></span></div>
-      <div class="sheet b"><span id="whoTwo"></span></div>
+      <div class="sheet a"><span id="whoOne" data-follow="partner1"></span></div>
+      <div class="sheet b"><span id="whoTwo" data-follow="partner2"></span></div>
       <p class="seam" aria-hidden="true">&amp;</p>
     </div>
-    <p class="body on-cloth" id="storyP2"></p>
+    <p class="body on-cloth" id="storyP2" data-edit="story2"></p>
   </div>
 </section>
 
@@ -185,7 +185,7 @@
 <section class="sec" id="schedule">
   <div class="wrap">
     <div class="head">
-      <h2 class="on-cloth" id="scheduleHeading"></h2>
+      <h2 class="on-cloth" id="scheduleHeading" data-edit="scheduleHeading" data-edit-label="Schedule heading"></h2>
     </div>
     <div class="rail off-l" id="tlItems" data-reveal="rail">
       <span class="thread" aria-hidden="true"></span>
@@ -202,7 +202,7 @@
 <section class="sec" id="gallery">
   <div class="wrap">
     <div class="head r">
-      <h2 class="on-cloth" id="galleryHeading"></h2>
+      <h2 class="on-cloth" id="galleryHeading" data-edit="galleryHeading" data-edit-label="Photographs heading"></h2>
     </div>
     <div class="gallery-grid" data-reveal="prints">
     </div>
@@ -316,6 +316,6 @@
 </main>
 
 <script src="../_shared/luma-bridge.js?v=9"></script>
-<script src="luma-plaster.js?v=1"></script>
+<script src="luma-plaster.js?v=2"></script>
 </body>
 </html>

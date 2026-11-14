@@ -75,7 +75,7 @@ As of 2026-11-13:
   planner, which saves through `studioEditPatch` (`src/components/dashboard/studioEdit.ts`).
   Done: Celestial, Mirror Palace (#117), Amalfi, Art Deco (#118), Riviera, Palm Springs (#119),
   Palm Shadow, The Tide (#120), Cinema, All In (#121), Red Thread, Glasshouse (#122), Liquid
-  Gold, Inscription (#123). Left: Map, Plaster. Capitals must come from CSS, not `toUpperCase()`,
+  Gold, Inscription (#123), Map, Plaster (#124): all 16 done. Capitals must come from CSS, not `toUpperCase()`,
   or typed names are saved in capitals. Inscription's stone.js leaves editable lines unsplit. Markers: `data-edit="key"` (+ `data-edit-label`) makes text
   editable (keys: partner1/2, venueName, venueAddress, hashtag, story/story1/story2, or the
   design's own `extras.texts` key); `data-follow="key"` copies follow without being editable

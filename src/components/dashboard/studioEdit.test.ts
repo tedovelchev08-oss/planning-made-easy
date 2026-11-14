@@ -71,6 +71,15 @@ describe("studioEditPatch", () => {
     expect(studioEditPatch(db, gold, "inscriptionAbove", "x")).toBeNull();
   });
 
+  it("saves Map's and Plaster's own lines", () => {
+    const map = STUDIO_DESIGNS.find((d) => d.id === "map")!;
+    const plaster = STUDIO_DESIGNS.find((d) => d.id === "plaster")!;
+    expect(studioEditPatch(db, map, "fromPlace", "Hydra")!.invitation!.designData!.texts!.fromPlace).toBe("Hydra");
+    expect(studioEditPatch(db, map, "scheduleLede", "Walkable.\nThen a boat.")!.invitation!.designData!.texts!.scheduleLede).toBe("Walkable.\nThen a boat.");
+    expect(studioEditPatch(db, plaster, "storyHeadline", "A flat tyre.")!.invitation!.designData!.texts!.storyHeadline).toBe("A flat tyre.");
+    expect(studioEditPatch(db, plaster, "fromPlace", "x")).toBeNull();
+  });
+
   it("ignores keys a design wasn't given, and anything that isn't text", () => {
     expect(studioEditPatch(db, celestial, "closingMsg", "Until then")).toBeNull();
     expect(studioEditPatch(db, celestial, "plan", "luxe")).toBeNull();

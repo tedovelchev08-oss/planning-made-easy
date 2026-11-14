@@ -196,14 +196,14 @@
 
         <!-- lettering, by chart convention: land upright and tracked,
              hydrography slanted -->
-        <p class="place a"></p>
-        <p class="place b"></p>
+        <p class="place a" data-edit="fromPlace" data-edit-label="From (on the chart)"></p>
+        <p class="place b" data-edit="toPlace" data-edit-label="To (on the chart)"></p>
         <p class="sea a">The sound</p>
         <p class="sheetno"></p>
 
         <!-- THE TITLE BLOCK -->
         <div class="title">
-          <p class="region"></p>
+          <p class="region" data-edit="chartTitle" data-edit-label="Above your names"></p>
           <p class="nm"></p>
           <p class="passage"></p>
           <div class="spec">
@@ -352,14 +352,14 @@
 
         <!-- lettering, by chart convention: land upright and tracked,
              hydrography slanted -->
-        <p class="place a"></p>
-        <p class="place b"></p>
+        <p class="place a" data-edit="fromPlace" data-edit-label="From (on the chart)"></p>
+        <p class="place b" data-edit="toPlace" data-edit-label="To (on the chart)"></p>
         <p class="sea a">The sound</p>
         <p class="sheetno"></p>
 
         <!-- THE TITLE BLOCK -->
         <div class="title">
-          <p class="region"></p>
+          <p class="region" data-edit="chartTitle" data-edit-label="Above your names"></p>
           <h1 class="nm"></h1>
           <p class="passage"></p>
           <div class="spec">
@@ -508,14 +508,14 @@
 
         <!-- lettering, by chart convention: land upright and tracked,
              hydrography slanted -->
-        <p class="place a"></p>
-        <p class="place b"></p>
+        <p class="place a" data-edit="fromPlace" data-edit-label="From (on the chart)"></p>
+        <p class="place b" data-edit="toPlace" data-edit-label="To (on the chart)"></p>
         <p class="sea a">The sound</p>
         <p class="sheetno"></p>
 
         <!-- THE TITLE BLOCK -->
         <div class="title">
-          <p class="region"></p>
+          <p class="region" data-edit="chartTitle" data-edit-label="Above your names"></p>
           <p class="nm"></p>
           <p class="passage"></p>
           <div class="spec">
@@ -572,8 +572,8 @@
   <img class="couple" alt="The two of you" hidden>
   <div class="words">
     <span class="stamp">How it started</span>
-    <h2 class="d1" id="storyHeadline"></h2>
-    <div class="col" id="storyP1"></div>
+    <h2 class="d1" id="storyHeadline" data-edit="storyHeadline" data-edit-label="Story headline"></h2>
+    <div class="col" id="storyP1" data-edit="story1"></div>
   </div>
 </section>
 
@@ -585,10 +585,10 @@
      ============================================================ -->
 <section class="sec sand" id="us">
   <div class="pair" data-reveal>
-    <p class="who" id="whoOne"></p>
+    <p class="who" id="whoOne" data-follow="partner1"></p>
     <p class="amp">and</p>
-    <p class="who" id="whoTwo"></p>
-    <div class="col" id="storyP2"></div>
+    <p class="who" id="whoTwo" data-follow="partner2"></p>
+    <div class="col" id="storyP2" data-edit="story2"></div>
   </div>
 </section>
 
@@ -602,8 +602,8 @@
      ============================================================ -->
 <section class="sec crossing" id="schedule">
   <div class="lede">
-    <h2 class="d2" id="scheduleHeading"></h2>
-    <div class="col" id="scheduleLede"></div>
+    <h2 class="d2" id="scheduleHeading" data-edit="scheduleHeading" data-edit-label="Schedule heading"></h2>
+    <div class="col" id="scheduleLede" data-edit="scheduleLede" data-edit-label="A line under it"></div>
   </div>
 
   <div id="tlItems">
@@ -631,7 +631,7 @@
      couple's, and it is the one the buyer swaps.
      ============================================================ -->
 <section class="sec folio" id="gallery">
-  <h2 class="d2" id="galleryHeading"></h2>
+  <h2 class="d2" id="galleryHeading" data-edit="galleryHeading" data-edit-label="Photographs heading"></h2>
   <div class="run" data-reveal>
   </div>
 </section>
@@ -729,6 +729,6 @@
 <p class="hint" id="hint">Unfold the chart</p>
 
 <script src="../_shared/luma-bridge.js?v=9"></script>
-<script src="luma-map.js?v=1"></script>
+<script src="luma-map.js?v=2"></script>
 </body>
 </html>
