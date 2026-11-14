@@ -29,6 +29,8 @@
     return e;
   }
   function setText(sel, v) { all(sel).forEach(function (e) { e.textContent = v; }); }
+  // a name the planner can type on (luma-bridge.js, edit mode)
+  function named(key, text) { var s = el('span', null, text); s.setAttribute('data-edit', key); return s; }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
 
   function dateParts(iso) {
@@ -147,9 +149,9 @@
     });
     all('.face .title .nm').forEach(function (n) {
       n.textContent = '';
-      n.appendChild(document.createTextNode(one));
+      n.appendChild(named('partner1', one));
       n.appendChild(el('span', 'amp', 'and'));
-      n.appendChild(document.createTextNode(two));
+      n.appendChild(named('partner2', two));
     });
     all('.face .when').forEach(function (w) {
       w.textContent = '';
@@ -248,7 +250,9 @@
         if (!f[1]) return;
         var div = el('div');
         div.appendChild(el('dt', null, f[0]));
-        div.appendChild(el('dd', null, f[1]));
+        var dd = el('dd', null, f[1]);
+        if (f[0] === 'Where') dd.setAttribute('data-edit', 'venueAddress');
+        div.appendChild(dd);
         facts.appendChild(div);
       });
     }

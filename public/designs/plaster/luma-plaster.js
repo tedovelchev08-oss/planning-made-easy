@@ -88,9 +88,9 @@
     var h1 = byId('cardNames');
     if (h1) {
       h1.textContent = '';
-      h1.appendChild(document.createTextNode(one));
+      h1.appendChild(named('partner1', one));
       h1.appendChild(el('span', 'amp', '&'));
-      h1.appendChild(document.createTextNode(two));
+      h1.appendChild(named('partner2', two));
     }
     var place = town(address, '');
     setLines(byId('cardWhere'), venue ? [venue, place !== venue ? place : ''] : [address]);
@@ -138,7 +138,10 @@
         if (!f[1]) return;
         var div = el('div');
         div.appendChild(el('span', null, f[0]));
-        div.appendChild(el('b', null, f[1]));
+        var b = el('b', null, f[1]);
+        if (f[0] === 'Where') b.setAttribute('data-edit', 'venueName');
+        if (f[0] === 'Address') b.setAttribute('data-edit', 'venueAddress');
+        div.appendChild(b);
         facts.appendChild(div);
       });
     }
@@ -212,6 +215,8 @@
     };
   }
 
+  // a name the planner can type on (luma-bridge.js, edit mode)
+  function named(key, text) { var s = el('span', null, text); s.setAttribute('data-edit', key); return s; }
   function start(src) {
     return new Promise(function (resolve) {
       var s = document.createElement('script');
