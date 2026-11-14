@@ -282,6 +282,16 @@
     }
   }
 
+  /* lines that show both names, and the monogram letters, follow the names as
+     they're typed (they aren't typed into themselves: "Maya & Theo" is two fields) */
+  function followNames() {
+    var one = sameKey('partner1')[0], two = sameKey('partner2')[0];
+    var p1 = one ? (one.textContent || '').trim() : '', p2 = two ? (two.textContent || '').trim() : '';
+    document.querySelectorAll('[data-field="coupleNames"]').forEach(function (el) { el.textContent = p1 + ' & ' + p2; });
+    document.querySelectorAll('[data-field="initial1"]').forEach(function (el) { el.textContent = p1.charAt(0).toUpperCase(); });
+    document.querySelectorAll('[data-field="initial2"]').forEach(function (el) { el.textContent = p2.charAt(0).toUpperCase(); });
+  }
+
   function makeEditable() {
     if (!document.getElementById('tf-edit-style')) {
       var css = document.createElement('style');
@@ -315,6 +325,7 @@
       el.addEventListener('input', function () {
         var v = textOf(el, key);
         sameKey(key).forEach(function (other) { if (other !== el) other.textContent = v; });
+        if (key === 'partner1' || key === 'partner2') followNames();
         send(key, v);
       });
       el.addEventListener('blur', function () { send(key, textOf(el, key).trim()); });
