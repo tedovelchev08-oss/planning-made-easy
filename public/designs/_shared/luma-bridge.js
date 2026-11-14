@@ -270,8 +270,24 @@
     return out;
   }
 
+  // The letters as typed. Not innerText: it applies CSS text-transform, so a
+  // name shown in capitals would be saved in capitals. Line breaks come from
+  // <br> and the blocks contenteditable makes on Enter.
+  function plainText(node) {
+    var out = '';
+    [].forEach.call(node.childNodes, function (n) {
+      if (n.nodeType === 3) out += n.nodeValue;
+      else if (n.nodeName === 'BR') out += '\n';
+      else if (n.nodeType === 1) {
+        if (/^(DIV|P|LI)$/.test(n.nodeName) && out && out.slice(-1) !== '\n') out += '\n';
+        out += plainText(n);
+      }
+    });
+    return out;
+  }
+
   function textOf(el, key) {
-    var t = (el.innerText || el.textContent || '');
+    var t = plainText(el);
     return MULTILINE[key] ? t.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n') : t.replace(/\s+/g, ' ');
   }
 

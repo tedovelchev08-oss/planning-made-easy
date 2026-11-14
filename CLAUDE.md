@@ -80,7 +80,7 @@ As of 2026-11-13:
   editable (keys: partner1/2, venueName, venueAddress, hashtag, story/story1/story2, or the
   design's own `extras.texts` key); `data-follow="key"` copies follow without being editable
   (cards, credits); `data-follow-names` lines show "A & B". Nothing inside `aria-hidden` is
-  editable. Bridge is v=8. Then 4: guided walk-through; "+ Add" for empty studio sections.
+  editable. Bridge is v=9 (reads typed letters, never innerText, which applies CSS capitals). Then 4: guided walk-through; "+ Add" for empty studio sections.
 - PR #115: Red Thread measured a hidden section after #110. Designs must never measure or
   trigger on a section that may be hidden; use the first visible one.
 - Unresolved: owner saw the dashboard wider than the phone screen after zooming out on an iPhone,
