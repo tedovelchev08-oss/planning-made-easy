@@ -36,12 +36,12 @@
 
   <article class="card" id="card">
     <div class="face">
-      <p class="above" id="cardAbove"></p>
+      <p class="above" id="cardAbove" data-edit="cardAbove" data-edit-label="Above your names"></p>
       <h1 id="cardNames"></h1>
       <svg class="rule" viewBox="0 0 64 8" aria-hidden="true"><path d="M1 4 q7.5 -4.5 15.5 0 t15.5 0 t15.5 0 t15.5 0"/></svg>
       <p class="date" id="cardDate"></p>
       <p class="place" id="cardPlace"></p>
-      <p class="line" id="cardLine"></p>
+      <p class="line" id="cardLine" data-edit="cardLine" data-edit-label="A line at the foot of the card"></p>
     </div>
     <!-- the sand lying over it, until the water takes it off -->
     <div class="grit" aria-hidden="true"></div>
@@ -60,9 +60,9 @@
     <figure class="print"><img class="couple" alt="The two of you" hidden></figure>
     <div class="words">
       <p class="eyebrow">How it started</p>
-      <h2 id="storyHeadline"></h2>
-      <p class="body" id="storyP1"></p>
-      <p class="body" id="storyP2"></p>
+      <h2 id="storyHeadline" data-edit="storyHeadline" data-edit-label="Story headline"></h2>
+      <p class="body" id="storyP1" data-edit="story1"></p>
+      <p class="body" id="storyP2" data-edit="story2"></p>
     </div>
   </div>
 </section>
@@ -87,7 +87,7 @@
 <section class="sec" id="schedule">
   <div class="wrap">
     <p class="eyebrow">The order of the day</p>
-    <h2 id="scheduleHeading"></h2>
+    <h2 id="scheduleHeading" data-edit="scheduleHeading" data-edit-label="Schedule heading"></h2>
     <div class="table">
       <svg class="curve" id="tideCurve" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true"></svg>
       <ol class="moments" id="tlItems"></ol>
@@ -97,7 +97,7 @@
 
 <section class="sec" id="gallery">
   <div class="wrap">
-    <h2 id="galleryHeading"></h2>
+    <h2 id="galleryHeading" data-edit="galleryHeading" data-edit-label="Photographs heading"></h2>
     <div class="prints"></div>
   </div>
 </section>
@@ -166,9 +166,9 @@
 <!-- the end of the page: their names, written in the sand -->
 <section class="sec" id="closing">
   <div class="wrap">
-    <p class="written" id="writtenNames"></p>
+    <p class="written" id="writtenNames" data-follow-names></p>
     <svg class="loop" viewBox="0 0 240 40" aria-hidden="true"><path d="M8 22 C 60 34, 150 36, 214 20 C 236 14, 228 4, 212 8 C 196 12, 204 30, 232 26"/></svg>
-    <p class="closing" id="closingLine"></p>
+    <p class="closing" id="closingLine" data-edit="closingLine" data-edit-label="Closing line"></p>
   </div>
 </section>
 
@@ -179,6 +179,6 @@
 </main>
 
 <script src="../_shared/luma-bridge.js?v=7"></script>
-<script src="luma-tide.js?v=2"></script>
+<script src="luma-tide.js?v=3"></script>
 </body>
 </html>

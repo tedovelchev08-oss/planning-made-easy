@@ -37,7 +37,7 @@
 <section class="wall" id="hero" aria-label="The invitation">
   <div class="light" aria-hidden="true"></div>
   <div class="names rv">
-    <p class="above" id="cardAbove"></p>
+    <p class="above" id="cardAbove" data-edit="cardAbove" data-edit-label="Above your names"></p>
     <span class="rule" aria-hidden="true"></span>
     <h1 id="cardNames"></h1>
     <span class="rule" aria-hidden="true"></span>
@@ -52,8 +52,8 @@
     <div class="on-card">
       <p class="eyebrow">The day</p>
       <p class="hour" id="dayTime"></p>
-      <p class="venue" id="dayVenue"></p>
-      <p class="addr" id="dayAddr"></p>
+      <p class="venue" id="dayVenue" data-edit="venueName"></p>
+      <p class="addr" id="dayAddr" data-edit="venueAddress"></p>
       <span class="rule" aria-hidden="true"></span>
       <p class="dress" id="dayDress"></p>
     </div>
@@ -70,23 +70,23 @@
     <figure class="frame rv"><img class="couple" alt="The two of you" hidden></figure>
     <div class="words rv">
       <p class="eyebrow">How it started</p>
-      <h2 id="storyHeadline"></h2>
-      <p class="body" id="storyP1"></p>
-      <p class="body" id="storyP2"></p>
+      <h2 id="storyHeadline" data-edit="storyHeadline" data-edit-label="Story headline"></h2>
+      <p class="body" id="storyP1" data-edit="story1"></p>
+      <p class="body" id="storyP2" data-edit="story2"></p>
     </div>
   </div>
 </section>
 
 <section class="sec stone" id="schedule">
   <div class="wrap narrow">
-    <p class="eyebrow center" id="scheduleHeading"></p>
+    <p class="eyebrow center" id="scheduleHeading" data-edit="scheduleHeading" data-edit-label="Schedule heading"></p>
     <ol class="rows rv" id="tlItems"></ol>
   </div>
 </section>
 
 <section class="sec stone" id="gallery">
   <div class="wrap">
-    <h2 class="center" id="galleryHeading"></h2>
+    <h2 class="center" id="galleryHeading" data-edit="galleryHeading" data-edit-label="Photographs heading"></h2>
     <div class="prints"></div>
   </div>
 </section>
@@ -149,8 +149,8 @@
 <section class="wall end" id="closing">
   <div class="light" aria-hidden="true"></div>
   <div class="names rv">
-    <p class="written" id="writtenNames"></p>
-    <p class="closing" id="closingLine"></p>
+    <p class="written" id="writtenNames" data-follow-names></p>
+    <p class="closing" id="closingLine" data-edit="closingLine" data-edit-label="Closing line"></p>
   </div>
 </section>
 
@@ -161,6 +161,6 @@
 </main>
 
 <script src="../_shared/luma-bridge.js?v=7"></script>
-<script src="luma-shadow.js?v=2"></script>
+<script src="luma-shadow.js?v=3"></script>
 </body>
 </html>
