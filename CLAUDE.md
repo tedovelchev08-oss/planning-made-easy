@@ -68,8 +68,10 @@ As of 2026-11-13:
   phone/desktop, see as guest), plus a guided first-time walk-through. **1b done (#114):** the
   invitation fills the page, studio designs show live in a same-origin iframe (`/designs/*` may be
   framed by 'self' only), tools open sheets from a floating bar, sharing lives in the Share sheet.
-  Next: 2 edit in place on built-in designs (and skip studio openings in the planner preview);
-  3 studio designs (need field markers); 4 guided walk-through.
+  **2 done (#116):** built-in designs are edited in place (`Editable`, `InviteArt` `edit` prop:
+  names, lines, venue, date picker, + Add for photo/replies); the planner's studio preview loads
+  `?preview=1&quiet=1` and the bridge skips the opening. Next: 3 studio designs in place (need field
+  markers per design); 4 guided walk-through.
 - PR #115: Red Thread measured a hidden section after #110. Designs must never measure or
   trigger on a section that may be hidden; use the first visible one.
 - Unresolved: owner saw the dashboard wider than the phone screen after zooming out on an iPhone,
