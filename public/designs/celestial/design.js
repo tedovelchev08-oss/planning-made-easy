@@ -538,9 +538,16 @@
 
         // Two charts share one computation: the reveal's and the keepsake's
         // in the page. Same sky, drawn twice, styled differently.
+        // Only redraw when the sky actually changed: the engine renders several
+        // times as the couple's details land (and again on the load event), and
+        // each redraw restarted the stars, leaving guests an empty sky.
+        var key = ev.lst.toFixed(4);
         ['sky-chart', 'sky-chart-keepsake'].forEach(function (id) {
             var svg = document.getElementById(id);
-            if (svg) drawSky(svg, ev.lst);
+            if (svg && svg.getAttribute('data-lst') !== key) {
+                drawSky(svg, ev.lst);
+                svg.setAttribute('data-lst', key);
+            }
         });
 
         drawRing(ev.lst);

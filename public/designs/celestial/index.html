@@ -29,7 +29,7 @@
 
     <!-- This design's own look. To build a new design, copy this file and
          wedding-design.css and restyle freely - wedding-core.js is untouched. -->
-    <link rel="stylesheet" href="wedding-design.css?v=66">
+    <link rel="stylesheet" href="wedding-design.css?v=67">
     <!-- Luma: the shared refinements for the base layout (copy, countdown, reply card) -->
     <link rel="stylesheet" href="../_shared/luma-refine.css?v=2">
 
@@ -41,6 +41,9 @@
     <style>
         html.luma-loading { background: #0B1026; }
         html.luma-loading body { visibility: hidden; }
+        /* the opening waits until guests can see it, instead of playing to a hidden page */
+        html.luma-loading .c-star, html.luma-loading .c-line, html.luma-loading .constellation-mark,
+        html.luma-loading .sky-caption, html.luma-loading .sky-hint { animation-play-state: paused; }
         .luma-notice { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #0B1026; color: #F4EBD8; font-family: 'Cormorant Garamond', Georgia, serif; }
         .luma-notice h1 { font-family: 'Italiana', Georgia, serif; font-size: 34px; font-weight: 400; color: #E8C87E; margin: 0; }
         .luma-notice p { font-size: 19px; max-width: 30rem; margin: 0; opacity: .85; }
@@ -354,6 +357,6 @@
          wedding date and time. Loaded after the core so it can reuse the
          core's time parser instead of keeping a second one. No other design
          loads this, and the core does not know it exists. -->
-    <script src="design.js?v=67"></script>
+    <script src="design.js?v=68"></script>
 </body>
 </html>

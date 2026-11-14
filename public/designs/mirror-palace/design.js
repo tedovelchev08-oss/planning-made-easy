@@ -231,9 +231,17 @@
 
   /* ---------------- LOADER ---------------- */
   const loader = document.getElementById('loader');
-  window.addEventListener('load', () => {
-    setTimeout(() => { loader.classList.add('hide'); }, reduceMotion ? 200 : 1900);
-  });
+  /* LUMA: the page stays hidden until the couple's details arrive, which is
+     the wait the loader was for; showing it as well put its initials on top
+     of the intro's names. */
+  const waitingForLuma = document.documentElement.classList.contains('luma-loading');
+  if (waitingForLuma) {
+    loader.style.display = 'none';
+  } else {
+    window.addEventListener('load', () => {
+      setTimeout(() => { loader.classList.add('hide'); }, reduceMotion ? 200 : 1900);
+    });
+  }
 
   /* ---------------- INTRO SEQUENCE ---------------- */
   const intro = document.getElementById('intro');
@@ -259,7 +267,7 @@
     // finish (with a little overlap for continuity) before the next begins,
     // and "names" / "subtitle" get a real hold so they're readable.
     const stages = ['glow','expand','lights','sync','names','subtitle','split'];
-    const timing =  [400,   1300,    2500,   3700,  4300,   5500,      6900];
+    const timing =  [300,   900,     1700,   2500,  2900,   3900,      5100];
     const doorDuration = 1900; // matches .mirror-door transform transition
     stages.forEach((cls, i) => {
       introTimers.push(setTimeout(() => intro.classList.add(cls), timing[i]));
@@ -283,6 +291,14 @@
     intro.classList.add('done');
     body.classList.add('intro-complete');
     storeSet('sessionStorage', 'mirrorPalaceVisited', '1');
+  } else if (waitingForLuma) {
+    // LUMA: start once guests can see the page, or its first seconds play
+    // to a hidden page and the names arrive late
+    const html = document.documentElement;
+    const seen = new MutationObserver(() => {
+      if (!html.classList.contains('luma-loading')) { seen.disconnect(); runIntro(); }
+    });
+    seen.observe(html, { attributes: true, attributeFilter: ['class'] });
   } else {
     runIntro();
   }
