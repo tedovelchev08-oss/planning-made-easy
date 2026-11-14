@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
 /* ---------- brand typefaces (Twofold) ----------
-   Italiana for display, Jost for everything you read, Cormorant Garamond
-   italic for the few words set in italic (Italiana has no italic, and a
-   slanted Italiana looks cheap). All self-hosted, SIL OFL (licences in
-   public/fonts). */
-@font-face { font-family: 'Italiana'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/italiana-latin-400-normal.woff2') format('woff2'); }
+   Cormorant Garamond for display: Light upright for page titles, italic for
+   section titles (Italiana read as hairlines at heading sizes and was
+   retired). Jost for everything you read. All self-hosted, SIL OFL
+   (licences in public/fonts). */
 @font-face { font-family: 'Jost'; font-style: normal; font-weight: 300; font-display: swap; src: url('/fonts/jost-latin-300-normal.woff2') format('woff2'); }
 @font-face { font-family: 'Jost'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/jost-latin-400-normal.woff2') format('woff2'); }
 @font-face { font-family: 'Jost'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/jost-latin-500-normal.woff2') format('woff2'); }
 @font-face { font-family: 'Jost'; font-style: normal; font-weight: 600 800; font-display: swap; src: url('/fonts/jost-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 300 400; font-display: swap; src: url('/fonts/cormorant-garamond-latin-300-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Cormorant Garamond'; font-style: italic; font-weight: 300; font-display: swap; src: url('/fonts/cormorant-garamond-latin-300-italic.woff2') format('woff2'); }
 @font-face { font-family: 'Cormorant Garamond'; font-style: italic; font-weight: 400; font-display: swap; src: url('/fonts/cormorant-garamond-latin-400-italic.woff2') format('woff2'); }
 @font-face { font-family: 'Cormorant Garamond'; font-style: italic; font-weight: 500 700; font-display: swap; src: url('/fonts/cormorant-garamond-latin-600-italic.woff2') format('woff2'); }
 
@@ -65,7 +66,7 @@
 }
 
 @theme {
-  --font-display: "Italiana", "Didot", "Georgia", serif;
+  --font-display: "Cormorant Garamond", "Georgia", serif;
   --font-body: "Jost", "Futura", "Avenir Next", "Helvetica Neue", sans-serif;
   --font-accent: "Cormorant Garamond", "Georgia", serif;
 
@@ -377,12 +378,12 @@ input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: po
   }
 
   #seating-sheet .sheet-head { border-bottom: 1.5pt solid #000; padding-bottom: 6pt; margin-bottom: 12pt; }
-  #seating-sheet h1 { font-family: "Italiana", Georgia, serif; font-size: 22pt; margin: 0 0 2pt; }
+  #seating-sheet h1 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 300; font-size: 22pt; margin: 0 0 2pt; }
   #seating-sheet .sheet-head p { margin: 0; font-size: 10pt; }
   #seating-sheet .sheet-sub { margin-top: 3pt !important; font-weight: 700; }
 
   #seating-sheet h2 {
-    font-family: "Italiana", Georgia, serif;
+    font-family: "Cormorant Garamond", Georgia, serif; font-style: italic;
     font-size: 14pt; margin: 0 0 6pt;
     border-bottom: 0.5pt solid #999; padding-bottom: 3pt;
   }
@@ -418,7 +419,14 @@ input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: po
   #seating-sheet .sheet-foot { margin-top: 12pt; padding-top: 4pt; border-top: 0.5pt solid #999; font-size: 8.5pt; color: #555; }
 }
 
-/* Twofold sets italics in Cormorant Garamond: Italiana has no italic. */
+/* Display type: page titles in Cormorant Light, upright; section and card
+   titles in Cormorant italic. Lining figures, so dates and counts sit on the
+   line. Unlayered on purpose: it outranks Tailwind's font-normal utilities.
+   Italics inside display lines already use the same family. */
+.font-display { font-variant-numeric: lining-nums; }
+h1.font-display, .font-display.pl-title { font-weight: 300; font-style: normal; }
+h2.font-display, h3.font-display { font-weight: 400; font-style: italic; }
+/* Twofold sets italics in Cormorant Garamond. */
 .font-display.italic, .font-display .italic, .font-display em, .italic.font-display, em.font-display {
   font-family: var(--font-accent);
 }

@@ -21,19 +21,21 @@ colors:
   alert: "#a53d28"
 typography:
   display:
-    fontFamily: "Italiana, Didot, Georgia, serif"
+    fontFamily: "Cormorant Garamond, Georgia, serif"
     fontSize: "46px"
-    fontWeight: 400
+    fontWeight: 300
     lineHeight: 1
   headline:
-    fontFamily: "Italiana, Didot, Georgia, serif"
-    fontSize: "26px"
+    fontFamily: "Cormorant Garamond, Georgia, serif"
+    fontSize: "27px"
     fontWeight: 400
+    fontStyle: italic
     lineHeight: 1
   title:
-    fontFamily: "Italiana, Didot, Georgia, serif"
+    fontFamily: "Cormorant Garamond, Georgia, serif"
     fontSize: "22px"
     fontWeight: 400
+    fontStyle: italic
     lineHeight: 1.15
   body:
     fontFamily: "Jost, Futura, Avenir Next, Helvetica Neue, sans-serif"
@@ -152,13 +154,13 @@ components:
 
 Twofold is a writing desk set out for two on an evening: black silk with two gold rings resting on it, and beige paper laid across the desk where the plan is written. The onyx rail carries the photograph of that silk at its foot; every page is paper; every list sits on a slightly lighter card with corners barely softened, like cut stock. The world is quiet luxury and black tie, but warm: champagne and bronze carry every moment of meaning, and nothing is either all black or all white.
 
-The planner is calm and moderately dense. Pages open with a large Italiana title and one plain sentence of where things stand, then cards. Type does the hierarchy, not colour or weight: Italiana for names and titles, Jost for everything read, a few words in Cormorant italic for the human notes ("Together", "where you are", a guest's diet). Progress is thin bronze lines and rings, never badges or bright fills. The marketing site and sign-in pages are the same world seen from further away: black silk ground, the form or the planner preview on a beige card.
+The planner is calm and moderately dense. Pages open with a large Cormorant Light title and one plain sentence of where things stand, then cards. Type does the hierarchy, not colour or weight: Cormorant Garamond Light for names and page titles, Cormorant italic for section and card titles and the human notes, Jost for everything read ("Together", "where you are", a guest's diet). Progress is thin bronze lines and rings, never badges or bright fills. The marketing site and sign-in pages are the same world seen from further away: black silk ground, the form or the planner preview on a beige card.
 
 The brand's emblem is behaviour, not decoration: a finished thing closes into two linked rings. A task tick slides its second ring in; the wedding day in the date picker sits inside two rings; when every guest has a seat, two rings close on the Seating page; the sweetheart table is drawn as the couple's two rings.
 
 **Key Characteristics:**
 - Onyx rail with the black-silk-and-rings photograph; beige paper ground; lighter cards on 3px corners.
-- Italiana display, Jost text, Cormorant Garamond italic for the few italic words.
+- Cormorant Garamond display (Light upright for page titles, italic for section titles), Jost text.
 - Champagne and bronze for state and meaning; onyx for the one primary action.
 - Two linked rings as the signature for "done".
 - Real photographic material (silk, metal, light); no vector scenery, no gradients pretending to be material on chrome.
@@ -200,7 +202,7 @@ A warm onyx-and-paper palette with two metals: champagne for light on dark, bron
 
 ## Typography
 
-**Display Font:** Italiana (with Didot, Georgia)
+**Display Font:** Cormorant Garamond, Light 300 upright and italic 400 (with Georgia). Italiana was retired in November 2026: its hairlines broke up at heading sizes.
 **Body Font:** Jost (with Futura, Avenir Next, Helvetica Neue)
 **Accent Font:** Cormorant Garamond italic (with Georgia)
 
@@ -215,11 +217,11 @@ A warm onyx-and-paper palette with two metals: champagne for light on dark, bron
 - **Accent** (Cormorant Garamond italic 400, 16px; 13–21px by context): who a task belongs to, phase hints, dietary notes, the date under the couple's names, the "&" between them at 0.7em.
 - **Label** (Jost 500, 12px, letter-spacing 0.14em, uppercase): onyx primary buttons only. Auth uses 12.5px / 0.18em, marketing 12px / 0.2em.
 
-**The Lining Figure Rule.** Digits never sit in Italiana: its old-style "1" reads as "ı". Inside an Italiana line, numbers switch to Jost light at 0.86em with tabular figures ("Table 4"); counts and money elsewhere are Jost with tabular figures.
+**The Lining Figure Rule.** Display lines use lining figures; inside a display line, numbers can also switch to Jost light at 0.86em with tabular figures ("Table 4"); counts and money elsewhere are Jost with tabular figures.
 
-**The Italic Is Cormorant Rule.** Italiana has no italic; any italic word is set in Cormorant Garamond, never a slanted Italiana.
+**The Light-and-Italic Rule.** Page titles are Cormorant Light, upright; section and card titles are Cormorant italic. Never semibold or bold display type: the owner rejected heavier serifs as generic.
 
-**The No Bold Rule.** The planner's weights stop at 500. Hierarchy comes from Italiana size and ink-2, not from bold Jost.
+**The No Bold Rule.** The planner's weights stop at 500. Hierarchy comes from display size, upright versus italic, and ink-2, not from bold Jost.
 
 ## Layout
 
@@ -270,7 +272,7 @@ The ring is the recurring form: two 18px circles in 1.4px strokes, the second sl
 - **Background:** card (#f6f0e4) on paper (#ece3d1).
 - **Shadow Strategy:** Paper (see Elevation).
 - **Border:** none; internal divisions are hairlines in line colour.
-- **Header:** Italiana 26px title with a Jost 13px ink-2 count aligned to its baseline, 22px 24px 14px, hairline below.
+- **Header:** Cormorant italic 27px title with a Jost 13px ink-2 count aligned to its baseline, 22px 24px 14px, hairline below.
 - **Rows:** 16px 24px, hairline between, hover at 2.5% ink.
 
 ### Inputs / Fields
@@ -278,21 +280,21 @@ The ring is the recurring form: two 18px circles in 1.4px strokes, the second sl
 - **Auth fields:** no box; a single 1px underline at 26% ink, Jost 300 18px; hover 42%; focus bronze underline doubled with a 1px shadow; invalid in rust. Labels Jost 13px ink at 70%.
 
 ### Navigation
-- **Rail:** 256px onyx with the silk-and-rings photograph anchored at its foot under a top-to-bottom onyx fade. Items are 14.5px Jost, ivory at 66%, 10px 12px, 2px corners; hover ivory on a 5% wash; active ivory on an 8% wash with a 2px champagne inset rule on the left and a champagne icon. The couple's names close the rail in Italiana 27px with a champagne Cormorant "&".
+- **Rail:** 256px onyx with the silk-and-rings photograph anchored at its foot under a top-to-bottom onyx fade. Items are 14.5px Jost, ivory at 66%, 10px 12px, 2px corners; hover ivory on a 5% wash; active ivory on an 8% wash with a 2px champagne inset rule on the left and a champagne icon. The couple's names close the rail in Cormorant Light 27px with a champagne Cormorant "&".
 - **Phone:** onyx top bar; five tabs on onyx at 11px with 20px icons, ivory at 55%, active ivory with a champagne icon.
 
 ### The Two Rings (signature)
 A task's tick is one ring in 35% ink; done, the first turns champagne and a bronze ring slides in from the left over 0.45s on cubic-bezier(.16, 1, .3, 1). The same pair closes over 1.1s when every guest has a seat, circles the chosen day in the sign-in calendar, and draws the sweetheart table. With reduced motion the rings simply appear.
 
 ### Seating floor
-The room is a card holding a warm radial paper (#fbf6ec to #f1e8d6) with a 22px bronze dot grid at 12%. Tables paint in four skins (linen, marble, oak, noir) as CSS gradients, named in Italiana with lining figures and counted in Jost 12px. Seats are 1-to-1 circles: empty is a 45% white disc in a 1.4px bronze ring with a bronze plus; taken is onyx with champagne initials; a plus-one adds a 2px champagne ring; a seat beyond capacity is oxblood (#7c2f22) with blush initials. A guest just seated scales in over 0.6s with a champagne halo; their list row warms for 1.2s. Room objects (dance floor, bar) are architect's hairline outlines with an italic name.
+The room is a card holding a warm radial paper (#fbf6ec to #f1e8d6) with a 22px bronze dot grid at 12%. Tables paint in four skins (linen, marble, oak, noir) as CSS gradients, named in Cormorant with lining figures and counted in Jost 12px. Seats are 1-to-1 circles: empty is a 45% white disc in a 1.4px bronze ring with a bronze plus; taken is onyx with champagne initials; a plus-one adds a 2px champagne ring; a seat beyond capacity is oxblood (#7c2f22) with blush initials. A guest just seated scales in over 0.6s with a champagne halo; their list row warms for 1.2s. Room objects (dance floor, bar) are architect's hairline outlines with an italic name.
 
 ## Do's and Don'ts
 
 ### Do:
 - **Do** set every page on paper (#ece3d1) with its content on cards (#f6f0e4) at 3px corners and the Paper shadow.
-- **Do** open each page with an Italiana title (40/46px) and one plain Jost sentence of where things stand, in ink-2 with key figures in ink.
-- **Do** switch digits inside Italiana to Jost light at 0.86em with tabular figures.
+- **Do** open each page with a Cormorant Light title (40/46px) and one plain Jost sentence of where things stand, in ink-2 with key figures in ink.
+- **Do** keep display figures lining; inside a display line Jost light at 0.86em with tabular figures is also fine.
 - **Do** use bronze for words of meaning on paper and keep champagne for text on onyx, dots, rings and outlines.
 - **Do** show status as a dot and a plain word, and progress as a 3px line in bronze, champagne or sage.
 - **Do** mark "done" with the two linked rings, and respect reduced motion by dropping the slide and settle.
@@ -306,4 +308,4 @@ The room is a card holding a warm radial paper (#fbf6ec to #f1e8d6) with a 22px 
 - **Don't** use filled status pills, bold Jost, or tracked uppercase labels above content; uppercase is for button labels only.
 - **Don't** round cards beyond 3px or buttons beyond 2px; full pills are only for switches, chips, seats and avatars.
 - **Don't** lift a card to show state; outline it.
-- **Don't** put numbers in Italiana.
+- **Don't** use semibold or bold display type.
