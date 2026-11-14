@@ -14,6 +14,7 @@ import { guestLink } from "../../lib/links";
 import { MUSIC_TYPES, deleteMusic, deletePhoto, isUploadedPhoto, musicFileProblem, uploadMusic } from "../../lib/api";
 import { PhotoUpload } from "./PhotoUpload";
 import { Lining, Panel } from "./Panel";
+import { Editable, joinNames, splitNames } from "./Editable";
 import { playChime, useChimeLoop } from "../../lib/sound";
 import { DesignFrame, Field, Modal, Pill, PlanTag, SafeImg, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
@@ -55,8 +56,17 @@ function Flourish({ accent, className, rotate = 0 }: { accent: string; className
   );
 }
 
+/** what the planner passes to make the invitation editable in place */
+export type InviteEdit = {
+  set: (p: { names?: string; line1?: string; line2?: string; venueLine?: string }) => void;
+  onDate: (isoDay: string) => void;
+  onPhoto: () => void;
+  onReplies: () => void;
+  onAddReplies: () => void;
+};
+
 export function InviteArt({
-  template, colors, serif, cfg, animated, dateIso, rsvpSlot, compact = false,
+  template, colors, serif, cfg, animated, dateIso, rsvpSlot, compact = false, edit,
 }: {
   template: Template;
   colors: { bg: string; ink: string; accent: string };
@@ -66,7 +76,10 @@ export function InviteArt({
   dateIso: string;
   rsvpSlot?: React.ReactNode;
   compact?: boolean;
+  /** the planner's stage: words become editable, photo and replies open their sheets */
+  edit?: InviteEdit;
 }) {
+  const [nameA, nameB] = splitNames(cfg.names);
   const fontFamily = serif ? "'Playfair Display', Georgia, serif" : "'Nunito Sans', sans-serif";
   const wrap = (children: React.ReactNode, delay = 0) =>
     animated ? (
@@ -93,11 +106,20 @@ export function InviteArt({
       <div className={`relative flex flex-col items-center px-8 text-center ${compact ? "py-10" : "py-14"}`}>
         {template.photo && cfg.photo ? (
           wrap(
-            <div className="mb-7 h-44 w-full max-w-[300px] overflow-hidden rounded-t-[999px] shadow-lg sm:h-56">
-              <SafeImg src={cfg.photo} alt="Invitation photograph" className="h-full w-full object-cover" />
-            </div>,
+            edit ? (
+              <button type="button" onClick={edit.onPhoto} aria-label="Change the photograph" className="pl-edit-photo mb-7 h-44 w-full max-w-[300px] overflow-hidden rounded-t-[999px] shadow-lg sm:h-56">
+                <SafeImg src={cfg.photo} alt="" className="h-full w-full object-cover" />
+                <span className="pl-edit-photo-tag">Change photo</span>
+              </button>
+            ) : (
+              <div className="mb-7 h-44 w-full max-w-[300px] overflow-hidden rounded-t-[999px] shadow-lg sm:h-56">
+                <SafeImg src={cfg.photo} alt="Invitation photograph" className="h-full w-full object-cover" />
+              </div>
+            ),
             0.05,
           )
+        ) : template.photo && edit ? (
+          <button type="button" onClick={edit.onPhoto} className="pl-add mb-7 h-44 w-full max-w-[300px] rounded-t-[999px] sm:h-56">+ Add a photograph</button>
         ) : (
           wrap(
             <motion.span animate={animated ? { scale: [1, 1.12, 1] } : {}} transition={{ duration: 3.2, repeat: animated ? Infinity : 0 }} aria-hidden="true">
@@ -110,14 +132,14 @@ export function InviteArt({
         {wrap(<p className="text-[0.6rem] font-extrabold uppercase tracking-[0.4em]" style={{ color: colors.accent }}>The wedding of</p>, 0.15)}
         {wrap(
           <h3 className={`mt-3 leading-[1.06] ${compact ? "text-3xl" : "text-4xl sm:text-[2.9rem]"}`} style={{ fontWeight: serif ? 600 : 800 }}>
-            {cfg.names.split("&")[0]?.trim()}
+            {edit ? <Editable value={nameA} onChange={(v) => edit.set({ names: joinNames(v, nameB) })} label="First name" placeholder="First name" /> : nameA}
             <span className="mx-2 inline-block align-middle font-display italic" style={{ color: colors.accent }}>&</span>
-            {cfg.names.split("&")[1]?.trim() ?? ""}
+            {edit ? <Editable value={nameB} onChange={(v) => edit.set({ names: joinNames(nameA, v) })} label="Second name" placeholder="Second name" /> : nameB}
           </h3>,
           0.25,
         )}
-        {wrap(<p className="mt-4 text-[0.82rem] tracking-wide opacity-80">{cfg.line1}</p>, 0.35)}
-        {wrap(<p className="text-[0.82rem] tracking-wide opacity-80">{cfg.line2}</p>, 0.4)}
+        {wrap(<p className="mt-4 text-[0.82rem] tracking-wide opacity-80">{edit ? <Editable value={cfg.line1} onChange={(v) => edit.set({ line1: v })} label="Opening line" placeholder="Together with their families" /> : cfg.line1}</p>, 0.35)}
+        {wrap(<p className="text-[0.82rem] tracking-wide opacity-80">{edit ? <Editable value={cfg.line2} onChange={(v) => edit.set({ line2: v })} label="Invitation line" placeholder="request the pleasure of your company" /> : cfg.line2}</p>, 0.4)}
 
         {wrap(
           <div className="my-6 flex w-full max-w-[320px] items-center gap-4" aria-hidden="true">
@@ -128,14 +150,31 @@ export function InviteArt({
           0.5,
         )}
 
-        {wrap(<p className="font-display text-xl sm:text-2xl" style={{ fontStyle: "italic" }}>{fmtDate(dateIso, { month: "long", day: "numeric", year: "numeric" })}</p>, 0.58)}
-        {wrap(<p className="mt-2 text-[0.85rem] font-semibold opacity-85">{cfg.venueLine}</p>, 0.64)}
+        {wrap(
+          <p className="font-display text-xl sm:text-2xl" style={{ fontStyle: "italic" }}>
+            {edit ? (
+              <label className="pl-edit-date">
+                {fmtDate(dateIso, { month: "long", day: "numeric", year: "numeric" })}
+                <input type="date" aria-label="Wedding date" value={dateIso.slice(0, 10)} onChange={(e) => e.target.value && edit.onDate(e.target.value)} />
+              </label>
+            ) : fmtDate(dateIso, { month: "long", day: "numeric", year: "numeric" })}
+          </p>,
+          0.58,
+        )}
+        {wrap(<p className="mt-2 text-[0.85rem] font-semibold opacity-85">{edit ? <Editable value={cfg.venueLine} onChange={(v) => edit.set({ venueLine: v })} label="Venue" placeholder="The venue, and the town" /> : cfg.venueLine}</p>, 0.64)}
 
+        {edit && !cfg.rsvp && !rsvpSlot && (
+          <button type="button" onClick={edit.onAddReplies} className="pl-add mt-8 w-full max-w-[380px] px-6 py-5">+ Add a reply button<small>Guests answer, and it lands in your guest list</small></button>
+        )}
         {(cfg.rsvp || rsvpSlot) && (
           <div className="mt-8 w-full max-w-[380px]">
             {rsvpSlot ?? (
               wrap(
-                <div className={`rounded-2xl border px-6 py-5 ${""}`} style={{ borderColor: `${colors.accent}55`, background: `${colors.accent}0F` }}>
+                <div
+                  className={`rounded-2xl border px-6 py-5 ${edit ? "pl-edit-block" : ""}`}
+                  style={{ borderColor: `${colors.accent}55`, background: `${colors.accent}0F` }}
+                  {...(edit ? { role: "button", tabIndex: 0, "aria-label": "Reply settings", onClick: edit.onReplies, onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); edit.onReplies(); } } } : {})}
+                >
                   <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.26em]" style={{ color: colors.accent }}>Kindly reply</p>
                   <p className="mt-1.5 text-[0.8rem] opacity-75">Your answer helps us set every table with care.</p>
                   <span className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2 text-[0.8rem] font-bold" style={{ background: colors.ink, color: colors.bg }}>
@@ -404,6 +443,19 @@ export default function Invitations() {
 
   const [sheet, setSheet] = useState<string | null>(null);
 
+  /* editing on the invitation itself: the same fields as the Wording sheet */
+  const inviteEdit: InviteEdit = {
+    set: (p) => setCfg(p),
+    onDate: (day) => {
+      // keep the time of day; only the day changes
+      const time = db.wedding.date.length > 10 ? db.wedding.date.slice(10) : "";
+      patch({ wedding: { ...db.wedding, date: day + time } });
+    },
+    onPhoto: () => setSheet("photo"),
+    onReplies: () => setSheet("replies"),
+    onAddReplies: () => setCfg({ rsvp: true }),
+  };
+
   /* what each tool in the floating bar opens */
   const wordingBody = studio ? <StudioDetails cfg={cfg} setCfg={setCfg} design={studio} /> : isHtmlDesign ? (
             <Panel title="Your own design">
@@ -637,13 +689,16 @@ export default function Invitations() {
           {animated && <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--pl-ink-2)]"><Sparkles size={13} strokeWidth={1.6} className="text-[var(--pl-bronze)]" /> Animated for guests</span>}
         </div>
 
+        {!studio && !activeCustom && (
+          <p className="px-1 pb-3 text-[13.5px] text-[var(--pl-ink-2)]">Click any words on the invitation to change them. Only the two of you see the dotted lines.</p>
+        )}
         {/* the invitation, as large as the screen allows */}
         <div className="pl-stage-floor">
           <div className={`mx-auto overflow-hidden rounded-[3px] bg-white shadow-[0_30px_60px_-34px_rgb(0_0_0/.55)] ring-1 ring-[var(--pl-line)] transition-[max-width] duration-500 ${device === "mobile" ? "max-w-[390px]" : device === "tablet" ? "max-w-[768px]" : "max-w-full"}`}>
             {studio ? (
               <iframe
                 key={studio.id}
-                src={`${designPath(studio)}?preview=1`}
+                src={`${designPath(studio)}?preview=1&quiet=1`}
                 title={`${studio.name}, your invitation`}
                 className="block w-full border-0"
                 style={{ height: device === "mobile" ? 780 : "min(86vh, 1000px)" }}
@@ -655,7 +710,7 @@ export default function Invitations() {
                 <img src={activeCustom.dataUrl ?? ""} alt={`${activeCustom.name}, your invitation design`} className="w-full" />
               )
             ) : (
-              <InviteArt key={template.id + device} template={template} colors={colors} serif={serif} cfg={cfg} animated={animated && !reduced} dateIso={db.wedding.date} />
+              <InviteArt key={template.id + device} template={template} colors={colors} serif={serif} cfg={cfg} animated={animated && !reduced} dateIso={db.wedding.date} edit={inviteEdit} />
             )}
           </div>
           {activeCustom && (
