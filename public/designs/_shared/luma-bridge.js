@@ -301,7 +301,7 @@
       el.setAttribute('contenteditable', 'true');
       el.setAttribute('role', 'textbox');
       el.setAttribute('aria-label', EDIT_FIELDS[key] || el.getAttribute('data-edit-label') || 'Text');
-      el.setAttribute('data-ph', EDIT_FIELDS[key] || 'Write here');
+      el.setAttribute('data-ph', EDIT_FIELDS[key] || el.getAttribute('data-edit-label') || 'Write here');
       el.spellcheck = false;
       el.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); });
       el.addEventListener('keydown', function (e) {

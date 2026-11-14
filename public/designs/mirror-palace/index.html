@@ -123,7 +123,7 @@
     <div class="hero-content">
       <div class="eyebrow hero-eyebrow reveal" id="heroEyebrow">The Beginning</div>
       <h1 class="hero-title reveal reveal-delay-1"><span data-sync="personOne"></span><span class="hero-amp">&amp;</span><span data-sync="personTwo"></span></h1>
-      <div class="hero-date reveal reveal-delay-2"><span data-sync="date"></span> &nbsp;·&nbsp; <span id="heroCity" data-edit="heroCity"></span></div>
+      <div class="hero-date reveal reveal-delay-2"><span data-sync="date"></span> &nbsp;·&nbsp; <span id="heroCity" data-edit="heroCity" data-edit-label="City"></span></div>
       <p class="hero-statement reveal reveal-delay-3" id="heroStatement">Two lives. One reflection.<br>One beautiful beginning.</p>
     </div>
     <div class="scroll-cue" aria-hidden="true"></div>
@@ -144,7 +144,7 @@
           <div class="story-panel together" id="panelTogether"><img id="panelTogetherImg" loading="lazy" decoding="async" src="assets/photos/story-together.svg" alt="The couple" onerror="window.photoFallback&&photoFallback(this)"></div>
           <div class="story-center" id="storyCenter">
             <h2 class="serif" id="storyTitle">Our Story</h2>
-            <p id="storyText" data-edit="story"></p>
+            <p id="storyText" data-edit="story" data-edit-label="Your story"></p>
           </div>
         </div>
       </div>
@@ -192,7 +192,7 @@
            the date and its reflection together — rather than just the date. -->
       <div class="date-caption reveal reveal-delay-2">
         <div class="eyebrow" id="dateEyebrow">The Day</div>
-        <p id="dateCaptionText" data-edit="dateCaptionText"></p>
+        <p id="dateCaptionText" data-edit="dateCaptionText" data-edit-label="A line about the day"></p>
       </div>
 
       <div class="cal-links reveal reveal-delay-3">
@@ -224,8 +224,8 @@
       <img id="celebrationImg" loading="lazy" decoding="async" src="assets/photos/celebration.svg" alt="Evening celebration" onerror="window.photoFallback&&photoFallback(this)">
       <div class="editorial-info reveal">
         <div class="eyebrow" id="celebrationEyebrow">The Celebration</div>
-        <div class="time serif" id="celebrationPlace" data-edit="celebrationPlace">Dinner · Music · Dancing</div>
-        <div class="addr" id="celebrationAddress" data-edit="celebrationAddress"></div>
+        <div class="time serif" id="celebrationPlace" data-edit="celebrationPlace" data-edit-label="The celebration">Dinner · Music · Dancing</div>
+        <div class="addr" id="celebrationAddress" data-edit="celebrationAddress" data-edit-label="Where the celebration is"></div>
       </div>
     </div>
   </section>
@@ -282,7 +282,7 @@
     <div class="rsvp-inner">
       <div class="rsvp-kicker reveal" id="rsvpKicker">We would love to celebrate with you</div>
       <h2 class="rsvp-title reveal reveal-delay-1" id="rsvpTitle">RSVP</h2>
-      <div class="rsvp-meta reveal reveal-delay-2" id="rsvpMeta"><span id="rsvpDeadlinePrefix">Kindly respond by</span> <span id="rsvpDeadlineText"></span> &nbsp;·&nbsp; <span id="rsvpEmailText" data-edit="rsvpEmailText"></span></div>
+      <div class="rsvp-meta reveal reveal-delay-2" id="rsvpMeta"><span id="rsvpDeadlinePrefix">Kindly respond by</span> <span id="rsvpDeadlineText"></span> &nbsp;·&nbsp; <span id="rsvpEmailText" data-edit="rsvpEmailText" data-edit-label="Contact for questions"></span></div>
 
       <!-- Field names match every other design so replies arrive in the same
            shape, and the core owns the submit, the plus-one reveal and the
@@ -388,7 +388,7 @@
     <div class="closing-mark">
       <div class="initials reveal"><span data-initial="one"></span><span>&amp;</span><span data-initial="two"></span></div>
       <div class="closing-line"></div>
-      <div class="closing-msg reveal" id="closingMsg" data-edit="closingMsg">Until We Meet</div>
+      <div class="closing-msg reveal" id="closingMsg" data-edit="closingMsg" data-edit-label="Closing words">Until We Meet</div>
       <button class="replay-btn" id="replayBtn"><span id="replayBtnLabel">Replay the Opening</span></button>
     </div>
   </section>
