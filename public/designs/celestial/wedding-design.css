@@ -1319,7 +1319,7 @@
             justify-content: center;
             opacity: 0;
             animation: markIn 1.1s ease-out forwards;
-            animation-delay: 2.1s;
+            animation-delay: 1.3s;
         }
 
         /* The monogram sits over the densest part of the chart, and gold
@@ -1367,7 +1367,7 @@
             margin-top: 2.4rem;
             opacity: 0;
             animation: captionIn 1.2s ease-out forwards;
-            animation-delay: 2.5s;
+            animation-delay: 1.5s;
         }
 
         @keyframes captionIn {
@@ -1401,7 +1401,7 @@
             color: hsl(var(--c-warmgray));
             opacity: 0;
             animation: captionIn 1s ease-out forwards;
-            animation-delay: 3.1s;
+            animation-delay: 2.3s;
         }
 
         /* The tap: the constellation swells and dissolves, the sky drifts
