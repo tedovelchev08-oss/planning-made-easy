@@ -27,6 +27,11 @@
      so the design's opening (envelope, curtain, intro) is skipped there;
      "See it as a guest" opens the full page without it. */
   var quiet = preview && params.get('quiet') === '1';
+  /* ?edit=1 (with quiet): the planner's stage. The couple's words become
+     editable on the design itself and every change is sent to the planner,
+     which saves it. See makeEditable below. */
+  var editing = quiet && params.get('edit') === '1';
+  var lastEdit = 0;
   var SOURCES = ['link', 'whatsapp', 'instagram', 'messenger', 'email'];
   var source = SOURCES.indexOf(params.get('src')) >= 0 ? params.get('src') : 'link';
 
@@ -129,6 +134,10 @@
     var reloadSoon = null;
     window.addEventListener('storage', function (e) {
       if (e.key !== 'luma.designPreview') return;
+      if (editing) {
+        var a = document.activeElement;
+        if ((a && a.classList && a.classList.contains('tf-editable')) || Date.now() - lastEdit < 2500) return;
+      }
       clearTimeout(reloadSoon);
       reloadSoon = setTimeout(function () { window.location.reload(); }, 900);
     });
@@ -224,8 +233,93 @@
       if (nameInput && !nameInput.value) nameInput.value = state.guest.name;
     }
 
+    if (editing) makeEditable();
     show();
   };
+
+  /* ------------------------- editing in place ------------------------- */
+
+  /* Which words can be typed over, and what each one is called in the
+     couple's details. Designs built on the shared engine mark them with
+     data-field already; a design with its own markup adds data-edit="key"
+     (a key from this list, "story", or one of the design's own text keys).
+     Mirror images (aria-hidden) and the builder are never editable. */
+  var EDIT_FIELDS = {
+    partner1: 'First name', partner2: 'Second name', venueName: 'Venue', venueAddress: 'Address',
+    dressCode: 'Dress code', dressCodeNote: 'Dress code note', hashtag: 'Hashtag',
+    story1: 'Your story', story2: 'Your story, continued'
+  };
+  var MULTILINE = { story: true, story1: true, story2: true };
+
+  function editKeyOf(el) {
+    var k = el.getAttribute('data-edit');
+    if (k) return k;
+    k = el.getAttribute('data-field');
+    if (k && EDIT_FIELDS[k]) return k;
+    k = el.getAttribute('data-sync');
+    if (k === 'personOne') return 'partner1';
+    if (k === 'personTwo') return 'partner2';
+    return null;
+  }
+
+  function sameKey(key) {
+    var out = [];
+    document.querySelectorAll('[data-edit],[data-field],[data-sync]').forEach(function (el) {
+      if (editKeyOf(el) === key) out.push(el);
+    });
+    return out;
+  }
+
+  function textOf(el, key) {
+    var t = (el.innerText || el.textContent || '');
+    return MULTILINE[key] ? t.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n') : t.replace(/\s+/g, ' ');
+  }
+
+  function send(key, value) {
+    lastEdit = Date.now();
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'twofold:edit', key: key, value: value }, window.location.origin);
+    }
+  }
+
+  function makeEditable() {
+    if (!document.getElementById('tf-edit-style')) {
+      var css = document.createElement('style');
+      css.id = 'tf-edit-style';
+      css.textContent =
+        '.tf-editable{border-radius:3px;outline:1px dashed transparent;outline-offset:4px;cursor:text;transition:outline-color .15s,background-color .15s}' +
+        '.tf-editable:hover{outline-color:color-mix(in srgb,currentColor 50%,transparent)}' +
+        '.tf-editable:focus{outline:1.5px solid color-mix(in srgb,currentColor 85%,transparent);background:color-mix(in srgb,currentColor 7%,transparent)}' +
+        '.tf-editable:empty::before{content:attr(data-ph);opacity:.45;font-style:italic}';
+      document.head.appendChild(css);
+    }
+    document.querySelectorAll('[data-edit],[data-field],[data-sync]').forEach(function (el) {
+      var key = editKeyOf(el);
+      if (!key || el.classList.contains('tf-editable')) return;
+      if (el.closest('[aria-hidden="true"], #builder-bar, #studio-drawer, #envelope-overlay, form, button')) return;
+      el.classList.add('tf-editable');
+      el.setAttribute('contenteditable', 'true');
+      el.setAttribute('role', 'textbox');
+      el.setAttribute('aria-label', EDIT_FIELDS[key] || el.getAttribute('data-edit-label') || 'Text');
+      el.setAttribute('data-ph', EDIT_FIELDS[key] || el.getAttribute('data-edit-label') || 'Write here');
+      el.spellcheck = false;
+      el.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' || (e.key === 'Enter' && !MULTILINE[key])) { e.preventDefault(); el.blur(); }
+      });
+      el.addEventListener('paste', function (e) {
+        e.preventDefault();
+        var text = (e.clipboardData || window.clipboardData).getData('text');
+        document.execCommand('insertText', false, MULTILINE[key] ? text : text.replace(/\s+/g, ' '));
+      });
+      el.addEventListener('input', function () {
+        var v = textOf(el, key);
+        sameKey(key).forEach(function (other) { if (other !== el) other.textContent = v; });
+        send(key, v);
+      });
+      el.addEventListener('blur', function () { send(key, textOf(el, key).trim()); });
+    });
+  }
 
   /* The couple's registry, under the reply: a short list in the design's
      own colours and heading face. Built with textContent only. */

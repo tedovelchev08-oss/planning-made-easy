@@ -15,6 +15,7 @@ import { MUSIC_TYPES, deleteMusic, deletePhoto, isUploadedPhoto, musicFileProble
 import { PhotoUpload } from "./PhotoUpload";
 import { Lining, Panel } from "./Panel";
 import { Editable, joinNames, splitNames } from "./Editable";
+import { studioEditPatch } from "./studioEdit";
 import { playChime, useChimeLoop } from "../../lib/sound";
 import { DesignFrame, Field, Modal, Pill, PlanTag, SafeImg, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
@@ -443,6 +444,24 @@ export default function Invitations() {
 
   const [sheet, setSheet] = useState<string | null>(null);
 
+  /* a studio design on the stage is edited on the design itself: luma-bridge.js
+     posts each change here, from this page's own frame only */
+  const stageFrame = useRef<HTMLIFrameElement>(null);
+  const latest = useRef({ db, studio });
+  latest.current = { db, studio };
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin || e.source !== stageFrame.current?.contentWindow) return;
+      const msg = e.data as { type?: string; key?: string; value?: unknown } | null;
+      const { db: now, studio: design } = latest.current;
+      if (!msg || msg.type !== "twofold:edit" || typeof msg.key !== "string" || !design) return;
+      const change = studioEditPatch(now, design, msg.key, msg.value);
+      if (change) patch(change);
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [patch]);
+
   /* editing on the invitation itself: the same fields as the Wording sheet */
   const inviteEdit: InviteEdit = {
     set: (p) => setCfg(p),
@@ -692,13 +711,17 @@ export default function Invitations() {
         {!studio && !activeCustom && (
           <p className="px-1 pb-3 text-[13.5px] text-[var(--pl-ink-2)]">Click any words on the invitation to change them. Only the two of you see the dotted lines.</p>
         )}
+        {studio && (
+          <p className="px-1 pb-3 text-[13.5px] text-[var(--pl-ink-2)]">Click your names, the venue and the other words on the invitation to change them. Photos, the schedule and the rest are under Details.</p>
+        )}
         {/* the invitation, as large as the screen allows */}
         <div className="pl-stage-floor">
           <div className={`mx-auto overflow-hidden rounded-[3px] bg-white shadow-[0_30px_60px_-34px_rgb(0_0_0/.55)] ring-1 ring-[var(--pl-line)] transition-[max-width] duration-500 ${device === "mobile" ? "max-w-[390px]" : device === "tablet" ? "max-w-[768px]" : "max-w-full"}`}>
             {studio ? (
               <iframe
+                ref={stageFrame}
                 key={studio.id}
-                src={`${designPath(studio)}?preview=1&quiet=1`}
+                src={`${designPath(studio)}?preview=1&quiet=1&edit=1`}
                 title={`${studio.name}, your invitation`}
                 className="block w-full border-0"
                 style={{ height: device === "mobile" ? 780 : "min(86vh, 1000px)" }}
