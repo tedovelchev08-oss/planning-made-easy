@@ -402,7 +402,7 @@ export default function Shell() {
           className={
             location.pathname.startsWith("/planner/seating")
               ? "mx-auto w-full min-w-0 max-w-none px-3 py-4 pb-24 sm:px-5 lg:pb-5"
-              : "mx-auto w-full min-w-0 max-w-6xl px-4 py-7 sm:px-8 pb-28 lg:pb-12"
+              : "mx-auto w-full min-w-0 max-w-6xl 2xl:max-w-[1560px] px-4 py-7 sm:px-8 2xl:px-12 pb-28 lg:pb-12"
           }
         >
           <Outlet />

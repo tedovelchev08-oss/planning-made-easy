@@ -13,7 +13,7 @@ export function Panel({ title, aside, children, label }: { title: string; aside?
   );
 }
 
-/** Italiana's old-style "1" reads as "ı": inside a display line, digits switch to Jost light (the Lining Figure rule) */
+/** inside a display line, digits switch to Jost light so counts and dates line up (the Lining Figure rule) */
 export function Lining({ text }: { text: string }) {
   return <>{text.split(/(\d+)/).map((part, i) => (/^\d+$/.test(part) ? <span key={i} className="pl-fig">{part}</span> : part))}</>;
 }

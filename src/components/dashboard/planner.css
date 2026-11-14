@@ -10,7 +10,7 @@
   --pl-card: #f6f0e4;
   --pl-line: rgb(28 26 23 / .12);
   --pl-ink: #1c1a17;
-  --pl-ink-2: rgb(28 26 23 / .64);
+  --pl-ink-2: rgb(28 26 23 / .78);
   --pl-gold: #c9a86a;
   --pl-bronze: #7a5c28;
   --pl-ivory: #ede3cf;
@@ -69,7 +69,7 @@
   padding: 22px 24px 14px;
   border-bottom: 1px solid var(--pl-line);
 }
-.pl-card-h h2, .pl-card-h h3 { font: 400 26px/1 var(--font-display); }
+.pl-card-h h2, .pl-card-h h3 { font: italic 400 27px/1.05 var(--font-display); font-variant-numeric: lining-nums; }
 .pl-card-h small { font-size: 13px; color: var(--pl-ink-2); }
 .pl-row + .pl-row { border-top: 1px solid var(--pl-line); }
 
@@ -165,5 +165,5 @@ button:hover > .pl-ring:not(.is-done)::before { border-color: var(--pl-bronze); 
   pointer-events: none;
 }
 @media (max-width: 1023px) { .pl-share::before { width: 100%; opacity: .28; background-position: 70% 30%; } }
-/* digits inside an Italiana line */
+/* digits inside a display line */
 .pl-fig { font: 300 .86em var(--font-body); font-variant-numeric: tabular-nums; }
