@@ -215,6 +215,31 @@ describe("luma-bridge", () => {
     await new Promise((r) => setTimeout(r, 120));
   });
 
+  it("offers a line a design hid for being empty as + Add, and keeps an empty story section to write in", async () => {
+    localStorage.setItem("luma.designPreview", JSON.stringify({ invitation }));
+    boot("?preview=1&quiet=1&edit=1");
+    document.body.insertAdjacentHTML("beforeend", `
+      <section id="beg" data-luma-story><h2 id="h" data-edit="storyHeadline" data-edit-label="Story headline" hidden></h2>
+        <p id="p" data-edit="story1" style="display:none"></p></section>
+      <p id="c" data-edit="rsvpEmailText" data-edit-label="Contact for questions">hello@example.com</p>`);
+    w.lumaAfterRender(await w.lumaBoot);
+    const h = document.getElementById("h")!, p = document.getElementById("p")!;
+    expect(h.hidden).toBe(false);
+    expect(h.classList.contains("tf-add")).toBe(true);
+    expect(h.getAttribute("data-ph")).toBe("+ Add story headline");
+    expect(p.style.display).toBe("");
+    expect(document.getElementById("beg")!.style.display).toBe("");
+    expect(document.getElementById("c")!.classList.contains("tf-add")).toBe(false);
+    await new Promise((r) => setTimeout(r, 120));
+  });
+
+  it("still hides an empty story section from guests", async () => {
+    boot(`?token=${TOKEN}`);
+    document.body.insertAdjacentHTML("beforeend", `<section id="beg2" data-luma-story><p data-luma-story-text></p></section>`);
+    w.lumaAfterRender(await w.lumaBoot);
+    expect(document.getElementById("beg2")!.style.display).toBe("none");
+  });
+
   it("is never editable for guests", async () => {
     boot(`?token=${TOKEN}`);
     document.body.insertAdjacentHTML("beforeend", `<p data-field="venueName">Villa Lago</p>`);
