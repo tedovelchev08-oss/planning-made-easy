@@ -47,6 +47,14 @@ describe("studioEditPatch", () => {
     expect(studioEditPatch(db, shadow, "cardLine", "x")).toBeNull();
   });
 
+  it("saves Cinema's slate and All In's place", () => {
+    const cinema = STUDIO_DESIGNS.find((d) => d.id === "cinema")!;
+    const allIn = STUDIO_DESIGNS.find((d) => d.id === "all-in")!;
+    expect(studioEditPatch(db, cinema, "heroEyebrow", "Scene 01 — Lake Como")!.invitation!.designData!.texts!.heroEyebrow).toBe("Scene 01 — Lake Como");
+    expect(studioEditPatch(db, allIn, "heroPlace", "Villa Aurelia, Rome")!.invitation!.designData!.texts!.heroPlace).toBe("Villa Aurelia, Rome");
+    expect(studioEditPatch(db, cinema, "heroPlace", "x")).toBeNull();
+  });
+
   it("ignores keys a design wasn't given, and anything that isn't text", () => {
     expect(studioEditPatch(db, celestial, "closingMsg", "Until then")).toBeNull();
     expect(studioEditPatch(db, celestial, "plan", "luxe")).toBeNull();

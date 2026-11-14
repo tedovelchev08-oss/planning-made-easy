@@ -66,7 +66,7 @@
     <div class="card c-q"><div class="inner">
       <div class="face red">
         <div class="idx tl">Q<span class="s">&hearts;</span></div>
-        <div class="court"><span class="n" data-sync="one"></span><span class="mid">&hearts;</span><span class="n flip" data-sync="one"></span></div>
+        <div class="court"><span class="n" data-sync="one" data-follow="partner1"></span><span class="mid">&hearts;</span><span class="n flip" data-sync="one" data-follow="partner1"></span></div>
         <div class="idx br">Q<span class="s">&hearts;</span></div>
       </div>
       <div class="back"><div class="mono" data-sync="mono">E&amp;M</div></div>
@@ -75,7 +75,7 @@
     <div class="card c-k"><div class="inner">
       <div class="face navy">
         <div class="idx tl">K<span class="s">&spades;</span></div>
-        <div class="court"><span class="n" data-sync="two"></span><span class="mid">&spades;</span><span class="n flip" data-sync="two"></span></div>
+        <div class="court"><span class="n" data-sync="two" data-follow="partner2"></span><span class="mid">&spades;</span><span class="n flip" data-sync="two" data-follow="partner2"></span></div>
         <div class="idx br">K<span class="s">&spades;</span></div>
       </div>
       <div class="back"><div class="mono" data-sync="mono">E&amp;M</div></div>
@@ -110,13 +110,13 @@
     </div></div>
 
     <h1 class="hero-names">
-      <span class="hn hn1" data-sync="one"></span>
-      <span class="hn hn2"><span class="amp">&amp;</span><span data-sync="two"></span></span>
+      <span class="hn hn1" data-sync="one" data-edit="partner1"></span>
+      <span class="hn hn2"><span class="amp">&amp;</span><span data-sync="two" data-edit="partner2"></span></span>
     </h1>
 
     <div class="hero-details">
       <p class="hero-when" data-sync="dateWords"></p>
-      <p class="hero-where" id="heroPlace"></p>
+      <p class="hero-where" id="heroPlace" data-edit="heroPlace" data-edit-label="Where, in a few words"></p>
       <a class="btn-red" href="#rsvp" id="heroCta">Reply</a>
     </div>
 
@@ -137,8 +137,8 @@
       <figure class="story-photo rv"><img id="storyImg" src="" alt=""></figure>
       <div class="story-text rv" data-luma-story-text>
         <h2 class="sec-title left" id="storyTitle">How we met</h2>
-        <p class="story-p" id="storyP1"></p>
-        <p class="story-p" id="storyP2"></p>
+        <p class="story-p" id="storyP1" data-edit="story1"></p>
+        <p class="story-p" id="storyP2" data-edit="story2"></p>
       </div>
     </div>
   </section>
@@ -153,8 +153,8 @@
         <p class="bc-weekday" data-sync="weekday">Saturday</p>
         <p class="bc-date" data-sync="dateWords"></p>
         <p class="bc-time" id="dayTime">4:00 PM</p>
-        <h2 class="bc-venue" id="dayVenue"></h2>
-        <p class="bc-addr" id="dayAddr"></p>
+        <h2 class="bc-venue" id="dayVenue" data-edit="venueName"></h2>
+        <p class="bc-addr" id="dayAddr" data-edit="venueAddress"></p>
         <p class="bc-dress" id="dayDress">Black tie</p>
       </div>
       <div class="idx br red"><span data-sync="day"></span><span class="s">&diams;</span></div>
@@ -259,13 +259,13 @@
         <button type="button" class="done-again" id="rsvpAgain">Send a different reply</button>
       </div>
 
-      <p class="rsvp-contact" id="rsvpContact"></p>
+      <p class="rsvp-contact" id="rsvpContact" data-edit="rsvpEmailText" data-edit-label="Contact for questions"></p>
     </div>
   </section>
 
   <footer class="site-foot">
-    <span class="foot-names" id="footNames"></span>
-    <span class="foot-tag" id="footTag"></span>
+    <span class="foot-names" id="footNames" data-follow-names></span>
+    <span class="foot-tag" id="footTag" data-edit="hashtag"></span>
   </footer>
 </main>
 
@@ -312,13 +312,13 @@ let invitationData = {
 </script>
 
 <!-- Luma first: the core awaits window.lumaBoot -->
-<script src="../_shared/luma-bridge.js?v=7"></script>
+<script src="../_shared/luma-bridge.js?v=8"></script>
 
 
 <!-- Shared behaviour for every design. Loaded after the data. -->
 <script src="../_shared/wedding-core.js?v=2"></script>
 <!-- This design only: the deal, the cards, and the seam onto the core. -->
-<script src="design.js?v=2"></script>
+<script src="design.js?v=3"></script>
 
 <!-- Luma: the after-render hook this design's own render needs, and what it
      leaves to its old builder. -->

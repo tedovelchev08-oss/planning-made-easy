@@ -171,6 +171,28 @@ describe("luma-bridge", () => {
     await new Promise((r) => setTimeout(r, 120));
   });
 
+  it("lets repeated copies (a playing card, the credits) follow without being typed on", async () => {
+    localStorage.setItem("luma.designPreview", JSON.stringify({ invitation }));
+    boot("?preview=1&quiet=1&edit=1");
+    document.body.insertAdjacentHTML("beforeend", `
+      <h1><span data-sync="one" data-edit="partner1">Ana</span></h1>
+      <span class="card" data-sync="one" data-follow="partner1">Ana</span>
+      <p id="v" data-edit="venueName">Villa Lago</p><p id="cr" data-follow="venueName">Villa Lago</p>`);
+    w.lumaAfterRender(await w.lumaBoot);
+    const first = document.querySelector('h1 [data-edit="partner1"]') as HTMLElement;
+    first.textContent = "Mila";
+    first.dispatchEvent(new Event("input", { bubbles: true }));
+    const venue = document.getElementById("v")!;
+    venue.textContent = "Villa Cora";
+    venue.dispatchEvent(new Event("input", { bubbles: true }));
+    const card = document.querySelector(".card")!;
+    expect(card.textContent).toBe("Mila");
+    expect(card.hasAttribute("contenteditable")).toBe(false);
+    expect(document.getElementById("cr")!.textContent).toBe("Villa Cora");
+    expect(document.getElementById("cr")!.hasAttribute("contenteditable")).toBe(false);
+    await new Promise((r) => setTimeout(r, 120));
+  });
+
   it("is never editable for guests", async () => {
     boot(`?token=${TOKEN}`);
     document.body.insertAdjacentHTML("beforeend", `<p data-field="venueName">Villa Lago</p>`);
