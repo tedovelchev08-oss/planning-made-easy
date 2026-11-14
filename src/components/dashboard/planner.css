@@ -223,6 +223,72 @@ button:hover > .pl-ring:not(.is-done)::before { border-color: var(--pl-bronze); 
 .pl-bar > .pl-bar-gold:hover { background: #d8b97c; color: var(--pl-onyx); }
 .pl-bar-sep { width: 1px; height: 22px; flex-shrink: 0; margin: 0 4px; background: rgb(237 227 207 / .18); }
 
+/* ---------- the first-time walk-through (A + C, step 4) ----------
+   An onyx panel beside the invitation on a laptop (it stays in view while the
+   page scrolls), above the bottom nav on a phone. On a built-in design the
+   rest of the invitation dims around the part being written. */
+.pl-guide-layout { display: grid; gap: 16px; }
+@media (min-width: 1024px) { .pl-guide-layout.is-on { grid-template-columns: 340px minmax(0, 1fr); align-items: start; } }
+.pl-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 22px 24px;
+  border-radius: 6px;
+  background: var(--pl-onyx);
+  color: var(--pl-ivory);
+  box-shadow: 0 24px 50px -30px rgb(15 14 13 / .7);
+}
+@media (min-width: 1024px) { .pl-guide { position: sticky; top: 24px; min-height: 460px; } }
+@media (max-width: 1023px) {
+  .pl-guide {
+    position: fixed;
+    left: 8px; right: 8px;
+    bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+    z-index: 40;
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 16px 16px 18px;
+    gap: 10px;
+  }
+  .pl-guide h2 { font-size: 24px; }
+  .pl-guide-layout.is-on .pl-stage-floor { padding-bottom: 52vh; }
+}
+.pl-guide-tick { flex: 1; height: 3px; border-radius: 2px; background: rgb(237 227 207 / .2); transition: background-color .3s; }
+.pl-guide-tick.is-done { background: var(--pl-gold); }
+.pl-guide-x { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 9999px; color: rgb(237 227 207 / .7); cursor: pointer; }
+.pl-guide-x:hover { background: rgb(237 227 207 / .1); color: var(--pl-ivory); }
+.pl-guide-count { font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--pl-gold); }
+.pl-guide-label { font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: rgb(237 227 207 / .7); }
+.pl-guide-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgb(237 227 207 / .22);
+  border-radius: 2px;
+  background: rgb(237 227 207 / .06);
+  color: var(--pl-ivory);
+  font-size: 15px;
+  line-height: 1.4;
+  color-scheme: dark;
+}
+.pl-guide-input::placeholder { color: rgb(237 227 207 / .4); }
+.pl-guide-input:focus { outline: none; border-color: var(--pl-gold); box-shadow: 0 0 0 3px rgb(201 168 106 / .2); }
+textarea.pl-guide-input { resize: vertical; min-height: 110px; }
+.pl-guide-switch { display: flex; min-height: 48px; width: 100%; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; cursor: pointer; }
+.pl-guide-switch .pl-switch { background: rgb(237 227 207 / .22); }
+.pl-guide-switch[aria-checked="true"] .pl-switch { background: var(--pl-gold); }
+.pl-guide-switch:focus-visible, .pl-guide-btn:focus-visible, .pl-guide-skip:focus-visible, .pl-guide-x:focus-visible { outline: 2px solid var(--pl-gold); outline-offset: 2px; }
+.pl-guide-btn { height: 44px; padding: 0 18px; border-radius: 2px; border: 1px solid transparent; font-size: 12px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+.pl-guide-gold { background: var(--pl-gold); color: var(--pl-onyx); }
+.pl-guide-gold:hover { background: #d8b97c; }
+.pl-guide-ghost { color: var(--pl-ivory); border-color: rgb(237 227 207 / .25); }
+.pl-guide-ghost:hover { border-color: rgb(237 227 207 / .5); }
+.pl-guide-skip { height: 44px; padding: 0 6px; font-size: 13.5px; color: rgb(237 227 207 / .65); cursor: pointer; }
+.pl-guide-skip:hover { color: var(--pl-ivory); }
+.pl-guiding [data-guide] { transition: opacity .35s ease; opacity: .28; }
+.pl-guiding [data-guide].pl-guide-here { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .pl-guiding [data-guide], .pl-guide-tick { transition: none; } }
+
 .pl-sheet {
   position: absolute;
   top: 0; right: 0; bottom: 0;

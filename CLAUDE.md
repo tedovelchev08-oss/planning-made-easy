@@ -80,7 +80,7 @@ As of 2026-11-13:
   editable (keys: partner1/2, venueName, venueAddress, hashtag, story/story1/story2, or the
   design's own `extras.texts` key); `data-follow="key"` copies follow without being editable
   (cards, credits); `data-follow-names` lines show "A & B". Nothing inside `aria-hidden` is
-  editable. Bridge is v=10 (reads typed letters, never innerText, which applies CSS capitals; in the editor a line hidden for being empty shows as a dashed "+ Add" slot, and an empty story section stays visible). "+ Add" for studio designs: #125. Next: 4, guided walk-through.
+  editable. Bridge is v=10 (reads typed letters, never innerText, which applies CSS capitals; in the editor a line hidden for being empty shows as a dashed "+ Add" slot, and an empty story section stays visible). "+ Add" for studio designs: #125. **4, guided walk-through (feat/invite-walkthrough):** `InviteGuide.tsx`, an onyx panel beside the invitation (above the bottom nav on a phone), one question per step (names, opening lines on built-in designs, date and venue, story on studio designs, replies, share). Offered once per wedding per device (localStorage `twofold.inviteGuide.seen.<weddingId>`), "Guide me" in the bar reopens it. Built-in designs mark zones with `data-guide` and dim the rest; studio designs are pointed at by the bridge (planner posts `twofold:guide {keys}`, the bridge rings the first visible line and posts `twofold:ready` after each reload). Bridge is v=11.
 - **To do: remake the Plaster design from scratch.** Owner, 2026-11-14, on a phone screenshot of
   the card half out of its envelope: "looks like shit". Not a polish pass: a new direction,
   pitched in words first (romance and luxury sell; see the bar set by Celestial and Mirror Palace).
