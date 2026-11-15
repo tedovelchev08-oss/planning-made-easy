@@ -94,11 +94,24 @@ As of 2026-11-15 (evening):
   are their own contexts; `useApp()` no longer carries toasts or the save status). Next PR: no
   inline script on app pages (`vercel.json`; `/designs/` keeps it), the retired website out of
   the data layer (the `website_config` table stays), bold becomes medium in the planner chrome.
-  Still to do, in order: real addresses without `#` plus per-couple link previews, an end-to-end
-  test (Playwright is installed, unused), a dead-code and bundle-size gate in CI, partner
-  presence, translations (five locales declared, about 22 phrases), splitting the 1,000-line
-  files. **Unverified before Stripe goes live:** that the webhook reads the raw body on Vercel
-  (send a Stripe test event; it logs a clear line if the body arrives empty).
+  **Unverified before Stripe goes live:** that the webhook reads the raw body on Vercel (send a
+  Stripe test event; it logs a clear line if the body arrives empty). Also not checked: that
+  migration 0022 ran on production, and the bold-to-medium change on the planner screens (behind
+  sign-in).
+- **To do from the code audit, in this order** (owner away on holiday from 2026-11-16; nothing
+  below is started):
+  1. Real addresses without `#` (`BrowserRouter`; the Vercel rewrite exists) with a redirect for
+     old `#` links, then per-couple link previews (names, date, the design's look). The biggest
+     one: it touches every link, the Stripe return address and the sign-in emails.
+  2. One end-to-end test in CI: sign up, add a guest, share, reply, test-mode purchase
+     (Playwright is installed and unused).
+  3. A dead-code and bundle-size gate in CI (`knip`, a size check on the first download).
+  4. Partner presence on the existing realtime channel ("your partner is here").
+  5. Translations: five locales are declared with about 22 phrases; finish or remove the choice.
+  6. Split the 1,000-line files (`Invitations.tsx`, `ui.tsx`, `Seating.tsx`, `store.tsx`).
+  7. Smaller: store own designs in storage instead of base64 rows; WebP for `public/images`;
+     a dedicated key for rate-limit hashes; `supabase/config.toml` in the repo; a dependency
+     audit in CI; drop the `website_config` table once nothing needs it.
 - **Design audit (2026-11-15), parked:** `docs/DESIGN-AUDIT.md`. Golden Hour prototype (the
   proposed Plaster replacement: live sky, sea and sun for the couple's date and place) is on
   `proto/golden-hour`, draft PR #131, not for merging as is.
