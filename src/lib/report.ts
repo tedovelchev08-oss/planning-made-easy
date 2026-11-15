@@ -153,6 +153,3 @@ export function track(event: FunnelEvent, props: Props = {}) {
     body: JSON.stringify(payload),
   }).catch(() => {});
 }
-
-/** Which funnel stages this browser has already reached — for dashboards/tests. */
-export const funnelState = funnelDone;

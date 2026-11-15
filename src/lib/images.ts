@@ -15,8 +15,6 @@ export const IMAGES = {
   invEditorial: "/images/invitation-editorial.jpg",
 } as const;
 
-export type ImageKey = keyof typeof IMAGES;
-
 /** The addresses saved before the photos were self-hosted. */
 const LEGACY: Record<string, string> = {
   "https://image.qwenlm.ai/generated-images/491b8b3f-233c-48cf-a774-26c3db982f5f/_result.png": IMAGES.couple,

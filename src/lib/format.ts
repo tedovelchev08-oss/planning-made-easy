@@ -22,8 +22,6 @@ export const configureFormat = (p: Partial<FormatConfig>) => {
   cfg = { ...FALLBACK, ...p };
 };
 
-export const getFormatConfig = (): FormatConfig => ({ ...cfg });
-
 /** guards against invalid currency codes crashing Intl at render time */
 const safeCurrency = (c: string) => (/^[A-Za-z]{3}$/.test(c) ? c.toUpperCase() : "USD");
 
