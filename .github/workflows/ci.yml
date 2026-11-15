@@ -33,9 +33,9 @@ jobs:
         run: npm run test:run
 
       # Runners are UTC, which is the one timezone the date bugs do not show up
-      # in. toDayKey shifts a day WEST of Greenwich, and the marketing sample
-      # date shifted EAST — that one only failed at UTC+14 and passed
-      # everywhere else. Both ends get checked, or neither bug would be caught.
+      # in. toDayKey shifts a day WEST of Greenwich, and a date bug in the old
+      # marketing sample shifted EAST, failing only at UTC+14. Both ends get
+      # checked, or neither kind of bug would be caught.
       - name: Test across timezone extremes
         run: |
           for tz in Pacific/Midway Pacific/Kiritimati; do

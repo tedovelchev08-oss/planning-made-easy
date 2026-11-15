@@ -1,15 +1,10 @@
 # Security headers
 
-The same header set is declared in **two** places, for two hosts:
-
-| File           | Host it applies to | Comments allowed? |
-| -------------- | ------------------ | ----------------- |
-| `vercel.json`  | **Vercel (live)** — `planning-made-easy.vercel.app` | No (strict JSON) |
-| `netlify.toml` | Netlify (kept for parity) | Yes |
-
-> **⚠️ Keep them in step.** A header fixed in one file silently does nothing
-> on the other host. Change both in the same commit. This document is the
-> single source of truth for *why* the policy looks the way it does.
+The headers are declared in one place: `vercel.json` (strict JSON, so no
+comments). The site runs on Vercel, `planning-made-easy.vercel.app`. A
+`netlify.toml` copy was kept "for parity" until November 2026; it had drifted
+and was removed. This document is the single source of truth for *why* the
+policy looks the way it does.
 
 ## The policy, directive by directive
 
@@ -52,8 +47,8 @@ Plus, on `/assets/*` only: `Cache-Control: public, max-age=31536000, immutable`
 If the project ref changes (new Supabase project):
 
 1. Update `VITE_SUPABASE_URL` in `.env.local` / the Vercel project env vars.
-2. Replace `yyznkxfxmwetsmivgpxu.supabase.co` in **both** `vercel.json` and
-   `netlify.toml` (https and wss, four occurrences total).
+2. Replace `yyznkxfxmwetsmivgpxu.supabase.co` in `vercel.json`
+   (https and wss, in both header blocks).
 3. Re-run the B4 verification below.
 
 ## Verification after any header change (do this for real)

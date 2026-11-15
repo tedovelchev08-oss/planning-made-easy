@@ -144,33 +144,6 @@ export function Modal({
   );
 }
 
-export function Drawer({ open, onClose, children, label }: { open: boolean; onClose: () => void; children: React.ReactNode; label: string }) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-  return createPortal(
-    <AnimatePresence>
-      {open && (
-        <motion.div className="fixed inset-0 z-[75]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, pointerEvents: "none" }}>
-          <button aria-label="Close menu" className="absolute inset-0 bg-ink/45 backdrop-blur-[2px] cursor-default" onClick={onClose} />
-          <motion.aside
-            role="dialog" aria-modal="true" aria-label={label}
-            initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 34 }}
-            className="absolute left-0 top-0 h-full w-[84vw] max-w-[320px] bg-cream shadow-glass border-r border-white/60 overflow-y-auto"
-          >
-            {children}
-          </motion.aside>
-        </motion.div>
-      )}
-    </AnimatePresence>,
-    document.body,
-  );
-}
-
 /* ------------------------------ reveal ------------------------------ */
 
 export function Reveal({ children, delay = 0, y = 30, className = "" }: { children: React.ReactNode; delay?: number; y?: number; className?: string }) {
@@ -800,70 +773,6 @@ function OnboardingForm({
 
 /* ------------------------------ feature icons (custom, animated) ------------------------------ */
 
-export function FeatureIcon({ name, className = "" }: { name: string; className?: string }) {
-  const common = { fill: "none", strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-  switch (name) {
-    case "flow": // guest flow — two figures + orbiting dot
-      return (
-        <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-          <circle cx="18" cy="17" r="6" stroke="#b8964f" {...common} />
-          <path d="M7 38c1.2-6.4 5.5-10 11-10s9.8 3.6 11 10" stroke="#b8964f" {...common} />
-          <circle cx="33" cy="15" r="4.5" stroke="#c9a86a" {...common} />
-          <path d="M26.5 34c1-4.6 3.6-7.4 7.5-7.4 3 0 5.4 1.6 6.8 4.4" stroke="#c9a86a" {...common} />
-          <circle cx="40" cy="24" r="2.2" fill="#b4b99f" className="anim-pulse-soft" />
-        </svg>
-      );
-    case "budget": // ledger with a rising calm line
-      return (
-        <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-          <rect x="8" y="8" width="32" height="32" rx="7" stroke="#66704f" {...common} />
-          <path d="M15 29l6-6 4 3.5L33 18" stroke="#c9a86a" {...common} />
-          <circle cx="33" cy="18" r="2.4" fill="#b8964f" className="anim-pulse-soft" />
-          <path d="M15 34h18" stroke="#b4b99f" {...common} />
-        </svg>
-      );
-    case "timeline": // arc of time with a marker
-      return (
-        <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-          <path d="M10 36a17 17 0 0 1 28-13" stroke="#8c826f" {...common} />
-          <path d="M10 36a17 17 0 0 0 4.5 4" stroke="#cfc6b4" {...common} />
-          <circle cx="38" cy="23" r="3" fill="#c9a86a" className="anim-pulse-soft" />
-          <path d="M24 36v-9" stroke="#0f0e0d" {...common} />
-          <circle cx="24" cy="36" r="2" fill="#0f0e0d" />
-        </svg>
-      );
-    case "vendors": // handshake simplified to interlocking rings + spark
-      return (
-        <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-          <circle cx="19" cy="26" r="9" stroke="#b8964f" {...common} />
-          <circle cx="29" cy="22" r="9" stroke="#c9a86a" {...common} />
-          <path d="M36 8l1.2 2.6L40 12l-2.8 1.4L36 16l-1.2-2.6L32 12l2.8-1.4z" fill="#cfc6b4" className="anim-pulse-soft" />
-        </svg>
-      );
-    case "seating": // round table, seats around
-      return (
-        <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-          <circle cx="24" cy="24" r="8.5" stroke="#66704f" {...common} />
-          {[0, 60, 120, 180, 240, 300].map((a) => {
-            const r = (a * Math.PI) / 180;
-            return <circle key={a} cx={24 + 15 * Math.cos(r)} cy={24 + 15 * Math.sin(r)} r="2.6" fill={a % 120 === 0 ? "#b8964f" : "#cfc6b4"} />;
-          })}
-        </svg>
-      );
-    case "world": // arch + orbit
-      return (
-        <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-          <path d="M10 38V22a14 14 0 0 1 28 0v16" stroke="#c9a86a" {...common} />
-          <path d="M6 38h36" stroke="#0f0e0d" {...common} />
-          <circle cx="24" cy="20" r="4" stroke="#b8964f" {...common} />
-          <circle cx="38" cy="14" r="2.2" fill="#b4b99f" className="anim-pulse-soft" />
-        </svg>
-      );
-    default:
-      return null;
-  }
-}
-
 /* ------------------------------ live design frame ------------------------------ */
 
 /**
@@ -944,10 +853,6 @@ export function Stars({ n = 5, className = "" }: { n?: number; className?: strin
       ))}
     </span>
   );
-}
-
-export function GoldDivider({ className = "" }: { className?: string }) {
-  return <div className={`gold-hairline ${className}`} aria-hidden="true" />;
 }
 
 /* ------------------------------ top-level error boundary ------------------------------ */

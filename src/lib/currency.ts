@@ -55,6 +55,3 @@ export function useCurrency(): [Currency, (c: Currency) => void] {
   const c = useSyncExternalStore(subscribe, () => current, () => DEFAULT_CURRENCY);
   return [c, setCurrency];
 }
-
-/** for tests */
-export function __resetCurrency() { current = DEFAULT_CURRENCY; chosen = false; detecting = null; started = false; listeners.clear(); }

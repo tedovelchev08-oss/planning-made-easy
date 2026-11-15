@@ -15,9 +15,10 @@ npm run typecheck  # tsc --noEmit
 npm run build      # production build → dist/
 ```
 
-`dist/` is a fully static site and deploys as-is to Netlify, Vercel or any static host
-(a `netlify.toml` with security headers is included). Routing is hash-based, so every
-route works on static hosting with no extra redirects.
+The site deploys on Vercel: `dist/` is the static app, and `api/*.ts` are serverless
+functions it needs (invitations, replies, checkout, the Stripe webhook, account deletion).
+It is not a static-only site any more. Security headers live in `vercel.json`
+(see `docs/SECURITY-HEADERS.md`). Routing is hash-based.
 
 ## Scripts
 

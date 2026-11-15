@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, ExternalLink, Music, Plus, Trash2 } from "lucide-react";
+import { Check, Music, Plus, Trash2 } from "lucide-react";
 import {
   DESIGN_LIMITS, STUDIO_DESIGNS, STUDIO_PREFIX, designPath, planAllows, toInvitationData, tracksOf,
   type DesignData, type StudioDesign,
@@ -119,24 +119,6 @@ export function StudioGallery({ cfg, setCfg }: { cfg: InvitationConfig; setCfg: 
 }
 
 /* ------------------------------ the preview pane ------------------------------ */
-
-export function StudioPreviewPane({ design }: { design: StudioDesign }) {
-  const { db } = useApp();
-  const initials = [db.wedding.partnerA, db.wedding.partnerB].map((n) => (n ?? "").trim()[0] ?? "").filter(Boolean).join(" & ") || "A & B";
-  return (
-    <div className="grid gap-0 sm:grid-cols-[220px_1fr]">
-      <StudioCard design={design} initials={initials} />
-      <div className="flex flex-col justify-center gap-3 bg-[var(--pl-card)] px-6 py-6">
-        <p className="font-display text-[28px] leading-none">{design.name}</p>
-        <p className="text-[14.5px] leading-relaxed text-[var(--pl-ink-2)]">{design.blurb}. Your names, date and venue come from your wedding; the details beside it fill the rest.</p>
-        <p className="text-[13px] text-[var(--pl-ink-2)]">Anything you leave empty is left out, so guests never see sample text.</p>
-        <button onClick={() => openStudioPreview(db, design)} className="pl-quiet self-start">
-          <ExternalLink size={14} strokeWidth={1.6} /> Open it in a new tab
-        </button>
-      </div>
-    </div>
-  );
-}
 
 /* ------------------------------ the details ------------------------------ */
 

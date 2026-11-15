@@ -77,10 +77,6 @@ export const catPaid = (c: BudgetCategory, vendors: Vendor[]): number =>
   c.manualPaid +
   vendors.filter((v) => v.budgetId === c.id && v.status === "Booked").reduce((s, v) => s + paidSum(v), 0);
 
-/** the booked vendors behind a category's commitment — for the reconciliation view */
-export const catVendors = (c: BudgetCategory, vendors: Vendor[]): Vendor[] =>
-  vendors.filter((v) => v.budgetId === c.id && v.status === "Booked");
-
 export type PhaseId = "p12" | "p9" | "p6" | "p3" | "p1" | "fw" | "wd";
 
 export interface Task {
