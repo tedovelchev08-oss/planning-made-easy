@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { gatePlanName, sendGate } from "../../lib/sendGate";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -408,7 +408,8 @@ export default function Shell() {
               : "mx-auto w-full min-w-0 max-w-6xl 2xl:max-w-[1560px] px-4 py-7 sm:px-8 2xl:px-12 pb-28 lg:pb-12"
           }
         >
-          <Outlet />
+          {/* a page still arriving leaves the rail and top bar in place */}
+          <Suspense fallback={null}><Outlet /></Suspense>
         </main>
       </div>
 
