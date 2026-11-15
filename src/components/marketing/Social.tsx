@@ -114,8 +114,8 @@ function QuoteBlock({ t, big = false, className = "" }: { t: (typeof TESTIMONIAL
       </blockquote>
       <figcaption className="mt-5 flex items-center gap-3">
         <span className="h-px w-8 bg-blush-deep/70" aria-hidden="true" />
-        <span className="text-small font-extrabold text-ink">{t.names}</span>
-        <span className="text-small font-semibold text-ink-mute">· {t.city}</span>
+        <span className="text-small font-medium text-ink">{t.names}</span>
+        <span className="text-small font-medium text-ink-mute">· {t.city}</span>
       </figcaption>
     </figure>
   );
@@ -135,7 +135,7 @@ export function Stories() {
   return (
     <section id="stories" className="relative mx-auto max-w-7xl scroll-mt-28 px-5 py-24 sm:px-8 sm:py-32">
       <Reveal>
-        <p className="flex items-center gap-3 text-eyebrow font-extrabold uppercase tracking-label-x text-blush-deep">
+        <p className="flex items-center gap-3 text-eyebrow font-medium uppercase tracking-label-x text-blush-deep">
           <span className="h-px w-9 bg-blush-deep/60" /> Love notes
         </p>
         <h2 className="mt-5 font-display text-4xl leading-[1.08] tracking-tight text-ink sm:text-5xl">

@@ -465,7 +465,7 @@ export default function Guests() {
                       {MEALS.map((m) => <option key={m} value={m}>{m}</option>)}
                     </select>
                   </div>
-                  <p className="mt-2 text-[0.68rem] font-semibold text-ink-2">Saved as a real guest — included in headcount, meals and seating. Mirrors this guest's RSVP.</p>
+                  <p className="mt-2 text-[0.68rem] font-medium text-ink-2">Saved as a real guest — included in headcount, meals and seating. Mirrors this guest's RSVP.</p>
                 </div>
               )}
             </div>
@@ -484,7 +484,7 @@ export default function Guests() {
             <h2 className="flex items-center gap-2.5 font-display text-2xl text-ink"><Mail size={20} className="text-lav-deep" /> Message {messaging.name.split(" ")[0]}</h2>
             {/* Twofold has no email sending — this used to say "Delivered by email via
                 Resend" and toast "Message queued" while nothing was sent. */}
-            <p className="mt-1 text-[0.82rem] font-semibold text-ink-mute">Write it here, then send it the way you usually reach {messaging.name.split(" ")[0]} — Twofold doesn't send it for you.</p>
+            <p className="mt-1 text-[0.82rem] font-medium text-ink-mute">Write it here, then send it the way you usually reach {messaging.name.split(" ")[0]} — Twofold doesn't send it for you.</p>
             <textarea
               className={`${inputCls} mt-5 min-h-[130px]`} value={msgBody} onChange={(e) => setMsgBody(e.target.value)}
               placeholder={`Hi ${messaging.name.split(" ")[0]}, we can't wait to celebrate with you…`} autoFocus
