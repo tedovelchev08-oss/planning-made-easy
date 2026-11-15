@@ -1,0 +1,91 @@
+@font-face { font-family: "Cormorant"; font-weight: 300; font-display: swap; src: url("assets/cormorant-300.woff2") format("woff2"); }
+@font-face { font-family: "Cormorant"; font-weight: 400; font-display: swap; src: url("assets/cormorant-400.woff2") format("woff2"); }
+
+:root {
+  --ivory: #fff8ec;
+  --gold: #f1cf8a;
+  --ink-shadow: 0 1px 2px rgb(60 30 10 / .35), 0 0 28px rgb(70 35 10 / .28);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #f3c99a; color: var(--ivory); overflow-x: clip; }
+body { font-family: "Cormorant", Georgia, serif; -webkit-font-smoothing: antialiased; }
+
+#gh-sky, #gh-fallback { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#gh-fallback { z-index: -1; background: linear-gradient(180deg, #8fb6dd 0%, #f6d7b0 58%, #f2b77c 70%, #5f86a8 71%, #3c6588 100%); }
+.gh-no-webgl #gh-sky { display: none; }
+.gh-no-webgl #gh-fallback { z-index: 0; }
+
+#gh-clock {
+  position: fixed; z-index: 5; top: max(14px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+  display: flex; gap: .5em; align-items: baseline; white-space: nowrap;
+  padding: .5em 1.05em; border-radius: 999px;
+  background: rgb(255 248 236 / .14); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgb(255 248 236 / .32);
+  font: 500 11px/1 system-ui, -apple-system, sans-serif; letter-spacing: .18em; text-transform: uppercase;
+  text-shadow: var(--ink-shadow);
+}
+#gh-time { font-variant-numeric: tabular-nums; letter-spacing: .08em; font-size: 12px; }
+.gh-dot { opacity: .6; }
+
+#gh-page { position: relative; z-index: 2; }
+.gh-sec {
+  min-height: 100svh; padding: 18vh 28px 14vh; display: flex; flex-direction: column; justify-content: flex-start;
+  max-width: 560px; margin: 0 auto; text-shadow: var(--ink-shadow);
+}
+/* a soft warm shade behind the words, so they read over a bright sky (no box, no edge) */
+.gh-story, .gh-moment, .gh-reply { position: relative; }
+.gh-story::before, .gh-moment::before, .gh-reply::before {
+  content: ""; position: absolute; inset: 10% -20% 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(60% 50% at 40% 45%, rgb(40 30 25 / .18), transparent 75%);
+}
+.gh-reply::before { background: radial-gradient(70% 45% at 50% 70%, rgb(40 30 25 / .2), transparent 75%); }
+.gh-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.gh-eyebrow { margin: 0; font: 500 11px/1.4 system-ui, -apple-system, sans-serif; letter-spacing: .3em; text-transform: uppercase; }
+.gh-h { margin: .25em 0 .4em; font-weight: 300; font-style: normal; font-size: clamp(40px, 11vw, 64px); line-height: 1.02; letter-spacing: -.005em; }
+.gh-sec p { font-size: clamp(20px, 5.4vw, 24px); line-height: 1.5; margin: 0 0 .7em; font-weight: 400; }
+.gh-sec .gh-eyebrow { font-size: 11px; }
+
+/* the hero: the 3D names fill the middle; words sit above and below them */
+.gh-hero { justify-content: space-between; align-items: center; text-align: center; padding-top: calc(max(14px, env(safe-area-inset-top)) + 58px); padding-bottom: 7vh; }
+.gh-hero-foot { margin-top: auto; }
+.gh-when, .gh-where { margin: 0 !important; font: 500 12px/1.9 system-ui, -apple-system, sans-serif !important; letter-spacing: .28em; text-transform: uppercase; }
+.gh-open {
+  margin-top: 22px; padding: 15px 26px; border-radius: 999px; cursor: pointer;
+  border: 1px solid rgb(255 248 236 / .55); background: rgb(255 248 236 / .16);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  color: var(--ivory); font: 500 12px/1 system-ui, -apple-system, sans-serif; letter-spacing: .24em; text-transform: uppercase;
+  transition: opacity .8s ease, transform .8s ease;
+}
+/* before the tap: the line that says what this is; after it, the names' words */
+.gh-intro { margin: auto 0; max-width: 21em; transition: opacity 1.2s ease, transform 1.2s ease; }
+.gh-intro-line { margin: .55em 0 .35em !important; font-weight: 300 !important; font-size: clamp(30px, 8.6vw, 44px) !important; line-height: 1.12 !important; }
+.gh-intro-line span { color: var(--gold); font-variant-numeric: lining-nums; }
+.gh-intro-sub { font-style: italic; opacity: .92; }
+.gh-risen .gh-intro { opacity: 0; transform: translateY(-14px); pointer-events: none; position: absolute; }
+.gh-after { opacity: 0; transition: opacity 1.4s ease 1.2s; }
+.gh-risen .gh-after { opacity: 1; }
+.gh-thanks { max-height: 0; overflow: hidden; opacity: 0; transition: opacity .8s ease, max-height .8s ease; font-style: italic; }
+.gh-said-yes .gh-thanks { max-height: 4em; opacity: 1; }
+.gh-said-yes .gh-buttons { opacity: .5; }
+.gh-open:focus-visible, .gh-yes:focus-visible, .gh-no:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.gh-risen .gh-open { opacity: 0; transform: translateY(8px); pointer-events: none; }
+.gh-scroll-hint { margin: 14px 0 0 !important; font: 500 10.5px/1 system-ui, sans-serif !important; letter-spacing: .26em; text-transform: uppercase; opacity: 0; transition: opacity 1.2s ease 1.6s; }
+.gh-risen .gh-scroll-hint { opacity: .8; }
+
+.gh-hour { margin: .1em 0 0 !important; font-weight: 300 !important; font-size: clamp(56px, 17vw, 96px) !important; line-height: 1 !important; font-variant-numeric: lining-nums tabular-nums; color: var(--gold); }
+/* the moments: words low, so what happens in the scene has the sky */
+.gh-moment { justify-content: flex-end; padding-top: 10vh; padding-bottom: 16vh; }
+.gh-moment .gh-h { font-size: clamp(34px, 9.5vw, 56px); }
+.gh-reply { justify-content: flex-end; padding-bottom: 12vh; text-align: center; align-items: center; }
+.gh-buttons { display: flex; gap: 10px; margin: 18px 0 10px; flex-wrap: wrap; justify-content: center; }
+.gh-yes, .gh-no { min-height: 50px; padding: 0 26px; border-radius: 2px; cursor: pointer; font: 500 12px/1 system-ui, sans-serif; letter-spacing: .2em; text-transform: uppercase; }
+.gh-yes { border: 0; background: linear-gradient(180deg, #f6dca2, #d7a957); color: #3a2410; box-shadow: 0 12px 30px -12px rgb(90 50 10 / .6); }
+.gh-no { border: 1px solid rgb(255 248 236 / .6); background: rgb(255 248 236 / .1); color: var(--ivory); }
+.gh-small { font: 500 11px/1.4 system-ui, sans-serif !important; letter-spacing: .2em; text-transform: uppercase; opacity: .85; }
+.gh-credit { margin-top: 3em !important; font: 400 11px/1.5 system-ui, sans-serif !important; opacity: .7; letter-spacing: .04em; }
+
+@media (min-width: 900px) {
+  .gh-sec { max-width: 640px; }
+  .gh-story, .gh-moment { margin-left: 8vw; }
+}
+@media (prefers-reduced-motion: reduce) { .gh-open, .gh-scroll-hint, .gh-intro, .gh-after, .gh-thanks { transition: none; } }
