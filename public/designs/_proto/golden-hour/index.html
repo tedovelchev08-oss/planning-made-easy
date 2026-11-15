@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maya &amp; Theo · Golden Hour (prototype)</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="golden-hour.css?v=4">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+</head>
+<body>
+  <!-- the live sky, sea and gold names: drawn by golden-hour.js -->
+  <canvas id="gh-sky" aria-hidden="true"></canvas>
+  <div id="gh-fallback" aria-hidden="true"></div>
+
+  <!-- the clock: the real time of day the page is showing, and how high the sun is -->
+  <div id="gh-clock" aria-live="off"><span id="gh-time">06:38</span><span class="gh-dot">·</span><span id="gh-sunline">sunrise over Ravello</span></div>
+
+  <main id="gh-page">
+    <section class="gh-sec gh-hero" data-at="hero">
+      <p class="gh-eyebrow">Together with their families</p>
+      <h1 class="gh-sr">Maya &amp; Theo</h1>
+      <div class="gh-hero-foot">
+        <p class="gh-when">Saturday · 2 September 2027</p>
+        <p class="gh-where">Villa Cimbrone · Ravello</p>
+      </div>
+      <button type="button" id="gh-open" class="gh-open">Let the sun rise</button>
+      <p class="gh-scroll-hint" aria-hidden="true">Scroll through the day</p>
+    </section>
+
+    <section class="gh-sec gh-story" data-at="10:00">
+      <p class="gh-eyebrow">10:00 · the morning</p>
+      <h2 class="gh-h">How it began</h2>
+      <p>We met on a terrace like this one, ten summers ago, both waiting for the same late ferry.</p>
+      <p>She was reading. He pretended to. Neither of us caught the boat.</p>
+    </section>
+
+    <section class="gh-sec gh-moment" data-at="16:00">
+      <p class="gh-eyebrow">The day, by the sun</p>
+      <p class="gh-hour">16:00</p>
+      <h2 class="gh-h">The ceremony</h2>
+      <p>In the rose garden, with the sea behind us.</p>
+    </section>
+
+    <section class="gh-sec gh-moment" data-at="17:30">
+      <p class="gh-hour">17:30</p>
+      <h2 class="gh-h">Aperitivo on the terrace</h2>
+      <p>Spritz, lemons and the Belvedere.</p>
+    </section>
+
+    <section class="gh-sec gh-moment" data-at="19:00">
+      <p class="gh-hour">19:00</p>
+      <h2 class="gh-h">Dinner under the pergola</h2>
+      <p>Long tables, as the light turns gold.</p>
+    </section>
+
+    <section class="gh-sec gh-moment" data-at="sunset">
+      <p class="gh-hour" id="gh-sunset-hour">19:42</p>
+      <h2 class="gh-h">Sunset, and the first dance</h2>
+      <p>The exact minute the sun touches the sea on our day.</p>
+    </section>
+
+    <section class="gh-sec gh-reply" data-at="golden">
+      <h2 class="gh-h">Will you be there?</h2>
+      <p id="gh-sunset-line">The sun sets at 19:42. Dance with us after.</p>
+      <div class="gh-buttons">
+        <button type="button" class="gh-yes">With pleasure</button>
+        <button type="button" class="gh-no">Sadly, no</button>
+      </div>
+      <p class="gh-small">Kindly reply by 1 July</p>
+      <p class="gh-credit">Prototype · the sky, sea and sun are drawn live for 2 September 2027 over Ravello</p>
+    </section>
+  </main>
+
+  <script type="module" src="golden-hour.js?v=5"></script>
+</body>
+</html>
