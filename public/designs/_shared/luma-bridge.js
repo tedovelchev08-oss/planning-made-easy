@@ -227,6 +227,7 @@
     if (blank(d.rsvpDeadline)) hide(document.getElementById('rsvp-deadline-text'));
 
     renderRegistry(d.registry);
+    renderCredit();
 
     if (d.rsvpOpen === false) {
       hide(document.getElementById('rsvp'));
@@ -422,6 +423,31 @@
       var m = e.data;
       if (m && m.type === 'twofold:guide' && Array.isArray(m.keys)) guideTo(m.keys.filter(function (k) { return typeof k === 'string'; }), !!m.smooth);
     });
+  }
+
+  /* "Made with Twofold" at the very end, as the built-in designs have it:
+     small, in the page's own colours, a link home for a guest who's curious.
+     Built with textContent only; added once. */
+  function renderCredit() {
+    if (document.getElementById('tf-credit')) return;
+    var p = document.createElement('p');
+    p.id = 'tf-credit';
+    var look = window.getComputedStyle(document.querySelector('footer') || document.body);
+    var ground = [document.querySelector('footer'), document.body, document.documentElement].map(function (el) {
+      return el ? window.getComputedStyle(el).backgroundColor : '';
+    }).filter(function (c) { return c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent'; })[0];
+    p.style.cssText = 'position:relative;z-index:5;margin:0;padding:1.6rem 1rem calc(1.6rem + env(safe-area-inset-bottom,0px));' +
+      'text-align:center;font:500 10.5px/1.4 system-ui,-apple-system,sans-serif;letter-spacing:.24em;text-transform:uppercase;opacity:.5';
+    p.style.color = look.color;
+    if (ground) p.style.backgroundColor = ground;
+    var a = document.createElement('a');
+    a.href = window.location.origin + '/';
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.style.cssText = 'color:inherit;text-decoration:none';
+    a.textContent = 'Made with Twofold · ' + window.location.host;
+    p.appendChild(a);
+    document.body.appendChild(p);
   }
 
   /* The couple's registry, under the reply: a short list in the design's

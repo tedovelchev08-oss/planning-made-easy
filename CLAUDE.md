@@ -38,7 +38,7 @@ own clone of this repo. Chats don't share history; this file and git are the sha
 
 ## Status (update at the end of every session)
 
-As of 2026-11-13:
+As of 2026-11-15:
 
 - **main** is at PR #108 (merged 2026-11-13): one Invitation page (invitation, replies, share
   link, open-to-guests switch) and the Registry in the Silk desk look. The separate wedding
@@ -62,7 +62,7 @@ As of 2026-11-13:
   upright (`h1.font-display`), section/card titles italic 400 (`h2/h3.font-display`, `.pl-card-h`).
   Owner rejected bold/generic serifs; never use semibold or bold display type. Planner grows to
   1560px on 2xl screens.
-- **In progress: Invitation page redesign "A + C"** (owner's choice, mocks at
+- **Done: Invitation page redesign "A + C"** (owner's choice, mocks at
   https://claude.ai/artifact/Va1KAjFt6eU2nJos3qcjJu): full-screen invitation edited in place
   (click text to type, dashed "+ Add" for empty sections, floating bar: design, colours,
   phone/desktop, see as guest), plus a guided first-time walk-through. **1b done (#114):** the
@@ -80,7 +80,9 @@ As of 2026-11-13:
   editable (keys: partner1/2, venueName, venueAddress, hashtag, story/story1/story2, or the
   design's own `extras.texts` key); `data-follow="key"` copies follow without being editable
   (cards, credits); `data-follow-names` lines show "A & B". Nothing inside `aria-hidden` is
-  editable. Bridge is v=10 (reads typed letters, never innerText, which applies CSS capitals; in the editor a line hidden for being empty shows as a dashed "+ Add" slot, and an empty story section stays visible). "+ Add" for studio designs: #125. **4, guided walk-through (feat/invite-walkthrough):** `InviteGuide.tsx`, an onyx panel beside the invitation (above the bottom nav on a phone), one question per step (names, opening lines on built-in designs, date and venue, story on studio designs, replies, share). Offered once per wedding per device (localStorage `twofold.inviteGuide.seen.<weddingId>`), "Guide me" in the bar reopens it. Built-in designs mark zones with `data-guide` and dim the rest; studio designs are pointed at by the bridge (planner posts `twofold:guide {keys}`, the bridge rings the first visible line and posts `twofold:ready` after each reload). Bridge is v=11.
+  editable. Bridge is v=10 (reads typed letters, never innerText, which applies CSS capitals; in the editor a line hidden for being empty shows as a dashed "+ Add" slot, and an empty story section stays visible). "+ Add" for studio designs: #125. **4 done (#126, merged 2026-11-15), guided walk-through:** `InviteGuide.tsx`, an onyx panel beside the invitation (above the bottom nav on a phone), one question per step (names, opening lines on built-in designs, date and venue, story on studio designs, replies, share). Offered once per wedding per device (localStorage `twofold.inviteGuide.seen.<weddingId>`), "Guide me" in the bar reopens it. Built-in designs mark zones with `data-guide` and dim the rest; studio designs are pointed at by the bridge (planner posts `twofold:guide {keys}`, the bridge rings the first visible line and posts `twofold:ready` after each reload). The walk-through panel was never seen on a preview (previews need a sign-in): check it once on the live site, phone first.
+- PR #127 (2026-11-15): `docs/FOUNDER-FINDINGS.md`, the founder skill pack's business review (working files local in `founder/`, gitignored). Verdict "not yet": 8 of 100 *simulated* buyers; the fix is trust (own domain, free previews with the couple's names and photo, a plain privacy summary). Next step it names: trademark search for TWOFOLD, then register twofold.wedding (+ .eu). Launch plan: waitlist from 30 Nov, launch 11 Jan 2027. Its "apply migration 0021" task is stale (ran at #108's merge).
+- Studio designs end with "Made with Twofold · host" (feat/studio-footer), added by `luma-bridge.js` (`renderCredit`, `#tf-credit`, a link home), like the built-in designs' footer. Bridge is v=12.
 - **To do: remake the Plaster design from scratch.** Owner, 2026-11-14, on a phone screenshot of
   the card half out of its envelope: "looks like shit". Not a polish pass: a new direction,
   pitched in words first (romance and luxury sell; see the bar set by Celestial and Mirror Palace).
