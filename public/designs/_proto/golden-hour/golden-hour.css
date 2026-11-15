@@ -56,11 +56,21 @@ body { font-family: "Cormorant", Georgia, serif; -webkit-font-smoothing: antiali
   color: var(--ivory); font: 500 12px/1 system-ui, -apple-system, sans-serif; letter-spacing: .24em; text-transform: uppercase;
   transition: opacity .8s ease, transform .8s ease;
 }
+/* before the tap: the line that says what this is; after it, the names' words */
+.gh-intro { margin: auto 0; max-width: 21em; transition: opacity 1.2s ease, transform 1.2s ease; }
+.gh-intro-line { margin: .55em 0 .35em !important; font-weight: 300 !important; font-size: clamp(30px, 8.6vw, 44px) !important; line-height: 1.12 !important; }
+.gh-intro-line span { color: var(--gold); font-variant-numeric: lining-nums; }
+.gh-intro-sub { font-style: italic; opacity: .92; }
+.gh-risen .gh-intro { opacity: 0; transform: translateY(-14px); pointer-events: none; position: absolute; }
+.gh-after { opacity: 0; transition: opacity 1.4s ease 1.2s; }
+.gh-risen .gh-after { opacity: 1; }
+.gh-thanks { max-height: 0; overflow: hidden; opacity: 0; transition: opacity .8s ease, max-height .8s ease; font-style: italic; }
+.gh-said-yes .gh-thanks { max-height: 4em; opacity: 1; }
+.gh-said-yes .gh-buttons { opacity: .5; }
 .gh-open:focus-visible, .gh-yes:focus-visible, .gh-no:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .gh-risen .gh-open { opacity: 0; transform: translateY(8px); pointer-events: none; }
 .gh-scroll-hint { margin: 14px 0 0 !important; font: 500 10.5px/1 system-ui, sans-serif !important; letter-spacing: .26em; text-transform: uppercase; opacity: 0; transition: opacity 1.2s ease 1.6s; }
 .gh-risen .gh-scroll-hint { opacity: .8; }
-html:not(.gh-risen) body { overflow: hidden; }
 
 .gh-hour { margin: .1em 0 0 !important; font-weight: 300 !important; font-size: clamp(56px, 17vw, 96px) !important; line-height: 1 !important; font-variant-numeric: lining-nums tabular-nums; color: var(--gold); }
 .gh-moment { padding-top: 22vh; }
@@ -76,4 +86,4 @@ html:not(.gh-risen) body { overflow: hidden; }
   .gh-sec { max-width: 640px; }
   .gh-story, .gh-moment { margin-left: 8vw; }
 }
-@media (prefers-reduced-motion: reduce) { .gh-open, .gh-scroll-hint { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .gh-open, .gh-scroll-hint, .gh-intro, .gh-after, .gh-thanks { transition: none; } }

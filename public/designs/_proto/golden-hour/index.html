@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Maya &amp; Theo · Golden Hour (prototype)</title>
 <meta name="robots" content="noindex">
-<link rel="stylesheet" href="golden-hour.css?v=4">
+<link rel="stylesheet" href="golden-hour.css?v=5">
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
 </head>
 <body>
@@ -18,25 +18,32 @@
 
   <main id="gh-page">
     <section class="gh-sec gh-hero" data-at="hero">
-      <p class="gh-eyebrow">Together with their families</p>
+      <!-- before the tap: what this is, in one breath -->
+      <div class="gh-intro">
+        <p class="gh-eyebrow">Saturday · 2 September 2027</p>
+        <p class="gh-intro-line">On our wedding day the sun rises over Ravello at <span data-sunrise>06:30</span>.</p>
+        <p class="gh-intro-sub">Spend the day with us, from first light to the last.</p>
+      </div>
+      <!-- after the tap: the names rise from the sea, in gold -->
+      <p class="gh-eyebrow gh-after">Together with their families</p>
       <h1 class="gh-sr">Maya &amp; Theo</h1>
       <div class="gh-hero-foot">
-        <p class="gh-when">Saturday · 2 September 2027</p>
-        <p class="gh-where">Villa Cimbrone · Ravello</p>
+        <p class="gh-when gh-after">Saturday · 2 September 2027</p>
+        <p class="gh-where gh-after">Villa Cimbrone · Ravello</p>
+        <button type="button" id="gh-open" class="gh-open">Let the sun rise</button>
+        <p class="gh-scroll-hint" aria-hidden="true">Scroll, and the day goes by</p>
       </div>
-      <button type="button" id="gh-open" class="gh-open">Let the sun rise</button>
-      <p class="gh-scroll-hint" aria-hidden="true">Scroll through the day</p>
     </section>
 
     <section class="gh-sec gh-story" data-at="10:00">
-      <p class="gh-eyebrow">10:00 · the morning</p>
+      <p class="gh-eyebrow">10:00 · the morning of our day</p>
       <h2 class="gh-h">How it began</h2>
       <p>We met on a terrace like this one, ten summers ago, both waiting for the same late ferry.</p>
       <p>She was reading. He pretended to. Neither of us caught the boat.</p>
     </section>
 
     <section class="gh-sec gh-moment" data-at="16:00">
-      <p class="gh-eyebrow">The day, by the sun</p>
+      <p class="gh-eyebrow">The day, by the sun · each moment is a point of light on its path</p>
       <p class="gh-hour">16:00</p>
       <h2 class="gh-h">The ceremony</h2>
       <p>In the rose garden, with the sea behind us.</p>
@@ -55,23 +62,24 @@
     </section>
 
     <section class="gh-sec gh-moment" data-at="sunset">
-      <p class="gh-hour" id="gh-sunset-hour">19:42</p>
+      <p class="gh-hour" data-sunset>19:42</p>
       <h2 class="gh-h">Sunset, and the first dance</h2>
       <p>The exact minute the sun touches the sea on our day.</p>
     </section>
 
     <section class="gh-sec gh-reply" data-at="golden">
       <h2 class="gh-h">Will you be there?</h2>
-      <p id="gh-sunset-line">The sun sets at 19:42. Dance with us after.</p>
+      <p>The sun sets at <span data-sunset>19:42</span>. Dance with us after.</p>
       <div class="gh-buttons">
         <button type="button" class="gh-yes">With pleasure</button>
         <button type="button" class="gh-no">Sadly, no</button>
       </div>
+      <p class="gh-thanks" aria-live="polite">Thank you. We’ll see you in the golden light.</p>
       <p class="gh-small">Kindly reply by 1 July</p>
       <p class="gh-credit">Prototype · the sky, sea and sun are drawn live for 2 September 2027 over Ravello</p>
     </section>
   </main>
 
-  <script type="module" src="golden-hour.js?v=5"></script>
+  <script type="module" src="golden-hour.js?v=8"></script>
 </body>
 </html>
