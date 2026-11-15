@@ -99,8 +99,6 @@ interface AppCtx {
   setDb: React.Dispatch<React.SetStateAction<Db>>;
   patch: (p: Partial<Db>) => void;
   toast: (title: string, desc?: string, tone?: Toast["tone"]) => void;
-  toasts: Toast[];
-  dismissToast: (id: number) => void;
   user: User | null;
   signOut: () => void;
   /** goes to the sign-in page, or to "begin your plan" */
@@ -117,7 +115,6 @@ interface AppCtx {
   openCheckout: (p: Plan) => void;
   closeCheckout: () => void;
   mode: Mode;
-  sync: SyncState;
   weddingId: string | null;
   booting: boolean;
   needsOnboarding: boolean;
@@ -273,6 +270,16 @@ function clearCache(uid: string) {
 /* ------------------------------ context ------------------------------ */
 
 const Ctx = createContext<AppCtx | null>(null);
+
+/*
+ * Toasts and the save status change many times a minute. They live in their
+ * own contexts so that a toast appearing, or "Saving" turning to "Saved",
+ * redraws the toast stack and the save chip, not every screen that reads the
+ * plan through useApp().
+ */
+interface ToastCtx { toasts: Toast[]; dismissToast: (id: number) => void }
+const ToastsCtx = createContext<ToastCtx | null>(null);
+const SyncCtx = createContext<SyncState | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const mode = useMemo(bootMode, []);
@@ -852,16 +859,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   /* ------------------------------ value ------------------------------ */
 
   const value = useMemo<AppCtx>(() => ({
-    db, setDb, patch, toast, toasts, dismissToast,
+    db, setDb, patch, toast,
     user, signOut,
     openAuth, startSignup, signupEmail,
     upgrade, openUpgrade, closeUpgrade,
     checkout, openCheckout, closeCheckout,
-    mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner,
+    mode, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner,
     refreshEntitlement, saveNow,
-  }), [db, setDb, patch, toast, toasts, dismissToast, user, signOut, openAuth, startSignup, signupEmail, upgrade, openUpgrade, closeUpgrade, checkout, openCheckout, closeCheckout, mode, sync, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement, saveNow]);
+  }), [db, setDb, patch, toast, user, signOut, openAuth, startSignup, signupEmail, upgrade, openUpgrade, closeUpgrade, checkout, openCheckout, closeCheckout, mode, weddingId, booting, needsOnboarding, completeOnboarding, invitePartner, refreshEntitlement, saveNow]);
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  const toastValue = useMemo<ToastCtx>(() => ({ toasts, dismissToast }), [toasts, dismissToast]);
+
+  return (
+    <Ctx.Provider value={value}>
+      <SyncCtx.Provider value={sync}>
+        <ToastsCtx.Provider value={toastValue}>{children}</ToastsCtx.Provider>
+      </SyncCtx.Provider>
+    </Ctx.Provider>
+  );
+}
+
+/** the toasts on screen, and how to dismiss one (showing one is useApp().toast) */
+export function useToasts() {
+  const ctx = useContext(ToastsCtx);
+  if (!ctx) throw new Error("useToasts outside AppProvider");
+  return ctx;
+}
+
+/** saving / saved / offline: where the couple's edits stand */
+export function useSync() {
+  const ctx = useContext(SyncCtx);
+  if (!ctx) throw new Error("useSync outside AppProvider");
+  return ctx;
 }
 
 export function useApp() {

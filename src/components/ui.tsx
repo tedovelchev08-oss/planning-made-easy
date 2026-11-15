@@ -6,7 +6,7 @@ import { TIERS, Plan, planRank } from "../lib/data";
 import { FEATURES, PLANS, PLAN_ORDER, CURRENCIES, CURRENCY_ORDER, FREE_GUEST_LIMIT, formatPrice, upgradePrice, type Currency } from "../lib/plans";
 import { useCurrency } from "../lib/currency";
 import { purchaseArrived } from "../lib/checkout";
-import { useApp, usePrefersReducedMotion } from "../lib/store";
+import { useApp, usePrefersReducedMotion, useToasts } from "../lib/store";
 import { authApi, createCheckoutSession } from "../lib/api";
 import { I18nProvider, LOCALES, useT, type Locale } from "../lib/i18n";
 import { captureError } from "../lib/report";
@@ -207,7 +207,7 @@ export function EmptyState({ title, body, action }: { title: string; body: strin
 /* ------------------------------ toasts ------------------------------ */
 
 export function ToastHost() {
-  const { toasts, dismissToast } = useApp();
+  const { toasts, dismissToast } = useToasts();
   return createPortal(
     <div className="pointer-events-none fixed bottom-5 right-5 z-[95] flex w-[min(92vw,360px)] flex-col gap-2.5" aria-live="polite">
       <AnimatePresence>
