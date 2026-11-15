@@ -143,6 +143,34 @@ describe("GuestInvite — a wedding using one of the owner's own designs (Block 
   });
 });
 
+describe("GuestInvite — a design the couple is only trying", () => {
+  const withDesign = (plan: string, id: string) => ({ ...unpublished, plan, invitation: { ...unpublished.invitation, template_id: id } });
+  const ground = async () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={["/invite?slug=ana-and-ben"]}>
+        <GuestInvite />
+      </MemoryRouter>,
+    );
+    await screen.findByText("Will you join us?");
+    return [...container.querySelectorAll<HTMLElement>("[style]")].map((el) => el.style.background || el.style.backgroundColor).join(" ");
+  };
+
+  it("never reaches guests before it's on the plan: they get the free design", async () => {
+    payload = withDesign("essential", "tp1");
+    const bgs = await ground();
+    expect(bgs).toContain("rgb(255, 231, 236)"); // First Light, the free design
+    expect(bgs).not.toContain("rgb(255, 248, 240)"); // Vogue Noce
+    payload = unpublished;
+  });
+
+  it("shows it once the plan includes it", async () => {
+    payload = withDesign("celebration", "tp1");
+    const bgs = await ground();
+    expect(bgs).toContain("rgb(255, 248, 240)");
+    payload = unpublished;
+  });
+});
+
 describe("GuestInvite — the registry under the reply (0021)", () => {
   it("lists the couple's gifts, links only the web ones, and marks given ones", async () => {
     payload = {

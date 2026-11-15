@@ -8,7 +8,7 @@ import {
 import { Guest, MEALS, MUSIC_TRACKS, RsvpEntry, TEMPLATE_CATS, Template, bestGuestMatch, fmtDate, seedTemplates, timeAgo } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
-import { FEATURES, FREE_DESIGN_ID, PLANS, can, formatPrice, guestLimit, type Feature } from "../../lib/plans";
+import { FEATURES, PLANS, can, designOnPlan, formatPrice, guestLimit, type Feature, type Plan } from "../../lib/plans";
 import { useCurrency } from "../../lib/currency";
 import { guestLink } from "../../lib/links";
 import { MUSIC_TYPES, deleteMusic, deletePhoto, isUploadedPhoto, musicFileProblem, uploadMusic } from "../../lib/api";
@@ -20,7 +20,7 @@ import { GuideField, GuideSwitch, InviteGuide, guideSeen, markGuideSeen, type Gu
 import { playChime, useChimeLoop } from "../../lib/sound";
 import { DesignFrame, Field, Modal, Pill, PlanTag, SafeImg, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
-import { STUDIO_DESIGNS, designPath, studioDesignOf, tracksOf } from "../../../api/_lib/studioDesigns";
+import { STUDIO_DESIGNS, designPath, planAllows, studioDesignOf, tracksOf } from "../../../api/_lib/studioDesigns";
 import { StudioDetails, StudioGallery, openStudioPreview, writePreview } from "./StudioDesigns";
 
 /* ------------------------------ palette & font presets ------------------------------ */
@@ -420,10 +420,14 @@ export default function Invitations() {
   const serif = cfg.fontSerif ?? template.serif;
   const isLuxeTemplate = !!template.luxe;
   const luxeUnlocked = can(db.plan, "premiumDesigns");
-  const animated = isLuxeTemplate && luxeUnlocked;
-  /** whether a design can be chosen on this plan */
-  const designLocked = (t: Template) =>
-    t.luxe ? !can(db.plan, "premiumDesigns") : t.id !== FREE_DESIGN_ID && !can(db.plan, "allDesigns");
+  // every design can be tried, moving, with the couple's own details; guests see it once it's on their plan
+  const animated = isLuxeTemplate;
+  /** a design that isn't on this plan yet: it can be tried, not sent */
+  const designLocked = (t: Template) => !designOnPlan(db.plan, t);
+  /** the plan the design on the stage needs, when the couple is only trying it */
+  const tryingFor: Plan | null = studio
+    ? (planAllows(db.plan, studio) ? null : studio.plan)
+    : activeCustom ? null : designLocked(template) ? (template.luxe ? "luxe" : "celebration") : null;
 
   const setCfg = (p: Partial<typeof cfg>) => patch({ invitation: { ...cfg, ...p } });
   /** a change only paid plans make: applies it, or explains the upgrade */
@@ -432,14 +436,10 @@ export default function Invitations() {
   const templates = useMemo(() => seedTemplates.filter((t) => cat === "all" || t.cat === cat), [cat]);
 
   const choose = (t: Template) => {
-    if (designLocked(t)) {
-      openUpgrade(t.luxe ? "premiumDesigns" : "allDesigns");
-      return;
-    }
     // an uploaded photo is kept across designs (its file would otherwise be orphaned)
     const own = isUploadedPhoto(cfg.photo) ? cfg.photo : null;
     setCfg({ templateId: t.id, colors: null, fontSerif: null, photo: t.photo ? cfg.photo ?? t.photo : own });
-    toast(`Template — ${t.name}`, "Make it yours on the right.");
+    toast(`Design: ${t.name}`, designLocked(t) ? `Try it with your own details. Guests see it once you're on ${t.luxe ? PLANS.luxe.name : PLANS.celebration.name}.` : "Click any words on it to make it yours.");
   };
 
 
@@ -787,7 +787,7 @@ export default function Invitations() {
                     {active ? (
                       <Check size={13} strokeWidth={2} className="shrink-0 text-[var(--pl-bronze)]" aria-label="Chosen" />
                     ) : locked ? (
-                      <span className="flex shrink-0 items-center text-[var(--pl-bronze)]"><Lock size={12} strokeWidth={1.8} aria-hidden="true" /><span className="sr-only">{t.luxe ? PLANS.luxe.name : PLANS.celebration.name}</span></span>
+                      <span className="shrink-0 text-[11px] uppercase tracking-[0.12em] text-[var(--pl-bronze)]">{t.luxe ? PLANS.luxe.name : PLANS.celebration.name}</span>
                     ) : null}
                   </div>
                 </button>
@@ -808,11 +808,11 @@ export default function Invitations() {
 
   return (
     <div className="space-y-6">
-      {isLuxeTemplate && !luxeUnlocked && (
+      {tryingFor && (
         <div role="note" className="pl-card flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4 shadow-[inset_3px_0_0_var(--pl-gold),0_18px_40px_-30px_rgb(60_40_15/.55)]">
-          <Lock size={15} strokeWidth={1.6} className="shrink-0 text-[var(--pl-bronze)]" aria-hidden="true" />
-          <p className="min-w-0 flex-1 text-[14.5px]">This {PLANS.luxe.name} design shows still here. With {PLANS.luxe.name}, its petals, shimmer and motion play for your guests.</p>
-          <button onClick={() => openUpgrade("premiumDesigns")} className="pl-quiet">See {PLANS.luxe.name}</button>
+          <Sparkles size={15} strokeWidth={1.6} className="shrink-0 text-[var(--pl-bronze)]" aria-hidden="true" />
+          <p className="min-w-0 flex-1 text-[14.5px]">You’re trying a {PLANS[tryingFor].name} design, free. Make it yours here; your guests see it once you’re on {PLANS[tryingFor].name}.</p>
+          <button onClick={() => openUpgrade(tryingFor === "luxe" ? "premiumDesigns" : "allDesigns")} className="pl-quiet">See {PLANS[tryingFor].name}</button>
         </div>
       )}
 
@@ -822,7 +822,7 @@ export default function Invitations() {
             <Lining text={studio ? studio.name : activeCustom ? activeCustom.name : template.name} />{" "}
             <span className="font-accent text-[18px] italic text-[var(--pl-bronze)]">{studio ? "a studio design" : activeCustom ? "your own design" : template.cat}</span>
           </h2>
-          {animated && <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--pl-ink-2)]"><Sparkles size={13} strokeWidth={1.6} className="text-[var(--pl-bronze)]" /> Animated for guests</span>}
+          {animated && !tryingFor && <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--pl-ink-2)]"><Sparkles size={13} strokeWidth={1.6} className="text-[var(--pl-bronze)]" /> Animated for guests</span>}
         </div>
 
         {!studio && !activeCustom && (
@@ -984,6 +984,12 @@ export function ShareCard() {
   ];
 
   const open = db.invitation.live;
+  // a design the couple is only trying: say plainly which design guests get until then
+  const studioNow = studioDesignOf(db.invitation.templateId);
+  const classicNow = seedTemplates.find((t) => t.id === db.invitation.templateId);
+  const tryingFor: Plan | null = studioNow
+    ? (planAllows(db.plan, studioNow) ? null : studioNow.plan)
+    : classicNow && !designOnPlan(db.plan, classicNow) ? (classicNow.luxe ? "luxe" : "celebration") : null;
   const toggleOpen = () => {
     patch({ invitation: { ...db.invitation, live: !open } });
     toast(open ? "Invitation closed" : "Open to guests",
@@ -998,6 +1004,12 @@ export function ShareCard() {
           <p className="mt-3 max-w-md text-[15px] leading-relaxed text-[rgb(237_227_207/.72)]">
             Your invitation and its reply form, at one address. Send it however you talk to people; every answer lands in Replies.
           </p>
+          {tryingFor && (
+            <p role="note" className="mt-4 max-w-md border-l-2 border-[var(--pl-gold)] pl-3 text-[14px] leading-relaxed text-[var(--pl-ivory)]">
+              You’re trying a {PLANS[tryingFor].name} design. Until you’re on {PLANS[tryingFor].name}, guests who open this link see your invitation in the free design.{" "}
+              <button type="button" onClick={() => openUpgrade(tryingFor === "luxe" ? "premiumDesigns" : "allDesigns")} className="underline underline-offset-4 cursor-pointer">See {PLANS[tryingFor].name}</button>
+            </p>
+          )}
           {/* 0011: an invitation is closed until the couple opens it, so a
               guessed address shows nothing of a wedding not yet shared */}
           <button type="button" role="switch" aria-checked={open} onClick={toggleOpen}

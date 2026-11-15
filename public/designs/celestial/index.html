@@ -36,7 +36,7 @@
     <!-- Builder chrome (drawer tabs, editor layout). Shared by every design. -->
     <link rel="stylesheet" href="../_shared/wedding-ui.css?v=66">
     <!-- The rebuilt layout: the chart first, the night recorded after it -->
-    <link rel="stylesheet" href="celestial-sky.css?v=8">
+    <link rel="stylesheet" href="celestial-sky.css?v=9">
     <!-- Luma: hidden until the couple's details arrive, so the sample never shows -->
     <style>
         html.luma-loading { background: #0B1026; }
@@ -244,7 +244,7 @@
             <div class="grid cel-story">
                 <figure class="cel-print reveal">
                     <img id="story-hero-img" data-field="heroPhoto" alt="The two of you"
-                         onload="this.closest('figure').hidden = false;"
+                         onload="var f = this.closest('figure'); f.hidden = false; f.setAttribute('data-shape', this.naturalWidth > this.naturalHeight ? 'wide' : 'tall');"
                          onerror="if (this.getAttribute('src')) this.closest('figure').hidden = true;">
                 </figure>
                 <div class="cel-words reveal reveal-d1">

@@ -7,7 +7,7 @@ import { useApp, usePrefersReducedMotion, type InvitationConfig } from "../lib/s
 import { getGuestByToken, getPublicInvitation, submitRsvp, type PublicInvitation } from "../lib/api";
 import { playChime, useChimeLoop } from "../lib/sound";
 import { leaveFor, siteHost } from "../lib/links";
-import { can } from "../lib/plans";
+import { FREE_DESIGN_ID, can, designOnPlan } from "../lib/plans";
 import { Turnstile, type TurnstileHandle } from "../components/Turnstile";
 import { planAllows, studioDesignOf, studioInviteUrl } from "../../api/_lib/studioDesigns";
 import { InviteArt } from "../components/dashboard/Invitations";
@@ -192,7 +192,9 @@ export default function GuestInvite() {
     url: r.url && /^https?:\/\//i.test(r.url) ? r.url : null,
   }));
 
-  const template = seedTemplates.find((t) => t.id === cfg.templateId) ?? seedTemplates[0];
+  // a design the couple is only trying (it isn't on their plan yet) never reaches guests: they get the free one
+  const chosen = seedTemplates.find((t) => t.id === cfg.templateId);
+  const template = (chosen && designOnPlan(plan, chosen) ? chosen : seedTemplates.find((t) => t.id === FREE_DESIGN_ID)) ?? seedTemplates[0];
   const colors = cfg.colors ?? { bg: template.bg, ink: template.ink, accent: template.accent };
   const serif = cfg.fontSerif ?? template.serif;
   const fontFamily = serif ? "'Playfair Display', Georgia, serif" : "'Nunito Sans', sans-serif";
