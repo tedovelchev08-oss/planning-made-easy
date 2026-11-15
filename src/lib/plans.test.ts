@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   CURRENCIES, CURRENCY_ORDER, FEATURES, FREE_DESIGN_ID, FREE_GUEST_LIMIT, PLANS, PLAN_ORDER,
-  can, currencyForCountry, formatPrice, guestLimit, planRank, type Feature,
+  can, currencyForCountry, designOnPlan, formatPrice, guestLimit, planRank, type Feature,
 } from "./plans";
 import { seedTemplates, TABLE_SKINS } from "./data";
 
@@ -95,5 +95,15 @@ describe("the founder's decisions", () => {
     expect(FEATURES.customDesigns.plan).toBe("celebration");
     expect(PLANS.celebration.features).toContain("Use your own invitation design");
     expect(PLANS.luxe.features).not.toContain("Use your own invitation design");
+  });
+
+  it("puts each classic design on a plan: one free, the rest Celebration, Luxe designs Luxe", () => {
+    const luxe = seedTemplates.find((t) => t.luxe)!;
+    const plain = seedTemplates.find((t) => !t.luxe && t.id !== FREE_DESIGN_ID)!;
+    expect(designOnPlan("essential", { id: FREE_DESIGN_ID })).toBe(true);
+    expect(designOnPlan("essential", plain)).toBe(false);
+    expect(designOnPlan("celebration", plain)).toBe(true);
+    expect(designOnPlan("celebration", luxe)).toBe(false);
+    expect(designOnPlan("luxe", luxe)).toBe(true);
   });
 });

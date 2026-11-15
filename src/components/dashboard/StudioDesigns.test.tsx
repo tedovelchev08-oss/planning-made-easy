@@ -56,12 +56,14 @@ describe("StudioGallery", () => {
     expect(latest.photo).toBe(own);
   });
 
-  it("on a smaller plan, it explains the upgrade and changes nothing", () => {
+  it("on a smaller plan, it can still be tried, and says when guests will see it", () => {
     app.db = makeDb("celebration");
     render(<Harness initial={app.db.invitation}>{(cfg, set) => <StudioGallery cfg={cfg} setCfg={set} />}</Harness>);
+    expect(screen.getByRole("button", { name: /Celestial/ }).textContent).toContain("Luxe");
     fireEvent.click(screen.getByRole("button", { name: /Celestial/ }));
-    expect(app.openUpgrade).toHaveBeenCalledWith("premiumDesigns");
-    expect(latest.templateId).not.toBe("studio:celestial");
+    expect(latest.templateId).toBe("studio:celestial");
+    expect(app.openUpgrade).not.toHaveBeenCalled();
+    expect(app.toast).toHaveBeenCalledWith("Design: Celestial", expect.stringContaining("once you're on Luxe"));
   });
 });
 

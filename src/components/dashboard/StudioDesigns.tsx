@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, ExternalLink, Lock, Music, Plus, Trash2 } from "lucide-react";
+import { Check, ExternalLink, Music, Plus, Trash2 } from "lucide-react";
 import {
   DESIGN_LIMITS, STUDIO_DESIGNS, STUDIO_PREFIX, designPath, planAllows, toInvitationData, tracksOf,
   type DesignData, type StudioDesign,
@@ -80,21 +80,22 @@ function StudioCard({ design, initials }: { design: StudioDesign; initials: stri
 }
 
 export function StudioGallery({ cfg, setCfg }: { cfg: InvitationConfig; setCfg: (p: Partial<InvitationConfig>) => void }) {
-  const { db, openUpgrade, toast } = useApp();
+  const { db, toast } = useApp();
   const initials = [db.wedding.partnerA, db.wedding.partnerB].map((n) => (n ?? "").trim()[0] ?? "").filter(Boolean).join(" & ") || "A & B";
 
   const choose = (d: StudioDesign) => {
-    if (!planAllows(db.plan, d)) { openUpgrade("premiumDesigns"); return; }
     // never a template's stock photo on the owner's designs: the couple's own, or their initials
     setCfg({ templateId: `${STUDIO_PREFIX}${d.id}`, colors: null, fontSerif: null, photo: isUploadedPhoto(cfg.photo) ? cfg.photo : null });
     playChime("place");
-    toast(`Design: ${d.name}`, "Add your details on the right, then preview it.");
+    toast(`Design: ${d.name}`, planAllows(db.plan, d)
+      ? "Click your names and the other words on it to make it yours."
+      : `Try it with your own details. Guests see it once you're on ${PLANS[d.plan].name}.`);
   };
 
   return (
     <div>
       <h3 className="font-display text-[22px] leading-none">Studio designs</h3>
-      <p className="mt-1.5 text-[13px] text-[var(--pl-ink-2)]">Made by hand, each with its own music and movement.</p>
+      <p className="mt-1.5 text-[13px] text-[var(--pl-ink-2)]">Made by hand, each with its own music and movement. Try any of them with your own names, free.</p>
       <div className="no-scrollbar -mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pb-2 pt-1 sm:mx-0 sm:px-0">
         {STUDIO_DESIGNS.map((d) => {
           const active = cfg.templateId === `${STUDIO_PREFIX}${d.id}`;
@@ -102,15 +103,12 @@ export function StudioGallery({ cfg, setCfg }: { cfg: InvitationConfig; setCfg: 
           return (
             <button key={d.id} onClick={() => choose(d)} aria-pressed={active} title={d.blurb}
               className={`group relative w-36 shrink-0 overflow-hidden rounded-[3px] bg-[var(--pl-card)] text-left shadow-[0_14px_30px_-24px_rgb(60_40_15/.6)] transition cursor-pointer ${active ? "ring-2 ring-[var(--pl-gold)] ring-offset-2 ring-offset-[var(--pl-paper)]" : "ring-1 ring-[var(--pl-line)] hover:ring-[rgb(28_26_23/.3)]"}`}>
-              <span className={`block ${locked ? "opacity-80 saturate-[0.55]" : ""}`}><StudioCard design={d} initials={initials} /></span>
-              {locked && (
-                <span className="absolute inset-x-0 top-0 flex aspect-[4/5] items-center justify-center bg-[rgb(15_14_13/.25)]">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--pl-card)] text-[var(--pl-bronze)]"><Lock size={13} strokeWidth={1.8} /><span className="sr-only">{PLANS[d.plan].name}</span></span>
-                </span>
-              )}
+              <span className="block"><StudioCard design={d} initials={initials} /></span>
+
               <span className="flex items-center justify-between gap-2 px-2.5 py-2">
                 <span className="truncate text-[13px]">{d.name}</span>
-                {active && <Check size={13} strokeWidth={2} className="shrink-0 text-[var(--pl-bronze)]" aria-label="Chosen" />}
+                {active ? <Check size={13} strokeWidth={2} className="shrink-0 text-[var(--pl-bronze)]" aria-label="Chosen" />
+                  : locked ? <span className="shrink-0 text-[11px] uppercase tracking-[0.12em] text-[var(--pl-bronze)]">{PLANS[d.plan].name}</span> : null}
               </span>
             </button>
           );

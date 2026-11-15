@@ -181,3 +181,7 @@ export const can = (plan: Plan, feature: Feature) => planRank(plan) >= planRank(
 
 /** The one invitation design included with the free plan. */
 export const FREE_DESIGN_ID = "tp13";
+
+/** whether a classic design is on a plan: Luxe designs need Luxe, the rest Celebration, one is free */
+export const designOnPlan = (plan: Plan, design: { id: string; luxe?: boolean }) =>
+  design.luxe ? can(plan, "premiumDesigns") : design.id === FREE_DESIGN_ID || can(plan, "allDesigns");

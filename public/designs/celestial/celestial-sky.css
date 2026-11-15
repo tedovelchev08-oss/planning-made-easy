@@ -124,7 +124,10 @@
 .cel-story{ display:grid; gap:clamp(26px, 5vw, 44px); align-items:center }
 @media (min-width:720px){ .cel-story{ grid-template-columns:5fr 6fr } }
 .cel-print{ margin:0; justify-self:center; width:min(100%, 360px); padding:8px; background:hsl(var(--c-star) / .06); border:1px solid var(--line) }
-.cel-print img{ display:block; width:100%; aspect-ratio:4/5; object-fit:cover }
+.cel-print img{ display:block; width:100%; height:auto }
+/* the couple's photo keeps its own shape: a landscape print is wider, never cut to a portrait */
+.cel-print[data-shape="wide"]{ width:min(100%, 560px) }
+@media (min-width:720px){ .cel-story:has(.cel-print[data-shape="wide"]){ grid-template-columns:1fr 1fr } }
 .cel-print:has(img:not([src])), .cel-print:has(img[src=""]){ display:none }
 .cel-words .cel-h{ text-align:left }
 .cel-words p{ margin-top:14px; font-size:clamp(19px, 4.6vw, 21px); line-height:1.6; color:var(--ink) }
