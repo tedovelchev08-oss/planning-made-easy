@@ -28,7 +28,6 @@ export function buildExport(db: Db, user: User | null, weddingId: string | null,
     tasks: db.tasks,
     registry: db.registry,
     invitation: { ...db.invitation, music },
-    website: db.website,
     customDesigns: db.customTemplates,
   };
 }

@@ -14,7 +14,7 @@ describe("buildExport — everything the couple has, in one file", () => {
   it("includes the people and the planning data", () => {
     expect(out.guests[0]).toMatchObject({ name: "Priya", dietary: "Nut allergy", meal: "Fish" });
     expect(out.wedding.names).toBe("Maya & Theo");
-    for (const key of ["rsvps", "seating", "budget", "vendors", "tasks", "registry", "invitation", "website", "customDesigns"]) {
+    for (const key of ["rsvps", "seating", "budget", "vendors", "tasks", "registry", "invitation", "customDesigns"]) {
       expect(out).toHaveProperty(key);
     }
   });

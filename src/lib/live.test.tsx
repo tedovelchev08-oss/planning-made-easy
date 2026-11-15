@@ -33,7 +33,6 @@ const workspace = (guestName = "Priya Desai") => ({
     motion: { petals: "gentle", shimmer: true, type: true },
     music: { track: "serene", uploadName: null, uploadUrl: null },
   },
-  website: { template: "serene", sections: {}, bg: "#FFF8F0" },
   customTemplates: [], rsvpLog: [],
 });
 

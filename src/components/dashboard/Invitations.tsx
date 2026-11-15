@@ -388,7 +388,7 @@ function LivePreview({ onClose }: { onClose: () => void }) {
             </div>
 
             <p className="border-t px-8 py-6 text-center text-[0.7rem] tracking-[0.25em] opacity-50" style={{ borderColor: `${colors.accent}33` }}>
-              MADE WITH TWOFOLD · {db.website.domain.toUpperCase()}
+              MADE WITH TWOFOLD · {window.location.host.toUpperCase()}
             </p>
           </div>
         </div>

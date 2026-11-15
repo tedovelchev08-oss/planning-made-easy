@@ -9,14 +9,14 @@ import {
 import { isSupabaseConfigured } from "./supabase";
 import { guestLimit, type Feature } from "./plans";
 import { starterTasks } from "./starterTasks";
-import { IMAGES, localPhoto } from "./images";
+import { localPhoto } from "./images";
 import {
   type Queue, bucketOf, clearQueue, countQueue, emptyQueue, loadQueue, mergeUnder, persistQueue, retryDelay, sendQueue,
 } from "./syncQueue";
 import {
   EntityKey, acceptPendingInvites, authApi, budgetToRow, createWedding, customTplToRow, fetchFreshRsvps,
   fetchWorkspace, guestToRow, invitationToRow, invitePartner as apiInvitePartner, isUuid, myWeddingId, newId,
-  refreshEntitlement as apiRefreshEntitlement, registryToRow, rsvpToRow, syncEntity, tableToRow, taskToRow, venueObjectToRow, websiteToRow,
+  refreshEntitlement as apiRefreshEntitlement, registryToRow, rsvpToRow, syncEntity, tableToRow, taskToRow, venueObjectToRow,
   versionKey, subscribeToWedding, type RemoteChange, type Versions,
 } from "./api";
 
@@ -43,19 +43,6 @@ export interface InvitationConfig {
   designData?: DesignData;
 }
 
-export interface WebsiteConfig {
-  template: "serene" | "editorial" | "garden";
-  sections: Record<string, boolean>;
-  bg: string;
-  ink: string;
-  accent: string;
-  serif: boolean;
-  heroPhoto: string;
-  animations: boolean;
-  domain: string;
-  published: boolean;
-}
-
 export interface Db {
   wedding: Wedding;
   guests: Guest[];
@@ -67,7 +54,6 @@ export interface Db {
   registry: RegistryItem[];
   plan: Plan;
   invitation: InvitationConfig;
-  website: WebsiteConfig;
   customTemplates: CustomTemplate[];
   rsvpLog: RsvpEntry[];
 }
@@ -155,18 +141,6 @@ const seedDb: Db = {
     music: { track: "serene", uploadName: null, uploadUrl: null },
     live: true,
   },
-  website: {
-    template: "serene",
-    sections: { hero: true, story: true, details: true, schedule: true, venue: true, travel: true, registry: true, gallery: true, rsvp: true, music: false },
-    bg: "#f7f2e8",
-    ink: "#0f0e0d",
-    accent: "#c9a86a",
-    serif: true,
-    heroPhoto: IMAGES.couple,
-    animations: true,
-    domain: "",
-    published: true,
-  },
   customTemplates: [],
   rsvpLog: seedRsvpLog,
 };
@@ -181,19 +155,11 @@ const defaultInvitation = (names: string, venue: string): InvitationConfig => ({
   live: false,
 });
 
-const defaultWebsite = (): WebsiteConfig => ({
-  template: "serene",
-  sections: { hero: true, story: true, details: true, schedule: true, venue: true, travel: true, registry: true, gallery: true, rsvp: true, music: false },
-  bg: "#f7f2e8", ink: "#0f0e0d", accent: "#c9a86a", serif: true, heroPhoto: "",
-  animations: true, domain: "", published: false,
-});
-
 export const emptyDb = (wedding: Wedding): Db => ({
   wedding,
   guests: [], budget: [], tasks: [], vendors: [], tables: [], venueObjects: [], registry: [],
   plan: "essential",
   invitation: defaultInvitation(wedding.names, [wedding.venue, wedding.location].filter(Boolean).join(" · ")),
-  website: defaultWebsite(),
   customTemplates: [],
   rsvpLog: [],
 });
@@ -226,7 +192,7 @@ function bootMode(): Mode {
 const LIVE_ENTITY: Record<string, EntityKey> = {
   weddings: "wedding", guests: "guests", tables: "tables", venue_objects: "venueObjects",
   budget_categories: "budget", tasks: "tasks", vendors: "vendors", registry_items: "registry",
-  custom_templates: "customTemplates", invitation_config: "invitation", website_config: "website",
+  custom_templates: "customTemplates", invitation_config: "invitation",
 };
 
 /** whether this planner holds that row (for deletes, which arrive for every wedding) */
@@ -254,7 +220,6 @@ function readCache(uid: string): Db | null {
       venueObjects: parsed.venueObjects ?? [],
       // photos chosen before they were self-hosted still hold the old address
       invitation: { ...parsed.invitation, photo: localPhoto(parsed.invitation?.photo ?? null) },
-      website: { ...parsed.website, heroPhoto: localPhoto(parsed.website?.heroPhoto ?? "") },
     };
   } catch { return null; }
 }
@@ -488,9 +453,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         prev.invitation.music.uploadName !== next.invitation.music.uploadName ||
         prev.invitation.music.uploadUrl !== next.invitation.music.uploadUrl) {
       getBucket("invitation").upserts.set("invitation", { ...invitationToRow(next.invitation, wid), updated_at: seen("invitation", "invitation") });
-    }
-    if (JSON.stringify(prev.website) !== JSON.stringify(next.website)) {
-      getBucket("website").upserts.set("website", { ...websiteToRow(next.website, wid), updated_at: seen("website", "website") });
     }
 
     // durable before the debounce: a refresh inside those 700 ms used to drop it
@@ -730,7 +692,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const onRemoteChange = useCallback((c: RemoteChange) => {
     const entity = LIVE_ENTITY[c.table];
     if (!entity || !c.id) return;
-    const id = entity === "wedding" || entity === "invitation" || entity === "website" ? entity : c.id;
+    const id = entity === "wedding" || entity === "invitation" ? entity : c.id;
     if (c.type === "DELETE") {
       if (!hasRow(dbRef.current, entity, id)) return; // another wedding's row, or one we already removed
     } else {
