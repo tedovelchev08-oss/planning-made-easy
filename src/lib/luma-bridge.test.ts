@@ -262,6 +262,19 @@ describe("luma-bridge", () => {
     await new Promise((r) => setTimeout(r, 120));
   });
 
+  it("ends every design with Made with Twofold, once, linking home", async () => {
+    boot(`?token=${TOKEN}`);
+    const d = await w.lumaBoot;
+    w.lumaAfterRender(d);
+    w.lumaAfterRender(d);
+    const credits = document.querySelectorAll("#tf-credit");
+    expect(credits).toHaveLength(1);
+    const link = credits[0].querySelector("a")!;
+    expect(link.textContent).toBe(`Made with Twofold · ${location.host}`);
+    expect(link.getAttribute("href")).toBe(`${location.origin}/`);
+    expect(document.body.lastElementChild!.id).toBe("tf-credit");
+  });
+
   it("still hides an empty story section from guests", async () => {
     boot(`?token=${TOKEN}`);
     document.body.insertAdjacentHTML("beforeend", `<section id="beg2" data-luma-story><p data-luma-story-text></p></section>`);
