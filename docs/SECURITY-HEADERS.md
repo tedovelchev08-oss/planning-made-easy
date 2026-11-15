@@ -10,7 +10,7 @@ policy looks the way it does.
 
 ```
 default-src 'self';
-script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com;
+script-src 'self' https://challenges.cloudflare.com;
 frame-src 'self' https://challenges.cloudflare.com;
 style-src 'self' 'unsafe-inline';
 font-src 'self';
@@ -26,8 +26,8 @@ form-action 'self'
 
 | Directive | Why it's there |
 | --- | --- |
-| `script-src 'unsafe-inline'` | `DesignFrame` renders owner-supplied HTML invitations in sandboxed `srcDoc` iframes (`allow-scripts`, no `allow-same-origin`). srcDoc documents inherit the parent CSP, so the inline `<script>` blocks inside imported `.html` invitations only run with `'unsafe-inline'`. The sandbox attribute keeps that code on an opaque origin with no access to the app. |
-| `style-src 'unsafe-inline'` | Same srcDoc reason for inline `<style>`. |
+| `script-src` without `'unsafe-inline'` | The app pages (everything outside `/designs/`) run no inline script, so an injected `<script>` cannot run where the couple's session lives. This became possible in November 2026, when a couple's own design stopped being an HTML page that could run scripts (`DesignFrame` is now `sandbox=""`). The `/designs/` block keeps `'unsafe-inline'`: those pages are our own and use inline scripts. |
+| `style-src 'unsafe-inline'` | React and the motion library set inline styles; a stored HTML design's own `<style>` needs it too. |
 | `font-src 'self'` | Playfair Display and Nunito Sans are self-hosted from `/fonts`; no font is loaded from Google. |
 | `script-src`/`frame-src` challenges.cloudflare.com | The Turnstile spam check on the guest RSVP form. |
 | `img-src data: https:` | `data:` — imported designs are stored as `canvas.toDataURL("image/jpeg")` strings (`Invitations.tsx`). `https:` — images referenced by owner HTML designs. The built-in photos are self-hosted under `/images`. |
