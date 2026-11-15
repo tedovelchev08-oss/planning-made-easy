@@ -38,7 +38,7 @@ own clone of this repo. Chats don't share history; this file and git are the sha
 
 ## Status (update at the end of every session)
 
-As of 2026-11-15:
+As of 2026-11-15 (evening):
 
 - **main** is at PR #108 (merged 2026-11-13): one Invitation page (invitation, replies, share
   link, open-to-guests switch) and the Registry in the Silk desk look. The separate wedding
@@ -84,6 +84,24 @@ As of 2026-11-15:
 - PR #127 (2026-11-15): `docs/FOUNDER-FINDINGS.md`, the founder skill pack's business review (working files local in `founder/`, gitignored). Verdict "not yet": 8 of 100 *simulated* buyers; the fix is trust (own domain, free previews with the couple's names and photo, a plain privacy summary). Next step it names: trademark search for TWOFOLD, then register twofold.wedding (+ .eu). Launch plan: waitlist from 30 Nov, launch 11 Jan 2027. Its "apply migration 0021" task is stale (ran at #108's merge).
 - Studio designs end with "Made with Twofold · host" (#128), added by `luma-bridge.js` (`renderCredit`, `#tf-credit`, a link home), like the built-in designs' footer. Bridge is v=13.
 - **Free design previews** (#129, merged 2026-11-15; the bar now stays visible while the walk-through is open), the findings' top offer item: every design, classic and studio, can be chosen and edited on any plan (Luxe ones move in the planner too); a banner and the Share sheet say guests see it once the plan includes it. Guests are guarded on both sides: `api/invitation.ts` already 409s a studio design the plan lacks, and `GuestInvite` now falls back to the free design (`designOnPlan` in `plans.ts`) for a classic one. **Then (feat/free-look): block until they pay** (owner's choice): own colours, lettering and photo can be tried on any plan too; while the invitation has anything the plan lacks (`sendGate` in `src/lib/sendGate.ts`), the Share sheet shows "Ready once it's on your plan" (upgrade, or "Use what my plan includes" = `sendableNow`) instead of the link, "Open to guests" won't switch on, and copy-link (Share, Cmd-K, dock), personal links and the reminder are held. The guest page shows own colours/photo only with `customize`. Same PR: Celestial's story photo keeps its own shape (was cropped to 4:5).
+- **Code audit (2026-11-15), in progress.** Done and merged: #132 (error reporting was never
+  started: `initReporting()` now runs in `main.tsx`; the Stripe webhook grants a plan only when
+  the checkout is paid and handles `checkout.session.async_payment_succeeded`; a couple's own
+  design is an image only, stored HTML pages show in `sandbox=""`; migration 0022 caps
+  `custom_templates` size; passwords need ten characters), #133 (dead code, `netlify.toml` gone,
+  lint/test tools in `devDependencies`, package named `twofold`), #134 (`lazyPage()`: only the
+  landing page ships in the first download, 297 KB to 202 KB), #135 (`useToasts()` / `useSync()`
+  are their own contexts; `useApp()` no longer carries toasts or the save status). Next PR: no
+  inline script on app pages (`vercel.json`; `/designs/` keeps it), the retired website out of
+  the data layer (the `website_config` table stays), bold becomes medium in the planner chrome.
+  Still to do, in order: real addresses without `#` plus per-couple link previews, an end-to-end
+  test (Playwright is installed, unused), a dead-code and bundle-size gate in CI, partner
+  presence, translations (five locales declared, about 22 phrases), splitting the 1,000-line
+  files. **Unverified before Stripe goes live:** that the webhook reads the raw body on Vercel
+  (send a Stripe test event; it logs a clear line if the body arrives empty).
+- **Design audit (2026-11-15), parked:** `docs/DESIGN-AUDIT.md`. Golden Hour prototype (the
+  proposed Plaster replacement: live sky, sea and sun for the couple's date and place) is on
+  `proto/golden-hour`, draft PR #131, not for merging as is.
 - **To do: remake the Plaster design from scratch.** Owner, 2026-11-14, on a phone screenshot of
   the card half out of its envelope: "looks like shit". Not a polish pass: a new direction,
   pitched in words first (romance and luxury sell; see the bar set by Celestial and Mirror Palace).
