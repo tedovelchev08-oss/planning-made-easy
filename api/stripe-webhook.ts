@@ -483,8 +483,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     switch (event.type) {
+      // paid at once, or a delayed payment that has now arrived: the same grant
       case "checkout.session.completed":
-      // a delayed payment that has now arrived: the same grant, a little later
       case "checkout.session.async_payment_succeeded":
         await grantFromCheckout(supabase, event.data.object as Stripe.Checkout.Session);
         break;
