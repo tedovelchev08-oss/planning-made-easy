@@ -236,7 +236,11 @@
       if (nameInput && !nameInput.value) nameInput.value = state.guest.name;
     }
 
-    if (editing) makeEditable();
+    if (editing) {
+      makeEditable();
+      // the planner's walk-through: tell it the page is ready to point at
+      if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'twofold:ready' }, window.location.origin);
+    }
     show();
   };
 
@@ -379,6 +383,44 @@
         send(key, v);
       });
       el.addEventListener('blur', function () { send(key, textOf(el, key).trim()); });
+    });
+  }
+
+  /* The planner's first-time walk-through points at one part of the design
+     at a time: the first visible line with one of the given keys ("rsvp" is
+     the reply section), scrolled to the middle and ringed. Sent from the
+     planner page only; an empty list clears it. */
+  function guideTo(keys, smooth) {
+    document.querySelectorAll('.tf-guide').forEach(function (el) { el.classList.remove('tf-guide'); });
+    if (!keys || !keys.length) return;
+    if (!document.getElementById('tf-guide-style')) {
+      var css = document.createElement('style');
+      css.id = 'tf-guide-style';
+      css.textContent =
+        '.tf-guide{outline:1.5px solid color-mix(in srgb,currentColor 80%,transparent)!important;outline-offset:8px;border-radius:3px;animation:tf-guide 2.4s ease-in-out infinite}' +
+        '@keyframes tf-guide{50%{outline-offset:12px;outline-color:color-mix(in srgb,currentColor 35%,transparent)}}' +
+        '@media (prefers-reduced-motion:reduce){.tf-guide{animation:none}}';
+      document.head.appendChild(css);
+    }
+    var found = [];
+    keys.forEach(function (key) {
+      var el = null;
+      if (key === 'rsvp') {
+        el = document.getElementById('rsvp');
+        if (!shown(el)) el = null;
+      } else {
+        el = [].filter.call(document.querySelectorAll('.tf-editable'), function (x) { return editKeyOf(x) === key && shown(x); })[0] || null;
+      }
+      if (el) found.push(el);
+    });
+    found.forEach(function (el) { el.classList.add('tf-guide'); });
+    if (found[0]) found[0].scrollIntoView({ block: 'center', behavior: smooth && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'smooth' : 'instant' });
+  }
+  if (editing) {
+    window.addEventListener('message', function (e) {
+      if (e.origin !== window.location.origin || e.source !== window.parent) return;
+      var m = e.data;
+      if (m && m.type === 'twofold:guide' && Array.isArray(m.keys)) guideTo(m.keys.filter(function (k) { return typeof k === 'string'; }), !!m.smooth);
     });
   }
 
