@@ -426,20 +426,16 @@
   }
 
   /* "Made with Twofold" at the very end, as the built-in designs have it:
-     small, in the page's own colours, a link home for a guest who's curious.
+     small, on the design itself in its text colour, a link home for a guest who's curious.
      Built with textContent only; added once. */
   function renderCredit() {
     if (document.getElementById('tf-credit')) return;
     var p = document.createElement('p');
     p.id = 'tf-credit';
     var look = window.getComputedStyle(document.querySelector('footer') || document.body);
-    var ground = [document.querySelector('footer'), document.body, document.documentElement].map(function (el) {
-      return el ? window.getComputedStyle(el).backgroundColor : '';
-    }).filter(function (c) { return c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent'; })[0];
     p.style.cssText = 'position:relative;z-index:5;margin:0;padding:1.6rem 1rem calc(1.6rem + env(safe-area-inset-bottom,0px));' +
       'text-align:center;font:500 10.5px/1.4 system-ui,-apple-system,sans-serif;letter-spacing:.24em;text-transform:uppercase;opacity:.5';
     p.style.color = look.color;
-    if (ground) p.style.backgroundColor = ground;
     var a = document.createElement('a');
     a.href = window.location.origin + '/';
     a.target = '_blank';
