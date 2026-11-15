@@ -6,7 +6,7 @@ import {
   Armchair, BellRing, Check, Clock3, ExternalLink, Gift, LayoutDashboard, Mail,
   Download, Link2, Loader2, LogOut, Menu, Plus, Search, Store, Trash2, Users, Wallet, X,
 } from "lucide-react";
-import { useApp, useStats, type SyncStatus } from "../../lib/store";
+import { useApp, useStats, useSync, type SyncStatus } from "../../lib/store";
 import { SUPPORT_EMAIL, guestLink } from "../../lib/links";
 import { downloadExport } from "../../lib/exportData";
 import { deleteAccount } from "../../lib/api";
@@ -34,7 +34,7 @@ const MODULES = [
  * "Offline — queued" implied edits were safe when they lived only in memory.
  */
 function SyncChip() {
-  const { sync } = useApp();
+  const sync = useSync();
   const kept = sync.durable !== false;
   const meta: Record<SyncStatus, { label: string; short: string; dot: string; cls: string }> = {
     demo: { label: "Demo, nothing is saved", short: "Demo", dot: "bg-lav-deep", cls: "border-lav/60 bg-lav-soft/70 text-lav-deep" },

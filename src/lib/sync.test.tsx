@@ -61,13 +61,13 @@ vi.mock("./api", async () => {
   };
 });
 
-const { AppProvider, useApp } = await import("./store");
+const { AppProvider, useApp, useSync, useToasts } = await import("./store");
 type Db = import("./store").Db;
 
 const wrapper = ({ children }: { children: React.ReactNode }) => <AppProvider>{children}</AppProvider>;
 
 async function boot() {
-  const hook = renderHook(() => useApp(), { wrapper });
+  const hook = renderHook(() => ({ ...useApp(), sync: useSync(), toasts: useToasts().toasts }), { wrapper });
   await waitFor(() => expect(hook.result.current.booting).toBe(false));
   await waitFor(() => expect(hook.result.current.db.guests.length).toBe(1));
   return hook;
