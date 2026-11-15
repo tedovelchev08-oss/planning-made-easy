@@ -195,8 +195,11 @@ export default function GuestInvite() {
   // a design the couple is only trying (it isn't on their plan yet) never reaches guests: they get the free one
   const chosen = seedTemplates.find((t) => t.id === cfg.templateId);
   const template = (chosen && designOnPlan(plan, chosen) ? chosen : seedTemplates.find((t) => t.id === FREE_DESIGN_ID)) ?? seedTemplates[0];
-  const colors = cfg.colors ?? { bg: template.bg, ink: template.ink, accent: template.accent };
-  const serif = cfg.fontSerif ?? template.serif;
+  // the couple's own colours, lettering and photo: Celebration. Tried on a smaller plan, guests get the design's own
+  const ownLook = can(plan, "customize");
+  const colors = (ownLook && cfg.colors) || { bg: template.bg, ink: template.ink, accent: template.accent };
+  const serif = ownLook && cfg.fontSerif !== null ? cfg.fontSerif : template.serif;
+  const shownCfg = ownLook && template.id === cfg.templateId ? cfg : { ...cfg, photo: template.photo ?? null };
   const fontFamily = serif ? "'Playfair Display', Georgia, serif" : "'Nunito Sans', sans-serif";
   const luxe = plan === "luxe";
   const motionCfg = cfg.motion;
@@ -344,7 +347,7 @@ export default function GuestInvite() {
               </div>
             )
           ) : (
-            <InviteArt template={template} colors={colors} serif={serif} cfg={cfg} animated={luxe && !reduced} dateIso={dateIso} />
+            <InviteArt template={template} colors={colors} serif={serif} cfg={shownCfg} animated={luxe && !reduced} dateIso={dateIso} />
           )}
 
           {/* countdown */}

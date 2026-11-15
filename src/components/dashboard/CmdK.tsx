@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { gatePlanName, sendGate } from "../../lib/sendGate";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
@@ -66,6 +67,8 @@ export default function CmdK({ open, onClose }: { open: boolean; onClose: () => 
       {
         id: "a-link", group: "Actions", label: "Copy invitation link", hint: link.replace("https://", ""), icon: <Link2 size={15} />,
         run: () => {
+          const gate = sendGate(db);
+          if (gate) { toast("Not ready to send yet", `Your invitation uses ${gate.what}. Move to ${gatePlanName(gate)}, or use what your plan includes, in Share.`, "info"); onClose(); return; }
           navigator.clipboard?.writeText(link).then(
             () => toast("Link copied", "Send it anywhere — WhatsApp, Instagram, a group chat.", "info"),
             () => toast("Your link", link, "info"),

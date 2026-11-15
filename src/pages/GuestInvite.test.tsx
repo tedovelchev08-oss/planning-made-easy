@@ -163,6 +163,19 @@ describe("GuestInvite — a design the couple is only trying", () => {
     payload = unpublished;
   });
 
+  const navy = { bg: "#102030", ink: "#ffffff", accent: "#c9a86a" };
+  it("keeps the couple's own colours from guests on the free plan", async () => {
+    payload = { ...unpublished, plan: "essential", invitation: { ...unpublished.invitation, colors: navy } };
+    expect(await ground()).not.toContain("rgb(16, 32, 48)");
+    payload = unpublished;
+  });
+
+  it("shows the couple's own colours on Celebration", async () => {
+    payload = { ...unpublished, plan: "celebration", invitation: { ...unpublished.invitation, colors: navy } };
+    expect(await ground()).toContain("rgb(16, 32, 48)");
+    payload = unpublished;
+  });
+
   it("shows it once the plan includes it", async () => {
     payload = withDesign("celebration", "tp1");
     const bgs = await ground();
