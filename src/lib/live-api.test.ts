@@ -24,7 +24,7 @@ describe("subscribeToWedding", () => {
     const guests = listeners.filter((l) => l.opts.table === "guests").map((l) => [l.opts.event, l.opts.filter ?? null]);
     expect(guests).toEqual([["INSERT", `wedding_id=eq.${W}`], ["UPDATE", `wedding_id=eq.${W}`], ["DELETE", null]]);
     expect(listeners.find((l) => l.opts.table === "weddings")!.opts.filter).toBe(`id=eq.${W}`);
-    expect(new Set(listeners.map((l) => l.opts.table)).size).toBe(11);
+    expect(new Set(listeners.map((l) => l.opts.table)).size).toBe(10);
     expect(channel.subscribe).toHaveBeenCalledTimes(1);
   });
 
