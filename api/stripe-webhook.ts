@@ -76,7 +76,13 @@ async function getRawBody(req: VercelRequest): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     req.on("data", (c) => chunks.push(Buffer.from(c)));
-    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("end", () => {
+      const raw = Buffer.concat(chunks);
+      // an empty body here means something read the stream before us: the
+      // signature check below will fail, and this line says why
+      if (raw.length === 0) console.error("[webhook] the request body arrived empty: the raw body was consumed before verification");
+      resolve(raw);
+    });
     req.on("error", reject);
   });
 }
@@ -145,7 +151,18 @@ async function refundExcess(supabase: ReturnType<typeof admin>, weddingId: strin
   console.log(`[webhook] ${whole ? "duplicate payment" : "overpaid upgrade"} on ${pi} for wedding ${weddingId}: refunded ${excess}`);
 }
 
+/**
+ * A finished checkout is not always a paid one: with a delayed method (a bank
+ * debit) the session completes first and the money arrives, or fails, days
+ * later. Only "unpaid" waits; a fully discounted session has nothing to pay.
+ */
+export const awaitsPayment = (session: Pick<Stripe.Checkout.Session, "payment_status">) => session.payment_status === "unpaid";
+
 async function grantFromCheckout(supabase: ReturnType<typeof admin>, session: Stripe.Checkout.Session) {
+  if (awaitsPayment(session)) {
+    console.log(`[webhook] checkout ${session.id} completed but not paid yet: the plan is granted when the payment arrives`);
+    return;
+  }
   const tier = session.metadata?.tier;
   const userId = session.metadata?.user_id ?? session.client_reference_id;
   const weddingId = session.metadata?.wedding_id;
@@ -467,7 +484,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     switch (event.type) {
       case "checkout.session.completed":
+      // a delayed payment that has now arrived: the same grant, a little later
+      case "checkout.session.async_payment_succeeded":
         await grantFromCheckout(supabase, event.data.object as Stripe.Checkout.Session);
+        break;
+      case "checkout.session.async_payment_failed":
+        console.log(`[webhook] delayed payment failed for checkout ${(event.data.object as Stripe.Checkout.Session).id}: nothing was granted`);
         break;
       case "charge.refunded":
         await revokeFromRefund(supabase, event.data.object as Stripe.Charge);

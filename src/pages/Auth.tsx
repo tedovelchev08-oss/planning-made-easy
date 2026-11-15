@@ -321,7 +321,7 @@ export function BeginPage() {
     e.preventDefault();
     if (!a.trim()) { setError("Tell us your name, so the plan knows whose it is."); return; }
     if (!email.includes("@")) { setError("Enter an email address you can open: we’ll send a confirmation there."); return; }
-    if (password.length < 6) { setError("Passwords need at least six characters."); return; }
+    if (password.length < 10) { setError("Passwords need at least ten characters."); return; }
     void run(async (t) => {
       const { data, error: err } = await authApi.signUp(email.trim(), password, t, {
         partner_a: a.trim(), partner_b: b.trim(), wedding_date: date,
@@ -380,7 +380,7 @@ export function BeginPage() {
         <Line id="auth-email" label="Email">
           <input id="auth-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" inputMode="email" required />
         </Line>
-        <Line id="auth-password" label="Password" hint="at least six characters">
+        <Line id="auth-password" label="Password" hint="at least ten characters">
           <PasswordInput id="auth-password" value={password} onChange={setPassword} autoComplete="new-password" />
         </Line>
         {check.element}
@@ -454,7 +454,7 @@ export function NewPasswordPage() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) { setError("Passwords need at least six characters."); return; }
+    if (password.length < 10) { setError("Passwords need at least ten characters."); return; }
     void run(async () => {
       const { error: err } = await authApi.updatePassword(password);
       if (err) throw new Error(err.message);
@@ -478,7 +478,7 @@ export function NewPasswordPage() {
           <h1>Choose a new password</h1>
           <p className="tf-auth-sub">{user?.email ? <>For <strong>{user.email}</strong>. </> : null}You’ll use it from now on, on every device.</p>
           <form onSubmit={submit} noValidate>
-            <Line id="auth-password" label="New password" hint="at least six characters">
+            <Line id="auth-password" label="New password" hint="at least ten characters">
               <PasswordInput id="auth-password" value={password} onChange={setPassword} autoComplete="new-password" invalid={!!error} />
             </Line>
             {mode === "demo" ? <DemoNote /> : <ErrorLine error={error} />}

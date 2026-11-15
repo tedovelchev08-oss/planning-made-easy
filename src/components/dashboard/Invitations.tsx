@@ -855,7 +855,7 @@ export default function Invitations() {
           </div>
           {activeCustom && (
             <p className="mx-auto mt-4 max-w-xl text-center text-[13px] text-[var(--pl-ink-2)]">
-              {activeCustom.html ? "Your own design runs exactly as you built it." : "Your artwork is the invitation."} The reply form, meals and notes sit beneath it on the guest page.
+              {activeCustom.html ? "Your own page is shown as you built it, without its scripts." : "Your artwork is the invitation."} The reply form, meals and notes sit beneath it on the guest page.
             </p>
           )}
         </div>
@@ -1541,28 +1541,18 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
   const inputRef = useRef<HTMLInputElement>(null);
 
   const importFiles = async (files: FileList | File[]) => {
-    const list = Array.from(files).filter((f) => f.type.startsWith("image/") || /\.html?$/i.test(f.name) || f.type.includes("html"));
-    if (!list.length) { toast("Only HTML, PNG or JPG files", "A complete .html page, or an image exported from Canva, Figma or Photoshop.", "warn"); return; }
+    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (!list.length) { toast("Only PNG or JPG files", "An image exported from Canva, Figma or Photoshop.", "warn"); return; }
     setBusy(true);
     let used = db.customTemplates.reduce((s, c) => s + (c.dataUrl?.length ?? c.html?.length ?? 0), 0);
     const added: typeof db.customTemplates = [];
-    let skipped = 0;
     for (const f of list) {
       if (used > 4 * 1024 * 1024) { toast("There's no room for more", "Your own designs can take up to about 4 MB together. Remove one to add another.", "warn"); break; }
       const pretty = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").replace(/\b\w/g, (ch: string) => ch.toUpperCase()) || "My design";
-      const isHtml = /\.html?$/i.test(f.name) || f.type.includes("html");
       try {
-        if (isHtml) {
-          const text = await f.text();
-          if (!/<[\s\S]*>/i.test(text)) { skipped++; continue; }
-          const title = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim();
-          used += text.length;
-          added.push({ id: `ct-${Date.now()}-${added.length}`, name: (title || pretty).slice(0, 42), dataUrl: null, html: text, addedAt: Date.now() });
-        } else {
-          const dataUrl = await compressImage(f);
-          used += dataUrl.length;
-          added.push({ id: `ct-${Date.now()}-${added.length}`, name: pretty, dataUrl, html: null, addedAt: Date.now() });
-        }
+        const dataUrl = await compressImage(f);
+        used += dataUrl.length;
+        added.push({ id: `ct-${Date.now()}-${added.length}`, name: pretty, dataUrl, html: null, addedAt: Date.now() });
       } catch { toast(`Couldn't read ${f.name}`, undefined, "warn"); }
     }
     if (added.length) {
@@ -1573,7 +1563,6 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
         "Choose it under Designs to make it your invitation.",
       );
     }
-    if (skipped) toast(`${skipped} file${skipped > 1 ? "s" : ""} skipped`, "They didn't look like a complete HTML page.", "warn");
     setBusy(false);
   };
 
@@ -1582,7 +1571,7 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
       <div className="p-7 sm:p-8">
         <h2 className="font-display text-[30px] leading-none">Use your own design</h2>
         <p className="mt-3 text-[14.5px] leading-relaxed text-[var(--pl-ink-2)]">
-          Bring an invitation you made yourself: a complete HTML page (it runs exactly as you built it) or a PNG or JPG.
+          Bring an invitation you made yourself: a PNG or JPG of the finished card.
           Guests still reply beneath it, with meal choices and notes. Part of {PLANS[FEATURES.customDesigns.plan].name}.
         </p>
 
@@ -1595,9 +1584,9 @@ function ImportDesignsModal({ open, onClose }: { open: boolean; onClose: () => v
         >
           <UploadCloud size={22} strokeWidth={1.4} className="text-[var(--pl-bronze)]" aria-hidden="true" />
           <span className="text-[15px]">{busy ? "Reading your files…" : dragOver ? "Let go to add them" : "Drop your files here, or choose them"}</span>
-          <span className="text-[12.5px] text-[var(--pl-ink-2)]">HTML, PNG or JPG. An HTML page should carry its own styles; fonts and images from links are fine.</span>
+          <span className="text-[12.5px] text-[var(--pl-ink-2)]">PNG or JPG, exported from Canva, Figma or Photoshop.</span>
         </button>
-        <input ref={inputRef} type="file" accept=".html,.htm,image/*" multiple className="hidden" aria-label="Choose invitation files"
+        <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" aria-label="Choose invitation files"
           onChange={(e) => { if (e.target.files?.length) void importFiles(e.target.files); e.target.value = ""; }} />
 
         {db.customTemplates.length > 0 && (
