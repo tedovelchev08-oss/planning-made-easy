@@ -13,6 +13,8 @@ import { Sky } from "./vendor/Sky.js";
 import { Water } from "./vendor/Water.js";
 import { FontLoader } from "./vendor/FontLoader.js";
 import { TextGeometry } from "./vendor/TextGeometry.js";
+import { createSunFx } from "./sun-fx.js?v=7";
+import { createMoments } from "./moments.js?v=4";
 
 /* the couple's details: in the real design these come from the planner */
 const WEDDING = {
@@ -178,7 +180,7 @@ function glowTexture(stops) {
 const glowMat = (tex, opacity) => new THREE.SpriteMaterial({ map: tex, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
 const SKY_R = 4200;
 const sunCore = new THREE.Sprite(glowMat(glowTexture([[0, "rgba(255,253,245,1)"], [0.18, "rgba(255,246,222,.95)"], [0.32, "rgba(255,214,150,.35)"], [1, "rgba(255,190,110,0)"]]), 1));
-const sunHalo = new THREE.Sprite(glowMat(glowTexture([[0, "rgba(255,226,170,.55)"], [0.35, "rgba(255,196,120,.18)"], [1, "rgba(255,170,90,0)"]]), 0.9));
+const sunHalo = new THREE.Sprite(glowMat(glowTexture([[0, "rgba(255,226,170,.32)"], [0.35, "rgba(255,196,120,.18)"], [1, "rgba(255,170,90,0)"]]), 0.9));
 sunCore.scale.setScalar(520);
 sunHalo.scale.setScalar(2600);
 scene.add(sunHalo, sunCore);
@@ -300,19 +302,25 @@ let lift = 0, liftTarget = 0; // 0: low at the names; 1: looking up along the su
 function onScroll() {
   // scrolling always works: scrolling before the tap starts the day too
   if (!risen) { if (window.scrollY > 30) rise(); return; }
-  // the moment follows the words being read, about the middle of the screen; at the very top it is the opening
-  const lead = window.innerHeight * 0.45;
-  const anchor = window.scrollY + lead;
+  // the time follows the words being read: each section's words are a marker, and between two markers the time
+  // moves from one moment to the next. A moment's time holds while its words are near the reading line.
+  const line = window.scrollY + window.innerHeight * 0.62;
+  const marks = sections.map((sec, k) => {
+    if (k === 0) return { y: window.scrollY <= 0 ? -1 : 0, m: minutesOf(sec.dataset.at) };
+    const words = sec.querySelector(".gh-hour, .gh-h") || sec;
+    const r = words.getBoundingClientRect();
+    return { y: r.top + window.scrollY + r.height / 2, m: minutesOf(sec.dataset.at) };
+  });
+  marks[0].y = window.innerHeight * 0.62; // the opening holds until the page starts to move
   let i = 0;
-  sections.forEach((s, k) => { if (s.offsetTop <= anchor) i = k; });
-  const cur = sections[i], next = sections[i + 1];
-  const t0 = minutesOf(cur.dataset.at);
-  const f = !next ? 0 : i === 0
-    ? THREE.MathUtils.clamp(window.scrollY / (next.offsetTop - lead), 0, 1)
-    : THREE.MathUtils.clamp((anchor - cur.offsetTop) / (next.offsetTop - cur.offsetTop), 0, 1);
-  targetMinutes = next ? THREE.MathUtils.lerp(t0, minutesOf(next.dataset.at), f) : t0;
+  marks.forEach((mk, k) => { if (mk.y <= line) i = k; });
+  const a = marks[i], b = marks[i + 1];
+  const HOLD = window.innerHeight * 0.18;
+  const f = !b ? 0 : THREE.MathUtils.clamp((line - a.y - HOLD) / Math.max(1, b.y - a.y - 2 * HOLD), 0, 1);
+  targetMinutes = b ? THREE.MathUtils.lerp(a.m, b.m, THREE.MathUtils.smoothstep(f, 0, 1)) : a.m;
   const last = sections.length - 1;
-  liftTarget = i === 0 ? f : i === last ? -0.42 : 1;
+  // the names come back for the first dance at sunset, and stay for the reply
+  liftTarget = i === 0 ? f : i >= last - 1 ? -0.42 : (i === last - 2 && f > 0.5 ? -0.42 : 1);
 }
 window.addEventListener("scroll", onScroll, { passive: true });
 
@@ -337,20 +345,39 @@ document.querySelector(".gh-yes").addEventListener("click", () => {
 
 /* ------------------------------ the loop ------------------------------ */
 
+/* the sun as a lens sees it, and the day's moments happening in the scene */
+const moments = createMoments({ camera, mobile });
+const fx = createSunFx({ renderer, scene, camera, mobile, dirOf, sunMin, SUNRISE, SUNSET, D2R, occluders: [names], hidden: [water, moments.root, sky] });
+
+/** 0 before a moment, rising to 1 as it comes, falling away after it (minutes) */
+const smooth = (a, b, x) => THREE.MathUtils.smoothstep(x, a, b);
+function weights(m) {
+  return {
+    petals: smooth(15 * 60 + 20, 15 * 60 + 50, m) * (1 - smooth(16 * 60 + 35, 17 * 60, m)),
+    bubbles: smooth(17 * 60, 17 * 60 + 20, m) * (1 - smooth(18 * 60 + 5, 18 * 60 + 30, m)),
+    lights: smooth(18 * 60 + 30, 18 * 60 + 55, m),
+    dance: smooth(SUNSET - 30, SUNSET - 8, m),
+  };
+}
+
 function resize() {
   const w = window.innerWidth, h = window.innerHeight;
   renderer.setSize(w, h, false);
+  fx.setSize(w, h);
   camera.aspect = w / h;
   camera.fov = w < h ? 58 : 42;
   camera.updateProjectionMatrix();
   fitNames();
+  moments.resize();
 }
 window.addEventListener("resize", resize);
 resize();
 
-window.__gh = { names, camera, rig }; // prototype only: for checking in the browser
+window.__gh = { names, camera, rig, get fx() { return fx; } }; // prototype only: for checking in the browser
 const clock = new THREE.Clock();
 const lookAt = new THREE.Vector3();
+const namesAt = new THREE.Vector3();
+let frames = 0, frameTime = 0, lowered = false;
 placeSun(shownMinutes);
 refreshEnvironment(true);
 
@@ -398,6 +425,18 @@ renderer.setAnimationLoop(() => {
   sunHalo.material.opacity = 0.85 + flare * 0.6;
   sunHalo.scale.setScalar((sunHalo.userData.size || 2600) * (1 + flare * 0.5));
 
+  // the moments of the day, around the names where they are
+  names.updateMatrixWorld();
+  namesAt.set(0, 2.6, 0).applyMatrix4(names.matrixWorld);
+  camera.updateMatrixWorld();
+  camera.worldToLocal(namesAt);
+  moments.update(dt, t, weights(shownMinutes), namesAt, 1 - THREE.MathUtils.clamp(sunAlt / (25 * D2R), 0, 1), reduced);
+  fx.update(sunDir, sunAlt, 1 - THREE.MathUtils.clamp(sunAlt / (25 * D2R), 0, 1), flare);
+
   water.material.uniforms.time.value += dt * (reduced ? 0.15 : 0.4);
-  renderer.render(scene, camera);
+  fx.render();
+
+  // a phone that can't keep up gets lighter light rays and a smaller glow, once
+  frames++; frameTime += dt;
+  if (!lowered && frames === 90 && frameTime / frames > 1 / 34) { lowered = true; fx.lowerQuality(); renderer.setPixelRatio(1); resize(); }
 });

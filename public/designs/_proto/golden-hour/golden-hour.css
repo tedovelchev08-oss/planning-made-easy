@@ -73,7 +73,9 @@ body { font-family: "Cormorant", Georgia, serif; -webkit-font-smoothing: antiali
 .gh-risen .gh-scroll-hint { opacity: .8; }
 
 .gh-hour { margin: .1em 0 0 !important; font-weight: 300 !important; font-size: clamp(56px, 17vw, 96px) !important; line-height: 1 !important; font-variant-numeric: lining-nums tabular-nums; color: var(--gold); }
-.gh-moment { padding-top: 22vh; }
+/* the moments: words low, so what happens in the scene has the sky */
+.gh-moment { justify-content: flex-end; padding-top: 10vh; padding-bottom: 16vh; }
+.gh-moment .gh-h { font-size: clamp(34px, 9.5vw, 56px); }
 .gh-reply { justify-content: flex-end; padding-bottom: 12vh; text-align: center; align-items: center; }
 .gh-buttons { display: flex; gap: 10px; margin: 18px 0 10px; flex-wrap: wrap; justify-content: center; }
 .gh-yes, .gh-no { min-height: 50px; padding: 0 26px; border-radius: 2px; cursor: pointer; font: 500 12px/1 system-ui, sans-serif; letter-spacing: .2em; text-transform: uppercase; }
