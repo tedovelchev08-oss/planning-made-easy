@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { gatePlanName, sendGate } from "../../lib/sendGate";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -151,6 +152,8 @@ export default function Shell() {
   const link = guestLink({ slug: db.wedding.slug });
 
   const copyLink = () => {
+    const gate = sendGate(db);
+    if (gate) { toast("Not ready to send yet", `Your invitation uses ${gate.what}. Move to ${gatePlanName(gate)}, or use what your plan includes, in Share.`, "info"); return; }
     navigator.clipboard?.writeText(link).then(
       () => toast("Link copied", "Send it anywhere — WhatsApp, Instagram, a group chat.", "info"),
       () => toast("Your link", link, "info"),

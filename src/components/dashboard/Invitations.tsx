@@ -8,7 +8,7 @@ import {
 import { Guest, MEALS, MUSIC_TRACKS, RsvpEntry, TEMPLATE_CATS, Template, bestGuestMatch, fmtDate, seedTemplates, timeAgo } from "../../lib/data";
 import { IMAGES } from "../../lib/images";
 import { useApp, usePrefersReducedMotion } from "../../lib/store";
-import { FEATURES, PLANS, can, designOnPlan, formatPrice, guestLimit, type Feature, type Plan } from "../../lib/plans";
+import { FEATURES, PLANS, can, designOnPlan, formatPrice, guestLimit, type Feature } from "../../lib/plans";
 import { useCurrency } from "../../lib/currency";
 import { guestLink } from "../../lib/links";
 import { MUSIC_TYPES, deleteMusic, deletePhoto, isUploadedPhoto, musicFileProblem, uploadMusic } from "../../lib/api";
@@ -16,11 +16,12 @@ import { PhotoUpload } from "./PhotoUpload";
 import { Lining, Panel } from "./Panel";
 import { Editable, joinNames, splitNames } from "./Editable";
 import { studioEditPatch } from "./studioEdit";
+import { gatePlanName, sendGate, sendableNow } from "../../lib/sendGate";
 import { GuideField, GuideSwitch, InviteGuide, guideSeen, markGuideSeen, type GuideStep } from "./InviteGuide";
 import { playChime, useChimeLoop } from "../../lib/sound";
 import { DesignFrame, Field, Modal, Pill, PlanTag, SafeImg, inputCls } from "../ui";
 import type { CustomTemplate } from "../../lib/data";
-import { STUDIO_DESIGNS, designPath, planAllows, studioDesignOf, tracksOf } from "../../../api/_lib/studioDesigns";
+import { STUDIO_DESIGNS, designPath, studioDesignOf, tracksOf } from "../../../api/_lib/studioDesigns";
 import { StudioDetails, StudioGallery, openStudioPreview, writePreview } from "./StudioDesigns";
 
 /* ------------------------------ palette & font presets ------------------------------ */
@@ -424,10 +425,8 @@ export default function Invitations() {
   const animated = isLuxeTemplate;
   /** a design that isn't on this plan yet: it can be tried, not sent */
   const designLocked = (t: Template) => !designOnPlan(db.plan, t);
-  /** the plan the design on the stage needs, when the couple is only trying it */
-  const tryingFor: Plan | null = studio
-    ? (planAllows(db.plan, studio) ? null : studio.plan)
-    : activeCustom ? null : designLocked(template) ? (template.luxe ? "luxe" : "celebration") : null;
+  /** what's on the invitation that the plan doesn't send yet (a design, own colours or photo) */
+  const gate = sendGate(db);
 
   const setCfg = (p: Partial<typeof cfg>) => patch({ invitation: { ...cfg, ...p } });
   /** a change only paid plans make: applies it, or explains the upgrade */
@@ -612,21 +611,21 @@ export default function Invitations() {
   const coloursBody = studio || isHtmlDesign ? null : (
           <Panel title="Colours and type" aside={!can(db.plan, "customize") ? <PlanTag plan="celebration" /> : undefined}>
             <div className="flex flex-wrap gap-3">
-              <button onClick={() => setPaid("customize", { colors: null })} aria-label="The design's own colours" aria-pressed={cfg.colors === null}
+              <button onClick={() => setCfg({ colors: null })} aria-label="The design's own colours" aria-pressed={cfg.colors === null}
                 className={`h-9 w-9 rounded-full transition cursor-pointer ${cfg.colors === null ? "ring-2 ring-[var(--pl-bronze)] ring-offset-2 ring-offset-[var(--pl-card)]" : "ring-1 ring-[var(--pl-line)] hover:ring-[rgb(28_26_23/.35)]"}`}
                 style={{ background: `linear-gradient(135deg, ${template.bg} 50%, ${template.accent} 50%)` }} />
               {PALETTES.map((p) => {
                 const on = !!cfg.colors && cfg.colors.bg === p.bg && cfg.colors.accent === p.accent;
                 return (
-                  <button key={p.name} onClick={() => setPaid("customize", { colors: p })} aria-label={`${p.name} colours`} aria-pressed={on} title={p.name}
+                  <button key={p.name} onClick={() => setCfg({ colors: p })} aria-label={`${p.name} colours`} aria-pressed={on} title={p.name}
                     className={`h-9 w-9 rounded-full transition cursor-pointer ${on ? "ring-2 ring-[var(--pl-bronze)] ring-offset-2 ring-offset-[var(--pl-card)]" : "ring-1 ring-[var(--pl-line)] hover:ring-[rgb(28_26_23/.35)]"}`}
                     style={{ background: `linear-gradient(135deg, ${p.bg} 45%, ${p.accent} 45%)` }} />
                 );
               })}
             </div>
             <div className="pl-seg mt-5 flex w-full" role="group" aria-label="Lettering">
-              <button onClick={() => setPaid("customize", { fontSerif: true })} aria-pressed={serif} className="flex-1">Classic serif</button>
-              <button onClick={() => setPaid("customize", { fontSerif: false })} aria-pressed={!serif} className="flex-1">Modern sans</button>
+              <button onClick={() => setCfg({ fontSerif: true })} aria-pressed={serif} className="flex-1">Classic serif</button>
+              <button onClick={() => setCfg({ fontSerif: false })} aria-pressed={!serif} className="flex-1">Modern sans</button>
             </div>
           </Panel>
   );
@@ -658,7 +657,6 @@ export default function Invitations() {
               <div className="grid grid-cols-3 gap-2">
                 {PHOTO_CHOICES.map((p) => (
                   <button key={p.label} onClick={() => {
-                    if (!can(db.plan, "customize")) { openUpgrade("customize"); return; }
                     // a built-in photo replaces an uploaded one, whose file is then removed
                     if (isUploadedPhoto(cfg.photo) && mode === "cloud" && weddingId) void deletePhoto(weddingId, cfg.photo).catch(() => {});
                     setCfg({ photo: p.src });
@@ -669,9 +667,7 @@ export default function Invitations() {
                 ))}
               </div>
               <div className="mt-4">
-                {can(db.plan, "customize")
-                  ? <PhotoUpload photo={cfg.photo} onChange={(photo) => setCfg({ photo: photo ?? template.photo ?? null })} />
-                  : <button onClick={() => openUpgrade("customize")} className="pl-link">Use your own photo</button>}
+                <PhotoUpload photo={cfg.photo} onChange={(photo) => setCfg({ photo: photo ?? template.photo ?? null })} />
               </div>
             </Panel>
   ) : null;
@@ -808,11 +804,11 @@ export default function Invitations() {
 
   return (
     <div className="space-y-6">
-      {tryingFor && (
+      {gate && (
         <div role="note" className="pl-card flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4 shadow-[inset_3px_0_0_var(--pl-gold),0_18px_40px_-30px_rgb(60_40_15/.55)]">
           <Sparkles size={15} strokeWidth={1.6} className="shrink-0 text-[var(--pl-bronze)]" aria-hidden="true" />
-          <p className="min-w-0 flex-1 text-[14.5px]">You’re trying a {PLANS[tryingFor].name} design, free. Make it yours here; your guests see it once you’re on {PLANS[tryingFor].name}.</p>
-          <button onClick={() => openUpgrade(tryingFor === "luxe" ? "premiumDesigns" : "allDesigns")} className="pl-quiet">See {PLANS[tryingFor].name}</button>
+          <p className="min-w-0 flex-1 text-[14.5px]">You’re trying {gate.what}, free. Make it as you like; it can be sent once you’re on {gatePlanName(gate)}.</p>
+          <button onClick={() => openUpgrade(gate.feature)} className="pl-quiet">See {gatePlanName(gate)}</button>
         </div>
       )}
 
@@ -822,7 +818,7 @@ export default function Invitations() {
             <Lining text={studio ? studio.name : activeCustom ? activeCustom.name : template.name} />{" "}
             <span className="font-accent text-[18px] italic text-[var(--pl-bronze)]">{studio ? "a studio design" : activeCustom ? "your own design" : template.cat}</span>
           </h2>
-          {animated && !tryingFor && <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--pl-ink-2)]"><Sparkles size={13} strokeWidth={1.6} className="text-[var(--pl-bronze)]" /> Animated for guests</span>}
+          {animated && !gate && <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--pl-ink-2)]"><Sparkles size={13} strokeWidth={1.6} className="text-[var(--pl-bronze)]" /> Animated for guests</span>}
         </div>
 
         {!studio && !activeCustom && (
@@ -945,7 +941,7 @@ function Sheet({ wide, label, onClose, reduced, children }: {
 /* ------------------------------ share link card ------------------------------ */
 
 export function ShareCard() {
-  const { db, patch, toast, openUpgrade } = useApp();
+  const { db, patch, toast, openUpgrade, mode, weddingId } = useApp();
   const shareKit = can(db.plan, "shareKit");
   const [copied, setCopied] = useState(false);
   // cloud links carry the real slug so any device lands on this couple's page;
@@ -984,13 +980,19 @@ export function ShareCard() {
   ];
 
   const open = db.invitation.live;
-  // a design the couple is only trying: say plainly which design guests get until then
-  const studioNow = studioDesignOf(db.invitation.templateId);
-  const classicNow = seedTemplates.find((t) => t.id === db.invitation.templateId);
-  const tryingFor: Plan | null = studioNow
-    ? (planAllows(db.plan, studioNow) ? null : studioNow.plan)
-    : classicNow && !designOnPlan(db.plan, classicNow) ? (classicNow.luxe ? "luxe" : "celebration") : null;
+  // something the plan doesn't include yet is on the invitation: it isn't sent until it is
+  const gate = sendGate(db);
+  const sendWhatsIncluded = () => {
+    const next = sendableNow(db);
+    // an uploaded photo the plan doesn't show goes with it, so its file isn't left behind
+    if (next.photo !== undefined && isUploadedPhoto(db.invitation.photo) && next.photo !== db.invitation.photo && mode === "cloud" && weddingId) {
+      void deletePhoto(weddingId, db.invitation.photo).catch(() => {});
+    }
+    patch({ invitation: { ...db.invitation, ...next } });
+    toast("Ready to send", "Your invitation now uses what your plan includes.");
+  };
   const toggleOpen = () => {
+    if (gate && !open) { openUpgrade(gate.feature); return; }
     patch({ invitation: { ...db.invitation, live: !open } });
     toast(open ? "Invitation closed" : "Open to guests",
       open ? "Anyone opening your link now sees that it isn't open yet." : "Anyone with your link can see it and reply.");
@@ -1004,12 +1006,6 @@ export function ShareCard() {
           <p className="mt-3 max-w-md text-[15px] leading-relaxed text-[rgb(237_227_207/.72)]">
             Your invitation and its reply form, at one address. Send it however you talk to people; every answer lands in Replies.
           </p>
-          {tryingFor && (
-            <p role="note" className="mt-4 max-w-md border-l-2 border-[var(--pl-gold)] pl-3 text-[14px] leading-relaxed text-[var(--pl-ivory)]">
-              You’re trying a {PLANS[tryingFor].name} design. Until you’re on {PLANS[tryingFor].name}, guests who open this link see your invitation in the free design.{" "}
-              <button type="button" onClick={() => openUpgrade(tryingFor === "luxe" ? "premiumDesigns" : "allDesigns")} className="underline underline-offset-4 cursor-pointer">See {PLANS[tryingFor].name}</button>
-            </p>
-          )}
           {/* 0011: an invitation is closed until the couple opens it, so a
               guessed address shows nothing of a wedding not yet shared */}
           <button type="button" role="switch" aria-checked={open} onClick={toggleOpen}
@@ -1024,6 +1020,25 @@ export function ShareCard() {
           </button>
         </div>
 
+        {gate ? (
+        <div role="note" className="min-w-0 self-end rounded-[2px] border border-[rgb(201_168_106/.45)] p-5">
+          <p className="font-display text-[24px] leading-tight">Ready once it’s on your plan</p>
+          <p className="mt-2 text-[14.5px] leading-relaxed text-[rgb(237_227_207/.78)]">
+            Your invitation uses {gate.what}, part of {gatePlanName(gate)}. Move to {gatePlanName(gate)} to send it exactly as you built it, or send it with what your plan includes.
+          </p>
+          {open && <p className="mt-2 text-[13px] leading-snug text-[rgb(237_227_207/.62)]">Anyone who already has your link sees it with what your plan includes until then.</p>}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button type="button" onClick={() => openUpgrade(gate.feature)}
+              className="inline-flex h-10 items-center rounded-[2px] bg-[var(--pl-gold)] px-4 text-[12px] font-medium uppercase tracking-[0.14em] text-[var(--pl-onyx)] transition hover:bg-[#d8b97c] cursor-pointer">
+              See {gatePlanName(gate)}
+            </button>
+            <button type="button" onClick={sendWhatsIncluded}
+              className="inline-flex h-10 items-center rounded-[2px] border border-[rgb(237_227_207/.3)] px-4 text-[13px] text-[var(--pl-ivory)] transition hover:border-[rgb(237_227_207/.55)] cursor-pointer">
+              Use what my plan includes
+            </button>
+          </div>
+        </div>
+        ) : (
         <div className="min-w-0 self-end">
           <div className="flex items-center gap-2 rounded-[2px] border border-[rgb(237_227_207/.2)] bg-[rgb(237_227_207/.05)] p-1.5 pl-3.5">
             <Link2 size={14} strokeWidth={1.6} className="shrink-0 text-[var(--pl-gold)]" aria-hidden="true" />
@@ -1056,6 +1071,7 @@ export function ShareCard() {
             Or use your phone's share sheet
           </button>
         </div>
+        )}
       </div>
     </section>
   );
@@ -1079,6 +1095,8 @@ function PersonalLinkButton({ guest, token }: { guest: string; token: string }) 
     <button
       onClick={async () => {
         if (!can(db.plan, "personalLinks")) { openUpgrade("personalLinks"); return; }
+        const gate = sendGate(db);
+        if (gate) { openUpgrade(gate.feature); return; }
         const url = guestLink({ token });
         try {
           await navigator.clipboard.writeText(url);
@@ -1217,6 +1235,8 @@ export function RsvpTracker() {
 
   /** a ready-to-paste reminder — Twofold doesn't send it, the couple does */
   const remind = async () => {
+    const gate = sendGate(db);
+    if (gate) { openUpgrade(gate.feature); return; }
     const when = fmtDate(db.wedding.date, { month: "long", day: "numeric", year: "numeric" });
     const text = `A gentle reminder: ${db.wedding.names} would love to know if you can join them on ${when}. You can RSVP in one tap here: ${guestLink({ slug: db.wedding.slug, src: "link" })}`;
     try {
