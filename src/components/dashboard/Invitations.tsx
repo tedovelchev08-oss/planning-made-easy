@@ -866,7 +866,7 @@ export default function Invitations() {
         </div>
 
         {/* the floating bar: everything about the invitation, one tap away */}
-        {!(guiding && guidable) && <div className="pl-bar-wrap">
+        <div className={`pl-bar-wrap ${guiding && guidable ? "is-guiding" : ""}`}>
           <div className="pl-bar no-scrollbar" role="toolbar" aria-label="Invitation tools">
             {tools.map((t) => (
               <button key={t.id} type="button" onClick={() => setSheet(t.id)} aria-haspopup="dialog" aria-expanded={sheet === t.id}>
@@ -886,13 +886,13 @@ export default function Invitations() {
             <button type="button" onClick={() => setSheet("share")} aria-haspopup="dialog" aria-expanded={sheet === "share"} className="pl-bar-gold">
               <Share2 size={15} strokeWidth={1.6} aria-hidden="true" /> Share
             </button>
-            {guidable && (
+            {guidable && !guiding && (
               <button type="button" onClick={() => setGuiding(true)}>
                 <Compass size={15} strokeWidth={1.6} aria-hidden="true" /> Guide me
               </button>
             )}
           </div>
-        </div>}
+        </div>
       </section>
 
       <AnimatePresence>
