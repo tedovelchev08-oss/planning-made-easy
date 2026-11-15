@@ -58,12 +58,14 @@ const { default: handler, excessOf } = await import("../../api/stripe-webhook");
 const Stripe = (await import("stripe")).default as unknown as new (k: string) => { webhooks: { generateTestHeaderString: (o: { payload: string; secret: string }) => string } };
 const signer = new Stripe("sk_test_dummy");
 
-async function paid(pi: string, tier: string, amount: number, user = "u1") {
+async function paid(pi: string, tier: string, amount: number, user = "u1", event: { type?: string; status?: string } = {}) {
+  const type = event.type ?? "checkout.session.completed";
   const session = {
     id: `cs_${pi}`, object: "checkout.session", payment_intent: pi, amount_total: amount, currency: "eur",
     metadata: { tier, user_id: user, wedding_id: "w1" }, client_reference_id: user, customer: null,
+    ...(event.status ? { payment_status: event.status } : {}),
   };
-  const payload = JSON.stringify({ id: `evt_${pi}`, object: "event", type: "checkout.session.completed", data: { object: session } });
+  const payload = JSON.stringify({ id: `evt_${pi}_${type}`, object: "event", type, data: { object: session } });
   const header = signer.webhooks.generateTestHeaderString({ payload, secret: SECRET });
   const res: { statusCode?: number; status: (n: number) => typeof res; json: () => typeof res; setHeader: () => void } = {
     status(n) { this.statusCode = n; return this; }, json() { return this; }, setHeader() {},
@@ -121,6 +123,28 @@ describe("excessOf", () => {
   });
   it("an unknown currency never triggers a refund on a guess", () => {
     expect(excessOf("pi_1", "celebration", "jpy", 4900, [row("pi_1", "celebration", 4900, "t1")])).toBe(0);
+  });
+});
+
+describe("a bank debit that completes before the money arrives", () => {
+  it("grants nothing while the payment is pending, and the plan when it arrives", async () => {
+    expect(await paid("pi_1", "celebration", 4900, "u1", { status: "unpaid" })).toBe(200);
+    expect(db.weddings[0].plan).toBe("essential");
+    expect(db.purchases ?? []).toEqual([]);
+
+    expect(await paid("pi_1", "celebration", 4900, "u1", { type: "checkout.session.async_payment_succeeded", status: "paid" })).toBe(200);
+    expect(db.weddings[0].plan).toBe("celebration");
+  });
+
+  it("a delayed payment that fails grants nothing", async () => {
+    await paid("pi_1", "celebration", 4900, "u1", { status: "unpaid" });
+    expect(await paid("pi_1", "celebration", 4900, "u1", { type: "checkout.session.async_payment_failed", status: "unpaid" })).toBe(200);
+    expect(db.weddings[0].plan).toBe("essential");
+  });
+
+  it("a fully discounted checkout has nothing to wait for", async () => {
+    await paid("pi_1", "celebration", 0, "u1", { status: "no_payment_required" });
+    expect(db.weddings[0].plan).toBe("celebration");
   });
 });
 

@@ -22,15 +22,25 @@ import { createClient } from "@supabase/supabase-js";
 
 /** The one part of the Storage API this needs, so tests can stand in for it. */
 interface MediaBucket {
-  list: (folder: string, opts: { limit: number }) => Promise<{ data: { name: string; id: string | null }[] | null; error: { message: string } | null }>;
+  list: (folder: string, opts: { limit: number; offset?: number }) => Promise<{ data: { name: string; id: string | null }[] | null; error: { message: string } | null }>;
 }
+
+/** entries per Storage list call */
+export const PAGE = 1000;
 
 /** Every file path under a folder, a few levels deep (weddings use <id>/music/<file>). */
 export async function filesUnder(bucket: MediaBucket, folder: string, depth = 3): Promise<string[]> {
-  const { data, error } = await bucket.list(folder, { limit: 1000 });
-  if (error) throw new Error(`storage list failed for ${folder}: ${error.message}`);
+  // a page at a time: one call returns at most PAGE entries, and a folder
+  // with more used to leave the rest behind for good
+  const entries: { name: string; id: string | null }[] = [];
+  for (let offset = 0; ; offset += PAGE) {
+    const { data, error } = await bucket.list(folder, { limit: PAGE, offset });
+    if (error) throw new Error(`storage list failed for ${folder}: ${error.message}`);
+    entries.push(...(data ?? []));
+    if ((data?.length ?? 0) < PAGE) break;
+  }
   const out: string[] = [];
-  for (const entry of data ?? []) {
+  for (const entry of entries) {
     const path = `${folder}/${entry.name}`;
     // folders come back without an id
     if (entry.id == null) {

@@ -79,9 +79,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     `[report:${kind}]`,
     JSON.stringify({
       ...(kind === "error"
-        ? { message: clip(body.message, 500), stack: clip(body.stack, 4000), ctx: clip(body.ctx, 2000), route: clip(body.route, 300), ua: body.ua }
+        ? { message: clip(body.message, 500), stack: clip(body.stack, 4000), ctx: clip(body.ctx, 2000), route: clip(body.route, 300), ua: clip(body.ua, 300) }
         : { event: clip(body.event, 60), props: clip(body.props, 2000), route: clip(body.route, 300) }),
-      at: body.at,
+      at: clip(body.at, 40),
     }),
   );
 

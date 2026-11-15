@@ -867,9 +867,12 @@ export function FeatureIcon({ name, className = "" }: { name: string; className?
 /* ------------------------------ live design frame ------------------------------ */
 
 /**
- * Renders a self-contained HTML invitation inside a sandboxed iframe.
+ * Shows a self-contained HTML invitation inside a fully sandboxed iframe: no
+ * scripts, forms or popups. A page a couple uploaded is strangers' code shown
+ * to their guests under our address, so it is displayed, never run. (New HTML
+ * uploads ended in November 2026; own designs are images now.)
  * In thumbnail mode it's downscaled and non-interactive (live gallery previews);
- * otherwise it's a fully explorable, working invitation.
+ * otherwise it's shown full size.
  */
 export function DesignFrame({
   html, title, className = "", interactive = true, thumbWidth = 144, thumbHeight = 180,
@@ -886,7 +889,7 @@ export function DesignFrame({
       <iframe
         title={title}
         srcDoc={html}
-        sandbox="allow-scripts allow-forms allow-popups"
+        sandbox=""
         loading="lazy"
         className={`w-full border-0 ${className}`}
       />
@@ -898,7 +901,7 @@ export function DesignFrame({
       <iframe
         title={title}
         srcDoc={html}
-        sandbox="allow-scripts"
+        sandbox=""
         loading="lazy"
         tabIndex={-1}
         className="absolute left-0 top-0 origin-top-left border-0"
