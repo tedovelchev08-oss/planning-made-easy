@@ -10,6 +10,19 @@ const rules = (JSON.parse(vercelJson) as { headers: Rule[] }).headers;
 const header = (source: string, key: string) =>
   rules.find((r) => r.source === source)?.headers.find((h) => h.key === key)?.value ?? "";
 
+describe("scripts", () => {
+  const scriptSrc = (source: string) =>
+    header(source, "Content-Security-Policy").split(";").map((d) => d.trim()).find((d) => d.startsWith("script-src")) ?? "";
+
+  it("the app, where the couple's session lives, runs no inline script", () => {
+    expect(scriptSrc("/((?!designs/).*)")).toBe("script-src 'self' https://challenges.cloudflare.com");
+  });
+
+  it("the invitation designs keep their inline scripts (they are our own pages)", () => {
+    expect(scriptSrc("/designs/(.*)")).toContain("'unsafe-inline'");
+  });
+});
+
 describe("framing headers", () => {
   it("lets the app frame its own invitation designs, and only those", () => {
     expect(header("/designs/(.*)", "X-Frame-Options")).toBe("SAMEORIGIN");

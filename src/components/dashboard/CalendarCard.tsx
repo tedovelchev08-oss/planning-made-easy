@@ -91,7 +91,7 @@ export default function CalendarCard() {
             </button>
           )}
           <button onClick={() => shiftMonth(-1)} aria-label="Previous month" className="rounded-full p-1.5 text-ink-mute transition hover:bg-ink/5 hover:text-ink cursor-pointer"><ChevronLeft size={16} /></button>
-          <span className="min-w-[7.5rem] text-center text-[0.85rem] font-extrabold text-ink">
+          <span className="min-w-[7.5rem] text-center text-[0.85rem] font-medium text-ink">
             {month.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
           </span>
           <button onClick={() => shiftMonth(1)} aria-label="Next month" className="rounded-full p-1.5 text-ink-mute transition hover:bg-ink/5 hover:text-ink cursor-pointer"><ChevronRight size={16} /></button>
@@ -100,7 +100,7 @@ export default function CalendarCard() {
 
       <div className="mt-4 grid grid-cols-7 gap-1 text-center" role="grid" aria-label={month.toLocaleDateString("en-US", { month: "long", year: "numeric" })}>
         {WEEKDAYS.map((d) => (
-          <span key={d} className="pb-1 text-[0.6rem] font-extrabold uppercase tracking-[0.14em] text-ink-mute">{d}</span>
+          <span key={d} className="pb-1 text-[0.6rem] font-medium uppercase tracking-[0.14em] text-ink-mute">{d}</span>
         ))}
         {cells.map((dayIso, i) => {
           if (!dayIso) return <span key={`x${i}`} aria-hidden="true" />;
@@ -116,7 +116,7 @@ export default function CalendarCard() {
               onClick={() => setSelected(dayIso)}
               aria-label={`${new Date(`${dayIso}T12:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric" })}${marked ? " — has plan items" : ""}`}
               aria-pressed={isSel}
-              className={`relative flex aspect-square flex-col items-center justify-center rounded-xl text-[0.8rem] font-bold transition-all duration-200 cursor-pointer ${
+              className={`relative flex aspect-square flex-col items-center justify-center rounded-xl text-[0.8rem] font-medium transition-all duration-200 cursor-pointer ${
                 isSel
                   ? "bg-ink text-cream shadow-card scale-[1.04]"
                   : marked
@@ -153,12 +153,12 @@ export default function CalendarCard() {
         >
           <div className="flex items-baseline justify-between gap-2">
             <p className="font-display text-[1.02rem] text-ink">{selLabel}</p>
-            {selected === db.wedding.date && <span className="rounded-full bg-blush-soft px-2.5 py-1 text-[0.6rem] font-extrabold uppercase tracking-wide text-blush-deep">The day</span>}
-            {selected === deadlineIso && <span className="rounded-full bg-lav-soft px-2.5 py-1 text-[0.6rem] font-extrabold uppercase tracking-wide text-lav-deep">RSVP deadline</span>}
+            {selected === db.wedding.date && <span className="rounded-full bg-blush-soft px-2.5 py-1 text-[0.6rem] font-medium uppercase tracking-wide text-blush-deep">The day</span>}
+            {selected === deadlineIso && <span className="rounded-full bg-lav-soft px-2.5 py-1 text-[0.6rem] font-medium uppercase tracking-wide text-lav-deep">RSVP deadline</span>}
           </div>
 
           {!sel || !hasAnything(sel) ? (
-            <p className="mt-3 text-[0.85rem] font-semibold text-ink-mute">
+            <p className="mt-3 text-[0.85rem] font-medium text-ink-mute">
               A quiet day. <span className="font-display italic text-ink-2">Nothing scheduled — perhaps a date night.</span>
             </p>
           ) : (
@@ -166,15 +166,15 @@ export default function CalendarCard() {
               {sel.wedding && (
                 <li className="flex items-center gap-3 rounded-xl bg-blush-soft/70 px-3.5 py-2.5">
                   <Heart size={15} fill="#9a7a3f" className="text-blush-deep" />
-                  <span className="flex-1 text-[0.88rem] font-extrabold text-ink">The wedding day</span>
+                  <span className="flex-1 text-[0.88rem] font-medium text-ink">The wedding day</span>
                   <span className="font-display text-[0.8rem] italic text-blush-deep">at last</span>
                 </li>
               )}
               {sel.deadline && (
                 <li className="flex items-center gap-3 rounded-xl bg-lav-soft/70 px-3.5 py-2.5">
                   <Inbox size={15} className="text-lav-deep" />
-                  <span className="flex-1 text-[0.88rem] font-extrabold text-ink">RSVP deadline</span>
-                  <span className="text-[0.68rem] font-bold text-lav-deep">30 days out</span>
+                  <span className="flex-1 text-[0.88rem] font-medium text-ink">RSVP deadline</span>
+                  <span className="text-[0.68rem] font-medium text-lav-deep">30 days out</span>
                 </li>
               )}
               {sel.tasks.map((t) => (
@@ -194,11 +194,11 @@ export default function CalendarCard() {
                       )}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className={`block truncate text-[0.86rem] font-bold ${t.done ? "text-ink-mute line-through decoration-sage-deep/50" : "text-ink"}`}>{t.title}</span>
-                      <span className="text-[0.66rem] font-semibold text-ink-mute">{phaseLabel(t.phase)} · {who(t)}</span>
+                      <span className={`block truncate text-[0.86rem] font-medium ${t.done ? "text-ink-mute line-through decoration-sage-deep/50" : "text-ink"}`}>{t.title}</span>
+                      <span className="text-[0.66rem] font-medium text-ink-mute">{phaseLabel(t.phase)} · {who(t)}</span>
                     </span>
                     {selected === todayIso && !t.done && (
-                      <span className="flex items-center gap-1 rounded-full bg-gold-soft px-2 py-0.5 text-[0.58rem] font-extrabold uppercase tracking-wide text-gold-deep"><Clock3 size={9} /> today</span>
+                      <span className="flex items-center gap-1 rounded-full bg-gold-soft px-2 py-0.5 text-[0.58rem] font-medium uppercase tracking-wide text-gold-deep"><Clock3 size={9} /> today</span>
                     )}
                   </button>
                 </li>
@@ -208,7 +208,7 @@ export default function CalendarCard() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.62rem] font-bold text-ink-mute">
+      <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.62rem] font-medium text-ink-mute">
         <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-gold-deep" /> task due</span>
         <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-sage-deep/70" /> all done</span>
         <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-lav-deep" /> RSVP deadline</span>

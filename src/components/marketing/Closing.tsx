@@ -105,7 +105,7 @@ export function Footer() {
         </nav>
       </div>
       <div className="border-t border-cream/10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-6 py-5 text-caption font-semibold text-cream/35 sm:px-8 md:flex-row">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-6 py-5 text-caption font-medium text-cream/35 sm:px-8 md:flex-row">
           <span>© 2026 Twofold All rights reserved.</span>
           <span className="font-display italic text-cream/45">Made slowly, for two at a time.</span>
         </div>

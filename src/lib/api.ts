@@ -10,7 +10,7 @@ import {
   BudgetCategory, CustomTemplate, FloorObject, Guest, Plan, RegistryItem, RsvpEntry, SeatTable, Task,
   Vendor, Wedding, slugify, toDayKey,
 } from "./data";
-import type { Db, InvitationConfig, WebsiteConfig } from "./store";
+import type { Db, InvitationConfig } from "./store";
 import type { Currency } from "./plans";
 import { localPhoto } from "./images";
 
@@ -133,12 +133,6 @@ export const invitationToRow = (c: InvitationConfig, weddingId: string) => ({
   design_data: (c.designData ?? {}) as never,
 });
 
-export const websiteToRow = (w: WebsiteConfig, weddingId: string) => ({
-  wedding_id: weddingId, template: w.template, hero_photo: w.heroPhoto, bg: w.bg,
-  ink: w.ink, accent: w.accent, serif: w.serif, animations: w.animations,
-  sections: w.sections as never, domain: w.domain, published: w.published,
-});
-
 /* ------------------------------ workspace ------------------------------ */
 
 export async function myWeddingId(): Promise<string | null> {
@@ -153,8 +147,8 @@ export async function myWeddingId(): Promise<string | null> {
 
 /**
  * The version (updated_at) of every row this tab loaded, keyed
- * "<entity>:<id>" — "wedding:wedding", "invitation:invitation" and
- * "website:website" for the single rows. Sent back with each save so the
+ * "<entity>:<id>" — "wedding:wedding" and "invitation:invitation"
+ * for the single rows. Sent back with each save so the
  * database can refuse one based on a stale copy (0018).
  */
 export type Versions = Map<string, string>;
@@ -171,7 +165,7 @@ export class ConflictError extends Error {
  */
 export async function fetchWorkspace(weddingId: string, userId: string, versions?: Versions): Promise<Db> {
   const s = requireSb();
-  const [wedding, guests, tables, venueObjects, budget, tasks, vendors, registry, invitation, website, custom, rsvps, entitlement] =
+  const [wedding, guests, tables, venueObjects, budget, tasks, vendors, registry, invitation, custom, rsvps, entitlement] =
     await Promise.all([
       s.from("weddings").select("*").eq("id", weddingId).single(),
       s.from("guests").select("*").eq("wedding_id", weddingId).order("sort"),
@@ -182,7 +176,6 @@ export async function fetchWorkspace(weddingId: string, userId: string, versions
       s.from("vendors").select("*, vendor_payments(*)").eq("wedding_id", weddingId).order("sort"),
       s.from("registry_items").select("*").eq("wedding_id", weddingId).order("sort"),
       s.from("invitation_config").select("*").eq("wedding_id", weddingId).maybeSingle(),
-      s.from("website_config").select("*").eq("wedding_id", weddingId).maybeSingle(),
       s.from("custom_templates").select("*").eq("wedding_id", weddingId).order("sort"),
       s.from("rsvps").select("*").eq("wedding_id", weddingId).order("at", { ascending: false }),
       s.from("entitlements").select("*").eq("user_id", userId).maybeSingle(),
@@ -192,7 +185,7 @@ export async function fetchWorkspace(weddingId: string, userId: string, versions
   for (const r of [guests, tables, venueObjects, budget, tasks, vendors, registry, custom, rsvps, entitlement]) {
     if (r.error) throw r.error;
   }
-  if (invitation.error || website.error) throw invitation.error ?? website.error;
+  if (invitation.error) throw invitation.error;
 
   if (versions) {
     const v = (r: unknown) => (r as { updated_at?: string } | null)?.updated_at;
@@ -201,7 +194,7 @@ export async function fetchWorkspace(weddingId: string, userId: string, versions
     add("guests", guests.data); add("tables", tables.data); add("venueObjects", venueObjects.data);
     add("budget", budget.data); add("tasks", tasks.data); add("vendors", vendors.data);
     add("registry", registry.data); add("customTemplates", custom.data);
-    for (const [key, row] of [["wedding", wedding.data], ["invitation", invitation.data], ["website", website.data]] as const) {
+    for (const [key, row] of [["wedding", wedding.data], ["invitation", invitation.data]] as const) {
       const ver = v(row);
       if (ver) versions.set(versionKey(key, key), ver);
     }
@@ -209,7 +202,6 @@ export async function fetchWorkspace(weddingId: string, userId: string, versions
 
   const w = rowToWedding(wedding.data);
   const inv = invitation.data;
-  const web = website.data;
   const colors = (inv?.colors ?? null) as InvitationConfig["colors"];
   const motion = (inv?.motion ?? null) as InvitationConfig["motion"] | null;
   const music = (inv?.music ?? null) as InvitationConfig["music"] | null;
@@ -248,18 +240,6 @@ export async function fetchWorkspace(weddingId: string, userId: string, versions
       // rows from before 0011 have no flag to read: they were live, as is any wedding without a row
       live: inv?.is_live ?? true,
       designData: (inv?.design_data ?? {}) as InvitationConfig["designData"],
-    },
-    website: {
-      template: (web?.template ?? "serene") as WebsiteConfig["template"],
-      sections: (web?.sections ?? {}) as WebsiteConfig["sections"],
-      bg: web?.bg ?? "#f7f2e8",
-      ink: web?.ink ?? "#0f0e0d",
-      accent: web?.accent ?? "#c9a86a",
-      serif: web?.serif ?? true,
-      heroPhoto: localPhoto(web?.hero_photo ?? ""),
-      animations: web?.animations ?? true,
-      domain: web?.domain ?? "",
-      published: web?.published ?? false,
     },
     customTemplates: (custom.data ?? []).map((c) => ({
       id: c.id, name: c.name, dataUrl: c.data_url, html: c.html, addedAt: new Date(c.added_at).getTime(),
@@ -316,12 +296,6 @@ export async function createWedding(input: {
       music: { track: "serene", uploadName: null, uploadUrl: null },
       live: false, // closed until the couple chooses to share it
     }, weddingId)),
-    s.from("website_config").insert(websiteToRow({
-      template: "serene",
-      sections: { hero: true, story: true, details: true, schedule: true, venue: true, travel: true, registry: true, gallery: true, rsvp: true, music: false },
-      bg: "#f7f2e8", ink: "#0f0e0d", accent: "#c9a86a", serif: true, heroPhoto: "",
-      animations: true, domain: "", published: false,
-    }, weddingId)),
   ]);
 
   return { weddingId, wedding: w };
@@ -331,15 +305,15 @@ export async function createWedding(input: {
 
 export type EntityKey =
   | "wedding" | "guests" | "tables" | "venueObjects" | "budget" | "tasks" | "vendors"
-  | "registry" | "customTemplates" | "rsvpLog" | "invitation" | "website";
+  | "registry" | "customTemplates" | "rsvpLog" | "invitation";
 
 /**
  * Applies one entity's pending diff. Collection entities are upserted /
  * deleted by id; vendors go through save_vendor (one transaction with their
  * payment schedule); the two config tables upsert their single row keyed on
  * wedding_id. Rows carry the version they were edited from (updated_at);
- * the new versions come back keyed by id ("wedding", "invitation" and
- * "website" for the single rows). A row a partner changed or deleted since
+ * the new versions come back keyed by id ("wedding" and "invitation"
+ * for the single rows). A row a partner changed or deleted since
  * throws ConflictError.
  */
 export async function syncEntity(
@@ -414,9 +388,6 @@ export async function syncEntity(
     case "invitation":
       if (upserts[0]) await upsertRows("invitation_config", [upserts[0]], "wedding_id", () => "invitation");
       return versions;
-    case "website":
-      if (upserts[0]) await upsertRows("website_config", [upserts[0]], "wedding_id", () => "website");
-      return versions;
   }
   return versions;
 }
@@ -436,7 +407,7 @@ const LIVE_TABLES: Record<string, string> = {
   weddings: "id", guests: "wedding_id", tables: "wedding_id", venue_objects: "wedding_id",
   budget_categories: "wedding_id", tasks: "wedding_id", vendors: "wedding_id",
   registry_items: "wedding_id", custom_templates: "wedding_id",
-  invitation_config: "wedding_id", website_config: "wedding_id",
+  invitation_config: "wedding_id",
 };
 
 /**
@@ -505,12 +476,8 @@ export interface PublicInvitation {
     /** url: the uploaded song's public address (0013), present only when one was uploaded */
     music: { track: "serene" | "golden" | "dance" | "upload"; uploadName?: string | null; url?: string | null };
   };
-  website: {
-    template: "serene" | "editorial" | "garden";
-    sections: Record<string, boolean>;
-    bg: string; ink: string; accent: string; serif: boolean;
-    hero_photo: string; animations: boolean; published: boolean; domain: string;
-  };
+  /** 0021: the separate website is retired; the server still sends this stub */
+  website?: { published: boolean };
   custom: { id: string; name: string; dataUrl: string | null; html: string | null } | null;
   /** 0021: on every live invitation (links only when http(s)). Absent from
    *  servers still on 0020 for an unpublished website, so it stays optional. */

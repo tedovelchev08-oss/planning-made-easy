@@ -34,7 +34,7 @@ export function Logo({ dark = false, className = "" }: { dark?: boolean; classNa
 /* ------------------------------ buttons ------------------------------ */
 
 const btnBase =
-  "inline-flex items-center justify-center gap-2 font-semibold transition-all duration-300 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer";
+  "inline-flex items-center justify-center gap-2 font-medium transition-all duration-300 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer";
 
 export const btn = {
   ink: `${btnBase} rounded-full bg-ink text-cream hover:bg-ink/85 hover:shadow-lift px-6 py-3`,
@@ -78,7 +78,7 @@ const tones: Record<string, string> = {
 
 export function Pill({ tone, children, className = "" }: { tone: string; children: React.ReactNode; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[0.72rem] font-bold tracking-wide whitespace-nowrap ${tones[tone] ?? "bg-ink/5 text-ink-2 border-ink/10"} ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[0.72rem] font-medium tracking-wide whitespace-nowrap ${tones[tone] ?? "bg-ink/5 text-ink-2 border-ink/10"} ${className}`}>
       {children}
     </span>
   );
@@ -198,7 +198,7 @@ export function ToastHost() {
               <Check size={12} strokeWidth={3} />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold">{t.title}</p>
+              <p className="text-sm font-medium">{t.title}</p>
               {t.desc && <p className="mt-0.5 text-xs text-cream/70">{t.desc}</p>}
             </div>
             <button onClick={() => dismissToast(t.id)} aria-label="Dismiss notification" className="text-cream/50 transition hover:text-cream cursor-pointer">
@@ -230,12 +230,12 @@ export function CurrencySelect({ value, onChange, className = "", tone = "light"
   value: Currency; onChange: (c: Currency) => void; className?: string; tone?: "light" | "dark";
 }) {
   return (
-    <label className={`inline-flex items-center gap-2 text-[0.72rem] font-bold ${tone === "dark" ? "text-cream/70" : "text-ink-mute"} ${className}`}>
+    <label className={`inline-flex items-center gap-2 text-[0.72rem] font-medium ${tone === "dark" ? "text-cream/70" : "text-ink-mute"} ${className}`}>
       Currency
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as Currency)}
-        className={`cursor-pointer rounded-full border px-3 py-1.5 text-[0.75rem] font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
+        className={`cursor-pointer rounded-full border px-3 py-1.5 text-[0.75rem] font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
           tone === "dark" ? "border-cream/25 bg-transparent text-cream" : "border-ink/15 bg-white/80 text-ink"
         }`}
       >
@@ -268,7 +268,7 @@ export function UpgradeModal() {
     <Modal open={!!upgrade} onClose={closeUpgrade} label="Upgrade">
       {feature && plan && (
         <div className="p-7 sm:p-9">
-          <p className="flex items-center gap-2 text-[0.7rem] font-extrabold uppercase tracking-[0.2em] text-gold-deep">
+          <p className="flex items-center gap-2 text-[0.7rem] font-medium uppercase tracking-[0.2em] text-gold-deep">
             <Sparkles size={13} /> {atLimit ? "Your celebration is growing" : "A premium Twofold feature"}
           </p>
           <h2 className="mt-3 font-display text-[1.9rem] leading-tight text-ink">
@@ -281,7 +281,7 @@ export function UpgradeModal() {
           </p>
 
           <div className="mt-6 rounded-2xl border border-gold/40 bg-gold-soft/40 p-5">
-            <p className="text-[0.9rem] font-bold text-ink">
+            <p className="text-[0.9rem] font-medium text-ink">
               {atLimit ? "Unlimited guests are" : `${feature.title} ${/s$/.test(feature.title) ? "are" : "is"}`} included with {plan.name}.
             </p>
             <p className="mt-1 text-[0.85rem] text-ink-2">
@@ -309,14 +309,14 @@ export function UpgradeModal() {
                     <div className="min-w-0 flex-1">
                       <p className="font-display text-lg text-ink">
                         {p.name}{" "}
-                        <span className="font-sans text-[0.8rem] font-extrabold text-ink-2">
+                        <span className="font-sans text-[0.8rem] font-medium text-ink-2">
                           {p.price === 0 ? "Free" : owned ? "" : `${formatPrice(upgradePrice(id, db.plan) ?? p.price, currency)} one-time`}
                         </span>
                       </p>
                       <p className="mt-0.5 text-[0.78rem] leading-snug text-ink-2">{p.tagline}</p>
                     </div>
                     {current ? (
-                      <span className="shrink-0 text-[0.72rem] font-extrabold uppercase tracking-[0.12em] text-sage-deep">Your plan</span>
+                      <span className="shrink-0 text-[0.72rem] font-medium uppercase tracking-[0.12em] text-sage-deep">Your plan</span>
                     ) : owned ? null : (
                       <button className={`${btn.sm} shrink-0 bg-ink text-cream hover:bg-ink/85`} onClick={() => go(id)}>Choose</button>
                     )}
@@ -391,20 +391,20 @@ export function CheckoutModal() {
     <Modal open={!!checkout} onClose={closeCheckout} label="Checkout">
       {tier && (
         <div className="p-7 sm:p-9">
-          <p className="text-[0.72rem] font-bold uppercase tracking-[0.2em] text-gold-deep">Secure checkout · Stripe</p>
+          <p className="text-[0.72rem] font-medium uppercase tracking-[0.2em] text-gold-deep">Secure checkout · Stripe</p>
           <h2 className="mt-2 font-display text-3xl text-ink">{tier.name}</h2>
           <p className="mt-1 text-sm text-ink-2">{tier.blurb}</p>
 
           <div className="mt-6 rounded-2xl border border-ink/10 bg-white/70 p-5">
             <div className="flex items-baseline justify-between">
-              <span className="text-sm font-semibold text-ink-2">One-time payment</span>
+              <span className="text-sm font-medium text-ink-2">One-time payment</span>
               <span className="font-display text-3xl text-ink">{formatPrice(charge, currency)}</span>
             </div>
             <p className="mt-1 text-xs text-ink-mute">No subscription, no recurring fees. Yours for your whole celebration.</p>
             <CurrencySelect value={currency} onChange={setCurrency} className="mt-3" />
             {db.plan !== "essential" && step === "review" && (
               <div className="mt-4 border-t border-dashed border-ink/10 pt-3 text-xs text-ink-2">
-                Current plan: <span className="font-bold text-ink">{PLANS[db.plan].name}</span> — you pay only the difference, and you're upgraded the moment payment clears.
+                Current plan: <span className="font-medium text-ink">{PLANS[db.plan].name}</span> — you pay only the difference, and you're upgraded the moment payment clears.
               </div>
             )}
           </div>
@@ -423,9 +423,9 @@ export function CheckoutModal() {
                   this only points to them, opening a new tab so checkout isn't lost */}
               <p className="text-center text-[0.7rem] text-ink-mute">
                 Please read our{" "}
-                <a href="#/terms" target="_blank" rel="noreferrer" className="font-bold text-ink-2 underline underline-offset-2">Terms</a>
+                <a href="#/terms" target="_blank" rel="noreferrer" className="font-medium text-ink-2 underline underline-offset-2">Terms</a>
                 {" "}and{" "}
-                <a href="#/refunds" target="_blank" rel="noreferrer" className="font-bold text-ink-2 underline underline-offset-2">Refund policy</a>
+                <a href="#/refunds" target="_blank" rel="noreferrer" className="font-medium text-ink-2 underline underline-offset-2">Refund policy</a>
                 {" "}before you pay.
               </p>
             </div>
@@ -434,13 +434,13 @@ export function CheckoutModal() {
           {step === "starting" && (
             <div className="mt-8 flex flex-col items-center gap-3 py-4 text-ink-2">
               <Loader2 size={26} className="animate-spin text-gold-deep" />
-              <p className="text-sm font-semibold">Opening Stripe Checkout…</p>
+              <p className="text-sm font-medium">Opening Stripe Checkout…</p>
             </div>
           )}
 
           {step === "error" && (
             <div className="mt-6 rounded-2xl border border-blush-deep/40 bg-blush-soft/60 p-5">
-              <p className="text-[0.88rem] font-extrabold text-blush-deep">We couldn't start checkout.</p>
+              <p className="text-[0.88rem] font-medium text-blush-deep">We couldn't start checkout.</p>
               <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink-2">{errMsg}</p>
               <div className="mt-4 flex gap-2">
                 <button className={`${btn.ink} flex-1`} onClick={() => void startPayment()}>Try again</button>
@@ -713,11 +713,11 @@ function OnboardingForm({
             {[20, 55, 82].map((left, i) => (
               <span key={left} className="inv-petal" style={{ left: `${left}%`, animationDuration: `${11 + i * 2}s`, animationDelay: `${i * 1.6}s` }} aria-hidden="true" />
             ))}
-            <p className="relative text-[0.62rem] font-extrabold uppercase tracking-[0.3em] text-gold">{t("onboard.welcome")}</p>
+            <p className="relative text-[0.62rem] font-medium uppercase tracking-[0.3em] text-gold">{t("onboard.welcome")}</p>
             <h2 className="relative mt-3 font-display text-[2rem] leading-tight">
               {t("onboard.title")}
             </h2>
-            <p className="relative mt-2 text-[0.84rem] font-semibold text-cream/60">
+            <p className="relative mt-2 text-[0.84rem] font-medium text-cream/60">
               {t("onboard.subtitle")}
             </p>
           </div>
@@ -745,7 +745,7 @@ function OnboardingForm({
                   {[...new Set(LOCALES.map((l) => l.currency))].map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
                 {(sampleDate || sampleMoney) && (
-                  <p className="flex min-w-0 flex-1 flex-col justify-center text-[0.72rem] font-bold text-ink-mute" aria-live="polite">
+                  <p className="flex min-w-0 flex-1 flex-col justify-center text-[0.72rem] font-medium text-ink-mute" aria-live="polite">
                     {sampleDate && <span className="truncate">{sampleDate}</span>}
                     {sampleMoney && <span>{sampleMoney} · {t("onboard.currency")}</span>}
                   </p>
@@ -753,14 +753,14 @@ function OnboardingForm({
               </div>
             </Field>
             {error && (
-              <p className="rounded-xl border border-blush-deep/40 bg-blush-soft/70 px-4 py-3 text-[0.82rem] font-bold text-blush-deep" role="alert">
+              <p className="rounded-xl border border-blush-deep/40 bg-blush-soft/70 px-4 py-3 text-[0.82rem] font-medium text-blush-deep" role="alert">
                 {error}
               </p>
             )}
-            <button type="submit" disabled={busy} className="btn3d btn3d-gold w-full rounded-2xl py-4 text-[0.95rem] font-extrabold disabled:pointer-events-none disabled:opacity-60 cursor-pointer">
+            <button type="submit" disabled={busy} className="btn3d btn3d-gold w-full rounded-2xl py-4 text-[0.95rem] font-medium disabled:pointer-events-none disabled:opacity-60 cursor-pointer">
               {busy ? <Loader2 size={17} className="mx-auto animate-spin" /> : `${t("onboard.submit")} →`}
             </button>
-            <p className="text-center text-[0.68rem] font-semibold text-ink-mute">
+            <p className="text-center text-[0.68rem] font-medium text-ink-mute">
               {t("onboard.essential")}
             </p>
           </form>
@@ -892,7 +892,7 @@ export class ErrorBoundary extends React.Component<BoundaryProps, BoundaryState>
         ))}
 
         <div className="relative w-full max-w-lg text-center">
-          <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.3em] text-gold-deep">An unexpected snag</p>
+          <p className="text-[0.66rem] font-medium uppercase tracking-[0.3em] text-gold-deep">An unexpected snag</p>
           <h1 className="mt-4 font-display text-4xl leading-[1.08] tracking-tight text-ink sm:text-5xl">
             The plan hiccuped.
             <span className="mt-1 block italic text-blush-deep">The feeling didn't.</span>
@@ -906,21 +906,21 @@ export class ErrorBoundary extends React.Component<BoundaryProps, BoundaryState>
           <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
             <button
               onClick={() => window.location.reload()}
-              className="inline-flex items-center gap-2.5 rounded-full bg-ink px-8 py-4 text-[0.92rem] font-bold text-cream shadow-lift transition-all duration-300 hover:bg-ink/85 hover:shadow-glass active:scale-[0.97] cursor-pointer"
+              className="inline-flex items-center gap-2.5 rounded-full bg-ink px-8 py-4 text-[0.92rem] font-medium text-cream shadow-lift transition-all duration-300 hover:bg-ink/85 hover:shadow-glass active:scale-[0.97] cursor-pointer"
             >
               <RefreshCw size={16} /> Reload the planner
             </button>
             <a
               href="#/"
               onClick={() => { this.setState({ error: null }); }}
-              className="group inline-flex items-center gap-2 rounded-full border border-ink/20 bg-white/50 px-7 py-4 text-[0.92rem] font-bold text-ink transition-all duration-300 hover:border-ink/45 hover:bg-white/80"
+              className="group inline-flex items-center gap-2 rounded-full border border-ink/20 bg-white/50 px-7 py-4 text-[0.92rem] font-medium text-ink transition-all duration-300 hover:border-ink/45 hover:bg-white/80"
             >
               Back to the beginning
               <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
             </a>
           </div>
 
-          <p className="mt-8 text-[0.7rem] font-semibold text-ink-mute">
+          <p className="mt-8 text-[0.7rem] font-medium text-ink-mute">
             If this keeps happening, write to <a href={`mailto:${SUPPORT_EMAIL}`} className="text-gold-deep underline underline-offset-2">{SUPPORT_EMAIL}</a> — we answer fast.
           </p>
         </div>

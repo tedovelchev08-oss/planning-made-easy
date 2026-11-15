@@ -204,7 +204,7 @@ export default function Vendors() {
               </Field>
               <div className="flex items-end pb-1">
                 <button onClick={() => setEditing({ ...editing, contract: !editing.contract })}
-                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-[0.8rem] font-bold transition cursor-pointer ${editing.contract ? "border-sage/60 bg-sage-soft text-sage-deep" : "border-ink/15 text-ink-2"}`}>
+                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-[0.8rem] font-medium transition cursor-pointer ${editing.contract ? "border-sage/60 bg-sage-soft text-sage-deep" : "border-ink/15 text-ink-2"}`}>
                   <FileText size={13} /> {editing.contract ? "Contract signed" : "Mark contract signed"}
                 </button>
               </div>
@@ -216,7 +216,7 @@ export default function Vendors() {
                   </select>
                 </Field>
                 {editing.status === "Booked" && !editing.budgetId && (
-                  <p className="mt-2 text-[0.72rem] font-semibold text-gold-deep">Booked without a category — this commitment won't show in Budget until you link one.</p>
+                  <p className="mt-2 text-[0.72rem] font-medium text-gold-deep">Booked without a category — this commitment won't show in Budget until you link one.</p>
                 )}
               </div>
 
@@ -226,13 +226,13 @@ export default function Vendors() {
                   <span className="mb-1.5 block text-[0.85rem] font-medium text-ink-2">Payment schedule</span>
                   <button
                     onClick={() => setEditing({ ...editing, payments: [...editing.payments, { label: editing.payments.length === 0 ? "Deposit" : `Payment ${editing.payments.length + 1}`, amount: 0, due: toDayKey(new Date().toISOString()), paid: false }] })}
-                    className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1.5 text-[0.7rem] font-extrabold text-ink-2 transition hover:border-gold hover:text-gold-deep cursor-pointer"
+                    className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1.5 text-[0.7rem] font-medium text-ink-2 transition hover:border-gold hover:text-gold-deep cursor-pointer"
                   >
                     <Plus size={11} /> Add payment
                   </button>
                 </div>
                 {editing.payments.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-ink/15 px-4 py-4 text-center text-[0.78rem] font-semibold text-ink-mute">
+                  <p className="rounded-xl border border-dashed border-ink/15 px-4 py-4 text-center text-[0.78rem] font-medium text-ink-mute">
                     No schedule yet — add the deposit and balances so Budget knows what's paid.
                   </p>
                 ) : (
@@ -264,7 +264,7 @@ export default function Vendors() {
                         </div>
                       );
                     })}
-                    <p className="text-[0.7rem] font-semibold text-ink-mute">
+                    <p className="text-[0.7rem] font-medium text-ink-mute">
                       {fmtMoney(editing.payments.filter((p) => p.paid).reduce((s, p) => s + p.amount, 0))} paid of {fmtMoney(editing.payments.reduce((s, p) => s + p.amount, 0))} scheduled
                       {editing.payments.reduce((s, p) => s + p.amount, 0) !== editing.price && editing.payments.length > 0 && (
                         <span className="text-gold-deep"> · price is {fmtMoney(editing.price)}</span>
@@ -280,7 +280,7 @@ export default function Vendors() {
             </div>
             <div className="mt-7 flex justify-between">
               {!isNew ? (
-                <button onClick={() => { setDb((d) => ({ ...d, vendors: d.vendors.filter((x) => x.id !== editing.id) })); toast(`${editing.company} removed`, undefined, "info"); setEditing(null); }} className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[0.8rem] font-bold text-blush-deep transition hover:bg-blush-soft cursor-pointer">
+                <button onClick={() => { setDb((d) => ({ ...d, vendors: d.vendors.filter((x) => x.id !== editing.id) })); toast(`${editing.company} removed`, undefined, "info"); setEditing(null); }} className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[0.8rem] font-medium text-blush-deep transition hover:bg-blush-soft cursor-pointer">
                   <X size={13} /> Remove
                 </button>
               ) : <span />}

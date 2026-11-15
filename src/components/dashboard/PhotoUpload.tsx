@@ -69,16 +69,16 @@ export function PhotoUpload({ photo, onChange, compact = false, label = "your in
       )}
       <span className="flex flex-1 flex-col items-start gap-1.5">
         <button type="button" disabled={busy} aria-busy={busy} onClick={() => fileRef.current?.click()}
-          className="inline-flex items-center gap-2 rounded-full border border-ink/20 px-4 py-2 text-[0.8rem] font-bold text-ink transition hover:border-ink/50 disabled:cursor-wait cursor-pointer">
+          className="inline-flex items-center gap-2 rounded-full border border-ink/20 px-4 py-2 text-[0.8rem] font-medium text-ink transition hover:border-ink/50 disabled:cursor-wait cursor-pointer">
           {busy ? <Loader2 size={14} className="animate-spin" /> : <ImagePlus size={14} />}
           {busy ? "Uploading…" : own ? "Replace your photo" : "Upload your photo"}
         </button>
         {own && !busy && (
-          <button type="button" onClick={remove} className="text-[0.72rem] font-bold text-ink-mute transition hover:text-blush-deep cursor-pointer">
+          <button type="button" onClick={remove} className="text-[0.72rem] font-medium text-ink-mute transition hover:text-blush-deep cursor-pointer">
             Remove it
           </button>
         )}
-        {!own && !compact && <span className="text-[0.68rem] font-semibold text-ink-mute">JPEG, PNG, WebP or HEIC. We resize it and remove where it was taken.</span>}
+        {!own && !compact && <span className="text-[0.68rem] font-medium text-ink-mute">JPEG, PNG, WebP or HEIC. We resize it and remove where it was taken.</span>}
       </span>
       <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" className="hidden" aria-label={`Upload ${label}`}
         onChange={(e) => { const f = e.target.files?.[0]; if (f) void pick(f); e.target.value = ""; }} />

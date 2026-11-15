@@ -207,7 +207,7 @@ export default function Shell() {
             <p><strong className="text-ink">If you joined as a partner</strong>, only your access is removed; the wedding stays with whoever created it.</p>
             <p>Want a copy first? <strong className="text-ink">Export my data</strong> downloads everything.</p>
           </div>
-          <label className="mt-5 block text-[0.8rem] font-bold text-ink-2" htmlFor="delete-confirm">
+          <label className="mt-5 block text-[0.8rem] font-medium text-ink-2" htmlFor="delete-confirm">
             Type <strong className="text-ink">{user?.email ?? "your email"}</strong> to confirm
           </label>
           <input
@@ -216,7 +216,7 @@ export default function Shell() {
             className="mt-2 w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-[0.9rem] text-ink outline-none focus:border-blush-deep"
           />
           {deleteError && (
-            <p className="mt-3 rounded-xl border border-blush-deep/40 bg-blush-soft/70 px-4 py-3 text-[0.82rem] font-bold text-blush-deep" role="alert">{deleteError}</p>
+            <p className="mt-3 rounded-xl border border-blush-deep/40 bg-blush-soft/70 px-4 py-3 text-[0.82rem] font-medium text-blush-deep" role="alert">{deleteError}</p>
           )}
           <div className="mt-6 flex flex-wrap justify-end gap-3">
             <button type="button" onClick={() => { downloadExport(db, user, weddingId); toast("Your data is downloading", "Everything in your planner, as one JSON file."); }} className={btn.outline}>
@@ -227,7 +227,7 @@ export default function Shell() {
             </button>
           </div>
           <p className="mt-4 text-right text-[0.74rem] text-ink-mute">
-            Trouble? Email <a href={`mailto:${SUPPORT_EMAIL}`} className="font-bold underline underline-offset-2">{SUPPORT_EMAIL}</a>.
+            Trouble? Email <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium underline underline-offset-2">{SUPPORT_EMAIL}</a>.
           </p>
         </form>
       </Modal>
@@ -320,8 +320,8 @@ export default function Shell() {
                       role="menu" aria-label="Account"
                     >
                       <div className="px-4 py-4">
-                        <p className="text-[0.92rem] font-extrabold text-ink">{user?.name ?? (mode === "demo" ? "Maya & Theo" : "Not signed in")}</p>
-                        <p className="mt-0.5 truncate text-[0.72rem] font-semibold text-ink-mute">{user?.email ?? (mode === "demo" ? "demo couple session" : "Sign in to sync your plan")}</p>
+                        <p className="text-[0.92rem] font-medium text-ink">{user?.name ?? (mode === "demo" ? "Maya & Theo" : "Not signed in")}</p>
+                        <p className="mt-0.5 truncate text-[0.72rem] font-medium text-ink-mute">{user?.email ?? (mode === "demo" ? "demo couple session" : "Sign in to sync your plan")}</p>
                         <span className="mt-2.5 inline-block"><Pill tone="gold">{planLabel(db.plan)}</Pill></span>
                       </div>
 
@@ -329,7 +329,7 @@ export default function Shell() {
                         <div className="border-t border-ink/8 px-4 py-3.5">
                           <p className="text-[13px] font-medium text-ink-2">Invite your partner</p>
                           {invited ? (
-                            <p className="mt-2 flex items-start gap-1.5 text-[0.76rem] font-bold leading-snug text-sage-deep">
+                            <p className="mt-2 flex items-start gap-1.5 text-[0.76rem] font-medium leading-snug text-sage-deep">
                               <Check size={13} className="mt-0.5 shrink-0" /> Invite sent — when they sign up with this email, your plan becomes theirs too.
                             </p>
                           ) : (
@@ -343,7 +343,7 @@ export default function Shell() {
                               />
                               <button
                                 type="submit" disabled={inviteBusy}
-                                className="shrink-0 rounded-full bg-ink px-3.5 py-2 text-[0.72rem] font-bold text-cream transition hover:bg-ink/85 disabled:opacity-50 cursor-pointer"
+                                className="shrink-0 rounded-full bg-ink px-3.5 py-2 text-[0.72rem] font-medium text-cream transition hover:bg-ink/85 disabled:opacity-50 cursor-pointer"
                               >
                                 {inviteBusy ? "…" : "Invite"}
                               </button>
@@ -361,14 +361,14 @@ export default function Shell() {
                                 downloadExport(db, user, weddingId);
                                 toast("Your data is downloading", "Everything in your planner, as one JSON file.");
                               }}
-                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.84rem] font-bold text-ink transition hover:bg-ink/5 cursor-pointer"
+                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.84rem] font-medium text-ink transition hover:bg-ink/5 cursor-pointer"
                               role="menuitem"
                             >
                               <Download size={15} /> Export my data
                             </button>
                             <button
                               onClick={() => { setAccountOpen(false); setDeleteConfirm(""); setDeleteError(null); setDeleteInfo(true); }}
-                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.84rem] font-bold text-ink transition hover:bg-ink/5 cursor-pointer"
+                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.84rem] font-medium text-ink transition hover:bg-ink/5 cursor-pointer"
                               role="menuitem"
                             >
                               <Trash2 size={15} /> Delete my account
@@ -377,7 +377,7 @@ export default function Shell() {
                         )}
                         <button
                           onClick={() => { setAccountOpen(false); void leave("Your plan is saved — see you soon."); }}
-                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.84rem] font-bold text-ink transition hover:bg-blush-soft hover:text-blush-deep cursor-pointer"
+                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.84rem] font-medium text-ink transition hover:bg-blush-soft hover:text-blush-deep cursor-pointer"
                           role="menuitem"
                         >
                           <LogOut size={15} /> {leaveLabel}

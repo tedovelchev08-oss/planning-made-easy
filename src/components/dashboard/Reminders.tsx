@@ -28,13 +28,13 @@ function NudgeRow({ n, onGo, onHide }: { n: Nudge; onGo: () => void; onHide: () 
     <li className="flex gap-3 px-4 py-3.5">
       <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${TONE[n.tone].ring}`} aria-hidden="true">{TONE[n.tone].icon}</span>
       <div className="min-w-0 flex-1">
-        <p className="text-[0.88rem] font-bold leading-snug text-ink">{n.title}</p>
+        <p className="text-[0.88rem] font-medium leading-snug text-ink">{n.title}</p>
         <p className="mt-0.5 text-[0.8rem] leading-snug text-ink-2">{n.body}</p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           {n.action && (
-            <button onClick={onGo} className="text-[0.78rem] font-bold text-ink underline underline-offset-4 cursor-pointer">{n.action.label}</button>
+            <button onClick={onGo} className="text-[0.78rem] font-medium text-ink underline underline-offset-4 cursor-pointer">{n.action.label}</button>
           )}
-          <button onClick={onHide} className="text-[0.78rem] font-semibold text-ink-mute transition hover:text-ink cursor-pointer">
+          <button onClick={onHide} className="text-[0.78rem] font-medium text-ink-mute transition hover:text-ink cursor-pointer">
             {n.once ? "Dismiss" : "Hide for today"}
           </button>
         </div>
@@ -112,7 +112,7 @@ export default function Reminders() {
               className="absolute right-0 top-12 z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-ink/10 bg-cream shadow-glass"
             >
               <div className="flex items-center justify-between border-b border-ink/8 px-4 py-3">
-                <p className="text-[0.86rem] font-extrabold text-ink">Reminders</p>
+                <p className="text-[0.86rem] font-medium text-ink">Reminders</p>
                 <button onClick={() => setOpen(false)} aria-label="Close" className="rounded-full p-1 text-ink-mute hover:text-ink cursor-pointer"><X size={15} /></button>
               </div>
               {shown.length ? (
@@ -137,7 +137,7 @@ export default function Reminders() {
           >
             <ul><NudgeRow n={popup} onGo={() => go(popup)} onHide={() => hide(popup)} /></ul>
             {shown.length > 1 && (
-              <button onClick={() => { setPopup(null); setOpen(true); }} className="w-full border-t border-ink/8 px-4 py-2.5 text-left text-[0.78rem] font-bold text-ink-2 hover:text-ink cursor-pointer">
+              <button onClick={() => { setPopup(null); setOpen(true); }} className="w-full border-t border-ink/8 px-4 py-2.5 text-left text-[0.78rem] font-medium text-ink-2 hover:text-ink cursor-pointer">
                 See all {shown.length} reminders
               </button>
             )}

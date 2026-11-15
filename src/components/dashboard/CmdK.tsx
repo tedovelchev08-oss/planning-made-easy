@@ -159,12 +159,12 @@ export default function CmdK({ open, onClose }: { open: boolean; onClose: () => 
                 className="w-full bg-transparent text-[0.95rem] text-ink placeholder:text-ink-mute/70 focus:outline-none"
                 aria-label="Command palette search"
               />
-              <kbd className="hidden shrink-0 rounded-md border border-ink/15 px-1.5 py-0.5 text-[0.62rem] font-extrabold text-ink-mute sm:block">ESC</kbd>
+              <kbd className="hidden shrink-0 rounded-md border border-ink/15 px-1.5 py-0.5 text-[0.62rem] font-medium text-ink-mute sm:block">ESC</kbd>
             </div>
 
             <div ref={listRef} className="max-h-[52vh] overflow-y-auto p-2">
               {items.length === 0 && (
-                <p className="px-4 py-8 text-center text-[0.85rem] font-semibold text-ink-mute">
+                <p className="px-4 py-8 text-center text-[0.85rem] font-medium text-ink-mute">
                   Nothing matches “{q}” — try a guest, a vendor, or a task.
                 </p>
               )}
@@ -174,7 +174,7 @@ export default function CmdK({ open, onClose }: { open: boolean; onClose: () => 
                 return (
                   <React.Fragment key={it.id}>
                     {showGroup && (
-                      <p className="px-3 pb-1 pt-2.5 text-[0.6rem] font-extrabold uppercase tracking-[0.2em] text-ink-mute">{it.group}</p>
+                      <p className="px-3 pb-1 pt-2.5 text-[0.6rem] font-medium uppercase tracking-[0.2em] text-ink-mute">{it.group}</p>
                     )}
                     <button
                       data-idx={i}
@@ -184,8 +184,8 @@ export default function CmdK({ open, onClose }: { open: boolean; onClose: () => 
                     >
                       <span className={i === active ? "text-gold" : "text-gold-deep"}>{it.icon}</span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[0.88rem] font-bold">{it.label}</span>
-                        {it.hint && <span className={`block truncate text-[0.68rem] font-semibold ${i === active ? "text-cream/60" : "text-ink-mute"}`}>{it.hint}</span>}
+                        <span className="block truncate text-[0.88rem] font-medium">{it.label}</span>
+                        {it.hint && <span className={`block truncate text-[0.68rem] font-medium ${i === active ? "text-cream/60" : "text-ink-mute"}`}>{it.hint}</span>}
                       </span>
                       {i === active && <CornerDownLeft size={13} className="shrink-0 text-cream/60" />}
                     </button>
@@ -194,7 +194,7 @@ export default function CmdK({ open, onClose }: { open: boolean; onClose: () => 
               })}
             </div>
 
-            <div className="flex items-center gap-4 border-t border-ink/8 px-5 py-2.5 text-[0.62rem] font-extrabold uppercase tracking-[0.14em] text-ink-mute">
+            <div className="flex items-center gap-4 border-t border-ink/8 px-5 py-2.5 text-[0.62rem] font-medium uppercase tracking-[0.14em] text-ink-mute">
               <span>↑↓ navigate</span>
               <span>↵ open</span>
               <span className="ml-auto normal-case tracking-normal">esc to close</span>

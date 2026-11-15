@@ -25,7 +25,7 @@ export default function NotFound() {
         <Link to="/" aria-label="Twofold home"><Logo /></Link>
         <Link
           to="/planner"
-          className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-white/60 px-5 py-2.5 text-[0.8rem] font-bold text-ink backdrop-blur transition hover:border-ink/45"
+          className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-white/60 px-5 py-2.5 text-[0.8rem] font-medium text-ink backdrop-blur transition hover:border-ink/45"
         >
           <HeartHandshake size={14} className="text-blush-deep" /> Open planner
         </Link>
@@ -36,7 +36,7 @@ export default function NotFound() {
           initial={reduced ? false : { opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="text-[0.66rem] font-extrabold uppercase tracking-[0.32em] text-gold-deep"
+          className="text-[0.66rem] font-medium uppercase tracking-[0.32em] text-gold-deep"
         >
           Off the seating chart
         </motion.p>
@@ -74,21 +74,21 @@ export default function NotFound() {
         >
           <Link
             to="/"
-            className="group inline-flex items-center gap-2.5 rounded-full bg-ink px-8 py-4 text-[0.92rem] font-bold text-cream shadow-lift transition-all duration-300 hover:bg-ink/85 active:scale-[0.97]"
+            className="group inline-flex items-center gap-2.5 rounded-full bg-ink px-8 py-4 text-[0.92rem] font-medium text-cream shadow-lift transition-all duration-300 hover:bg-ink/85 active:scale-[0.97]"
           >
             Back to Twofold
             <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
           <Link
             to="/planner"
-            className="inline-flex items-center gap-2 rounded-full border border-ink/20 bg-white/50 px-7 py-4 text-[0.92rem] font-bold text-ink backdrop-blur transition-all duration-300 hover:border-ink/45 hover:bg-white/80"
+            className="inline-flex items-center gap-2 rounded-full border border-ink/20 bg-white/50 px-7 py-4 text-[0.92rem] font-medium text-ink backdrop-blur transition-all duration-300 hover:border-ink/45 hover:bg-white/80"
           >
             <Compass size={16} className="text-sage-deep" /> Into the planner
           </Link>
         </motion.div>
       </main>
 
-      <p className="pb-8 text-center text-[0.66rem] font-bold uppercase tracking-[0.3em] text-ink-mute/60">
+      <p className="pb-8 text-center text-[0.66rem] font-medium uppercase tracking-[0.3em] text-ink-mute/60">
         twofold · two of you, one plan
       </p>
     </div>

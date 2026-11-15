@@ -35,7 +35,7 @@ export default function LegalPage({ doc }: { doc: LegalDoc }) {
       <div className="mx-auto max-w-2xl">
         <Link to="/" aria-label="Back to Twofold home"><Logo /></Link>
         <main className="mt-12">{renderMarkdown(source)}</main>
-        <nav aria-label="Legal" className="mt-16 flex flex-wrap gap-x-6 gap-y-2 border-t border-ink/10 pt-6 text-small font-bold text-ink-2">
+        <nav aria-label="Legal" className="mt-16 flex flex-wrap gap-x-6 gap-y-2 border-t border-ink/10 pt-6 text-small font-medium text-ink-2">
           {(Object.keys(LEGAL) as LegalDoc[]).filter((d) => d !== doc).map((d) => (
             <Link key={d} to={`/${d}`} className="hover:text-ink">{LEGAL[d].title}</Link>
           ))}

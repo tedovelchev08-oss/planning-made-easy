@@ -54,13 +54,13 @@ export default function CookieNotice() {
             ${inPlanner ? "bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:bottom-5" : "bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:bottom-5"}`}
         >
           <p className="text-[0.88rem] leading-relaxed text-ink-2">
-            <strong className="font-bold text-ink">No tracking here.</strong> Twofold doesn't use cookies. It only keeps what it needs on your
+            <strong className="font-medium text-ink">No tracking here.</strong> Twofold doesn't use cookies. It only keeps what it needs on your
             device, like your sign-in and your planner, so it works.{" "}
-            <Link to="/cookies" className="font-bold text-ink underline underline-offset-2">Cookie policy</Link>
+            <Link to="/cookies" className="font-medium text-ink underline underline-offset-2">Cookie policy</Link>
           </p>
           <button
             type="button" onClick={dismiss}
-            className="mt-4 w-full rounded-xl bg-ink py-2.5 text-[0.86rem] font-bold text-cream transition hover:bg-ink/90 cursor-pointer"
+            className="mt-4 w-full rounded-xl bg-ink py-2.5 text-[0.86rem] font-medium text-cream transition hover:bg-ink/90 cursor-pointer"
           >
             Got it
           </button>
